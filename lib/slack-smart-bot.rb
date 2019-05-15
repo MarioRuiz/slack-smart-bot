@@ -453,6 +453,7 @@ class SlackSmartBot
       help_message_rules = IO.readlines(RULES_FILE).join
       respond help_message.scan(/#\s*help\s*:(.*)/).join("\n"), id_user
       respond help_message_rules.scan(/#\s*help\s*:(.*)/).join("\n"), id_user
+      respond "https://github.com/MarioRuiz/slack-smart-bot"
     else
       processed = false
     end

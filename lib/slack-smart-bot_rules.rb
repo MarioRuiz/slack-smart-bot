@@ -21,7 +21,7 @@ end
 # command: command to run
 # processed: in case the command has been already processed on Bot class, by default false
 # help:
-# help: *These are specific commands on this bot.*
+# help: *These are specific commands for this bot on this Channel.*
 # help:     They will be accessible only when the bot is listening to you just writing the command
 # help:     or the bot is not listening to you but requested on demand, for example:
 # help:       `!THE_COMMAND`
@@ -44,13 +44,13 @@ def rules(from, command, processed, id_user)
   # help: `echo SOMETHING`
   # help:     repeats SOMETHING
   # help:
-  when /echo\s(.+)/i
+  when /^echo\s(.+)/i
     respond $1, id_user
 
     # help: `go to sleep`
     # help:   it will sleep the bot for 10 seconds
     # help:
-  when /go\sto\ssleep/i
+  when /^go\sto\ssleep/i
     unless @questions.keys.include?(from)
       ask("do you want me to take a siesta?", command, from, id_user)
     else

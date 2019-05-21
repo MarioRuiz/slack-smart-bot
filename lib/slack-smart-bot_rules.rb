@@ -29,7 +29,8 @@ end
 # help:       `@NAME_OF_BOT THE_COMMAND`
 # help:       `NAME_OF_BOT THE_COMMAND`
 # help:
-def rules(from, command, processed, id_user)
+def rules(user, command, processed, id_user)
+  from = user.name
   if @testing
     puts "#{from}: #{command}"
     if @questions.keys.include?(from)

@@ -52,6 +52,7 @@ class SlackSmartBot
     @bots_created = Hash.new()
     @shortcuts = Hash.new()
     @shortcuts[:all] = Hash.new()
+    @rules_imported = Hash.new()
 
     if File.exist?("./shortcuts/#{SHORTCUTS_FILE}")
       file_sc = IO.readlines("./shortcuts/#{SHORTCUTS_FILE}").join
@@ -76,6 +77,13 @@ class SlackSmartBot
       end
     end
 
+    # rules imported only for private channels
+    if ON_MASTER_BOT and File.exist?('./rules/rules_imported.rb')
+      file_conf = IO.readlines('./rules/rules_imported.rb').join
+      unless file_conf.to_s() == ""
+        @rules_imported = eval(file_conf)
+      end
+    end
     wclient.auth_test
 
     begin
@@ -90,7 +98,7 @@ class SlackSmartBot
       m = "Successfully connected, welcome '#{client.self.name}' to the '#{client.team.name}' team at https://#{client.team.domain}.slack.com."
       puts m
       @logger.info m
-      respond "Smart Bot started\nIf you want to know what I can do for you: *`bot help`*\nYou can send me also a direct message."
+      respond "Smart Bot started\nIf you want to know what I can do for you: `bot help` or `bot specific help`\nYou can send me also a direct message."
     end
 
     @status = STATUS_INIT
@@ -115,6 +123,13 @@ class SlackSmartBot
     file.close
   end
 
+  def update_rules_imported
+    file = File.open("./rules/rules_imported.rb", "w")
+    file.write @rules_imported.inspect
+    file.close
+  end
+
+
   def get_channels_name_and_id
     channels = wclient.channels_list.channels
     @channels_id = Hash.new()
@@ -137,10 +152,15 @@ class SlackSmartBot
       end
       # Direct messages are treated only on the master bot
       if id_user.nil? or (!id_user.nil? and ON_MASTER_BOT)
-        user_info = wclient.users_info(user: data.user)
-        if !id_user.nil? or @channels_id[CHANNEL] == data.channel or user_info.user.name == config[:nick]
-          res = process_first(user_info.user.name, data.text, id_user)
-          next if res.to_s == "next"
+        #todo: sometimes data.user is nil, check the problem.
+        if data.user.nil?
+          @logger.fatal "user is nil. channel: #{data.channel}, message: #{data.text}"
+        else
+          user_info = wclient.users_info(user: data.user)
+          if !id_user.nil? or @channels_id[CHANNEL] == data.channel or user_info.user.name == config[:nick]
+            res = process_first(user_info.user, data.text, id_user, data.channel)
+            next if res.to_s == "next"
+          end
         end
       end
     end
@@ -149,7 +169,8 @@ class SlackSmartBot
     client.start!
   end
 
-  def process_first(nick, text, id_user)
+  def process_first(user, text, id_user, dchannel)
+    nick = user.name
     #todo: verify if on slack on anytime nick == config[:nick]
     if nick == config[:nick] or nick == (config[:nick] + " · Bot") #if message is coming from the bot
       begin
@@ -198,7 +219,7 @@ class SlackSmartBot
     begin
       t = Thread.new do
         begin
-          processed = process(nick, command, id_user)
+          processed = process(user, command, id_user, dchannel)
           @logger.info "command: #{nick}> #{command}" if processed
           if @status == :on and
              ((@questions.keys.include?(nick) or
@@ -210,21 +231,63 @@ class SlackSmartBot
             @logger.info "command: #{nick}> #{command}" unless processed
             #todo: verify this
             if id_user.nil? #only for channels, not for DM
+              rules_file = RULES_FILE
+              if @rules_imported.key?(user.id) and @rules_imported[user.id].key?(dchannel)
+                unless @bots_created.key?(@rules_imported[user.id][dchannel])
+                  file_conf = IO.readlines($0.gsub(".rb", "_bots.rb")).join
+                  unless file_conf.to_s() == ""
+                    @bots_created = eval(file_conf)
+                  end
+                end
+                if @bots_created.key?(@rules_imported[user.id][dchannel])
+                  rules_file = @bots_created[@rules_imported[user.id][dchannel]][:rules_file]
+                end
+              end
+              @logger.info "rules file: #{rules_file}"
               begin
-                eval(File.new(RULES_FILE).read) if File.exist?(RULES_FILE)
+                eval(File.new(rules_file).read) if File.exist?(rules_file)
               rescue Exception => stack
-                @logger.fatal "ERROR ON RULES FILE: #{RULES_FILE}"
+                @logger.fatal "ERROR ON RULES FILE: #{rules_file}"
                 @logger.fatal stack
               end
               if defined?(rules)
                 command[0] = "" if command[0] == "!"
                 command.gsub!(/^@\w+:*\s*/, "")
-                rules(nick, command, processed, id_user)
+                rules(user, command, processed, id_user)
               else
                 @logger.warn "It seems like rules method is not defined"
               end
-            else
-              @logger.info "it is a direct message so no rules file executed."
+            elsif @rules_imported.key?(user.id) and @rules_imported[user.id].key?(user.id)
+              unless @bots_created.key?(@rules_imported[user.id][user.id])
+                file_conf = IO.readlines($0.gsub(".rb", "_bots.rb")).join
+                unless file_conf.to_s() == ""
+                  @bots_created = eval(file_conf)
+                end
+              end
+
+              if @bots_created.key?(@rules_imported[user.id][user.id])
+                rules_file = @bots_created[@rules_imported[user.id][user.id]][:rules_file]
+                begin
+                  eval(File.new(rules_file).read) if File.exist?(rules_file)
+                rescue Exception => stack
+                  @logger.fatal "ERROR ON imported RULES FILE: #{rules_file}"
+                  @logger.fatal stack
+                end
+              end
+
+              if defined?(rules)
+                command[0] = "" if command[0] == "!"
+                command.gsub!(/^@\w+:*\s*/, "")
+                rules(user, command, processed, id_user)
+              else
+                @logger.warn "It seems like rules method is not defined"
+              end
+            else #jal9
+              @logger.info "it is a direct message with no rules file selected so no rules file executed."
+              unless processed
+                resp = %w{ what huh sorry }.sample
+                respond "#{resp}?", id_user
+              end
             end
           end
         rescue Exception => stack
@@ -239,7 +302,8 @@ class SlackSmartBot
   #help:
   #help: *General commands:*:
   #help:
-  def process(from, command, id_user)
+  def process(user, command, id_user, dchannel)
+    from = user.name
     firstname = from.split(/ /).first
     processed = true
 
@@ -255,6 +319,11 @@ class SlackSmartBot
       if @status == :on
         greetings = ["Hello", "Hallo", "Hi", "Hola", "What's up", "Hey", "Hæ"].sample
         respond "#{greetings} #{firstname}", id_user
+        if @rules_imported.key?(user.id) and @rules_imported[user.id].key?(user.id) and !id_user.nil?
+          respond "You are using specific rules for channel: <##{@rules_imported[user.id][user.id]}>", id_user
+        elsif @rules_imported.key?(user.id) and @rules_imported[user.id].key?(dchannel) and id_user.nil?
+          respond "You are using specific rules for channel: <##{@rules_imported[user.id][dchannel]}>", id_user
+        end
         @listening << from unless @listening.include?(from)
       end
 
@@ -307,7 +376,7 @@ class SlackSmartBot
           respond "Only admin users can kill me", id_user
         end
       else
-        respond "To do this you need to be an admin user in the master channel", id_user
+        respond "To do this you need to be an admin user in the master channel: <##{@channels_id[MASTER_CHANNEL]}>", id_user
       end
 
       #helpadmin: `start bot`
@@ -364,7 +433,7 @@ class SlackSmartBot
       #helpmaster:    creates a new bot on the channel specified
       #helpmaster:    it will work only if you are on Master channel
       #helpmaster:
-    when /^create\sbot\son\s<#C\w+\|(.+)>\s*/i, /^create\sbot\son\s(.+)\s*/i#jal9
+    when /^create\sbot\son\s<#C\w+\|(.+)>\s*/i, /^create\sbot\son\s(.+)\s*/i #jal9
       if ON_MASTER_BOT
         channel = $1
 
@@ -376,12 +445,17 @@ class SlackSmartBot
         elsif @channels_id.key?(channel) #it is a channel name
           channel_id = @channels_id[channel]
         end
+        channels = wclient.channels_list.channels
+        channel_found = channels.detect { |c| c.name == channel }
+  
         if channel_id.nil?
           respond "There is no channel with that name: #{channel}, please be sure is written exactly the same", id_user
         elsif channel == MASTER_CHANNEL
           respond "There is already a bot in this channel: #{channel}", id_user
         elsif @bots_created.keys.include?(channel_id) #jal9
           respond "There is already a bot in this channel: #{channel}, kill it before", id_user
+        elsif config[:nick_id] != channel_found.creator and !channel_found.members.include?(config[:nick_id])
+          respond "You need to add first to the channel the smart bot user: #{config[:nick]}, kill it before", id_user
         else
           if channel_id != config[:channel]
             begin
@@ -424,17 +498,18 @@ class SlackSmartBot
           else
             respond "There is already a bot in this channel: #{channel}, and it is the Master Channel!", id_user
           end
-
         end
       else
-        respond "Sorry I cannot create bots from this channel, please visit the master channel", id_user
+        @logger.info MASTER_CHANNEL
+        @logger.info @channel_id.inspect
+        respond "Sorry I cannot create bots from this channel, please visit the master channel: <##{@channels_id[MASTER_CHANNEL]}>", id_user
       end
 
       #helpmaster: `kill bot on CHANNEL_NAME`
       #helpmaster:    kills the bot on the specified channel
       #helpmaster:    Only works if you are on Master channel and you created that bot or you are an admin user
       #helpmaster:
-    when /^kill\sbot\son\s<#C\w+\|(.+)>\s*/i,/^kill\sbot\son\s(.+)\s*/i
+    when /^kill\sbot\son\s<#C\w+\|(.+)>\s*/i, /^kill\sbot\son\s(.+)\s*/i
       if ON_MASTER_BOT
         channel = $1
 
@@ -464,27 +539,128 @@ class SlackSmartBot
           respond "There is no bot in this channel: #{channel}", id_user
         end
       else
-        respond "Sorry I cannot kill bots from this channel, please visit the master channel", id_user
+        respond "Sorry I cannot kill bots from this channel, please visit the master channel: <##{@channels_id[MASTER_CHANNEL]}>", id_user
       end
+
+      #help: `use rules from CHANNEL`
+      #help: `use rules CHANNEL`
+      #help:    it will use the rules from the specified channel.
+      #help:    you need to be part of that channel to be able to use the rules.
+      #help:
+    when /^use rules (from\s+)?<#C\w+\|(.+)>/i, /^use rules (from\s+)?(.+)/i
+      channel = $2
+      channels = wclient.channels_list.channels
+      channel_found = channels.detect { |c| c.name == channel }
+      if channel_found.nil?
+        respond "The channel you are trying to use doesn't exist", id_user
+      elsif channel_found.name == MASTER_CHANNEL
+        respond "You cannot use the rules from Master Channel on any other channel.", id_user
+      else
+        if user.id == channel_found.creator or channel_found.members.include?(user.id)
+          @rules_imported[user.id] = {} unless @rules_imported.key?(user.id)
+          if id_user.nil? #todo: take in consideration bots that are not master
+            @rules_imported[user.id][dchannel] = channel_found.id
+          else
+            @rules_imported[user.id][user.id] = channel_found.id
+          end
+          update_rules_imported() if ON_MASTER_BOT
+          respond "I'm using now the rules from <##{channel_found.id}>", id_user
+        else
+          respond "You need to join the channel <##{channel_found.id}> to be able to use the rules.", id_user
+        end
+      end
+
+      #help: `stop using rules from CHANNEL`
+      #help: `stop using rules CHANNEL`
+      #help:    it will stop using the rules from the specified channel.
+      #help:
+    when /^stop using rules (from\s+)?<#C\w+\|(.+)>/i, /^stop using rules (from\s+)?(.+)/i
+      channel = $2
+      if @channels_id.key?(channel)
+        channel_id = @channels_id[channel]
+      else
+        channel_id = channel
+      end
+      if id_user.nil? #channel
+        if @rules_imported.key?(user.id) and @rules_imported[user.id].key?(dchannel)
+          if @rules_imported[user.id][dchannel]!= channel_id
+            respond "You are not using those rules.", id_user
+          else
+            @rules_imported[user.id].delete(dchannel)
+            update_rules_imported() if ON_MASTER_BOT
+            respond "You won't be using those rules from now on.", id_user
+          end
+        else
+          respond "You were not using those rules.", id_user
+        end
+      else #direct message
+        if @rules_imported.key?(user.id) and @rules_imported[user.id].key?(user.id)
+          if @rules_imported[user.id][user.id]!= channel_id
+            respond "You are not using those rules.", id_user
+          else
+            @rules_imported[user.id].delete(user.id)
+            update_rules_imported() if ON_MASTER_BOT
+            respond "You won't be using those rules from now on.", id_user
+          end
+        else
+          respond "You were not using those rules.", id_user
+        end
+      end
+
 
       #help: `bot help`
       #help: `bot what can I do?`
+      #help: `bot specific help`
       #help:    it will display this help
-      #help:
-    when /^bot help/i, /^bot,? what can I do/i
-      help_message = IO.readlines(__FILE__).join
-      if ADMIN_USERS.include?(from) #admin user
-        respond "*Commands for administrators:*\n#{help_message.scan(/#\s*help\s*admin:(.*)/).join("\n")}", id_user
+      #help:    bot specific help will show only the specific rules for this channel.
+    when /^bot (specific\s)?help/i, /^bot,? what can I do/i
+      if $1.to_s != ''
+        specific = true
+      else
+        specific = false
       end
-      if ON_MASTER_BOT and id_user.nil?
-        respond "*Commands only on Master Channel:*\n#{help_message.scan(/#\s*help\s*master:(.*)/).join("\n")}", id_user
+      if !specific then
+        help_message = IO.readlines(__FILE__).join
+        if ADMIN_USERS.include?(from) #admin user
+          respond "*Commands for administrators:*\n#{help_message.scan(/#\s*help\s*admin:(.*)/).join("\n")}", id_user
+        end
+        if ON_MASTER_BOT and id_user.nil?
+          respond "*Commands only on Master Channel <##{@channels_id[MASTER_CHANNEL]}>:*\n#{help_message.scan(/#\s*help\s*master:(.*)/).join("\n")}", id_user
+        end
+        respond help_message.scan(/#\s*help\s*:(.*)/).join("\n"), id_user
       end
-      #jal9
-      respond help_message.scan(/#\s*help\s*:(.*)/).join("\n"), id_user
       if id_user.nil? # on a channel
-        help_message_rules = IO.readlines(RULES_FILE).join
+        rules_file = RULES_FILE
+
+        if @rules_imported.key?(user.id) and @rules_imported[user.id].key?(dchannel)
+
+          unless @bots_created.key?(@rules_imported[user.id][dchannel])
+            file_conf = IO.readlines($0.gsub(".rb", "_bots.rb")).join
+            unless file_conf.to_s() == ""
+              @bots_created = eval(file_conf)
+            end
+          end
+          if @bots_created.key?(@rules_imported[user.id][dchannel])
+            rules_file = @bots_created[@rules_imported[user.id][dchannel]][:rules_file]
+            respond  "*You are using rules from another channel: <##{@rules_imported[user.id][dchannel]}>. These are the specific commands for that channel:*", id_user
+          end
+        end
+        help_message_rules = IO.readlines(rules_file).join
         respond help_message_rules.scan(/#\s*help\s*:(.*)/).join("\n"), id_user
-      end      
+      elsif !id_user.nil? and @rules_imported.key?(user.id) and @rules_imported[user.id].key?(user.id) #direct message
+        unless @bots_created.key?(@rules_imported[user.id][user.id])
+          file_conf = IO.readlines($0.gsub(".rb", "_bots.rb")).join
+          unless file_conf.to_s() == ""
+            @bots_created = eval(file_conf)
+          end
+        end
+        if @bots_created.key?(@rules_imported[user.id][user.id])
+          rules_file = @bots_created[@rules_imported[user.id][user.id]][:rules_file]
+          respond  "*You are using rules from channel: <##{@rules_imported[user.id][user.id]}>. These are the specific commands for that channel:*", id_user
+          help_message_rules = IO.readlines(rules_file).join
+          respond help_message_rules.scan(/#\s*help\s*:(.*)/).join("\n"), id_user
+        end
+      end
       respond "Github project: https://github.com/MarioRuiz/slack-smart-bot", id_user
     else
       processed = false

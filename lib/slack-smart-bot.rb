@@ -285,7 +285,7 @@ class SlackSmartBot
             else #jal9
               @logger.info "it is a direct message with no rules file selected so no rules file executed."
               unless processed
-                resp = %w{ what huh sorry }.sample
+                resp = ['what', 'huh', 'sorry', 'what do you mean', "I don't understand"].sample
                 respond "#{resp}?", id_user
               end
             end
@@ -661,7 +661,7 @@ class SlackSmartBot
           respond help_message_rules.scan(/#\s*help\s*:(.*)/).join("\n"), id_user
         end
       end
-      respond "Github project: https://github.com/MarioRuiz/slack-smart-bot", id_user
+      respond "Github project: https://github.com/MarioRuiz/slack-smart-bot", id_user if !specific
     else
       processed = false
     end
@@ -888,6 +888,26 @@ class SlackSmartBot
       im = wclient.im_open(user: id_user)
       client.message(channel: im["channel"]["id"], as_user: true, text: msg)
     end
+  end
+  
+  #to send a file to an user or channel
+  def send_file(to, msg, file, title, format)
+    if to[0]=="U" #user
+      im = wclient.im_open(user: to)
+      channel = im["channel"]["id"]
+    else
+      channel = to
+    end
+    
+    wclient.files_upload(
+      channels: channel,
+      as_user: true,
+      file: Faraday::UploadIO.new(file, format),
+      title: title,
+      filename: file,
+      initial_comment: msg
+    )
+
   end
 
   private :update_bots_file, :get_channels_name_and_id, :update_shortcuts_file

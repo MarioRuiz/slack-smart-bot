@@ -20,12 +20,13 @@ end
 # from: Full name of the person sending the message
 # command: command to run
 # processed: in case the command has been already processed on Bot class, by default false
+# help: ==============================================
 # help:
 # help: *These are specific commands for this bot on this Channel.*
 # help:     They will be accessible only when the bot is listening to you just writing the command
-# help:     or the bot is not listening to you but requested on demand, for example:
+# help:     or the bot is not listening to you but requested on demand, or in a private conversation with the Smart Bot.
+# help:     On demand examples: for example:
 # help:       `!THE_COMMAND`
-# help:       `@bot THE_COMMAND`
 # help:       `@NAME_OF_BOT THE_COMMAND`
 # help:       `NAME_OF_BOT THE_COMMAND`
 # help:
@@ -42,14 +43,16 @@ def rules(user, command, processed, id_user)
   firstname = from.split(" ").first
   case command
 
+  # help: ----------------------------------------------
   # help: `echo SOMETHING`
   # help:     repeats SOMETHING
   # help:
   when /^echo\s(.+)/i
     respond $1, id_user
 
+    # help: ----------------------------------------------
     # help: `go to sleep`
-    # help:   it will sleep the bot for 10 seconds
+    # help:   it will sleep the bot for 5 seconds
     # help:
   when /^go\sto\ssleep/i
     unless @questions.keys.include?(from)
@@ -58,8 +61,8 @@ def rules(user, command, processed, id_user)
       case @questions[from]
       when /yes/i, /yep/i, /sure/i
         respond "zZzzzzzZZZZZZzzzzzzz!", id_user
-        respond "I'll be sleeping for 10 secs... just for you", id_user
-        sleep 10
+        respond "I'll be sleeping for 5 secs... just for you", id_user
+        sleep 5
       when /no/i, /nope/i, /cancel/i
         @questions.delete(from)
         respond "Thanks, I'm happy to be awake", id_user

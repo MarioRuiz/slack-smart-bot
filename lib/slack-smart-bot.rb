@@ -78,8 +78,8 @@ class SlackSmartBot
     end
 
     # rules imported only for private channels
-    if ON_MASTER_BOT and File.exist?('./rules/rules_imported.rb')
-      file_conf = IO.readlines('./rules/rules_imported.rb').join
+    if ON_MASTER_BOT and File.exist?("./rules/rules_imported.rb")
+      file_conf = IO.readlines("./rules/rules_imported.rb").join
       unless file_conf.to_s() == ""
         @rules_imported = eval(file_conf)
       end
@@ -98,7 +98,7 @@ class SlackSmartBot
       m = "Successfully connected, welcome '#{client.self.name}' to the '#{client.team.name}' team at https://#{client.team.domain}.slack.com."
       puts m
       @logger.info m
-      respond "Smart Bot started\nIf you want to know what I can do for you: `bot help` or `bot specific help`\nYou can send me also a direct message."
+      respond "Smart Bot started\nIf you want to know what I can do for you: `bot help`.\n`bot rules` if you want to display just the specific rules of this channel.\nYou can talk to me privately if you prefer it."
     end
 
     @status = STATUS_INIT
@@ -128,7 +128,6 @@ class SlackSmartBot
     file.write @rules_imported.inspect
     file.close
   end
-
 
   def get_channels_name_and_id
     channels = wclient.channels_list.channels
@@ -221,13 +220,17 @@ class SlackSmartBot
         begin
           processed = process(user, command, id_user, dchannel)
           @logger.info "command: #{nick}> #{command}" if processed
+          on_demand = false
+          if command.match(/^@?(#{config[:nick]}):*\s+(.+)$/i) or
+             command.match(/^()!(.+)$/i) or
+             command.match(/^()<@#{config[:nick_id]}>\s+(.+)$/i)
+            command = $2
+            on_demand = true
+          end
           if @status == :on and
-             ((@questions.keys.include?(nick) or
-               @listening.include?(nick) or
-               !id_user.nil? or
-               command.match?(/^@?#{@salutations.join("|")}:*\s+(.+)$/i) or
-               command.match?(/^<@#{@salutations.join("|")}>\s+(.+)$/i) or
-               command.match?(/^!(.+)$/)))
+             (@questions.keys.include?(nick) or
+              @listening.include?(nick) or
+              !id_user.nil? or on_demand)
             @logger.info "command: #{nick}> #{command}" unless processed
             #todo: verify this
             if id_user.nil? #only for channels, not for DM
@@ -243,7 +246,6 @@ class SlackSmartBot
                   rules_file = @bots_created[@rules_imported[user.id][dchannel]][:rules_file]
                 end
               end
-              @logger.info "rules file: #{rules_file}"
               begin
                 eval(File.new(rules_file).read) if File.exist?(rules_file)
               rescue Exception => stack
@@ -285,7 +287,7 @@ class SlackSmartBot
             else #jal9
               @logger.info "it is a direct message with no rules file selected so no rules file executed."
               unless processed
-                resp = ['what', 'huh', 'sorry', 'what do you mean', "I don't understand"].sample
+                resp = ["what", "huh", "sorry", "what do you mean", "I don't understand"].sample
                 respond "#{resp}?", id_user
               end
             end
@@ -299,8 +301,9 @@ class SlackSmartBot
     end
   end
 
+  #help: ==============================================
   #help:
-  #help: *General commands:*:
+  #help: *General commands:*
   #help:
   def process(user, command, id_user, dchannel)
     from = user.name
@@ -309,6 +312,7 @@ class SlackSmartBot
 
     case command
 
+    #help: ----------------------------------------------
     #help: `Hello Bot`
     #help: `Hello Smart`
     #help: `Hello THE_NAME_OF_THE_BOT`
@@ -327,6 +331,7 @@ class SlackSmartBot
         @listening << from unless @listening.include?(from)
       end
 
+      #help: ----------------------------------------------
       #help: `Bye Bot`
       #help: `Bye Smart`
       #help: `Bye NAME_OF_THE_BOT`
@@ -340,6 +345,7 @@ class SlackSmartBot
         @listening.delete(from)
       end
 
+      #helpadmin: ----------------------------------------------
       #helpadmin: `exit bot`
       #helpadmin: `quit bot`
       #helpadmin: `close bot`
@@ -379,6 +385,7 @@ class SlackSmartBot
         respond "To do this you need to be an admin user in the master channel: <##{@channels_id[MASTER_CHANNEL]}>", id_user
       end
 
+      #helpadmin: ----------------------------------------------
       #helpadmin: `start bot`
       #helpadmin: `start this bot`
       #helpadmin:    the bot will start to listen
@@ -396,6 +403,7 @@ class SlackSmartBot
         respond "Only admin users can change my status", id_user
       end
 
+      #helpadmin: ----------------------------------------------
       #helpadmin: `pause bot`
       #helpadmin: `pause this bot`
       #helpadmin:    the bot will pause so it will listen only to admin commands
@@ -414,6 +422,7 @@ class SlackSmartBot
         respond "Only admin users can put me on pause", id_user
       end
 
+      #helpadmin: ----------------------------------------------
       #helpadmin: `bot status`
       #helpadmin:    Displays the status of the bot
       #helpadmin:    If on master channel and admin user also it will display info about bots created
@@ -429,6 +438,7 @@ class SlackSmartBot
         end
       end
 
+      #helpmaster: ----------------------------------------------
       #helpmaster: `create bot on CHANNEL_NAME`
       #helpmaster:    creates a new bot on the channel specified
       #helpmaster:    it will work only if you are on Master channel
@@ -447,7 +457,7 @@ class SlackSmartBot
         end
         channels = wclient.channels_list.channels
         channel_found = channels.detect { |c| c.name == channel }
-  
+
         if channel_id.nil?
           respond "There is no channel with that name: #{channel}, please be sure is written exactly the same", id_user
         elsif channel == MASTER_CHANNEL
@@ -505,6 +515,7 @@ class SlackSmartBot
         respond "Sorry I cannot create bots from this channel, please visit the master channel: <##{@channels_id[MASTER_CHANNEL]}>", id_user
       end
 
+      #helpmaster: ----------------------------------------------
       #helpmaster: `kill bot on CHANNEL_NAME`
       #helpmaster:    kills the bot on the specified channel
       #helpmaster:    Only works if you are on Master channel and you created that bot or you are an admin user
@@ -533,7 +544,7 @@ class SlackSmartBot
             respond "Bot on channel: #{channel}, has been killed and deleted.", id_user
             send_msg_channel(channel, "Bot has been killed by #{from}")
           else
-            respond "You need to be the creator or an admin of that channel", id_user
+            respond "You need to be the creator or an admin of that bot channel", id_user
           end
         else
           respond "There is no bot in this channel: #{channel}", id_user
@@ -542,6 +553,7 @@ class SlackSmartBot
         respond "Sorry I cannot kill bots from this channel, please visit the master channel: <##{@channels_id[MASTER_CHANNEL]}>", id_user
       end
 
+      #help: ----------------------------------------------
       #help: `use rules from CHANNEL`
       #help: `use rules CHANNEL`
       #help:    it will use the rules from the specified channel.
@@ -570,6 +582,7 @@ class SlackSmartBot
         end
       end
 
+      #help: ----------------------------------------------
       #help: `stop using rules from CHANNEL`
       #help: `stop using rules CHANNEL`
       #help:    it will stop using the rules from the specified channel.
@@ -583,7 +596,7 @@ class SlackSmartBot
       end
       if id_user.nil? #channel
         if @rules_imported.key?(user.id) and @rules_imported[user.id].key?(dchannel)
-          if @rules_imported[user.id][dchannel]!= channel_id
+          if @rules_imported[user.id][dchannel] != channel_id
             respond "You are not using those rules.", id_user
           else
             @rules_imported[user.id].delete(dchannel)
@@ -595,7 +608,7 @@ class SlackSmartBot
         end
       else #direct message
         if @rules_imported.key?(user.id) and @rules_imported[user.id].key?(user.id)
-          if @rules_imported[user.id][user.id]!= channel_id
+          if @rules_imported[user.id][user.id] != channel_id
             respond "You are not using those rules.", id_user
           else
             @rules_imported[user.id].delete(user.id)
@@ -607,19 +620,19 @@ class SlackSmartBot
         end
       end
 
-
+      #help: ----------------------------------------------
       #help: `bot help`
       #help: `bot what can I do?`
-      #help: `bot specific help`
+      #help: `bot rules`
       #help:    it will display this help
-      #help:    bot specific help will show only the specific rules for this channel.
-    when /^bot (specific\s)?help/i, /^bot,? what can I do/i
-      if $1.to_s != ''
+      #help:    `bot rules` will show only the specific rules for this channel.
+    when /^bot (rules|help)/i, /^bot,? what can I do/i
+      if $1.to_s.match?(/rules/i)
         specific = true
       else
         specific = false
       end
-      if !specific then
+      if !specific
         help_message = IO.readlines(__FILE__).join
         if ADMIN_USERS.include?(from) #admin user
           respond "*Commands for administrators:*\n#{help_message.scan(/#\s*help\s*admin:(.*)/).join("\n")}", id_user
@@ -633,7 +646,6 @@ class SlackSmartBot
         rules_file = RULES_FILE
 
         if @rules_imported.key?(user.id) and @rules_imported[user.id].key?(dchannel)
-
           unless @bots_created.key?(@rules_imported[user.id][dchannel])
             file_conf = IO.readlines($0.gsub(".rb", "_bots.rb")).join
             unless file_conf.to_s() == ""
@@ -642,7 +654,7 @@ class SlackSmartBot
           end
           if @bots_created.key?(@rules_imported[user.id][dchannel])
             rules_file = @bots_created[@rules_imported[user.id][dchannel]][:rules_file]
-            respond  "*You are using rules from another channel: <##{@rules_imported[user.id][dchannel]}>. These are the specific commands for that channel:*", id_user
+            respond "*You are using rules from another channel: <##{@rules_imported[user.id][dchannel]}>. These are the specific commands for that channel:*", id_user
           end
         end
         help_message_rules = IO.readlines(rules_file).join
@@ -656,7 +668,7 @@ class SlackSmartBot
         end
         if @bots_created.key?(@rules_imported[user.id][user.id])
           rules_file = @bots_created[@rules_imported[user.id][user.id]][:rules_file]
-          respond  "*You are using rules from channel: <##{@rules_imported[user.id][user.id]}>. These are the specific commands for that channel:*", id_user
+          respond "*You are using rules from channel: <##{@rules_imported[user.id][user.id]}>. These are the specific commands for that channel:*", id_user
           help_message_rules = IO.readlines(rules_file).join
           respond help_message_rules.scan(/#\s*help\s*:(.*)/).join("\n"), id_user
         end
@@ -666,24 +678,31 @@ class SlackSmartBot
       processed = false
     end
 
+    on_demand = false #jal9
+    if command.match(/^@?(#{config[:nick]}):*\s+(.+)$/i) or
+       command.match(/^()!(.+)$/i) or
+       command.match(/^()<@#{config[:nick_id]}>\s+(.+)$/i)
+      command = $2
+      on_demand = true
+    end
+
     #only when :on and (listening or on demand or direct message)
     if @status == :on and
-       ((@questions.keys.include?(from) or
-         @listening.include?(from) or
-         !id_user.nil? or
-         command.match?(/^@?#{@salutations.join("|")}:*\s+(.+)$/i) or
-         command.match?(/^!(.+)$/)))
+       (@questions.keys.include?(from) or
+        @listening.include?(from) or
+        !id_user.nil? or on_demand)
       processed2 = true
 
-      # help:
-      # help: *These commands will run only when the smart bot is listening to you or on demand*. On demand examples:
-      # help:       `!THE_COMMAND`
-      # help:       `@bot THE_COMMAND`
-      # help:       `@NAME_OF_BOT THE_COMMAND`
-      # help:       `NAME_OF_BOT THE_COMMAND`
-      # help:
+      #help: ==============================================
+      #help:
+      #help: *These commands will run only when the smart bot is listening to you or on demand or in a private conversation with the Smart Bot*. On demand examples:
+      #help:       `!THE_COMMAND`
+      #help:       `@NAME_OF_BOT THE_COMMAND`
+      #help:       `NAME_OF_BOT THE_COMMAND`
+      #help:
       case command
 
+      #help: ----------------------------------------------
       #help: `add shortcut NAME: COMMAND`
       #help: `add sc NAME: COMMAND`
       #help: `add shortcut for all NAME: COMMAND`
@@ -693,10 +712,10 @@ class SlackSmartBot
       #help:    It will add a shortcut that will execute the command we supply.
       #help:    In case we supply 'for all' then the shorcut will be available for everybody
       #help:    Example:
-      #help:        `add shortcut for all Spanish account: code require 'iso/iban'; 10.times {puts ISO::IBAN.random('ES')}`
+      #help:        _add shortcut for all Spanish account: code require 'iso/iban'; 10.times {puts ISO::IBAN.random('ES')}_
       #help:    Then to call this shortcut:
-      #help:        `sc spanish account`
-      #help:        `shortcut Spanish Account`
+      #help:        _sc spanish account_
+      #help:        _shortcut Spanish Account_
       #help:
       when /^(add\s)?shortcut\s(for\sall)?\s*(.+):\s(.+)/i, /^(add\s)sc\s(for\sall)?\s*(.+):\s(.+)/i
         for_all = $2
@@ -734,6 +753,7 @@ class SlackSmartBot
           end
         end
 
+        #help: ----------------------------------------------
         #help: `delete shortcut NAME`
         #help: `delete sc NAME`
         #help:    It will delete the shortcut with the supplied name
@@ -769,6 +789,7 @@ class SlackSmartBot
           respond "shortcut not found", id_user
         end
 
+        #help: ----------------------------------------------
         #help: `see shortcuts`
         #help: `see sc`
         #help:    It will display the shortcuts stored for the user and for :all
@@ -796,6 +817,7 @@ class SlackSmartBot
         end
         respond "No shortcuts found", id_user if msg == ""
 
+        #help: ----------------------------------------------
         #help: `id channel CHANNEL_NAME`
         #help:    shows the id of a channel name
         #help:
@@ -808,12 +830,13 @@ class SlackSmartBot
           respond "channel: #{channel_name} not found", id_user
         end
 
-        # help: `ruby RUBY_CODE`
-        # help: `code RUBY_CODE`
-        # help:     runs the code supplied and returns the output. Examples:
-        # help:       `code puts (34344/99)*(34+14)`
-        # help:       `ruby require 'json'; res=[]; 20.times {res<<rand(100)}; my_json={result: res}; puts my_json.to_json`
-        # help:
+        #help: ----------------------------------------------
+        #help: `ruby RUBY_CODE`
+        #help: `code RUBY_CODE`
+        #help:     runs the code supplied and returns the output. Examples:
+        #help:       _code puts (34344/99)*(34+14)_
+        #help:       _ruby require 'json'; res=[]; 20.times {res<<rand(100)}; my_json={result: res}; puts my_json.to_json_
+        #help:
       when /^ruby\s(.+)/im, /code\s(.+)/im
         code = $1
         code.gsub!("\\n", "\n")
@@ -889,25 +912,24 @@ class SlackSmartBot
       client.message(channel: im["channel"]["id"], as_user: true, text: msg)
     end
   end
-  
+
   #to send a file to an user or channel
   def send_file(to, msg, file, title, format)
-    if to[0]=="U" #user
+    if to[0] == "U" #user
       im = wclient.im_open(user: to)
       channel = im["channel"]["id"]
     else
       channel = to
     end
-    
+
     wclient.files_upload(
       channels: channel,
       as_user: true,
       file: Faraday::UploadIO.new(file, format),
       title: title,
       filename: file,
-      initial_comment: msg
+      initial_comment: msg,
     )
-
   end
 
   private :update_bots_file, :get_channels_name_and_id, :update_shortcuts_file

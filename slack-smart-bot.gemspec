@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name        = 'slack-smart-bot'
-  s.version     = '0.3.5'
+  s.version     = '0.4.0'
   s.summary     = "Create a Slack bot that is smart and so easy to expand, create new bots on demand, run ruby code on chat, create shortcuts..."
   s.description = "Create a Slack bot that is smart and so easy to expand, create new bots on demand, run ruby code on chat, create shortcuts... 
   The main scope of this gem is to be used internally in the company so teams can create team channels with their own bot to help them on their daily work, almost everything is suitable to be automated!! 

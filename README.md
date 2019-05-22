@@ -174,19 +174,15 @@ As soon as you save the file after editing it will become available on your chan
 
 >Only works if you are on Master channel and you created that bot or you are an admin user
 
-### Available commands only when listening to you or on demand
+### Available commands only when listening to you or on demand or in a private conversation with the Smart Bot
 
-All the commands described on here or on your specific Rules file can be used when the bot is listening to you or on demand.
+All the commands described on here or on your specific Rules file can be used when the bot is listening to you or on demand or in a private conversation with the Smart Bot.
 
 For the bot to start listening to you you need to use the "Hi bot" command or one of the aliases
 
 Also you can call any of these commands on demand by using:
 
 **_`!THE_COMMAND`_**
-
-**_`@bot THE_COMMAND`_**
-
-**_`@smart THE_COMMAND`_**
 
 **_`@BOT_NAME THE_COMMAND`_**
 
@@ -236,6 +232,20 @@ Apart of the specific commands you define on the rules file of the channel, you 
 
 **_`id channel CHANNEL_NAME`_**
 >shows the id of a channel name
+
+**_`use rules from CHANNEL`_**
+
+**_`use rules CHANNEL`_**
+
+>it will use the rules from the specified channel.
+
+>you need to be part of that channel to be able to use the rules.
+
+**_`stop using rules from CHANNEL`_**
+
+**_`stop using rules CHANNEL`_**
+
+>it will stop using the rules from the specified channel.
 
 
 ## Contributing

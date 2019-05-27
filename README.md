@@ -77,6 +77,7 @@ def rules(user, command, processed, id_user)
       else
         case @questions[from]
           when /yes/i, /yep/i, /sure/i
+            @questions.delete(from)
             respond "zZzzzzzZZZZZZzzzzzzz!"
             respond "I'll be sleeping for 10 secs... just for you"
             sleep 10

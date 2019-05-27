@@ -284,7 +284,7 @@ class SlackSmartBot
               else
                 @logger.warn "It seems like rules method is not defined"
               end
-            else #jal9
+            else
               @logger.info "it is a direct message with no rules file selected so no rules file executed."
               unless processed
                 resp = ["what", "huh", "sorry", "what do you mean", "I don't understand"].sample
@@ -301,7 +301,7 @@ class SlackSmartBot
     end
   end
 
-  #help: ==============================================
+  #help: ===================================
   #help:
   #help: *General commands:*
   #help:
@@ -443,7 +443,7 @@ class SlackSmartBot
       #helpmaster:    creates a new bot on the channel specified
       #helpmaster:    it will work only if you are on Master channel
       #helpmaster:
-    when /^create\sbot\son\s<#C\w+\|(.+)>\s*/i, /^create\sbot\son\s(.+)\s*/i #jal9
+    when /^create\sbot\son\s<#C\w+\|(.+)>\s*/i, /^create\sbot\son\s(.+)\s*/i
       if ON_MASTER_BOT
         channel = $1
 
@@ -462,7 +462,7 @@ class SlackSmartBot
           respond "There is no channel with that name: #{channel}, please be sure is written exactly the same", id_user
         elsif channel == MASTER_CHANNEL
           respond "There is already a bot in this channel: #{channel}", id_user
-        elsif @bots_created.keys.include?(channel_id) #jal9
+        elsif @bots_created.keys.include?(channel_id)
           respond "There is already a bot in this channel: #{channel}, kill it before", id_user
         elsif config[:nick_id] != channel_found.creator and !channel_found.members.include?(config[:nick_id])
           respond "You need to add first to the channel the smart bot user: #{config[:nick]}, kill it before", id_user
@@ -678,7 +678,7 @@ class SlackSmartBot
       processed = false
     end
 
-    on_demand = false #jal9
+    on_demand = false
     if command.match(/^@?(#{config[:nick]}):*\s+(.+)$/i) or
        command.match(/^()!(.+)$/i) or
        command.match(/^()<@#{config[:nick_id]}>\s+(.+)$/i)
@@ -693,9 +693,9 @@ class SlackSmartBot
         !id_user.nil? or on_demand)
       processed2 = true
 
-      #help: ==============================================
+      #help: ===================================
       #help:
-      #help: *These commands will run only when the smart bot is listening to you or on demand or in a private conversation with the Smart Bot*. On demand examples:
+      #help: *These commands will run only when the smart bot is listening to you or on demand or in a private conversation with the Smart Bot*. To run a command on demand:
       #help:       `!THE_COMMAND`
       #help:       `@NAME_OF_BOT THE_COMMAND`
       #help:       `NAME_OF_BOT THE_COMMAND`

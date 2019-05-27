@@ -20,12 +20,12 @@ end
 # from: Full name of the person sending the message
 # command: command to run
 # processed: in case the command has been already processed on Bot class, by default false
-# help: ==============================================
+# help: ===================================
 # help:
 # help: *These are specific commands for this bot on this Channel.*
 # help:     They will be accessible only when the bot is listening to you just writing the command
 # help:     or the bot is not listening to you but requested on demand, or in a private conversation with the Smart Bot.
-# help:     On demand examples: for example:
+# help:     To run a command on demand:
 # help:       `!THE_COMMAND`
 # help:       `@NAME_OF_BOT THE_COMMAND`
 # help:       `NAME_OF_BOT THE_COMMAND`
@@ -60,6 +60,7 @@ def rules(user, command, processed, id_user)
     else
       case @questions[from]
       when /yes/i, /yep/i, /sure/i
+        @questions.delete(from)
         respond "zZzzzzzZZZZZZzzzzzzz!", id_user
         respond "I'll be sleeping for 5 secs... just for you", id_user
         sleep 5
@@ -81,6 +82,9 @@ end
 
 #for the case of testing just running this file, write the dialogue in here:
 if @testing
-  rules "Peter Johson", "go to sleep, you look tired", false
-  rules "Peter Johson", "yes", false
+  require 'nice_hash'
+  user = {name: "Peter Johson", id: "Uxxxxxx"}
+
+  rules user, "go to sleep, you look tired", false, nil
+  rules user, "yes", false, nil
 end

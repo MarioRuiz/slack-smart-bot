@@ -6,6 +6,7 @@ require "logger"
 require "fileutils"
 require "open3"
 
+
 if ARGV.size == 0
   CHANNEL = MASTER_CHANNEL
   ON_MASTER_BOT = true
@@ -28,7 +29,7 @@ SHORTCUTS_FILE = "slack-smart-bot_shortcuts_#{CHANNEL}.rb".gsub(" ", "_")
 
 class SlackSmartBot
   attr_accessor :config, :client, :wclient
-
+  VERSION = Gem.loaded_specs.values.select {|x| x.name=='slack-smart-bot'}[0].version
   def initialize(config)
     Dir.mkdir("./logs") unless Dir.exist?("./logs")
     Dir.mkdir("./shortcuts") unless Dir.exist?("./shortcuts")
@@ -98,7 +99,7 @@ class SlackSmartBot
       m = "Successfully connected, welcome '#{client.self.name}' to the '#{client.team.name}' team at https://#{client.team.domain}.slack.com."
       puts m
       @logger.info m
-      respond "Smart Bot started\nIf you want to know what I can do for you: `bot help`.\n`bot rules` if you want to display just the specific rules of this channel.\nYou can talk to me privately if you prefer it."
+      respond "Smart Bot started v#{VERSION}\nIf you want to know what I can do for you: `bot help`.\n`bot rules` if you want to display just the specific rules of this channel.\nYou can talk to me privately if you prefer it."
     end
 
     @status = STATUS_INIT
@@ -428,7 +429,7 @@ class SlackSmartBot
       #helpadmin:    If on master channel and admin user also it will display info about bots created
       #helpadmin:
     when /^bot\sstatus/i
-      respond "Status: #{@status}. Rules file: #{File.basename RULES_FILE} ", id_user
+      respond "Status: #{@status}. Version: #{VERSION}. Rules file: #{File.basename RULES_FILE} ", id_user
       if @status == :on
         respond "I'm listening to [#{@listening.join(", ")}]", id_user
         if ON_MASTER_BOT and ADMIN_USERS.include?(from)

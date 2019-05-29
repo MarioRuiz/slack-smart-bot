@@ -5,13 +5,13 @@ else
   @testing = true
   @questions = Hash.new()
 
-  def respond(message, id_user)
+  def respond(message, dest)
     puts message
   end
 
   #context: previous message
   #to: user that should answer
-  def ask(question, context, to, id_user)
+  def ask(question, context, to, dest)
     puts "Bot: #{question}"
     @questions[to] = context
   end
@@ -30,7 +30,7 @@ end
 # help:       `@NAME_OF_BOT THE_COMMAND`
 # help:       `NAME_OF_BOT THE_COMMAND`
 # help:
-def rules(user, command, processed, id_user)
+def rules(user, command, processed, dest)
   from = user.name
   if @testing
     puts "#{from}: #{command}"
@@ -48,7 +48,7 @@ def rules(user, command, processed, id_user)
   # help:     repeats SOMETHING
   # help:
   when /^echo\s(.+)/i
-    respond $1, id_user
+    respond $1, dest
 
     # help: ----------------------------------------------
     # help: `go to sleep`
@@ -56,26 +56,26 @@ def rules(user, command, processed, id_user)
     # help:
   when /^go\sto\ssleep/i
     unless @questions.keys.include?(from)
-      ask("do you want me to take a siesta?", command, from, id_user)
+      ask("do you want me to take a siesta?", command, from, dest)
     else
       case @questions[from]
       when /yes/i, /yep/i, /sure/i
         @questions.delete(from)
-        respond "zZzzzzzZZZZZZzzzzzzz!", id_user
-        respond "I'll be sleeping for 5 secs... just for you", id_user
+        respond "zZzzzzzZZZZZZzzzzzzz!", dest
+        respond "I'll be sleeping for 5 secs... just for you", dest
         sleep 5
       when /no/i, /nope/i, /cancel/i
         @questions.delete(from)
-        respond "Thanks, I'm happy to be awake", id_user
+        respond "Thanks, I'm happy to be awake", dest
       else
-        respond "I don't understand", id_user
-        ask("are you sure do you want me to sleep? (yes or no)", "go to sleep", from, id_user)
+        respond "I don't understand", dest
+        ask("are you sure do you want me to sleep? (yes or no)", "go to sleep", from, dest)
       end
     end
   else
     unless processed
       resp = %w{ what huh sorry }.sample
-      respond "#{firstname}: #{resp}?", id_user
+      respond "#{firstname}: #{resp}?", dest
     end
   end
 end

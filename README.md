@@ -57,7 +57,7 @@ The rules file can be edited and will be only affecting this particular bot.
 You can add all the rules you want for your bot in the rules file, this is an example:
 
 ```ruby
-def rules(user, command, processed, id_user)
+def rules(user, command, processed, dest)
   from = user.name
   firstname = from.split(" ").first
   case command

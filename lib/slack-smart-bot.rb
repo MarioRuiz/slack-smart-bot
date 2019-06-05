@@ -29,7 +29,7 @@ SHORTCUTS_FILE = "slack-smart-bot_shortcuts_#{CHANNEL}.rb".gsub(" ", "_")
 
 class SlackSmartBot
   attr_accessor :config, :client, :wclient
-  VERSION = Gem.loaded_specs.values.select {|x| x.name=='slack-smart-bot'}[0].version
+  VERSION = Gem.loaded_specs.values.select {|x| x.name=='slack-smart-bot'}[0].version.to_s
   def initialize(config)
     Dir.mkdir("./logs") unless Dir.exist?("./logs")
     Dir.mkdir("./shortcuts") unless Dir.exist?("./shortcuts")

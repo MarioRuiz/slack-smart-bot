@@ -119,6 +119,8 @@ Some of the commands are available always even when the bot is not listening to 
 
 >Bot starts listening to you
 
+>If you want to avoid a single message to be treated by the smart bot, start the message by -
+
 **_`Bye Bot`_**
 
 **_`Bye THE_NAME_OF_THE_BOT`_**
@@ -174,6 +176,17 @@ As soon as you save the file after editing it will become available on your chan
 >Kills the bot on the specified channel
 
 >Only works if you are on Master channel and you created that bot or you are an admin user
+
+**_`notify MESSAGE`_**
+
+**_`notify all MESSAGE`_**
+
+>It will send a notificaiton message to all bot channels
+
+>It will send a notification message to all channels the bot joined and private conversations with the bot
+
+>Only works if you are on Master channel and you are an admin user
+
 
 ### Available commands only when listening to you or on demand or in a private conversation with the Smart Bot
 
@@ -248,6 +261,14 @@ Apart of the specific commands you define on the rules file of the channel, you 
 
 >it will stop using the rules from the specified channel.
 
+### Available commands from channels without a Smart Bot
+**_`@BOT_NAME on #CHANNEL_NAME COMMAND`_**
+
+**_`@BOT_NAME #CHANNEL_NAME COMMAND`_**
+
+>It will run the supplied command using the rules on the channel supplied.
+
+>You need to join the specified channel to be able to use those rules.
 
 ## Contributing
 

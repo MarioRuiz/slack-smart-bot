@@ -82,8 +82,8 @@ end
 
 #for the case of testing just running this file, write the dialogue in here:
 if @testing
-  require 'nice_hash'
-  user = {name: "Peter Johson", id: "Uxxxxxx"}
+  require "nice_hash"
+  user = { name: "Peter Johson", id: "Uxxxxxx" }
 
   rules user, "go to sleep, you look tired", false, nil
   rules user, "yes", false, nil

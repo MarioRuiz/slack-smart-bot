@@ -6,7 +6,6 @@ require "logger"
 require "fileutils"
 require "open3"
 
-
 if ARGV.size == 0
   CHANNEL = MASTER_CHANNEL
   ON_MASTER_BOT = true
@@ -29,7 +28,8 @@ SHORTCUTS_FILE = "slack-smart-bot_shortcuts_#{CHANNEL}.rb".gsub(" ", "_")
 
 class SlackSmartBot
   attr_accessor :config, :client, :wclient
-  VERSION = Gem.loaded_specs.values.select {|x| x.name=='slack-smart-bot'}[0].version.to_s
+  VERSION = Gem.loaded_specs.values.select { |x| x.name == "slack-smart-bot" }[0].version.to_s
+
   def initialize(config)
     Dir.mkdir("./logs") unless Dir.exist?("./logs")
     Dir.mkdir("./shortcuts") unless Dir.exist?("./shortcuts")
@@ -37,6 +37,7 @@ class SlackSmartBot
     @logger = Logger.new("./logs/#{logfile}")
     config_log = config.dup
     config_log.delete(:token)
+    config[:silent] = false unless config.key?(:silent)
     @logger.info "Initializing bot: #{config_log.inspect}"
 
     config[:channel] = CHANNEL
@@ -101,11 +102,13 @@ class SlackSmartBot
       @logger.info m
       gems_remote = `gem list slack-smart-bot --remote`
       version_remote = gems_remote.to_s().scan(/slack-smart-bot \((\d+\.\d+\.\d+)/).join
-      version_message = ''
+      version_message = ""
       if version_remote != VERSION
         version_message = ". There is a new available version: #{version_remote}."
       end
-      respond "Smart Bot started v#{VERSION}#{version_message}\nIf you want to know what I can do for you: `bot help`.\n`bot rules` if you want to display just the specific rules of this channel.\nYou can talk to me privately if you prefer it."
+      unless config[:silent]
+        respond "Smart Bot started v#{VERSION}#{version_message}\nIf you want to know what I can do for you: `bot help`.\n`bot rules` if you want to display just the specific rules of this channel.\nYou can talk to me privately if you prefer it."
+      end
     end
 
     @status = STATUS_INIT
@@ -153,7 +156,7 @@ class SlackSmartBot
   #help: *Commands from Channels without a bot:*
   #help:
   #help: ----------------------------------------------
-  #help: 
+  #help:
   #help: `@BOT_NAME on #CHANNEL_NAME COMMAND`
   #help: `@BOT_NAME #CHANNEL_NAME COMMAND`
   #help:    It will run the supplied command using the rules on the channel supplied.
@@ -161,60 +164,58 @@ class SlackSmartBot
   def listen
     @salutations = [config[:nick], config[:nick_id], "bot", "smart"]
     client.on :message do |data|
-      if data.channel[0] == 'D' or data.channel[0] == "C" #Direct message or Channel
-         dest = data.channel
+      if data.channel[0] == "D" or data.channel[0] == "C" #Direct message or Channel
+        dest = data.channel
       else # not treated
         dest = nil
       end
       #todo: sometimes data.user is nil, check the problem.
       @logger.warn "!dest is nil. user: #{data.user}, channel: #{data.channel}, message: #{data.text}" if dest.nil?
       # Direct messages are treated only on the master bot
-      if !dest.nil? and ((dest[0] == 'D' and ON_MASTER_BOT) or (dest[0] == 'C'))
+      if !dest.nil? and ((dest[0] == "D" and ON_MASTER_BOT) or (dest[0] == "C")) and data.user.to_s != ""
         begin
-        #todo: when changed @questions user_id then move user_info inside the ifs to avoid calling it when not necessary
-        user_info = wclient.users_info(user: data.user)
-        #todo: check to remove user_info.user.name == config[:nick] since I think we will never get messages from the bot on slack
-        # if Direct message or we are in the channel of the bot
-        if data.text.size >=2 and 
-          ((data.text[0]=='`' and data.text[-1]=='`') or (data.text[0]=='*' and data.text[-1]=='*') or (data.text[0]=='_' and data.text[-1]=='_'))
-          data.text = data.text[1..-2]
-        end
-        if (dest[0]=='D' or @channels_id[CHANNEL] == data.channel or data.user == config[:nick_id]) and 
-          data.text.size>0 and data.text[0]!="-"
-
-          res = process_first(user_info.user, data.text, dest, data.channel)
-        # if @botname on #channel_rules: do something
-        elsif data.text.match(/^<@#{config[:nick_id]}>\s(on\s)?<#(\w+)\|(.+)>\s*:?\s*(.+)$/i)
-          channel_rules = $2
-          channel_rules_name = $3
-          command = $4
-          command = "!" + command unless command[0]=="!"
-          if @channels_id[CHANNEL] == channel_rules #to be treated only on the bot of the requested channel
-            dest = data.channel
-
-            channels = wclient.channels_list.channels
-            channel_found = channels.detect { |c| c.name == channel_rules_name }
-            members = wclient.conversations_members(channel: @channels_id[channel_rules_name]).members unless channel_found.nil?
-
-            if channel_found.nil?
-              @logger.fatal "Not possible to find the channel #{channel_rules_name}"
-            elsif channel_found.name == MASTER_CHANNEL
-              respond "You cannot use the rules from Master Channel on any other channel.", dest
-            elsif data.user == channel_found.creator or members.include?(data.user)
-              res = process_first(user_info.user, command, dest, channel_rules)
-            else
-              respond "You need to join the channel <##{channel_found.id}> to be able to use the rules.", dest
-            end
+          #todo: when changed @questions user_id then move user_info inside the ifs to avoid calling it when not necessary
+          user_info = wclient.users_info(user: data.user)
+          #todo: check to remove user_info.user.name == config[:nick] since I think we will never get messages from the bot on slack
+          # if Direct message or we are in the channel of the bot
+          if data.text.size >= 2 and
+             ((data.text[0] == "`" and data.text[-1] == "`") or (data.text[0] == "*" and data.text[-1] == "*") or (data.text[0] == "_" and data.text[-1] == "_"))
+            data.text = data.text[1..-2]
           end
-        elsif @questions.keys.include?(user_info.user.name) 
-          #todo: @questions key should be the id not the name. change it everywhere
-          dest = data.channel
-          res = process_first(user_info.user, data.text, dest, @channels_id[CHANNEL])
-        end
-      rescue Exception => stack
-        @logger.fatal stack
-      end
+          if data.text.match(/^<@#{config[:nick_id]}>\s(on\s)?<#(\w+)\|(.+)>\s*:?\s*(.+)$/i)
+            channel_rules = $2
+            channel_rules_name = $3
+            command = $4
+            command = "!" + command unless command[0] == "!"
+            if @channels_id[CHANNEL] == channel_rules #to be treated only on the bot of the requested channel
+              dest = data.channel
 
+              channels = wclient.channels_list.channels
+              channel_found = channels.detect { |c| c.name == channel_rules_name }
+              members = wclient.conversations_members(channel: @channels_id[channel_rules_name]).members unless channel_found.nil?
+
+              if channel_found.nil?
+                @logger.fatal "Not possible to find the channel #{channel_rules_name}"
+              elsif channel_found.name == MASTER_CHANNEL
+                respond "You cannot use the rules from Master Channel on any other channel.", dest
+              elsif data.user == channel_found.creator or members.include?(data.user)
+                res = process_first(user_info.user, command, dest, channel_rules)
+              else
+                respond "You need to join the channel <##{channel_found.id}> to be able to use the rules.", dest
+              end
+            end
+          elsif @questions.keys.include?(user_info.user.name)
+            #todo: @questions key should be the id not the name. change it everywhere
+            dest = data.channel
+            res = process_first(user_info.user, data.text, dest, @channels_id[CHANNEL])
+          elsif (dest[0] == "D" or @channels_id[CHANNEL] == data.channel or data.user == config[:nick_id]) and
+                data.text.size > 0 and data.text[0] != "-"
+            res = process_first(user_info.user, data.text, dest, data.channel)
+            # if @botname on #channel_rules: do something
+          end
+        rescue Exception => stack
+          @logger.fatal stack
+        end
       end
     end
 
@@ -284,10 +285,10 @@ class SlackSmartBot
           if @status == :on and
              (@questions.keys.include?(nick) or
               @listening.include?(nick) or
-              dest[0]=='D' or on_demand)
+              dest[0] == "D" or on_demand)
             @logger.info "command: #{nick}> #{command}" unless processed
             #todo: verify this
-            if dest[0]=='C' #only for channels, not for DM
+            if dest[0] == "C" #only for channels, not for DM
               rules_file = RULES_FILE
               if @rules_imported.key?(user.id) and @rules_imported[user.id].key?(dchannel)
                 unless @bots_created.key?(@rules_imported[user.id][dchannel])
@@ -378,9 +379,9 @@ class SlackSmartBot
       if @status == :on
         greetings = ["Hello", "Hallo", "Hi", "Hola", "What's up", "Hey", "Hæ"].sample
         respond "#{greetings} #{firstname}", dest
-        if @rules_imported.key?(user.id) and @rules_imported[user.id].key?(user.id) and dest[0]=='D'
+        if @rules_imported.key?(user.id) and @rules_imported[user.id].key?(user.id) and dest[0] == "D"
           respond "You are using specific rules for channel: <##{@rules_imported[user.id][user.id]}>", dest
-        elsif @rules_imported.key?(user.id) and @rules_imported[user.id].key?(dchannel) and dest[0]=='C'
+        elsif @rules_imported.key?(user.id) and @rules_imported[user.id].key?(dchannel) and dest[0] == "C"
           respond "You are using specific rules for channel: <##{@rules_imported[user.id][dchannel]}>", dest
         end
         @listening << from unless @listening.include?(from)
@@ -485,7 +486,7 @@ class SlackSmartBot
     when /^bot\sstatus/i
       gems_remote = `gem list slack-smart-bot --remote`
       version_remote = gems_remote.to_s().scan(/slack-smart-bot \((\d+\.\d+\.\d+)/).join
-      version_message = ''
+      version_message = ""
       if version_remote != VERSION
         version_message = " There is a new available version: #{version_remote}."
       end
@@ -512,12 +513,12 @@ class SlackSmartBot
           all = $1
           message = $2
           if all.nil?
-            @bots_created.each do |k,v|
+            @bots_created.each do |k, v|
               respond message, k
             end
             respond "Bot channels have been notified", dest
           else
-            myconv = wclient.users_conversations(exclude_archived: true, limit: 100, types: 'im, public_channel').channels
+            myconv = wclient.users_conversations(exclude_archived: true, limit: 100, types: "im, public_channel").channels
             myconv.each do |c|
               respond message, c.id unless c.name == MASTER_CHANNEL
             end
@@ -658,7 +659,7 @@ class SlackSmartBot
       else
         if user.id == channel_found.creator or channel_found.members.include?(user.id)
           @rules_imported[user.id] = {} unless @rules_imported.key?(user.id)
-          if dest[0]=="C" #todo: take in consideration bots that are not master
+          if dest[0] == "C" #todo: take in consideration bots that are not master
             @rules_imported[user.id][dchannel] = channel_found.id
           else
             @rules_imported[user.id][user.id] = channel_found.id
@@ -682,7 +683,7 @@ class SlackSmartBot
       else
         channel_id = channel
       end
-      if dest[0]=='C' #channel
+      if dest[0] == "C" #channel
         if @rules_imported.key?(user.id) and @rules_imported[user.id].key?(dchannel)
           if @rules_imported[user.id][dchannel] != channel_id
             respond "You are not using those rules.", dest
@@ -725,12 +726,12 @@ class SlackSmartBot
         if ADMIN_USERS.include?(from) #admin user
           respond "*Commands for administrators:*\n#{help_message.scan(/#\s*help\s*admin:(.*)/).join("\n")}", dest
         end
-        if ON_MASTER_BOT and dest[0]=="C"
+        if ON_MASTER_BOT and dest[0] == "C"
           respond "*Commands only on Master Channel <##{@channels_id[MASTER_CHANNEL]}>:*\n#{help_message.scan(/#\s*help\s*master:(.*)/).join("\n")}", dest
         end
         respond help_message.scan(/#\s*help\s*:(.*)/).join("\n"), dest
       end
-      if dest[0]=="C" # on a channel
+      if dest[0] == "C" # on a channel
         rules_file = RULES_FILE
 
         if @rules_imported.key?(user.id) and @rules_imported[user.id].key?(dchannel)
@@ -747,7 +748,7 @@ class SlackSmartBot
         end
         help_message_rules = IO.readlines(rules_file).join
         respond help_message_rules.scan(/#\s*help\s*:(.*)/).join("\n"), dest
-      elsif dest[0]=='D' and @rules_imported.key?(user.id) and @rules_imported[user.id].key?(user.id) #direct message
+      elsif dest[0] == "D" and @rules_imported.key?(user.id) and @rules_imported[user.id].key?(user.id) #direct message
         unless @bots_created.key?(@rules_imported[user.id][user.id])
           file_conf = IO.readlines($0.gsub(".rb", "_bots.rb")).join
           unless file_conf.to_s() == ""
@@ -778,7 +779,7 @@ class SlackSmartBot
     if @status == :on and
        (@questions.keys.include?(from) or
         @listening.include?(from) or
-        dest[0]=='D' or on_demand)
+        dest[0] == "D" or on_demand)
       processed2 = true
 
       #help: ===================================
@@ -961,9 +962,9 @@ class SlackSmartBot
   def respond(msg, dest = nil)
     if dest.nil?
       client.message(channel: @channels_id[CHANNEL], text: msg, as_user: true)
-    elsif dest[0]=="C" # channel
-      client.message(channel: dest, text: msg, as_user: true)      
-    elsif dest[0]=='D' # Direct message
+    elsif dest[0] == "C" # channel
+      client.message(channel: dest, text: msg, as_user: true)
+    elsif dest[0] == "D" # Direct message
       send_msg_user(dest, msg)
     else
       @logger.warn("method respond not treated correctly: msg:#{msg} dest:#{dest}")
@@ -975,9 +976,9 @@ class SlackSmartBot
   def ask(question, context, to, dest = nil)
     if dest.nil?
       client.message(channel: @channels_id[CHANNEL], text: "#{to}: #{question}", as_user: true)
-    elsif dest[0]=="C" # channel
-      client.message(channel: dest, text: "#{to}: #{question}", as_user: true)    
-    elsif dest[0]=='D' #private message
+    elsif dest[0] == "C" # channel
+      client.message(channel: dest, text: "#{to}: #{question}", as_user: true)
+    elsif dest[0] == "D" #private message
       send_msg_user(dest, "#{to}: #{question}")
     end
     @questions[to] = context
@@ -1002,7 +1003,7 @@ class SlackSmartBot
   #to send messages without listening for a response to users
   def send_msg_user(id_user, msg)
     unless msg == ""
-      if id_user[0]=="D"
+      if id_user[0] == "D"
         client.message(channel: id_user, as_user: true, text: msg)
       else
         im = wclient.im_open(user: id_user)

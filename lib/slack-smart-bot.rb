@@ -186,6 +186,11 @@ class SlackSmartBot
             channel_rules = $2
             channel_rules_name = $3
             command = $4
+            if command.size >= 2 and
+              ((command[0] == "`" and command[-1] == "`") or (command[0] == "*" and command[-1] == "*") or (command[0] == "_" and command[-1] == "_"))
+             command = command[1..-2]
+            end
+ 
             command = "!" + command unless command[0] == "!"
             if @channels_id[CHANNEL] == channel_rules #to be treated only on the bot of the requested channel
               dest = data.channel

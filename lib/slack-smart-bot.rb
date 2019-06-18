@@ -116,6 +116,19 @@ class SlackSmartBot
     @channels_id = Hash.new()
     @channels_name = Hash.new()
     get_channels_name_and_id()
+
+    client.on :close do |_data|
+      m = "Connection closing, exiting. #{Time.now}"
+      @logger.info m
+      @logger.info _data
+    end
+    
+    client.on :closed do |_data|
+      m = "Connection has been disconnected. #{Time.now}"
+      @logger.info m
+      @logger.info _data
+    end
+
     self
   end
 

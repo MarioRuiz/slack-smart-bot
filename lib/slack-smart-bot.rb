@@ -211,11 +211,12 @@ class SlackSmartBot
               channels = wclient.channels_list.channels
               channel_found = channels.detect { |c| c.name == channel_rules_name }
               members = wclient.conversations_members(channel: @channels_id[channel_rules_name]).members unless channel_found.nil?
-
               if channel_found.nil?
                 @logger.fatal "Not possible to find the channel #{channel_rules_name}"
               elsif channel_found.name == MASTER_CHANNEL
                 respond "You cannot use the rules from Master Channel on any other channel.", dest
+              elsif @status != :on
+                respond "The bot in that channel is not :on", dest
               elsif data.user == channel_found.creator or members.include?(data.user)
                 res = process_first(user_info.user, command, dest, channel_rules)
               else
@@ -246,16 +247,22 @@ class SlackSmartBot
     #todo: verify if on slack on anytime nick == config[:nick]
     if nick == config[:nick] or nick == (config[:nick] + " · Bot") #if message is coming from the bot
       begin
-        @logger.info "#{nick}: #{text}"
         case text
         when /^Bot has been killed by/
+          @logger.info "#{nick}: #{text}"
           exit!
         when /^Changed status on (.+) to :(.+)/i
-          channel = $1
+          channel_name = $1
           status = $2
-          #todo: channel should be channel_id
-          @bots_created[channel][:status] = status.to_sym
-          update_bots_file()
+          if ON_MASTER_BOT or CHANNEL == channel_name
+            @bots_created[@channels_id[channel_name]][:status] = status.to_sym
+            update_bots_file()
+            if CHANNEL == channel_name
+              @logger.info "#{nick}: #{text}" 
+            else #on master bot
+              @logger.info "Changed status on #{channel_name} to :#{status}"
+            end
+          end
         end
         return :next #don't continue analyzing
       rescue Exception => stack
@@ -291,6 +298,7 @@ class SlackSmartBot
     begin
       t = Thread.new do
         begin
+          done = false
           processed = process(user, command, dest, dchannel)
           @logger.info "command: #{nick}> #{command}" if processed
           on_demand = false
@@ -316,21 +324,28 @@ class SlackSmartBot
                   end
                 end
                 if @bots_created.key?(@rules_imported[user.id][dchannel])
-                  rules_file = @bots_created[@rules_imported[user.id][dchannel]][:rules_file]
+                  if @bots_created[@rules_imported[user.id][dchannel]][:status] == :on
+                    rules_file = @bots_created[@rules_imported[user.id][dchannel]][:rules_file]
+                  else
+                    respond 'The bot on that channel is not :on', dest
+                    done = true
+                  end
                 end
               end
-              begin
-                eval(File.new(rules_file).read) if File.exist?(rules_file)
-              rescue Exception => stack
-                @logger.fatal "ERROR ON RULES FILE: #{rules_file}"
-                @logger.fatal stack
-              end
-              if defined?(rules)
-                command[0] = "" if command[0] == "!"
-                command.gsub!(/^@\w+:*\s*/, "")
-                rules(user, command, processed, dest)
-              else
-                @logger.warn "It seems like rules method is not defined"
+              unless done
+                begin
+                  eval(File.new(rules_file).read) if File.exist?(rules_file)
+                rescue Exception => stack
+                  @logger.fatal "ERROR ON RULES FILE: #{rules_file}"
+                  @logger.fatal stack
+                end
+                if defined?(rules)
+                  command[0] = "" if command[0] == "!"
+                  command.gsub!(/^@\w+:*\s*/, "")
+                  rules(user, command, processed, dest)
+                else
+                  @logger.warn "It seems like rules method is not defined"
+                end
               end
             elsif @rules_imported.key?(user.id) and @rules_imported[user.id].key?(user.id)
               unless @bots_created.key?(@rules_imported[user.id][user.id])
@@ -341,21 +356,28 @@ class SlackSmartBot
               end
 
               if @bots_created.key?(@rules_imported[user.id][user.id])
-                rules_file = @bots_created[@rules_imported[user.id][user.id]][:rules_file]
-                begin
-                  eval(File.new(rules_file).read) if File.exist?(rules_file)
-                rescue Exception => stack
-                  @logger.fatal "ERROR ON imported RULES FILE: #{rules_file}"
-                  @logger.fatal stack
+                if @bots_created[@rules_imported[user.id][user.id]][:status] == :on
+                  rules_file = @bots_created[@rules_imported[user.id][user.id]][:rules_file]
+                  begin
+                    eval(File.new(rules_file).read) if File.exist?(rules_file)
+                  rescue Exception => stack
+                    @logger.fatal "ERROR ON imported RULES FILE: #{rules_file}"
+                    @logger.fatal stack
+                  end
+                else
+                  respond "The bot on <##{@rules_imported[user.id][user.id]}|#{@bots_created[@rules_imported[user.id][user.id]][:channel_name]}> is not :on", dest
+                  done = true
                 end
               end
 
-              if defined?(rules)
-                command[0] = "" if command[0] == "!"
-                command.gsub!(/^@\w+:*\s*/, "")
-                rules(user, command, processed, dest)
-              else
-                @logger.warn "It seems like rules method is not defined"
+              unless done
+                if defined?(rules)
+                  command[0] = "" if command[0] == "!"
+                  command.gsub!(/^@\w+:*\s*/, "")
+                  rules(user, command, processed, dest)
+                else
+                  @logger.warn "It seems like rules method is not defined"
+                end
               end
             else
               @logger.info "it is a direct message with no rules file selected so no rules file executed."
@@ -470,8 +492,7 @@ class SlackSmartBot
         respond "This bot is running and listening from now on. You can pause again: pause this bot", dest
         @status = :on
         unless ON_MASTER_BOT
-          get_channels_name_and_id() unless @channels_name.keys.include?(MASTER_CHANNEL) and @channels_name.keys.include?(CHANNEL)
-          send_msg_channel @channels_name[MASTER_CHANNEL], "Changed status on #{@channels_name[CHANNEL]} to :on"
+          send_msg_channel MASTER_CHANNEL, "Changed status on #{CHANNEL} to :on"
         end
       else
         respond "Only admin users can change my status", dest
@@ -489,8 +510,7 @@ class SlackSmartBot
         respond "zZzzzzZzzzzZZZZZZzzzzzzzz", dest
         @status = :paused
         unless ON_MASTER_BOT
-          get_channels_name_and_id() unless @channels_name.keys.include?(MASTER_CHANNEL) and @channels_name.keys.include?(CHANNEL)
-          send_msg_channel @channels_name[MASTER_CHANNEL], "Changed status on #{@channels_name[CHANNEL]} to :paused"
+          send_msg_channel MASTER_CHANNEL, "Changed status on #{CHANNEL} to :paused"
         end
       else
         respond "Only admin users can put me on pause", dest
@@ -564,6 +584,7 @@ class SlackSmartBot
         end
         channels = wclient.channels_list.channels
         channel_found = channels.detect { |c| c.name == channel }
+        members = wclient.conversations_members(channel: @channels_id[channel]).members unless channel_found.nil?
 
         if channel_id.nil?
           respond "There is no channel with that name: #{channel}, please be sure is written exactly the same", dest
@@ -571,7 +592,7 @@ class SlackSmartBot
           respond "There is already a bot in this channel: #{channel}", dest
         elsif @bots_created.keys.include?(channel_id)
           respond "There is already a bot in this channel: #{channel}, kill it before", dest
-        elsif config[:nick_id] != channel_found.creator and !channel_found.members.include?(config[:nick_id])
+        elsif config[:nick_id] != channel_found.creator and !members.include?(config[:nick_id])
           respond "You need to add first to the channel the smart bot user: #{config[:nick]}", dest
         else
           if channel_id != config[:channel]
@@ -670,12 +691,18 @@ class SlackSmartBot
       channel = $2
       channels = wclient.channels_list.channels
       channel_found = channels.detect { |c| c.name == channel }
+      members = wclient.conversations_members(channel: @channels_id[channel]).members unless channel_found.nil?
+
       if channel_found.nil?
         respond "The channel you are trying to use doesn't exist", dest
       elsif channel_found.name == MASTER_CHANNEL
         respond "You cannot use the rules from Master Channel on any other channel.", dest
+      elsif !@bots_created.key?(@channels_id[channel]) 
+        respond "There is no bot running on that channel.", dest
+      elsif @bots_created.key?(@channels_id[channel]) and @bots_created[@channels_id[channel]][:status] != :on
+        respond "The bot in that channel is not :on", dest
       else
-        if user.id == channel_found.creator or channel_found.members.include?(user.id)
+        if user.id == channel_found.creator or members.include?(user.id)
           @rules_imported[user.id] = {} unless @rules_imported.key?(user.id)
           if dest[0] == "C" #todo: take in consideration bots that are not master
             @rules_imported[user.id][dchannel] = channel_found.id

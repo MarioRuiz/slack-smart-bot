@@ -122,7 +122,7 @@ class SlackSmartBot
       @logger.info m
       @logger.info _data
     end
-    
+
     client.on :closed do |_data|
       m = "Connection has been disconnected. #{Time.now}"
       @logger.info m
@@ -200,10 +200,10 @@ class SlackSmartBot
             channel_rules_name = $3
             command = $4
             if command.size >= 2 and
-              ((command[0] == "`" and command[-1] == "`") or (command[0] == "*" and command[-1] == "*") or (command[0] == "_" and command[-1] == "_"))
-             command = command[1..-2]
+               ((command[0] == "`" and command[-1] == "`") or (command[0] == "*" and command[-1] == "*") or (command[0] == "_" and command[-1] == "_"))
+              command = command[1..-2]
             end
- 
+
             command = "!" + command unless command[0] == "!"
             if @channels_id[CHANNEL] == channel_rules #to be treated only on the bot of the requested channel
               dest = data.channel
@@ -245,7 +245,7 @@ class SlackSmartBot
   def process_first(user, text, dest, dchannel)
     nick = user.name
     #todo: verify if on slack on anytime nick == config[:nick]
-    if nick == config[:nick] or nick == (config[:nick] + " · Bot") #if message is coming from the bot
+    if nick == config[:nick] #if message is coming from the bot
       begin
         case text
         when /^Bot has been killed by/
@@ -258,7 +258,7 @@ class SlackSmartBot
             @bots_created[@channels_id[channel_name]][:status] = status.to_sym
             update_bots_file()
             if CHANNEL == channel_name
-              @logger.info "#{nick}: #{text}" 
+              @logger.info "#{nick}: #{text}"
             else #on master bot
               @logger.info "Changed status on #{channel_name} to :#{status}"
             end
@@ -271,17 +271,24 @@ class SlackSmartBot
       end
     end
 
-    if text.match?(/^!?(shortcut|sc)\s(.+)/i)
-      shortcut = text.scan(/!?\w+\s*(.+)\s*/i).join.downcase
-      if text[0] == "!"
-        addexcl = true
-      else
-        addexcl = false
-      end
-      if @shortcuts.keys.include?(nick) and @shortcuts[nick].keys.include?(shortcut)
-        text = @shortcuts[nick][shortcut].dup
-      elsif @shortcuts.keys.include?(:all) and @shortcuts[:all].keys.include?(shortcut)
-        text = @shortcuts[:all][shortcut].dup
+    #only for shortcuts
+    if text.match(/^@?(#{config[:nick]}):*\s+(.+)\s*$/i) or
+       text.match(/^()!\s*(.+)\s*$/i) or
+       text.match(/^()<@#{config[:nick_id]}>\s+(.+)\s*$/i)
+      command = $2
+      addexcl = true
+    else
+      addexcl = false
+      command = text.downcase.lstrip.rstrip
+    end
+    if command.scan(/^(shortcut|sc)\s+(.+)/i).any? or
+       (@shortcuts.keys.include?(:all) and @shortcuts[:all].keys.include?(command)) or
+       (@shortcuts.keys.include?(nick) and @shortcuts[nick].keys.include?(command))
+      command = $2.downcase unless $2.nil?
+      if @shortcuts.keys.include?(nick) and @shortcuts[nick].keys.include?(command)
+        text = @shortcuts[nick][command].dup
+      elsif @shortcuts.keys.include?(:all) and @shortcuts[:all].keys.include?(command)
+        text = @shortcuts[:all][command].dup
       else
         respond "Shortcut not found", dest
         return :next
@@ -327,7 +334,7 @@ class SlackSmartBot
                   if @bots_created[@rules_imported[user.id][dchannel]][:status] == :on
                     rules_file = @bots_created[@rules_imported[user.id][dchannel]][:rules_file]
                   else
-                    respond 'The bot on that channel is not :on', dest
+                    respond "The bot on that channel is not :on", dest
                     done = true
                   end
                 end
@@ -697,7 +704,7 @@ class SlackSmartBot
         respond "The channel you are trying to use doesn't exist", dest
       elsif channel_found.name == MASTER_CHANNEL
         respond "You cannot use the rules from Master Channel on any other channel.", dest
-      elsif !@bots_created.key?(@channels_id[channel]) 
+      elsif !@bots_created.key?(@channels_id[channel])
         respond "There is no bot running on that channel.", dest
       elsif @bots_created.key?(@channels_id[channel]) and @bots_created[@channels_id[channel]][:status] != :on
         respond "The bot in that channel is not :on", dest
@@ -850,8 +857,9 @@ class SlackSmartBot
       #help:    Then to call this shortcut:
       #help:        _sc spanish account_
       #help:        _shortcut Spanish Account_
+      #help:        _Spanish Account_
       #help:
-      when /^(add\s)?shortcut\s(for\sall)?\s*(.+):\s(.+)/i, /^(add\s)sc\s(for\sall)?\s*(.+):\s(.+)/i
+      when /^(add\s)?shortcut\s(for\sall)?\s*(.+)\s*:\s*(.+)/i, /^(add\s)sc\s(for\sall)?\s*(.+)\s*:\s*(.+)/i
         for_all = $2
         shortcut_name = $3.to_s.downcase
         command_to_run = $4
@@ -892,7 +900,7 @@ class SlackSmartBot
         #help: `delete sc NAME`
         #help:    It will delete the shortcut with the supplied name
         #help:
-      when /^delete\sshortcut\s(.+)/i, /^delete\ssc\s(.+)/i
+      when /^delete\s+shortcut\s+(.+)/i, /^delete\s+sc\s+(.+)/i
         shortcut = $1.to_s.downcase
         deleted = false
 

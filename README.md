@@ -29,7 +29,17 @@ settings = {
     token: 'xxxxxxxxxxxxxxxxxx' # the API Slack token
 }
 
-SlackSmartBot.new(settings).listen
+restarts = 0
+loop {
+    SlackSmartBot.new(settings).listen
+    if restarts > 300
+        puts "More than 300 restarts. Quitting!"
+        break
+    end
+    restarts+=1
+    puts "Restarting: #{restarts}"
+    sleep 20
+}
 ```
 
 The MASTER_CHANNEL will be the channel where you will be able to create other bots and will have special treatment.
@@ -208,7 +218,7 @@ Apart of the specific commands you define on the rules file of the channel, you 
 
 **_`code RUBY_CODE`_**
 
->runs the code supplied and returns the output. Examples:
+>runs the code supplied and returns the output. Also you can send a Ruby file. Examples:
 
 >code puts (34344/99)*(34+14)
 
@@ -233,6 +243,8 @@ Apart of the specific commands you define on the rules file of the channel, you 
 >Then to call this shortcut:
 
 >sc spanish account
+
+>spanish account
 
 >shortcut Spanish Account
 

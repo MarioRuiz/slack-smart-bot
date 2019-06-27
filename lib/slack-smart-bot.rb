@@ -195,6 +195,13 @@ class SlackSmartBot
              ((data.text[0] == "`" and data.text[-1] == "`") or (data.text[0] == "*" and data.text[-1] == "*") or (data.text[0] == "_" and data.text[-1] == "_"))
             data.text = data.text[1..-2]
           end
+          
+          if !data.files.nil? and data.files.size == 1 and 
+            (data.text.match(/^(ruby|code)\s*$/) or (data.text.match(/^\s*$/) and data.files[0].filetype=='ruby') )
+            res=Faraday.new('https://files.slack.com', headers: { "Authorization" => "Bearer #{config[:token]}"  }).get(data.files[0].url_private)
+            data.text = "ruby #{res.body.to_s}"
+          end
+          
           if data.text.match(/^<@#{config[:nick_id]}>\s(on\s)?<#(\w+)\|(.+)>\s*:?\s*(.+)$/i)
             channel_rules = $2
             channel_rules_name = $3
@@ -975,7 +982,7 @@ class SlackSmartBot
         #help: ----------------------------------------------
         #help: `ruby RUBY_CODE`
         #help: `code RUBY_CODE`
-        #help:     runs the code supplied and returns the output. Examples:
+        #help:     runs the code supplied and returns the output. Also you can send a Ruby file. Examples:
         #help:       _code puts (34344/99)*(34+14)_
         #help:       _ruby require 'json'; res=[]; 20.times {res<<rand(100)}; my_json={result: res}; puts my_json.to_json_
         #help:

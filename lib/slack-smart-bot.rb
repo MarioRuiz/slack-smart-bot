@@ -195,14 +195,14 @@ class SlackSmartBot
              ((data.text[0] == "`" and data.text[-1] == "`") or (data.text[0] == "*" and data.text[-1] == "*") or (data.text[0] == "_" and data.text[-1] == "_"))
             data.text = data.text[1..-2]
           end
-          
           if !data.files.nil? and data.files.size == 1 and 
-            (data.text.match(/^(ruby|code)\s*$/) or (data.text.match(/^\s*$/) and data.files[0].filetype=='ruby') )
+            (data.text.match?(/^(ruby|code)\s*$/) or (data.text.match?(/^\s*$/) and data.files[0].filetype=='ruby') or
+            (data.text.match?(/^<@#{config[:nick_id]}>\s(on\s)?<#(\w+)\|(.+)>/im) and data.files[0].filetype=='ruby'))
             res=Faraday.new('https://files.slack.com', headers: { "Authorization" => "Bearer #{config[:token]}"  }).get(data.files[0].url_private)
-            data.text = "ruby #{res.body.to_s}"
+            data.text = "#{data.text} ruby #{res.body.to_s}"
           end
           
-          if data.text.match(/^<@#{config[:nick_id]}>\s(on\s)?<#(\w+)\|(.+)>\s*:?\s*(.+)$/i)
+          if data.text.match(/^<@#{config[:nick_id]}>\s(on\s)?<#(\w+)\|(.+)>\s*:?\s*(.+)/im)
             channel_rules = $2
             channel_rules_name = $3
             command = $4
@@ -210,8 +210,10 @@ class SlackSmartBot
                ((command[0] == "`" and command[-1] == "`") or (command[0] == "*" and command[-1] == "*") or (command[0] == "_" and command[-1] == "_"))
               command = command[1..-2]
             end
-
+            p command
+            
             command = "!" + command unless command[0] == "!"
+            p command
             if @channels_id[CHANNEL] == channel_rules #to be treated only on the bot of the requested channel
               dest = data.channel
 
@@ -251,6 +253,36 @@ class SlackSmartBot
 
   def process_first(user, text, dest, dchannel)
     nick = user.name
+    rules_file = ''
+
+    if dest[0] == "C" # on a channel
+      rules_file = RULES_FILE
+
+      if @rules_imported.key?(user.id) and @rules_imported[user.id].key?(dchannel)
+        unless @bots_created.key?(@rules_imported[user.id][dchannel])
+          file_conf = IO.readlines($0.gsub(".rb", "_bots.rb")).join
+          unless file_conf.to_s() == ""
+            @bots_created = eval(file_conf)
+          end
+        end
+        if @bots_created.key?(@rules_imported[user.id][dchannel])
+          rules_file = @bots_created[@rules_imported[user.id][dchannel]][:rules_file]
+        end
+      end
+    elsif dest[0] == "D" and @rules_imported.key?(user.id) and @rules_imported[user.id].key?(user.id) #direct message
+      unless @bots_created.key?(@rules_imported[user.id][user.id])
+        file_conf = IO.readlines($0.gsub(".rb", "_bots.rb")).join
+        unless file_conf.to_s() == ""
+          @bots_created = eval(file_conf)
+        end
+      end
+      if @bots_created.key?(@rules_imported[user.id][user.id])
+        rules_file = @bots_created[@rules_imported[user.id][user.id]][:rules_file]
+      end
+    end
+
+
+
     #todo: verify if on slack on anytime nick == config[:nick]
     if nick == config[:nick] #if message is coming from the bot
       begin
@@ -279,9 +311,9 @@ class SlackSmartBot
     end
 
     #only for shortcuts
-    if text.match(/^@?(#{config[:nick]}):*\s+(.+)\s*$/i) or
-       text.match(/^()!\s*(.+)\s*$/i) or
-       text.match(/^()<@#{config[:nick_id]}>\s+(.+)\s*$/i)
+    if text.match(/^@?(#{config[:nick]}):*\s+(.+)\s*/im) or
+       text.match(/^()!\s*(.+)\s*/im) or
+       text.match(/^()<@#{config[:nick_id]}>\s+(.+)\s*/im)
       command = $2
       addexcl = true
     else
@@ -312,13 +344,12 @@ class SlackSmartBot
     begin
       t = Thread.new do
         begin
-          done = false
-          processed = process(user, command, dest, dchannel)
+          processed = process(user, command, dest, dchannel, rules_file)
           @logger.info "command: #{nick}> #{command}" if processed
           on_demand = false
-          if command.match(/^@?(#{config[:nick]}):*\s+(.+)$/i) or
-             command.match(/^()!(.+)$/i) or
-             command.match(/^()<@#{config[:nick_id]}>\s+(.+)$/i)
+          if command.match(/^@?(#{config[:nick]}):*\s+(.+)/im) or
+             command.match(/^()!(.+)/im) or
+             command.match(/^()<@#{config[:nick_id]}>\s+(.+)/im)
             command = $2
             on_demand = true
           end
@@ -328,25 +359,18 @@ class SlackSmartBot
               dest[0] == "D" or on_demand)
             @logger.info "command: #{nick}> #{command}" unless processed
             #todo: verify this
+
+
             if dest[0] == "C" #only for channels, not for DM
-              rules_file = RULES_FILE
               if @rules_imported.key?(user.id) and @rules_imported[user.id].key?(dchannel)
-                unless @bots_created.key?(@rules_imported[user.id][dchannel])
-                  file_conf = IO.readlines($0.gsub(".rb", "_bots.rb")).join
-                  unless file_conf.to_s() == ""
-                    @bots_created = eval(file_conf)
-                  end
-                end
                 if @bots_created.key?(@rules_imported[user.id][dchannel])
-                  if @bots_created[@rules_imported[user.id][dchannel]][:status] == :on
-                    rules_file = @bots_created[@rules_imported[user.id][dchannel]][:rules_file]
-                  else
+                  if @bots_created[@rules_imported[user.id][dchannel]][:status] != :on
                     respond "The bot on that channel is not :on", dest
-                    done = true
+                    rules_file = ''
                   end
                 end
               end
-              unless done
+              unless rules_file.empty?
                 begin
                   eval(File.new(rules_file).read) if File.exist?(rules_file)
                 rescue Exception => stack
@@ -362,16 +386,8 @@ class SlackSmartBot
                 end
               end
             elsif @rules_imported.key?(user.id) and @rules_imported[user.id].key?(user.id)
-              unless @bots_created.key?(@rules_imported[user.id][user.id])
-                file_conf = IO.readlines($0.gsub(".rb", "_bots.rb")).join
-                unless file_conf.to_s() == ""
-                  @bots_created = eval(file_conf)
-                end
-              end
-
               if @bots_created.key?(@rules_imported[user.id][user.id])
                 if @bots_created[@rules_imported[user.id][user.id]][:status] == :on
-                  rules_file = @bots_created[@rules_imported[user.id][user.id]][:rules_file]
                   begin
                     eval(File.new(rules_file).read) if File.exist?(rules_file)
                   rescue Exception => stack
@@ -380,11 +396,11 @@ class SlackSmartBot
                   end
                 else
                   respond "The bot on <##{@rules_imported[user.id][user.id]}|#{@bots_created[@rules_imported[user.id][user.id]][:channel_name]}> is not :on", dest
-                  done = true
+                  rules_file = ''
                 end
               end
 
-              unless done
+              unless rules_file.empty?
                 if defined?(rules)
                   command[0] = "" if command[0] == "!"
                   command.gsub!(/^@\w+:*\s*/, "")
@@ -414,7 +430,7 @@ class SlackSmartBot
   #help:
   #help: *General commands:*
   #help:
-  def process(user, command, dest, dchannel)
+  def process(user, command, dest, dchannel, rules_file)
     from = user.name
     firstname = from.split(/ /).first
     processed = true
@@ -791,45 +807,40 @@ class SlackSmartBot
         respond help_message.scan(/#\s*help\s*:(.*)/).join("\n"), dest
       end
       if dest[0] == "C" # on a channel
-        rules_file = RULES_FILE
-
         if @rules_imported.key?(user.id) and @rules_imported[user.id].key?(dchannel)
-          unless @bots_created.key?(@rules_imported[user.id][dchannel])
-            file_conf = IO.readlines($0.gsub(".rb", "_bots.rb")).join
-            unless file_conf.to_s() == ""
-              @bots_created = eval(file_conf)
-            end
-          end
           if @bots_created.key?(@rules_imported[user.id][dchannel])
-            rules_file = @bots_created[@rules_imported[user.id][dchannel]][:rules_file]
             respond "*You are using rules from another channel: <##{@rules_imported[user.id][dchannel]}>. These are the specific commands for that channel:*", dest
           end
         end
         help_message_rules = IO.readlines(rules_file).join
         respond help_message_rules.scan(/#\s*help\s*:(.*)/).join("\n"), dest
       elsif dest[0] == "D" and @rules_imported.key?(user.id) and @rules_imported[user.id].key?(user.id) #direct message
-        unless @bots_created.key?(@rules_imported[user.id][user.id])
-          file_conf = IO.readlines($0.gsub(".rb", "_bots.rb")).join
-          unless file_conf.to_s() == ""
-            @bots_created = eval(file_conf)
-          end
-        end
         if @bots_created.key?(@rules_imported[user.id][user.id])
-          rules_file = @bots_created[@rules_imported[user.id][user.id]][:rules_file]
           respond "*You are using rules from channel: <##{@rules_imported[user.id][user.id]}>. These are the specific commands for that channel:*", dest
           help_message_rules = IO.readlines(rules_file).join
           respond help_message_rules.scan(/#\s*help\s*:(.*)/).join("\n"), dest
         end
       end
-      respond "Github project: https://github.com/MarioRuiz/slack-smart-bot", dest if !specific
+      if specific
+        unless defined?(rules) or rules_file.empty?
+          begin
+            eval(File.new(rules_file).read) if File.exist?(rules_file)
+          end
+        end
+        if defined?(git_project)
+          respond "Git project: #{git_project}", dest
+        end
+      else
+        respond "Slack Smart Bot Github project: https://github.com/MarioRuiz/slack-smart-bot", dest
+      end
     else
       processed = false
     end
 
     on_demand = false
-    if command.match(/^@?(#{config[:nick]}):*\s+(.+)$/i) or
-       command.match(/^()!(.+)$/i) or
-       command.match(/^()<@#{config[:nick_id]}>\s+(.+)$/i)
+    if command.match(/^@?(#{config[:nick]}):*\s+(.+)/im) or
+       command.match(/^()!(.+)/im) or
+       command.match(/^()<@#{config[:nick_id]}>\s+(.+)/im)
       command = $2
       on_demand = true
     end
@@ -982,19 +993,29 @@ class SlackSmartBot
         #help: ----------------------------------------------
         #help: `ruby RUBY_CODE`
         #help: `code RUBY_CODE`
-        #help:     runs the code supplied and returns the output. Also you can send a Ruby file. Examples:
+        #help:     runs the code supplied and returns the output. Also you can send a Ruby file instead. Examples:
         #help:       _code puts (34344/99)*(34+14)_
         #help:       _ruby require 'json'; res=[]; 20.times {res<<rand(100)}; my_json={result: res}; puts my_json.to_json_
         #help:
-      when /^ruby\s(.+)/im, /code\s(.+)/im
+      when /^\s*ruby\s(.+)/im, /^\s*code\s(.+)/im
         code = $1
         code.gsub!("\\n", "\n")
+        code.gsub!("\\r", "\r")
+        @logger.info code
         unless code.match?(/System/i) or code.match?(/Kernel/i) or code.include?("File") or
                code.include?("`") or code.include?("exec") or code.include?("spawn") or code.include?("IO") or
                code.match?(/open3/i) or code.match?(/bundle/i) or code.match?(/gemfile/i) or code.include?("%x") or
                code.include?("ENV")
+          unless rules_file.empty?
+            begin
+              eval(File.new(rules_file).read) if File.exist?(rules_file)
+            end
+          end
+          
           begin
-            stdout, stderr, status = Open3.capture3("ruby -e \"#{code.gsub('"', '\"')}\"")
+            ruby = "ruby -e \"#{code.gsub('"', '\"')}\""
+            ruby = ("cd #{project_folder} &&" + ruby) if defined?(project_folder)
+            stdout, stderr, status = Open3.capture3(ruby)
             if stderr == ""
               if stdout == ""
                 respond "Nothing returned. Remember you need to use p or puts to print", dest

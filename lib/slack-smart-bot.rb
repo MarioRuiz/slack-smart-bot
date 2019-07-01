@@ -1003,9 +1003,9 @@ class SlackSmartBot
         code.gsub!("\\r", "\r")
         @logger.info code
         unless code.match?(/System/i) or code.match?(/Kernel/i) or code.include?("File") or
-               code.include?("`") or code.include?("exec") or code.include?("spawn") or code.include?("IO") or
-               code.match?(/open3/i) or code.match?(/bundle/i) or code.match?(/gemfile/i) or code.include?("%x") or
-               code.include?("ENV")
+          code.include?("`") or code.include?("exec") or code.include?("spawn") or code.include?("IO.") or
+          code.match?(/open3/i) or code.match?(/bundle/i) or code.match?(/gemfile/i) or code.include?("%x") or
+          code.include?("ENV") or code.match?(/=\s*IO/)
           unless rules_file.empty?
             begin
               eval(File.new(rules_file).read) if File.exist?(rules_file)
@@ -1029,7 +1029,7 @@ class SlackSmartBot
             respond exc, dest
           end
         else
-          respond "Sorry I cannot run this due security issues", dest
+          respond "Sorry I cannot run this due security reasons", dest
         end
       else
         processed2 = false

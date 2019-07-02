@@ -1094,7 +1094,7 @@ class SlackSmartBot
   end
 
   #to send a file to an user or channel
-  def send_file(to, msg, file, title, format)
+  def send_file(to, msg, file, title, format, type='text')
     if to[0] == "U" #user
       im = wclient.im_open(user: to)
       channel = im["channel"]["id"]
@@ -1108,6 +1108,7 @@ class SlackSmartBot
       file: Faraday::UploadIO.new(file, format),
       title: title,
       filename: file,
+      filetype: type,
       initial_comment: msg,
     )
   end

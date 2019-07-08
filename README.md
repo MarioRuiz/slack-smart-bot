@@ -29,6 +29,8 @@ settings = {
     token: 'xxxxxxxxxxxxxxxxxx' # the API Slack token
 }
 
+pid = Process.pid
+
 restarts = 0
 loop {
     SlackSmartBot.new(settings).listen
@@ -36,10 +38,25 @@ loop {
         puts "More than 300 restarts. Quitting!"
         break
     end
+
+    if ARGV.size == 0 #on master channel
+        #kill the running sub bots
+        children = `pgrep -P #{pid}`.split("\n")
+        children.each do |pc|
+            `kill #{pc}`
+        end
+        sleep 1
+        children = `pgrep -P #{pid}`.split("\n")
+        children.each do |pc|
+            puts "Pay attention!!! Process pid: #{pc} still Running"
+        end
+    end
+    
     restarts+=1
     puts "Restarting: #{restarts}"
     sleep 20
 }
+
 ```
 
 The MASTER_CHANNEL will be the channel where you will be able to create other bots and will have special treatment.

@@ -33,11 +33,13 @@ pid = Process.pid
 
 restarts = 0
 loop {
-    SlackSmartBot.new(settings).listen
+  begin
+    restarts += 1
     if restarts > 300
-        puts "More than 300 restarts. Quitting!"
-        break
+      puts "More than 300 restarts. Quitting!"
+      break
     end
+    SlackSmartBot.new(settings).listen
 
     if ARGV.size == 0 #on master channel
         #kill the running sub bots
@@ -52,9 +54,13 @@ loop {
         end
     end
     
-    restarts+=1
     puts "Restarting: #{restarts}"
     sleep 20
+  rescue Exception => e
+    sleep 60
+    puts "*"*100
+    puts "Rescued: #{e.inspect}"
+  end
 }
 
 ```

@@ -47,7 +47,7 @@ class SlackSmartBot
       conf.token = config[:token]
     end
     self.wclient = Slack::Web::Client.new
-    self.client = Slack::RealTime::Client.new
+    self.client = Slack::RealTime::Client.new(start_method: :rtm_connect)
 
     @listening = Array.new
 

@@ -29,39 +29,12 @@ settings = {
     token: 'xxxxxxxxxxxxxxxxxx' # the API Slack token
 }
 
-pid = Process.pid
-
-restarts = 0
-loop {
-  begin
-    restarts += 1
-    if restarts > 300
-      puts "More than 300 restarts. Quitting!"
-      break
-    end
-    SlackSmartBot.new(settings).listen
-
-    if ARGV.size == 0 #on master channel
-        #kill the running sub bots
-        children = `pgrep -P #{pid}`.split("\n")
-        children.each do |pc|
-            `kill #{pc}`
-        end
-        sleep 1
-        children = `pgrep -P #{pid}`.split("\n")
-        children.each do |pc|
-            puts "Pay attention!!! Process pid: #{pc} still Running"
-        end
-    end
-    
-    puts "Restarting: #{restarts}"
-    sleep 20
-  rescue Exception => e
-    sleep 60
-    puts "*"*100
-    puts "Rescued: #{e.inspect}"
-  end
-}
+begin
+  puts "Connecting #{settings.inspect}"
+  SlackSmartBot.new(settings).listen
+rescue Exception => e
+  puts "Rescued: #{e.inspect}"
+end
 
 ```
 

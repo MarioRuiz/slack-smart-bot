@@ -279,7 +279,6 @@ class SlackSmartBot
       end
     end
 
-    #todo: verify if on slack on anytime nick == config[:nick]
     if nick == config[:nick] #if message is coming from the bot
       begin
         case text
@@ -1008,6 +1007,8 @@ class SlackSmartBot
             end
           end
           
+          respond "Running", dest if code.size > 100
+
           begin
             ruby = "ruby -e \"#{code.gsub('"', '\"')}\""
             ruby = ("cd #{project_folder} &&" + ruby) if defined?(project_folder)

@@ -1,4 +1,5 @@
 require "slack-ruby-client"
+require 'async'
 require "open-uri"
 require "cgi"
 require "json"

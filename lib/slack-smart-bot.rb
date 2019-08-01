@@ -28,7 +28,7 @@ end
 SHORTCUTS_FILE = "slack-smart-bot_shortcuts_#{CHANNEL}.rb".gsub(" ", "_")
 
 class SlackSmartBot
-  attr_accessor :config, :client, :wclient
+  attr_accessor :config, :client
   VERSION = Gem.loaded_specs.values.select { |x| x.name == "slack-smart-bot" }[0].version.to_s
 
   def initialize(config)
@@ -47,7 +47,6 @@ class SlackSmartBot
     Slack.configure do |conf|
       conf.token = config[:token]
     end
-    self.wclient = Slack::Web::Client.new
     self.client = Slack::RealTime::Client.new(start_method: :rtm_connect)
 
     @listening = Array.new
@@ -87,10 +86,9 @@ class SlackSmartBot
         @rules_imported = eval(file_conf)
       end
     end
-    wclient.auth_test
 
     begin
-      user_info = wclient.users_info(user: "#{"@" if config[:nick][0] != "@"}#{config[:nick]}")
+      user_info = client.web_client.users_info(user: "#{"@" if config[:nick][0] != "@"}#{config[:nick]}")
       config[:nick_id] = user_info.user.id
     rescue Exception => stack
       @logger.fatal stack
@@ -154,7 +152,7 @@ class SlackSmartBot
   end
 
   def get_channels_name_and_id
-    channels = wclient.channels_list.channels
+    channels = client.web_client.channels_list.channels
     @channels_id = Hash.new()
     @channels_name = Hash.new()
     channels.each do |ch|
@@ -189,7 +187,7 @@ class SlackSmartBot
       if !dest.nil? and ((dest[0] == "D" and ON_MASTER_BOT) or (dest[0] == "C")) and data.user.to_s != ""
         begin
           #todo: when changed @questions user_id then move user_info inside the ifs to avoid calling it when not necessary
-          user_info = wclient.users_info(user: data.user)
+          user_info = client.web_client.users_info(user: data.user)
           #todo: check to remove user_info.user.name == config[:nick] since I think we will never get messages from the bot on slack
           # if Direct message or we are in the channel of the bot
           if data.text.size >= 2 and
@@ -217,9 +215,9 @@ class SlackSmartBot
             if @channels_id[CHANNEL] == channel_rules #to be treated only on the bot of the requested channel
               dest = data.channel
 
-              channels = wclient.channels_list.channels
+              channels = client.web_client.channels_list.channels
               channel_found = channels.detect { |c| c.name == channel_rules_name }
-              members = wclient.conversations_members(channel: @channels_id[channel_rules_name]).members unless channel_found.nil?
+              members = client.web_client.conversations_members(channel: @channels_id[channel_rules_name]).members unless channel_found.nil?
               if channel_found.nil?
                 @logger.fatal "Not possible to find the channel #{channel_rules_name}"
               elsif channel_found.name == MASTER_CHANNEL
@@ -281,13 +279,11 @@ class SlackSmartBot
       end
     end
 
-
-
     #todo: verify if on slack on anytime nick == config[:nick]
     if nick == config[:nick] #if message is coming from the bot
       begin
         case text
-        when /^Bot has been killed by/
+        when /^Bot has been (closed|killed) by/i
           @logger.info "#{nick}: #{text}"
           exit!
         when /^Changed status on (.+) to :(.+)/i
@@ -586,7 +582,7 @@ class SlackSmartBot
             end
             respond "Bot channels have been notified", dest
           else
-            myconv = wclient.users_conversations(exclude_archived: true, limit: 100, types: "im, public_channel").channels
+            myconv = client.web_client.users_conversations(exclude_archived: true, limit: 100, types: "im, public_channel").channels
             myconv.each do |c|
               respond message, c.id unless c.name == MASTER_CHANNEL
             end
@@ -612,9 +608,9 @@ class SlackSmartBot
         elsif @channels_id.key?(channel) #it is a channel name
           channel_id = @channels_id[channel]
         end
-        channels = wclient.channels_list.channels
+        channels = client.web_client.channels_list.channels
         channel_found = channels.detect { |c| c.name == channel }
-        members = wclient.conversations_members(channel: @channels_id[channel]).members unless channel_found.nil?
+        members = client.web_client.conversations_members(channel: @channels_id[channel]).members unless channel_found.nil?
 
         if channel_id.nil?
           respond "There is no channel with that name: #{channel}, please be sure is written exactly the same", dest
@@ -719,9 +715,9 @@ class SlackSmartBot
       #help:
     when /^use rules (from\s+)?<#C\w+\|(.+)>/i, /^use rules (from\s+)?(.+)/i
       channel = $2
-      channels = wclient.channels_list.channels
+      channels = client.web_client.channels_list.channels
       channel_found = channels.detect { |c| c.name == channel }
-      members = wclient.conversations_members(channel: @channels_id[channel]).members unless channel_found.nil?
+      members = client.web_client.conversations_members(channel: @channels_id[channel]).members unless channel_found.nil?
 
       if channel_found.nil?
         respond "The channel you are trying to use doesn't exist", dest
@@ -1087,7 +1083,7 @@ class SlackSmartBot
       if id_user[0] == "D"
         client.message(channel: id_user, as_user: true, text: msg)
       else
-        im = wclient.im_open(user: id_user)
+        im = client.web_client.im_open(user: id_user)
         client.message(channel: im["channel"]["id"], as_user: true, text: msg)
       end
     end
@@ -1096,13 +1092,13 @@ class SlackSmartBot
   #to send a file to an user or channel
   def send_file(to, msg, file, title, format, type='text')
     if to[0] == "U" #user
-      im = wclient.im_open(user: to)
+      im = client.web_client.im_open(user: to)
       channel = im["channel"]["id"]
     else
       channel = to
     end
 
-    wclient.files_upload(
+    client.web_client.files_upload(
       channels: channel,
       as_user: true,
       file: Faraday::UploadIO.new(file, format),

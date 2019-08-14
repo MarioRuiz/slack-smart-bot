@@ -1,5 +1,5 @@
 require "slack-ruby-client"
-require 'async'
+require "async"
 require "open-uri"
 require "cgi"
 require "json"
@@ -194,13 +194,13 @@ class SlackSmartBot
              ((data.text[0] == "`" and data.text[-1] == "`") or (data.text[0] == "*" and data.text[-1] == "*") or (data.text[0] == "_" and data.text[-1] == "_"))
             data.text = data.text[1..-2]
           end
-          if !data.files.nil? and data.files.size == 1 and 
-            (data.text.match?(/^(ruby|code)\s*$/) or (data.text.match?(/^\s*$/) and data.files[0].filetype=='ruby') or
-            (data.text.match?(/^<@#{config[:nick_id]}>\s(on\s)?<#(\w+)\|(.+)>/im) and data.files[0].filetype=='ruby'))
-            res=Faraday.new('https://files.slack.com', headers: { "Authorization" => "Bearer #{config[:token]}"  }).get(data.files[0].url_private)
+          if !data.files.nil? and data.files.size == 1 and
+             (data.text.match?(/^(ruby|code)\s*$/) or (data.text.match?(/^\s*$/) and data.files[0].filetype == "ruby") or
+              (data.text.match?(/^<@#{config[:nick_id]}>\s(on\s)?<#(\w+)\|(.+)>/im) and data.files[0].filetype == "ruby"))
+            res = Faraday.new("https://files.slack.com", headers: { "Authorization" => "Bearer #{config[:token]}" }).get(data.files[0].url_private)
             data.text = "#{data.text} ruby #{res.body.to_s}"
           end
-          
+
           if data.text.match(/^<@#{config[:nick_id]}>\s(on\s)?<#(\w+)\|(.+)>\s*:?\s*(.+)/im)
             channel_rules = $2
             channel_rules_name = $3
@@ -209,7 +209,7 @@ class SlackSmartBot
                ((command[0] == "`" and command[-1] == "`") or (command[0] == "*" and command[-1] == "*") or (command[0] == "_" and command[-1] == "_"))
               command = command[1..-2]
             end
-            
+
             command = "!" + command unless command[0] == "!"
 
             if @channels_id[CHANNEL] == channel_rules #to be treated only on the bot of the requested channel
@@ -251,7 +251,7 @@ class SlackSmartBot
 
   def process_first(user, text, dest, dchannel)
     nick = user.name
-    rules_file = ''
+    rules_file = ""
 
     if dest[0] == "C" or dest[0] == "G" # on a channel or private channel
       rules_file = RULES_FILE
@@ -355,13 +355,12 @@ class SlackSmartBot
             @logger.info "command: #{nick}> #{command}" unless processed
             #todo: verify this
 
-
             if dest[0] == "C" or dest[0] == "G" #only for channels, not for DM
               if @rules_imported.key?(user.id) and @rules_imported[user.id].key?(dchannel)
                 if @bots_created.key?(@rules_imported[user.id][dchannel])
                   if @bots_created[@rules_imported[user.id][dchannel]][:status] != :on
                     respond "The bot on that channel is not :on", dest
-                    rules_file = ''
+                    rules_file = ""
                   end
                 end
               end
@@ -391,7 +390,7 @@ class SlackSmartBot
                   end
                 else
                   respond "The bot on <##{@rules_imported[user.id][user.id]}|#{@bots_created[@rules_imported[user.id][user.id]][:channel_name]}> is not :on", dest
-                  rules_file = ''
+                  rules_file = ""
                 end
               end
 
@@ -998,15 +997,15 @@ class SlackSmartBot
         code.gsub!("\\r", "\r")
         @logger.info code
         unless code.match?(/System/i) or code.match?(/Kernel/i) or code.include?("File") or
-          code.include?("`") or code.include?("exec") or code.include?("spawn") or code.include?("IO.") or
-          code.match?(/open3/i) or code.match?(/bundle/i) or code.match?(/gemfile/i) or code.include?("%x") or
-          code.include?("ENV") or code.match?(/=\s*IO/)
+               code.include?("`") or code.include?("exec") or code.include?("spawn") or code.include?("IO.") or
+               code.match?(/open3/i) or code.match?(/bundle/i) or code.match?(/gemfile/i) or code.include?("%x") or
+               code.include?("ENV") or code.match?(/=\s*IO/)
           unless rules_file.empty?
             begin
               eval(File.new(rules_file).read) if File.exist?(rules_file)
             end
           end
-          
+
           respond "Running", dest if code.size > 100
 
           begin
@@ -1091,7 +1090,7 @@ class SlackSmartBot
   end
 
   #to send a file to an user or channel
-  def send_file(to, msg, file, title, format, type='text')
+  def send_file(to, msg, file, title, format, type = "text")
     if to[0] == "U" #user
       im = client.web_client.im_open(user: to)
       channel = im["channel"]["id"]

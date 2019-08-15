@@ -1,3 +1,16 @@
+
+#path to the project folder
+# for example "#{`eval echo ~$USER`.chop}/projects/the_project"
+def project_folder()
+  "#{`eval echo ~$USER`.chop}/"
+end
+
+#link to the project
+def git_project()
+  ""
+end
+
+
 #for the case of testing, just run this file adding in the end a call to rules with the parameters you want
 if defined?(respond)
   @testing = false

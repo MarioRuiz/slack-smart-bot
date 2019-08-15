@@ -737,6 +737,8 @@ class SlackSmartBot
           end
           update_rules_imported() if ON_MASTER_BOT
           respond "I'm using now the rules from <##{channel_found.id}>", dest
+          def git_project() "" end
+          def project_folder() "" end
         else
           respond "You need to join the channel <##{channel_found.id}> to be able to use the rules.", dest
         end
@@ -762,6 +764,8 @@ class SlackSmartBot
             @rules_imported[user.id].delete(dchannel)
             update_rules_imported() if ON_MASTER_BOT
             respond "You won't be using those rules from now on.", dest
+            def git_project() "" end
+            def project_folder() "" end
           end
         else
           respond "You were not using those rules.", dest
@@ -774,6 +778,8 @@ class SlackSmartBot
             @rules_imported[user.id].delete(user.id)
             update_rules_imported() if ON_MASTER_BOT
             respond "You won't be using those rules from now on.", dest
+            def git_project() "" end
+            def project_folder() "" end
           end
         else
           respond "You were not using those rules.", dest
@@ -792,6 +798,7 @@ class SlackSmartBot
       else
         specific = false
       end
+      help_message_rules = ''
       if !specific
         help_message = IO.readlines(__FILE__).join
         if ADMIN_USERS.include?(from) #admin user
@@ -818,14 +825,18 @@ class SlackSmartBot
         end
       end
       if specific
-        unless defined?(rules) or rules_file.empty?
+        unless rules_file.empty?
           begin
             eval(File.new(rules_file).read) if File.exist?(rules_file)
           end
         end
-        if defined?(git_project)
+        if defined?(git_project) and git_project.to_s!='' and help_message_rules != ''
           respond "Git project: #{git_project}", dest
+        else
+          def git_project() '' end
+          def project_folder() '' end
         end
+        
       else
         respond "Slack Smart Bot Github project: https://github.com/MarioRuiz/slack-smart-bot", dest
       end
@@ -1012,7 +1023,12 @@ class SlackSmartBot
 
           begin
             ruby = "ruby -e \"#{code.gsub('"', '\"')}\""
-            ruby = ("cd #{project_folder} &&" + ruby) if defined?(project_folder)
+            if defined?(project_folder) and project_folder.to_s!='' and Dir.exist?(project_folder)
+              ruby = ("cd #{project_folder} &&" + ruby)
+            else
+              def project_folder() '' end
+            end
+    
             stdout, stderr, status = Open3.capture3(ruby)
             if stderr == ""
               if stdout == ""

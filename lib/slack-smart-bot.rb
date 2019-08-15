@@ -283,8 +283,10 @@ class SlackSmartBot
       begin
         case text
         when /^Bot has been (closed|killed) by/i
-          @logger.info "#{nick}: #{text}"
-          exit!
+          if CHANNEL == @channels_name[dchannel]
+            @logger.info "#{nick}: #{text}"
+            exit!
+          end
         when /^Changed status on (.+) to :(.+)/i
           channel_name = $1
           status = $2
@@ -472,7 +474,7 @@ class SlackSmartBot
       #helpadmin:    The bot stops running and also stops all the bots created from this master channel
       #helpadmin:    You can use this command only if you are an admin user and you are on the master channel
       #helpadmin:
-    when /^exit\sbot/i, /^quit\sbot/i, /^close\sbot/i
+    when /^exit\sbot\s*$/i, /^quit\sbot\s*$/i, /^close\sbot\s*$/i
       if ON_MASTER_BOT
         if ADMIN_USERS.include?(from) #admin user
           unless @questions.keys.include?(from)
@@ -672,7 +674,7 @@ class SlackSmartBot
       #helpmaster:    kills the bot on the specified channel
       #helpmaster:    Only works if you are on Master channel and you created that bot or you are an admin user
       #helpmaster:
-    when /^kill\sbot\son\s<#C\w+\|(.+)>\s*/i, /^kill\sbot\son\s(.+)\s*/i
+    when /^kill\sbot\son\s<#C\w+\|(.+)>\s*$/i, /^kill\sbot\son\s(.+)\s*$/i
       if ON_MASTER_BOT
         channel = $1
 

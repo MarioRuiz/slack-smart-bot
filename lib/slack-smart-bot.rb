@@ -198,7 +198,7 @@ class SlackSmartBot
              (data.text.match?(/^(ruby|code)\s*$/) or (data.text.match?(/^\s*$/) and data.files[0].filetype == "ruby") or
               (data.text.match?(/^<@#{config[:nick_id]}>\s(on\s)?<#(\w+)\|(.+)>/im) and data.files[0].filetype == "ruby"))
             res = Faraday.new("https://files.slack.com", headers: { "Authorization" => "Bearer #{config[:token]}" }).get(data.files[0].url_private)
-            data.text = "#{data.text} ruby #{res.body.to_s}"
+            data.text = "#{data.text} ruby #{res.body.to_s.force_encoding("UTF-8")}"
           end
 
           if data.text.match(/^<@#{config[:nick_id]}>\s(on\s)?<#(\w+)\|(.+)>\s*:?\s*(.+)/im)
@@ -1022,13 +1022,13 @@ class SlackSmartBot
           respond "Running", dest if code.size > 100
 
           begin
+            code.gsub!(/^\W*$/,'') #to remove special chars from slack when copy/pasting
             ruby = "ruby -e \"#{code.gsub('"', '\"')}\""
             if defined?(project_folder) and project_folder.to_s!='' and Dir.exist?(project_folder)
               ruby = ("cd #{project_folder} &&" + ruby)
             else
               def project_folder() '' end
             end
-    
             stdout, stderr, status = Open3.capture3(ruby)
             if stderr == ""
               if stdout == ""

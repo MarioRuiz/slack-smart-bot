@@ -284,11 +284,15 @@ Apart of the specific commands you define on the rules file of the channel, you 
 
 >you need to be part of that channel to be able to use the rules.
 
+>only when on a private conversation with the bot or in a private group
+
 **_`stop using rules from CHANNEL`_**
 
 **_`stop using rules CHANNEL`_**
 
 >it will stop using the rules from the specified channel.
+
+>only when on a private conversation with the bot or in a private group
 
 ### Available commands from channels without a Smart Bot
 **_`@BOT_NAME on #CHANNEL_NAME COMMAND`_**
@@ -298,6 +302,8 @@ Apart of the specific commands you define on the rules file of the channel, you 
 >It will run the supplied command using the rules on the channel supplied.
 
 >You need to join the specified channel to be able to use those rules.
+
+>Also you can use this command to call another bot from a channel with a running bot.
 
 ## Contributing
 

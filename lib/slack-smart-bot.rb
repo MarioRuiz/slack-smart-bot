@@ -173,6 +173,7 @@ class SlackSmartBot
   #help: `@BOT_NAME #CHANNEL_NAME COMMAND`
   #help:    It will run the supplied command using the rules on the channel supplied.
   #help:    You need to join the specified channel to be able to use those rules.
+  #help:    Also you can use this command to call another bot from a channel with a running bot.
   def listen
     @salutations = [config[:nick], config[:nick_id], "bot", "smart"]
     client.on :message do |data|
@@ -188,7 +189,6 @@ class SlackSmartBot
         begin
           #todo: when changed @questions user_id then move user_info inside the ifs to avoid calling it when not necessary
           user_info = client.web_client.users_info(user: data.user)
-          #todo: check to remove user_info.user.name == config[:nick] since I think we will never get messages from the bot on slack
           # if Direct message or we are in the channel of the bot
           if data.text.size >= 2 and
              ((data.text[0] == "`" and data.text[-1] == "`") or (data.text[0] == "*" and data.text[-1] == "*") or (data.text[0] == "_" and data.text[-1] == "_"))
@@ -467,6 +467,148 @@ class SlackSmartBot
         @listening.delete(from)
       end
 
+      #help: ----------------------------------------------
+      #help: `bot help`
+      #help: `bot what can I do?`
+      #help: `bot rules`
+      #help:    it will display this help
+      #help:    `bot rules` will show only the specific rules for this channel.
+    when /^bot\s+(rules|help)/i, /^bot,? what can I do/i
+      if $1.to_s.match?(/rules/i)
+        specific = true
+      else
+        specific = false
+      end
+      help_message_rules = ''
+      if !specific
+        help_message = IO.readlines(__FILE__).join
+        if ADMIN_USERS.include?(from) #admin user
+          respond "*Commands for administrators:*\n#{help_message.scan(/#\s*help\s*admin:(.*)/).join("\n")}", dest
+        end
+        if ON_MASTER_BOT and (dest[0] == "C" or dest[0] == "G")
+          respond "*Commands only on Master Channel <##{@channels_id[MASTER_CHANNEL]}>:*\n#{help_message.scan(/#\s*help\s*master:(.*)/).join("\n")}", dest
+        end
+        respond help_message.scan(/#\s*help\s*:(.*)/).join("\n"), dest
+      end
+      if dest[0] == "C" or dest[0] == "G" # on a channel
+        if @rules_imported.key?(user.id) and @rules_imported[user.id].key?(dchannel)
+          if @bots_created.key?(@rules_imported[user.id][dchannel])
+            respond "*You are using rules from another channel: <##{@rules_imported[user.id][dchannel]}>. These are the specific commands for that channel:*", dest
+          end
+        end
+        help_message_rules = IO.readlines(rules_file).join
+        respond help_message_rules.scan(/#\s*help\s*:(.*)/).join("\n"), dest
+      elsif dest[0] == "D" and @rules_imported.key?(user.id) and @rules_imported[user.id].key?(user.id) #direct message
+        if @bots_created.key?(@rules_imported[user.id][user.id])
+          respond "*You are using rules from channel: <##{@rules_imported[user.id][user.id]}>. These are the specific commands for that channel:*", dest
+          help_message_rules = IO.readlines(rules_file).join
+          respond help_message_rules.scan(/#\s*help\s*:(.*)/).join("\n"), dest
+        end
+      end
+      if specific
+        unless rules_file.empty?
+          begin
+            eval(File.new(rules_file).read) if File.exist?(rules_file)
+          end
+        end
+        if defined?(git_project) and git_project.to_s!='' and help_message_rules != ''
+          respond "Git project: #{git_project}", dest
+        else
+          def git_project() '' end
+          def project_folder() '' end
+        end
+        
+      else
+        respond "Slack Smart Bot Github project: https://github.com/MarioRuiz/slack-smart-bot", dest
+      end
+
+
+      #jal9
+
+
+      #help: ===================================
+      #help:
+      #help: *These commands will run only when on a private conversation with the bot or in a private group:*
+      #help:
+      #help: ----------------------------------------------
+      #help: `use rules from CHANNEL`
+      #help: `use rules CHANNEL`
+      #help:    it will use the rules from the specified channel.
+      #help:    you need to be part of that channel to be able to use the rules.
+      #help:
+    when /^use rules (from\s+)?<#C\w+\|(.+)>/i, /^use rules (from\s+)?(.+)/i
+      channel = $2
+      channels = client.web_client.channels_list.channels
+      channel_found = channels.detect { |c| c.name == channel }
+      members = client.web_client.conversations_members(channel: @channels_id[channel]).members unless channel_found.nil?
+
+      if channel_found.nil?
+        respond "The channel you are trying to use doesn't exist", dest
+      elsif channel_found.name == MASTER_CHANNEL
+        respond "You cannot use the rules from Master Channel on any other channel.", dest
+      elsif !@bots_created.key?(@channels_id[channel])
+        respond "There is no bot running on that channel.", dest
+      elsif @bots_created.key?(@channels_id[channel]) and @bots_created[@channels_id[channel]][:status] != :on
+        respond "The bot in that channel is not :on", dest
+      else
+        if user.id == channel_found.creator or members.include?(user.id)
+          @rules_imported[user.id] = {} unless @rules_imported.key?(user.id)
+          if dest[0] == "C" or dest[0] == "G" #todo: take in consideration bots that are not master
+            @rules_imported[user.id][dchannel] = channel_found.id
+          else
+            @rules_imported[user.id][user.id] = channel_found.id
+          end
+          update_rules_imported() if ON_MASTER_BOT
+          respond "I'm using now the rules from <##{channel_found.id}>", dest
+          def git_project() "" end
+          def project_folder() "" end
+        else
+          respond "You need to join the channel <##{channel_found.id}> to be able to use the rules.", dest
+        end
+      end
+
+      #help: ----------------------------------------------
+      #help: `stop using rules from CHANNEL`
+      #help: `stop using rules CHANNEL`
+      #help:    it will stop using the rules from the specified channel.
+      #help:
+    when /^stop using rules (from\s+)?<#C\w+\|(.+)>/i, /^stop using rules (from\s+)?(.+)/i
+      channel = $2
+      if @channels_id.key?(channel)
+        channel_id = @channels_id[channel]
+      else
+        channel_id = channel
+      end
+      if dest[0] == "C" or dest[0] == "G" #channel
+        if @rules_imported.key?(user.id) and @rules_imported[user.id].key?(dchannel)
+          if @rules_imported[user.id][dchannel] != channel_id
+            respond "You are not using those rules.", dest
+          else
+            @rules_imported[user.id].delete(dchannel)
+            update_rules_imported() if ON_MASTER_BOT
+            respond "You won't be using those rules from now on.", dest
+            def git_project() "" end
+            def project_folder() "" end
+          end
+        else
+          respond "You were not using those rules.", dest
+        end
+      else #direct message
+        if @rules_imported.key?(user.id) and @rules_imported[user.id].key?(user.id)
+          if @rules_imported[user.id][user.id] != channel_id
+            respond "You are not using those rules.", dest
+          else
+            @rules_imported[user.id].delete(user.id)
+            update_rules_imported() if ON_MASTER_BOT
+            respond "You won't be using those rules from now on.", dest
+            def git_project() "" end
+            def project_folder() "" end
+          end
+        else
+          respond "You were not using those rules.", dest
+        end
+      end
+
       #helpadmin: ----------------------------------------------
       #helpadmin: `exit bot`
       #helpadmin: `quit bot`
@@ -649,6 +791,7 @@ class SlackSmartBot
                 created: Time.now.strftime("%Y-%m-%dT%H:%M:%S.000Z")[0..18],
                 rules_file: rules_file,
                 admins: admin_users.join(","),
+                extended: [],
                 thread: t,
               }
               respond "The bot has been created on channel: #{channel}. Rules file: #{File.basename rules_file}", dest
@@ -707,139 +850,8 @@ class SlackSmartBot
         respond "Sorry I cannot kill bots from this channel, please visit the master channel: <##{@channels_id[MASTER_CHANNEL]}>", dest
       end
 
-      #help: ----------------------------------------------
-      #help: `use rules from CHANNEL`
-      #help: `use rules CHANNEL`
-      #help:    it will use the rules from the specified channel.
-      #help:    you need to be part of that channel to be able to use the rules.
-      #help:
-    when /^use rules (from\s+)?<#C\w+\|(.+)>/i, /^use rules (from\s+)?(.+)/i
-      channel = $2
-      channels = client.web_client.channels_list.channels
-      channel_found = channels.detect { |c| c.name == channel }
-      members = client.web_client.conversations_members(channel: @channels_id[channel]).members unless channel_found.nil?
 
-      if channel_found.nil?
-        respond "The channel you are trying to use doesn't exist", dest
-      elsif channel_found.name == MASTER_CHANNEL
-        respond "You cannot use the rules from Master Channel on any other channel.", dest
-      elsif !@bots_created.key?(@channels_id[channel])
-        respond "There is no bot running on that channel.", dest
-      elsif @bots_created.key?(@channels_id[channel]) and @bots_created[@channels_id[channel]][:status] != :on
-        respond "The bot in that channel is not :on", dest
-      else
-        if user.id == channel_found.creator or members.include?(user.id)
-          @rules_imported[user.id] = {} unless @rules_imported.key?(user.id)
-          if dest[0] == "C" or dest[0] == "G" #todo: take in consideration bots that are not master
-            @rules_imported[user.id][dchannel] = channel_found.id
-          else
-            @rules_imported[user.id][user.id] = channel_found.id
-          end
-          update_rules_imported() if ON_MASTER_BOT
-          respond "I'm using now the rules from <##{channel_found.id}>", dest
-          def git_project() "" end
-          def project_folder() "" end
-        else
-          respond "You need to join the channel <##{channel_found.id}> to be able to use the rules.", dest
-        end
-      end
 
-      #help: ----------------------------------------------
-      #help: `stop using rules from CHANNEL`
-      #help: `stop using rules CHANNEL`
-      #help:    it will stop using the rules from the specified channel.
-      #help:
-    when /^stop using rules (from\s+)?<#C\w+\|(.+)>/i, /^stop using rules (from\s+)?(.+)/i
-      channel = $2
-      if @channels_id.key?(channel)
-        channel_id = @channels_id[channel]
-      else
-        channel_id = channel
-      end
-      if dest[0] == "C" or dest[0] == "G" #channel
-        if @rules_imported.key?(user.id) and @rules_imported[user.id].key?(dchannel)
-          if @rules_imported[user.id][dchannel] != channel_id
-            respond "You are not using those rules.", dest
-          else
-            @rules_imported[user.id].delete(dchannel)
-            update_rules_imported() if ON_MASTER_BOT
-            respond "You won't be using those rules from now on.", dest
-            def git_project() "" end
-            def project_folder() "" end
-          end
-        else
-          respond "You were not using those rules.", dest
-        end
-      else #direct message
-        if @rules_imported.key?(user.id) and @rules_imported[user.id].key?(user.id)
-          if @rules_imported[user.id][user.id] != channel_id
-            respond "You are not using those rules.", dest
-          else
-            @rules_imported[user.id].delete(user.id)
-            update_rules_imported() if ON_MASTER_BOT
-            respond "You won't be using those rules from now on.", dest
-            def git_project() "" end
-            def project_folder() "" end
-          end
-        else
-          respond "You were not using those rules.", dest
-        end
-      end
-
-      #help: ----------------------------------------------
-      #help: `bot help`
-      #help: `bot what can I do?`
-      #help: `bot rules`
-      #help:    it will display this help
-      #help:    `bot rules` will show only the specific rules for this channel.
-    when /^bot (rules|help)/i, /^bot,? what can I do/i
-      if $1.to_s.match?(/rules/i)
-        specific = true
-      else
-        specific = false
-      end
-      help_message_rules = ''
-      if !specific
-        help_message = IO.readlines(__FILE__).join
-        if ADMIN_USERS.include?(from) #admin user
-          respond "*Commands for administrators:*\n#{help_message.scan(/#\s*help\s*admin:(.*)/).join("\n")}", dest
-        end
-        if ON_MASTER_BOT and (dest[0] == "C" or dest[0] == "G")
-          respond "*Commands only on Master Channel <##{@channels_id[MASTER_CHANNEL]}>:*\n#{help_message.scan(/#\s*help\s*master:(.*)/).join("\n")}", dest
-        end
-        respond help_message.scan(/#\s*help\s*:(.*)/).join("\n"), dest
-      end
-      if dest[0] == "C" or dest[0] == "G" # on a channel
-        if @rules_imported.key?(user.id) and @rules_imported[user.id].key?(dchannel)
-          if @bots_created.key?(@rules_imported[user.id][dchannel])
-            respond "*You are using rules from another channel: <##{@rules_imported[user.id][dchannel]}>. These are the specific commands for that channel:*", dest
-          end
-        end
-        help_message_rules = IO.readlines(rules_file).join
-        respond help_message_rules.scan(/#\s*help\s*:(.*)/).join("\n"), dest
-      elsif dest[0] == "D" and @rules_imported.key?(user.id) and @rules_imported[user.id].key?(user.id) #direct message
-        if @bots_created.key?(@rules_imported[user.id][user.id])
-          respond "*You are using rules from channel: <##{@rules_imported[user.id][user.id]}>. These are the specific commands for that channel:*", dest
-          help_message_rules = IO.readlines(rules_file).join
-          respond help_message_rules.scan(/#\s*help\s*:(.*)/).join("\n"), dest
-        end
-      end
-      if specific
-        unless rules_file.empty?
-          begin
-            eval(File.new(rules_file).read) if File.exist?(rules_file)
-          end
-        end
-        if defined?(git_project) and git_project.to_s!='' and help_message_rules != ''
-          respond "Git project: #{git_project}", dest
-        else
-          def git_project() '' end
-          def project_folder() '' end
-        end
-        
-      else
-        respond "Slack Smart Bot Github project: https://github.com/MarioRuiz/slack-smart-bot", dest
-      end
     else
       processed = false
     end

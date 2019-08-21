@@ -10,7 +10,6 @@ def git_project()
   ""
 end
 
-
 #for the case of testing, just run this file adding in the end a call to rules with the parameters you want
 if defined?(respond)
   @testing = false
@@ -54,61 +53,70 @@ def rules(user, command, processed, dest)
     end
   end
   firstname = from.split(" ").first
-  case command
-
-  # help: ----------------------------------------------
-  # help: `echo SOMETHING`
-  # help:     repeats SOMETHING
-  # help:
-  when /^echo\s(.+)/i
-    respond $1, dest
+  begin
+    case command
 
     # help: ----------------------------------------------
-    # help: `go to sleep`
-    # help:   it will sleep the bot for 5 seconds
+    # help: `echo SOMETHING`
+    # help:     repeats SOMETHING
     # help:
-  when /^go\sto\ssleep/i
-    unless @questions.keys.include?(from)
-      ask("do you want me to take a siesta?", command, from, dest)
-    else
-      case @questions[from]
-      when /yes/i, /yep/i, /sure/i
-        @questions.delete(from)
-        respond "I'll be sleeping for 5 secs... just for you", dest
-        respond "zZzzzzzZZZZZZzzzzzzz!", dest
-        sleep 5
-      when /no/i, /nope/i, /cancel/i
-        @questions.delete(from)
-        respond "Thanks, I'm happy to be awake", dest
+    when /^echo\s(.+)/i
+      respond $1, dest
+
+      # help: ----------------------------------------------
+      # help: `go to sleep`
+      # help:   it will sleep the bot for 5 seconds
+      # help:
+    when /^go\sto\ssleep/i
+      unless @questions.keys.include?(from)
+        ask("do you want me to take a siesta?", command, from, dest)
       else
-        respond "I don't understand", dest
-        ask("are you sure do you want me to sleep? (yes or no)", "go to sleep", from, dest)
+        case @questions[from]
+        when /yes/i, /yep/i, /sure/i
+          @questions.delete(from)
+          respond "I'll be sleeping for 5 secs... just for you", dest
+          respond "zZzzzzzZZZZZZzzzzzzz!", dest
+          sleep 5
+        when /no/i, /nope/i, /cancel/i
+          @questions.delete(from)
+          respond "Thanks, I'm happy to be awake", dest
+        else
+          respond "I don't understand", dest
+          ask("are you sure do you want me to sleep? (yes or no)", "go to sleep", from, dest)
+        end
+      end
+
+      # help: ----------------------------------------------
+      # help: `run something`
+      # help:   It will run the process and report the results when done
+      # help:
+    when /^run something/i
+      respond "Running", dest
+
+      process_to_run = "ruby -v"
+      process_to_run = ("cd #{project_folder} &&" + process_to_run) if defined?(project_folder)
+      stdout, stderr, status = Open3.capture3(process_to_run)
+      if stderr == ""
+        if stdout == ""
+          respond "#{user.name}: Nothing returned.", dest
+        else
+          respond "#{user.name}: #{stdout}", dest
+        end
+      else
+        respond "#{user.name}: #{stderr}", dest
+      end
+    else
+      unless processed
+        resp = %w{ what huh sorry }.sample
+        respond "#{firstname}: #{resp}?", dest
       end
     end
-
-    # help: ----------------------------------------------
-    # help: `run something`
-    # help:   It will run the process and report the results when done
-    # help:
-  when /^run something/i
-    respond "Running", dest
-
-    process_to_run = "ruby -v"
-    process_to_run = ("cd #{project_folder} &&" + process_to_run) if defined?(project_folder)
-    stdout, stderr, status = Open3.capture3(process_to_run)
-    if stderr == ""
-      if stdout == ""
-        respond "#{user.name}: Nothing returned.", dest
-      else
-        respond "#{user.name}: #{stdout}", dest
-      end
+  rescue => exception
+    if defined?(@logger)
+      @logger.fatal exception
+      respond "Unexpected error!! Please contact an admin to solve it: <@#{ADMIN_USERS.join('>, <@')}>", dest
     else
-      respond "#{user.name}: #{stderr}", dest
-    end
-  else
-    unless processed
-      resp = %w{ what huh sorry }.sample
-      respond "#{firstname}: #{resp}?", dest
+      puts exception
     end
   end
 end

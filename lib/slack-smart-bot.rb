@@ -64,18 +64,15 @@ class SlackSmartBot
     end
 
     if ON_MASTER_BOT and File.exist?($0.gsub(".rb", "_bots.rb"))
-      file_conf = IO.readlines($0.gsub(".rb", "_bots.rb")).join
-      unless file_conf.to_s() == ""
-        @bots_created = eval(file_conf)
-        if @bots_created.kind_of?(Hash)
-          @bots_created.each { |key, value|
-            @logger.info "ruby #{$0} \"#{value[:channel_name]}\" \"#{value[:admins]}\" \"#{value[:rules_file]}\" #{value[:status].to_sym}"
-            t = Thread.new do
-              `ruby #{$0} \"#{value[:channel_name]}\" \"#{value[:admins]}\" \"#{value[:rules_file]}\" #{value[:status].to_sym}`
-            end
-            value[:thread] = t
-          }
-        end
+      get_bots_created()
+      if @bots_created.kind_of?(Hash)
+        @bots_created.each { |key, value|
+          @logger.info "ruby #{$0} \"#{value[:channel_name]}\" \"#{value[:admins]}\" \"#{value[:rules_file]}\" #{value[:status].to_sym}"
+          t = Thread.new do
+            `ruby #{$0} \"#{value[:channel_name]}\" \"#{value[:admins]}\" \"#{value[:rules_file]}\" #{value[:status].to_sym}`
+          end
+          value[:thread] = t
+        }
       end
     end
 
@@ -139,6 +136,18 @@ class SlackSmartBot
     file.close
   end
 
+  def get_bots_created
+    if !defined?(@datetime_bots_created) or @datetime_bots_created!=File.mtime($0.gsub(".rb", "_bots.rb"))
+      file_conf = IO.readlines($0.gsub(".rb", "_bots.rb")).join
+      if file_conf.to_s() == ""
+        @bots_created = {}
+      else
+        @bots_created = eval(file_conf)
+      end
+      @datetime_bots_created = File.mtime($0.gsub(".rb", "_bots.rb"))
+    end
+  end
+
   def update_shortcuts_file
     file = File.open("./shortcuts/#{SHORTCUTS_FILE}", "w")
     file.write @shortcuts.inspect
@@ -176,6 +185,7 @@ class SlackSmartBot
   #help:    Also you can use this command to call another bot from a channel with a running bot.
   def listen
     @salutations = [config[:nick], config[:nick_id], "bot", "smart"]
+    get_bots_created()
     client.on :message do |data|
       if data.channel[0] == "D" or data.channel[0] == "C" or data.channel[0] == "G" #Direct message or Channel or Private Channel
         dest = data.channel
@@ -234,6 +244,10 @@ class SlackSmartBot
             #todo: @questions key should be the id not the name. change it everywhere
             dest = data.channel
             res = process_first(user_info.user, data.text, dest, @channels_id[CHANNEL])
+          elsif CHANNEL != MASTER_CHANNEL and @bots_created[@channels_id[CHANNEL]].key?(:extended) and 
+            @bots_created[@channels_id[CHANNEL]][:extended].include?(@channels_name[data.channel]) and
+            data.text.size > 0 and data.text[0] != "-"
+            res = process_first(user_info.user, data.text, dest, @channels_id[CHANNEL])
           elsif (dest[0] == "D" or @channels_id[CHANNEL] == data.channel or data.user == config[:nick_id]) and
                 data.text.size > 0 and data.text[0] != "-"
             res = process_first(user_info.user, data.text, dest, data.channel)
@@ -258,10 +272,7 @@ class SlackSmartBot
 
       if @rules_imported.key?(user.id) and @rules_imported[user.id].key?(dchannel)
         unless @bots_created.key?(@rules_imported[user.id][dchannel])
-          file_conf = IO.readlines($0.gsub(".rb", "_bots.rb")).join
-          unless file_conf.to_s() == ""
-            @bots_created = eval(file_conf)
-          end
+          get_bots_created()
         end
         if @bots_created.key?(@rules_imported[user.id][dchannel])
           rules_file = @bots_created[@rules_imported[user.id][dchannel]][:rules_file]
@@ -269,10 +280,7 @@ class SlackSmartBot
       end
     elsif dest[0] == "D" and @rules_imported.key?(user.id) and @rules_imported[user.id].key?(user.id) #direct message
       unless @bots_created.key?(@rules_imported[user.id][user.id])
-        file_conf = IO.readlines($0.gsub(".rb", "_bots.rb")).join
-        unless file_conf.to_s() == ""
-          @bots_created = eval(file_conf)
-        end
+        get_bots_created()
       end
       if @bots_created.key?(@rules_imported[user.id][user.id])
         rules_file = @bots_created[@rules_imported[user.id][user.id]][:rules_file]
@@ -350,9 +358,14 @@ class SlackSmartBot
             command = $2
             on_demand = true
           end
+          if dest[0]=="C" and dchannel != dest # on extended channel only specific rules
+            only_on_demand = true
+          else
+            only_on_demand = false
+          end
           if @status == :on and
              (@questions.keys.include?(nick) or
-              @listening.include?(nick) or
+              (@listening.include?(nick) and !only_on_demand) or
               dest[0] == "D" or on_demand)
             @logger.info "command: #{nick}> #{command}" unless processed
             #todo: verify this
@@ -431,429 +444,432 @@ class SlackSmartBot
     firstname = from.split(/ /).first
     processed = true
 
-    case command
-
-    #help: ----------------------------------------------
-    #help: `Hello Bot`
-    #help: `Hello Smart`
-    #help: `Hello THE_NAME_OF_THE_BOT`
-    #help:    Also apart of Hello you can use _Hallo, Hi, Hola, What's up, Hey, Hæ_
-    #help:    Bot starts listening to you
-    #help:    If you want to avoid a single message to be treated by the smart bot, start the message by -
-    #help:
-    when /^(Hello|Hallo|Hi|Hola|What's\sup|Hey|Hæ)\s(#{@salutations.join("|")})\s*$/i
-      if @status == :on
-        greetings = ["Hello", "Hallo", "Hi", "Hola", "What's up", "Hey", "Hæ"].sample
-        respond "#{greetings} #{firstname}", dest
-        if @rules_imported.key?(user.id) and @rules_imported[user.id].key?(user.id) and dest[0] == "D"
-          respond "You are using specific rules for channel: <##{@rules_imported[user.id][user.id]}>", dest
-        elsif @rules_imported.key?(user.id) and @rules_imported[user.id].key?(dchannel) and (dest[0] == "C" or dest[0] == "G")
-          respond "You are using specific rules for channel: <##{@rules_imported[user.id][dchannel]}>", dest
-        end
-        @listening << from unless @listening.include?(from)
-      end
+    unless dest[0]=="C" and dchannel!=dest # on extended channel only specific rules
+      case command
 
       #help: ----------------------------------------------
-      #help: `Bye Bot`
-      #help: `Bye Smart`
-      #help: `Bye NAME_OF_THE_BOT`
-      #help:    Also apart of Bye you can use _Bæ, Good Bye, Adiós, Ciao, Bless, Bless Bless, Adeu_
-      #help:    Bot stops listening to you
+      #help: `Hello Bot`
+      #help: `Hello Smart`
+      #help: `Hello THE_NAME_OF_THE_BOT`
+      #help:    Also apart of Hello you can use _Hallo, Hi, Hola, What's up, Hey, Hæ_
+      #help:    Bot starts listening to you
+      #help:    If you want to avoid a single message to be treated by the smart bot, start the message by -
       #help:
-    when /^(Bye|Bæ|Good\sBye|Adiós|Ciao|Bless|Bless\sBless|Adeu)\s(#{@salutations.join("|")})\s*$/i
-      if @status == :on
-        bye = ["Bye", "Bæ", "Good Bye", "Adiós", "Ciao", "Bless", "Bless bless", "Adeu"].sample
-        respond "#{bye} #{firstname}", dest
-        @listening.delete(from)
-      end
-
-      #help: ----------------------------------------------
-      #help: `bot help`
-      #help: `bot what can I do?`
-      #help: `bot rules`
-      #help:    it will display this help
-      #help:    `bot rules` will show only the specific rules for this channel.
-    when /^bot\s+(rules|help)/i, /^bot,? what can I do/i
-      if $1.to_s.match?(/rules/i)
-        specific = true
-      else
-        specific = false
-      end
-      help_message_rules = ''
-      if !specific
-        help_message = IO.readlines(__FILE__).join
-        if ADMIN_USERS.include?(from) #admin user
-          respond "*Commands for administrators:*\n#{help_message.scan(/#\s*help\s*admin:(.*)/).join("\n")}", dest
-        end
-        if ON_MASTER_BOT and (dest[0] == "C" or dest[0] == "G")
-          respond "*Commands only on Master Channel <##{@channels_id[MASTER_CHANNEL]}>:*\n#{help_message.scan(/#\s*help\s*master:(.*)/).join("\n")}", dest
-        end
-        respond help_message.scan(/#\s*help\s*:(.*)/).join("\n"), dest
-      end
-      if dest[0] == "C" or dest[0] == "G" # on a channel
-        if @rules_imported.key?(user.id) and @rules_imported[user.id].key?(dchannel)
-          if @bots_created.key?(@rules_imported[user.id][dchannel])
-            respond "*You are using rules from another channel: <##{@rules_imported[user.id][dchannel]}>. These are the specific commands for that channel:*", dest
+      when /^(Hello|Hallo|Hi|Hola|What's\sup|Hey|Hæ)\s(#{@salutations.join("|")})\s*$/i
+        if @status == :on
+          greetings = ["Hello", "Hallo", "Hi", "Hola", "What's up", "Hey", "Hæ"].sample
+          respond "#{greetings} #{firstname}", dest
+          if @rules_imported.key?(user.id) and @rules_imported[user.id].key?(user.id) and dest[0] == "D"
+            respond "You are using specific rules for channel: <##{@rules_imported[user.id][user.id]}>", dest
+          elsif @rules_imported.key?(user.id) and @rules_imported[user.id].key?(dchannel) and (dest[0] == "C" or dest[0] == "G")
+            respond "You are using specific rules for channel: <##{@rules_imported[user.id][dchannel]}>", dest
           end
+          @listening << from unless @listening.include?(from)
         end
-        help_message_rules = IO.readlines(rules_file).join
-        respond help_message_rules.scan(/#\s*help\s*:(.*)/).join("\n"), dest
-      elsif dest[0] == "D" and @rules_imported.key?(user.id) and @rules_imported[user.id].key?(user.id) #direct message
-        if @bots_created.key?(@rules_imported[user.id][user.id])
-          respond "*You are using rules from channel: <##{@rules_imported[user.id][user.id]}>. These are the specific commands for that channel:*", dest
+
+        #help: ----------------------------------------------
+        #help: `Bye Bot`
+        #help: `Bye Smart`
+        #help: `Bye NAME_OF_THE_BOT`
+        #help:    Also apart of Bye you can use _Bæ, Good Bye, Adiós, Ciao, Bless, Bless Bless, Adeu_
+        #help:    Bot stops listening to you
+        #help:
+      when /^(Bye|Bæ|Good\sBye|Adiós|Ciao|Bless|Bless\sBless|Adeu)\s(#{@salutations.join("|")})\s*$/i
+        if @status == :on
+          bye = ["Bye", "Bæ", "Good Bye", "Adiós", "Ciao", "Bless", "Bless bless", "Adeu"].sample
+          respond "#{bye} #{firstname}", dest
+          @listening.delete(from)
+        end
+
+        #help: ----------------------------------------------
+        #help: `bot help`
+        #help: `bot what can I do?`
+        #help: `bot rules`
+        #help:    it will display this help
+        #help:    `bot rules` will show only the specific rules for this channel.
+      when /^bot\s+(rules|help)/i, /^bot,? what can I do/i
+        if $1.to_s.match?(/rules/i)
+          specific = true
+        else
+          specific = false
+        end
+        help_message_rules = ''
+        if !specific
+          help_message = IO.readlines(__FILE__).join
+          if ADMIN_USERS.include?(from) #admin user
+            respond "*Commands for administrators:*\n#{help_message.scan(/#\s*help\s*admin:(.*)/).join("\n")}", dest
+          end
+          if ON_MASTER_BOT and (dest[0] == "C" or dest[0] == "G")
+            respond "*Commands only on Master Channel <##{@channels_id[MASTER_CHANNEL]}>:*\n#{help_message.scan(/#\s*help\s*master:(.*)/).join("\n")}", dest
+          end
+          respond help_message.scan(/#\s*help\s*:(.*)/).join("\n"), dest
+        end
+        if dest[0] == "C" or dest[0] == "G" # on a channel
+          if @rules_imported.key?(user.id) and @rules_imported[user.id].key?(dchannel)
+            if @bots_created.key?(@rules_imported[user.id][dchannel])
+              respond "*You are using rules from another channel: <##{@rules_imported[user.id][dchannel]}>. These are the specific commands for that channel:*", dest
+            end
+          end
           help_message_rules = IO.readlines(rules_file).join
           respond help_message_rules.scan(/#\s*help\s*:(.*)/).join("\n"), dest
-        end
-      end
-      if specific
-        unless rules_file.empty?
-          begin
-            eval(File.new(rules_file).read) if File.exist?(rules_file)
+        elsif dest[0] == "D" and @rules_imported.key?(user.id) and @rules_imported[user.id].key?(user.id) #direct message
+          if @bots_created.key?(@rules_imported[user.id][user.id])
+            respond "*You are using rules from channel: <##{@rules_imported[user.id][user.id]}>. These are the specific commands for that channel:*", dest
+            help_message_rules = IO.readlines(rules_file).join
+            respond help_message_rules.scan(/#\s*help\s*:(.*)/).join("\n"), dest
           end
         end
-        if defined?(git_project) and git_project.to_s!='' and help_message_rules != ''
-          respond "Git project: #{git_project}", dest
-        else
-          def git_project() '' end
-          def project_folder() '' end
-        end
-        
-      else
-        respond "Slack Smart Bot Github project: https://github.com/MarioRuiz/slack-smart-bot", dest
-      end
-
-
-      #jal9
-
-
-      #help: ===================================
-      #help:
-      #help: *These commands will run only when on a private conversation with the bot or in a private group:*
-      #help:
-      #help: ----------------------------------------------
-      #help: `use rules from CHANNEL`
-      #help: `use rules CHANNEL`
-      #help:    it will use the rules from the specified channel.
-      #help:    you need to be part of that channel to be able to use the rules.
-      #help:
-    when /^use rules (from\s+)?<#C\w+\|(.+)>/i, /^use rules (from\s+)?(.+)/i
-      channel = $2
-      channels = client.web_client.channels_list.channels
-      channel_found = channels.detect { |c| c.name == channel }
-      members = client.web_client.conversations_members(channel: @channels_id[channel]).members unless channel_found.nil?
-
-      if channel_found.nil?
-        respond "The channel you are trying to use doesn't exist", dest
-      elsif channel_found.name == MASTER_CHANNEL
-        respond "You cannot use the rules from Master Channel on any other channel.", dest
-      elsif !@bots_created.key?(@channels_id[channel])
-        respond "There is no bot running on that channel.", dest
-      elsif @bots_created.key?(@channels_id[channel]) and @bots_created[@channels_id[channel]][:status] != :on
-        respond "The bot in that channel is not :on", dest
-      else
-        if user.id == channel_found.creator or members.include?(user.id)
-          @rules_imported[user.id] = {} unless @rules_imported.key?(user.id)
-          if dest[0] == "C" or dest[0] == "G" #todo: take in consideration bots that are not master
-            @rules_imported[user.id][dchannel] = channel_found.id
-          else
-            @rules_imported[user.id][user.id] = channel_found.id
-          end
-          update_rules_imported() if ON_MASTER_BOT
-          respond "I'm using now the rules from <##{channel_found.id}>", dest
-          def git_project() "" end
-          def project_folder() "" end
-        else
-          respond "You need to join the channel <##{channel_found.id}> to be able to use the rules.", dest
-        end
-      end
-
-      #help: ----------------------------------------------
-      #help: `stop using rules from CHANNEL`
-      #help: `stop using rules CHANNEL`
-      #help:    it will stop using the rules from the specified channel.
-      #help:
-    when /^stop using rules (from\s+)?<#C\w+\|(.+)>/i, /^stop using rules (from\s+)?(.+)/i
-      channel = $2
-      if @channels_id.key?(channel)
-        channel_id = @channels_id[channel]
-      else
-        channel_id = channel
-      end
-      if dest[0] == "C" or dest[0] == "G" #channel
-        if @rules_imported.key?(user.id) and @rules_imported[user.id].key?(dchannel)
-          if @rules_imported[user.id][dchannel] != channel_id
-            respond "You are not using those rules.", dest
-          else
-            @rules_imported[user.id].delete(dchannel)
-            update_rules_imported() if ON_MASTER_BOT
-            respond "You won't be using those rules from now on.", dest
-            def git_project() "" end
-            def project_folder() "" end
-          end
-        else
-          respond "You were not using those rules.", dest
-        end
-      else #direct message
-        if @rules_imported.key?(user.id) and @rules_imported[user.id].key?(user.id)
-          if @rules_imported[user.id][user.id] != channel_id
-            respond "You are not using those rules.", dest
-          else
-            @rules_imported[user.id].delete(user.id)
-            update_rules_imported() if ON_MASTER_BOT
-            respond "You won't be using those rules from now on.", dest
-            def git_project() "" end
-            def project_folder() "" end
-          end
-        else
-          respond "You were not using those rules.", dest
-        end
-      end
-
-      #helpadmin: ----------------------------------------------
-      #helpadmin: `exit bot`
-      #helpadmin: `quit bot`
-      #helpadmin: `close bot`
-      #helpadmin:    The bot stops running and also stops all the bots created from this master channel
-      #helpadmin:    You can use this command only if you are an admin user and you are on the master channel
-      #helpadmin:
-    when /^exit\sbot\s*$/i, /^quit\sbot\s*$/i, /^close\sbot\s*$/i
-      if ON_MASTER_BOT
-        if ADMIN_USERS.include?(from) #admin user
-          unless @questions.keys.include?(from)
-            ask("are you sure?", command, from, dest)
-          else
-            case @questions[from]
-            when /yes/i, /yep/i, /sure/i
-              respond "Game over!", dest
-              respond "Ciao #{firstname}!", dest
-              @bots_created.each { |key, value|
-                value[:thread] = ""
-                send_msg_channel(key, "Bot has been closed by #{from}")
-                sleep 0.5
-              }
-              update_bots_file()
-              sleep 0.5
-              exit!
-            when /no/i, /nope/i, /cancel/i
-              @questions.delete(from)
-              respond "Thanks, I'm happy to be alive", dest
-            else
-              respond "I don't understand", dest
-              ask("are you sure do you want me to close? (yes or no)", "quit bot", from, dest)
+        if specific
+          unless rules_file.empty?
+            begin
+              eval(File.new(rules_file).read) if File.exist?(rules_file)
             end
           end
-        else
-          respond "Only admin users can kill me", dest
-        end
-      else
-        respond "To do this you need to be an admin user in the master channel: <##{@channels_id[MASTER_CHANNEL]}>", dest
-      end
-
-      #helpadmin: ----------------------------------------------
-      #helpadmin: `start bot`
-      #helpadmin: `start this bot`
-      #helpadmin:    the bot will start to listen
-      #helpadmin:    You can use this command only if you are an admin user
-      #helpadmin:
-    when /^start\s(this\s)?bot$/i
-      if ADMIN_USERS.include?(from) #admin user
-        respond "This bot is running and listening from now on. You can pause again: pause this bot", dest
-        @status = :on
-        unless ON_MASTER_BOT
-          send_msg_channel MASTER_CHANNEL, "Changed status on #{CHANNEL} to :on"
-        end
-      else
-        respond "Only admin users can change my status", dest
-      end
-
-      #helpadmin: ----------------------------------------------
-      #helpadmin: `pause bot`
-      #helpadmin: `pause this bot`
-      #helpadmin:    the bot will pause so it will listen only to admin commands
-      #helpadmin:    You can use this command only if you are an admin user
-      #helpadmin:
-    when /^pause\s(this\s)?bot$/i
-      if ADMIN_USERS.include?(from) #admin user
-        respond "This bot is paused from now on. You can start it again: start this bot", dest
-        respond "zZzzzzZzzzzZZZZZZzzzzzzzz", dest
-        @status = :paused
-        unless ON_MASTER_BOT
-          send_msg_channel MASTER_CHANNEL, "Changed status on #{CHANNEL} to :paused"
-        end
-      else
-        respond "Only admin users can put me on pause", dest
-      end
-
-      #helpadmin: ----------------------------------------------
-      #helpadmin: `bot status`
-      #helpadmin:    Displays the status of the bot
-      #helpadmin:    If on master channel and admin user also it will display info about bots created
-      #helpadmin:
-    when /^bot\sstatus/i
-      gems_remote = `gem list slack-smart-bot --remote`
-      version_remote = gems_remote.to_s().scan(/slack-smart-bot \((\d+\.\d+\.\d+)/).join
-      version_message = ""
-      if version_remote != VERSION
-        version_message = " There is a new available version: #{version_remote}."
-      end
-      respond "Status: #{@status}. Version: #{VERSION}.#{version_message} Rules file: #{File.basename RULES_FILE} ", dest
-      if @status == :on
-        respond "I'm listening to [#{@listening.join(", ")}]", dest
-        if ON_MASTER_BOT and ADMIN_USERS.include?(from)
-          @bots_created.each { |key, value|
-            respond "#{key}: #{value}", dest
-          }
-        end
-      end
-
-      #helpmaster: ----------------------------------------------
-      #helpmaster: `notify MESSAGE`
-      #helpmaster: `notify all MESSAGE`
-      #helpmaster:    It will send a notificaiton message to all bot channels
-      #helpmaster:    It will send a notification message to all channels the bot joined and private conversations with the bot
-      #helpmaster:    Only works if you are on Master channel and you are an admin user
-      #helpmaster:
-    when /^notify\s+(all)?\s*(.+)\s*$/i
-      if ON_MASTER_BOT
-        if ADMIN_USERS.include?(from) #admin user
-          all = $1
-          message = $2
-          if all.nil?
-            @bots_created.each do |k, v|
-              respond message, k
-            end
-            respond "Bot channels have been notified", dest
+          if defined?(git_project) and git_project.to_s!='' and help_message_rules != ''
+            respond "Git project: #{git_project}", dest
           else
-            myconv = client.web_client.users_conversations(exclude_archived: true, limit: 100, types: "im, public_channel").channels
-            myconv.each do |c|
-              respond message, c.id unless c.name == MASTER_CHANNEL
-            end
-            respond "Channels and users have been notified", dest
+            def git_project() '' end
+            def project_folder() '' end
           end
+          
+        else
+          respond "Slack Smart Bot Github project: https://github.com/MarioRuiz/slack-smart-bot", dest
         end
-      end
 
-      #helpmaster: ----------------------------------------------
-      #helpmaster: `create bot on CHANNEL_NAME`
-      #helpmaster:    creates a new bot on the channel specified
-      #helpmaster:    it will work only if you are on Master channel
-      #helpmaster:
-    when /^create\sbot\son\s<#C\w+\|(.+)>\s*/i, /^create\sbot\son\s(.+)\s*/i
-      if ON_MASTER_BOT
-        channel = $1
-
-        get_channels_name_and_id() unless @channels_name.keys.include?(channel) or @channels_id.keys.include?(channel)
-        channel_id = nil
-        if @channels_name.key?(channel) #it is an id
-          channel_id = channel
-          channel = @channels_name[channel_id]
-        elsif @channels_id.key?(channel) #it is a channel name
-          channel_id = @channels_id[channel]
-        end
+        #help: ===================================
+        #help:
+        #help: *These commands will run only when on a private conversation with the bot or in a private group:*
+        #help:
+        #help: ----------------------------------------------
+        #help: `use rules from CHANNEL`
+        #help:    it will use the rules from the specified channel.
+        #help:    you need to be part of that channel to be able to use the rules.
+        #help:
+      when /^use rules (from\s+)<#C\w+\|(.+)>/i, /^use rules (from\s+)(.+)/i
+        channel = $2
         channels = client.web_client.channels_list.channels
         channel_found = channels.detect { |c| c.name == channel }
         members = client.web_client.conversations_members(channel: @channels_id[channel]).members unless channel_found.nil?
 
-        if channel_id.nil?
-          respond "There is no channel with that name: #{channel}, please be sure is written exactly the same", dest
-        elsif channel == MASTER_CHANNEL
-          respond "There is already a bot in this channel: #{channel}", dest
-        elsif @bots_created.keys.include?(channel_id)
-          respond "There is already a bot in this channel: #{channel}, kill it before", dest
-        elsif config[:nick_id] != channel_found.creator and !members.include?(config[:nick_id])
-          respond "You need to add first to the channel the smart bot user: #{config[:nick]}", dest
+        if channel_found.nil?
+          respond "The channel you are trying to use doesn't exist", dest
+        elsif channel_found.name == MASTER_CHANNEL
+          respond "You cannot use the rules from Master Channel on any other channel.", dest
+        elsif !@bots_created.key?(@channels_id[channel])
+          respond "There is no bot running on that channel.", dest
+        elsif @bots_created.key?(@channels_id[channel]) and @bots_created[@channels_id[channel]][:status] != :on
+          respond "The bot in that channel is not :on", dest
         else
-          if channel_id != config[:channel]
-            begin
-              rules_file = "slack-smart-bot_rules_#{channel_id}_#{from.gsub(" ", "_")}.rb"
-              if defined?(RULES_FOLDER)
-                rules_file = RULES_FOLDER + rules_file
-              else
-                Dir.mkdir("rules") unless Dir.exist?("rules")
-                Dir.mkdir("rules/#{channel_id}") unless Dir.exist?("rules/#{channel_id}")
-                rules_file = "./rules/#{channel_id}/" + rules_file
-              end
-              default_rules = (__FILE__).gsub(/\.rb$/, "_rules.rb")
-              File.delete(rules_file) if File.exist?(rules_file)
-              FileUtils.copy_file(default_rules, rules_file) unless File.exist?(rules_file)
-              admin_users = Array.new()
-              admin_users = [from] + MASTER_USERS
-              admin_users.uniq!
-              @logger.info "ruby #{$0} \"#{channel}\" \"#{admin_users.join(",")}\" \"#{rules_file}\" on"
-              t = Thread.new do
-                `ruby #{$0} \"#{channel}\" \"#{admin_users.join(",")}\" \"#{rules_file}\" on`
-              end
-              @bots_created[channel_id] = {
-                creator_name: from,
-                channel_id: channel_id,
-                channel_name: @channels_name[channel_id],
-                status: :on,
-                created: Time.now.strftime("%Y-%m-%dT%H:%M:%S.000Z")[0..18],
-                rules_file: rules_file,
-                admins: admin_users.join(","),
-                extended: [],
-                thread: t,
-              }
-              respond "The bot has been created on channel: #{channel}. Rules file: #{File.basename rules_file}", dest
-              update_bots_file()
-            rescue Exception => stack
-              @logger.fatal stack
-              message = "Problem creating the bot on channel #{channel}. Error: <#{stack}>."
-              @logger.error message
-              respond message, dest
+          if user.id == channel_found.creator or members.include?(user.id)
+            @rules_imported[user.id] = {} unless @rules_imported.key?(user.id)
+            if dest[0] == "C" or dest[0] == "G" #todo: take in consideration bots that are not master
+              @rules_imported[user.id][dchannel] = channel_found.id
+            else
+              @rules_imported[user.id][user.id] = channel_found.id
             end
+            update_rules_imported() if ON_MASTER_BOT
+            respond "I'm using now the rules from <##{channel_found.id}>", dest
+            def git_project() "" end
+            def project_folder() "" end
           else
-            respond "There is already a bot in this channel: #{channel}, and it is the Master Channel!", dest
+            respond "You need to join the channel <##{channel_found.id}> to be able to use the rules.", dest
           end
         end
-      else
-        @logger.info MASTER_CHANNEL
-        @logger.info @channel_id.inspect
-        respond "Sorry I cannot create bots from this channel, please visit the master channel: <##{@channels_id[MASTER_CHANNEL]}>", dest
-      end
 
-      #helpmaster: ----------------------------------------------
-      #helpmaster: `kill bot on CHANNEL_NAME`
-      #helpmaster:    kills the bot on the specified channel
-      #helpmaster:    Only works if you are on Master channel and you created that bot or you are an admin user
-      #helpmaster:
-    when /^kill\sbot\son\s<#C\w+\|(.+)>\s*$/i, /^kill\sbot\son\s(.+)\s*$/i
-      if ON_MASTER_BOT
-        channel = $1
-
-        get_channels_name_and_id() unless @channels_name.keys.include?(channel) or @channels_id.keys.include?(channel)
-        channel_id = nil
-        if @channels_name.key?(channel) #it is an id
-          channel_id = channel
-          channel = @channels_name[channel_id]
-        elsif @channels_id.key?(channel) #it is a channel name
+        #help: ----------------------------------------------
+        #help: `stop using rules from CHANNEL`
+        #help:    it will stop using the rules from the specified channel.
+        #help:
+      when /^stop using rules (from\s+)<#C\w+\|(.+)>/i, /^stop using rules (from\s+)(.+)/i
+        channel = $2
+        if @channels_id.key?(channel)
           channel_id = @channels_id[channel]
+        else
+          channel_id = channel
         end
-        if channel_id.nil?
-          respond "There is no channel with that name: #{channel}, please be sure is written exactly the same", dest
-        elsif @bots_created.keys.include?(channel_id)
-          if @bots_created[channel_id][:admins].split(",").include?(from)
-            if @bots_created[channel_id][:thread].kind_of?(Thread) and @bots_created[channel_id][:thread].alive?
-              @bots_created[channel_id][:thread].kill
+        if dest[0] == "C" or dest[0] == "G" #channel
+          if @rules_imported.key?(user.id) and @rules_imported[user.id].key?(dchannel)
+            if @rules_imported[user.id][dchannel] != channel_id
+              respond "You are not using those rules.", dest
+            else
+              @rules_imported[user.id].delete(dchannel)
+              update_rules_imported() if ON_MASTER_BOT
+              respond "You won't be using those rules from now on.", dest
+              def git_project() "" end
+              def project_folder() "" end
             end
-            @bots_created.delete(channel_id)
-            update_bots_file()
-            respond "Bot on channel: #{channel}, has been killed and deleted.", dest
-            send_msg_channel(channel, "Bot has been killed by #{from}")
           else
-            respond "You need to be the creator or an admin of that bot channel", dest
+            respond "You were not using those rules.", dest
+          end
+        else #direct message
+          if @rules_imported.key?(user.id) and @rules_imported[user.id].key?(user.id)
+            if @rules_imported[user.id][user.id] != channel_id
+              respond "You are not using those rules.", dest
+            else
+              @rules_imported[user.id].delete(user.id)
+              update_rules_imported() if ON_MASTER_BOT
+              respond "You won't be using those rules from now on.", dest
+              def git_project() "" end
+              def project_folder() "" end
+            end
+          else
+            respond "You were not using those rules.", dest
+          end
+        end
+
+        #helpadmin: ----------------------------------------------
+        #helpadmin: `exit bot`
+        #helpadmin: `quit bot`
+        #helpadmin: `close bot`
+        #helpadmin:    The bot stops running and also stops all the bots created from this master channel
+        #helpadmin:    You can use this command only if you are an admin user and you are on the master channel
+        #helpadmin:
+      when /^exit\sbot\s*$/i, /^quit\sbot\s*$/i, /^close\sbot\s*$/i
+        if ON_MASTER_BOT
+          if ADMIN_USERS.include?(from) #admin user
+            unless @questions.keys.include?(from)
+              ask("are you sure?", command, from, dest)
+            else
+              case @questions[from]
+              when /yes/i, /yep/i, /sure/i
+                respond "Game over!", dest
+                respond "Ciao #{firstname}!", dest
+                @bots_created.each { |key, value|
+                  value[:thread] = ""
+                  send_msg_channel(key, "Bot has been closed by #{from}")
+                  sleep 0.5
+                }
+                update_bots_file()
+                sleep 0.5
+                exit!
+              when /no/i, /nope/i, /cancel/i
+                @questions.delete(from)
+                respond "Thanks, I'm happy to be alive", dest
+              else
+                respond "I don't understand", dest
+                ask("are you sure do you want me to close? (yes or no)", "quit bot", from, dest)
+              end
+            end
+          else
+            respond "Only admin users can kill me", dest
           end
         else
-          respond "There is no bot in this channel: #{channel}", dest
+          respond "To do this you need to be an admin user in the master channel: <##{@channels_id[MASTER_CHANNEL]}>", dest
         end
+
+        #helpadmin: ----------------------------------------------
+        #helpadmin: `start bot`
+        #helpadmin: `start this bot`
+        #helpadmin:    the bot will start to listen
+        #helpadmin:    You can use this command only if you are an admin user
+        #helpadmin:
+      when /^start\s(this\s)?bot$/i
+        if ADMIN_USERS.include?(from) #admin user
+          respond "This bot is running and listening from now on. You can pause again: pause this bot", dest
+          @status = :on
+          unless ON_MASTER_BOT
+            send_msg_channel MASTER_CHANNEL, "Changed status on #{CHANNEL} to :on"
+          end
+        else
+          respond "Only admin users can change my status", dest
+        end
+
+        #helpadmin: ----------------------------------------------
+        #helpadmin: `pause bot`
+        #helpadmin: `pause this bot`
+        #helpadmin:    the bot will pause so it will listen only to admin commands
+        #helpadmin:    You can use this command only if you are an admin user
+        #helpadmin:
+      when /^pause\s(this\s)?bot$/i
+        if ADMIN_USERS.include?(from) #admin user
+          respond "This bot is paused from now on. You can start it again: start this bot", dest
+          respond "zZzzzzZzzzzZZZZZZzzzzzzzz", dest
+          @status = :paused
+          unless ON_MASTER_BOT
+            send_msg_channel MASTER_CHANNEL, "Changed status on #{CHANNEL} to :paused"
+          end
+        else
+          respond "Only admin users can put me on pause", dest
+        end
+
+        #helpadmin: ----------------------------------------------
+        #helpadmin: `bot status`
+        #helpadmin:    Displays the status of the bot
+        #helpadmin:    If on master channel and admin user also it will display info about bots created
+        #helpadmin:
+      when /^bot\sstatus/i
+        get_bots_created()
+        gems_remote = `gem list slack-smart-bot --remote`
+        version_remote = gems_remote.to_s().scan(/slack-smart-bot \((\d+\.\d+\.\d+)/).join
+        version_message = ""
+        if version_remote != VERSION
+          version_message = " There is a new available version: #{version_remote}."
+        end
+        respond "Status: #{@status}. Version: #{VERSION}.#{version_message} Rules file: #{File.basename RULES_FILE} ", dest
+        if @status == :on
+          respond "I'm listening to [#{@listening.join(", ")}]", dest
+          if ON_MASTER_BOT and ADMIN_USERS.include?(from)
+            @bots_created.each { |key, value|
+              respond "#{key}: #{value}", dest
+            }
+          end
+        end
+
+        #helpmaster: ----------------------------------------------
+        #helpmaster: `notify MESSAGE`
+        #helpmaster: `notify all MESSAGE`
+        #helpmaster:    It will send a notificaiton message to all bot channels
+        #helpmaster:    It will send a notification message to all channels the bot joined and private conversations with the bot
+        #helpmaster:    Only works if you are on Master channel and you are an admin user
+        #helpmaster:
+      when /^notify\s+(all)?\s*(.+)\s*$/i
+        if ON_MASTER_BOT
+          if ADMIN_USERS.include?(from) #admin user
+            all = $1
+            message = $2
+            if all.nil?
+              @bots_created.each do |k, v|
+                respond message, k
+              end
+              respond "Bot channels have been notified", dest
+            else
+              myconv = client.web_client.users_conversations(exclude_archived: true, limit: 100, types: "im, public_channel").channels
+              myconv.each do |c|
+                respond message, c.id unless c.name == MASTER_CHANNEL
+              end
+              respond "Channels and users have been notified", dest
+            end
+          end
+        end
+
+        #helpmaster: ----------------------------------------------
+        #helpmaster: `create bot on CHANNEL_NAME`
+        #helpmaster:    creates a new bot on the channel specified
+        #helpmaster:    it will work only if you are on Master channel
+        #helpmaster:    the admins will be the master admins, the creator of the bot and the creator of the channel
+        #helpmaster:
+      when /^create\sbot\son\s<#C\w+\|(.+)>\s*/i, /^create\sbot\son\s(.+)\s*/i
+        if ON_MASTER_BOT
+          channel = $1
+
+          get_channels_name_and_id() unless @channels_name.keys.include?(channel) or @channels_id.keys.include?(channel)
+          channel_id = nil
+          if @channels_name.key?(channel) #it is an id
+            channel_id = channel
+            channel = @channels_name[channel_id]
+          elsif @channels_id.key?(channel) #it is a channel name
+            channel_id = @channels_id[channel]
+          end
+          channels = client.web_client.channels_list.channels
+          channel_found = channels.detect { |c| c.name == channel }
+          members = client.web_client.conversations_members(channel: @channels_id[channel]).members unless channel_found.nil?
+
+          if channel_id.nil?
+            respond "There is no channel with that name: #{channel}, please be sure is written exactly the same", dest
+          elsif channel == MASTER_CHANNEL
+            respond "There is already a bot in this channel: #{channel}", dest
+          elsif @bots_created.keys.include?(channel_id)
+            respond "There is already a bot in this channel: #{channel}, kill it before", dest
+          elsif config[:nick_id] != channel_found.creator and !members.include?(config[:nick_id])
+            respond "You need to add first to the channel the smart bot user: #{config[:nick]}", dest
+          else
+            if channel_id != config[:channel]
+              begin
+                rules_file = "slack-smart-bot_rules_#{channel_id}_#{from.gsub(" ", "_")}.rb"
+                if defined?(RULES_FOLDER)
+                  rules_file = RULES_FOLDER + rules_file
+                else
+                  Dir.mkdir("rules") unless Dir.exist?("rules")
+                  Dir.mkdir("rules/#{channel_id}") unless Dir.exist?("rules/#{channel_id}")
+                  rules_file = "./rules/#{channel_id}/" + rules_file
+                end
+                default_rules = (__FILE__).gsub(/\.rb$/, "_rules.rb")
+                File.delete(rules_file) if File.exist?(rules_file)
+                FileUtils.copy_file(default_rules, rules_file) unless File.exist?(rules_file)
+                admin_users = Array.new()
+                creator_info = client.web_client.users_info(user: channel_found.creator)
+                admin_users = [from, creator_info.user.name] + MASTER_USERS
+                admin_users.uniq!
+                @logger.info "ruby #{$0} \"#{channel}\" \"#{admin_users.join(",")}\" \"#{rules_file}\" on"
+                t = Thread.new do
+                  `ruby #{$0} \"#{channel}\" \"#{admin_users.join(",")}\" \"#{rules_file}\" on`
+                end
+                @bots_created[channel_id] = {
+                  creator_name: from,
+                  channel_id: channel_id,
+                  channel_name: @channels_name[channel_id],
+                  status: :on,
+                  created: Time.now.strftime("%Y-%m-%dT%H:%M:%S.000Z")[0..18],
+                  rules_file: rules_file,
+                  admins: admin_users.join(","),
+                  extended: [],
+                  thread: t,
+                }
+                respond "The bot has been created on channel: #{channel}. Rules file: #{File.basename rules_file}. Admins: #{admin_users.join(", ")}", dest
+                update_bots_file()
+              rescue Exception => stack
+                @logger.fatal stack
+                message = "Problem creating the bot on channel #{channel}. Error: <#{stack}>."
+                @logger.error message
+                respond message, dest
+              end
+            else
+              respond "There is already a bot in this channel: #{channel}, and it is the Master Channel!", dest
+            end
+          end
+        else
+          @logger.info MASTER_CHANNEL
+          @logger.info @channel_id.inspect
+          respond "Sorry I cannot create bots from this channel, please visit the master channel: <##{@channels_id[MASTER_CHANNEL]}>", dest
+        end
+
+        #helpmaster: ----------------------------------------------
+        #helpmaster: `kill bot on CHANNEL_NAME`
+        #helpmaster:    kills the bot on the specified channel
+        #helpmaster:    Only works if you are on Master channel and you created that bot or you are an admin user
+        #helpmaster:
+      when /^kill\sbot\son\s<#C\w+\|(.+)>\s*$/i, /^kill\sbot\son\s(.+)\s*$/i
+        if ON_MASTER_BOT
+          channel = $1
+
+          get_channels_name_and_id() unless @channels_name.keys.include?(channel) or @channels_id.keys.include?(channel)
+          channel_id = nil
+          if @channels_name.key?(channel) #it is an id
+            channel_id = channel
+            channel = @channels_name[channel_id]
+          elsif @channels_id.key?(channel) #it is a channel name
+            channel_id = @channels_id[channel]
+          end
+          if channel_id.nil?
+            respond "There is no channel with that name: #{channel}, please be sure is written exactly the same", dest
+          elsif @bots_created.keys.include?(channel_id)
+            if @bots_created[channel_id][:admins].split(",").include?(from)
+              if @bots_created[channel_id][:thread].kind_of?(Thread) and @bots_created[channel_id][:thread].alive?
+                @bots_created[channel_id][:thread].kill
+              end
+              @bots_created.delete(channel_id)
+              update_bots_file()
+              respond "Bot on channel: #{channel}, has been killed and deleted.", dest
+              send_msg_channel(channel, "Bot has been killed by #{from}")
+            else
+              respond "You need to be the creator or an admin of that bot channel", dest
+            end
+          else
+            respond "There is no bot in this channel: #{channel}", dest
+          end
+        else
+          respond "Sorry I cannot kill bots from this channel, please visit the master channel: <##{@channels_id[MASTER_CHANNEL]}>", dest
+        end
+
+
+
       else
-        respond "Sorry I cannot kill bots from this channel, please visit the master channel: <##{@channels_id[MASTER_CHANNEL]}>", dest
+        processed = false
       end
-
-
-
+      only_on_demand = false
     else
       processed = false
+      only_on_demand = true
     end
 
     on_demand = false
@@ -867,7 +883,7 @@ class SlackSmartBot
     #only when :on and (listening or on demand or direct message)
     if @status == :on and
        (@questions.keys.include?(from) or
-        @listening.include?(from) or
+        (@listening.include?(from) and !only_on_demand) or
         dest[0] == "D" or on_demand)
       processed2 = true
 
@@ -879,6 +895,97 @@ class SlackSmartBot
       #help:       `NAME_OF_BOT THE_COMMAND`
       #help:
       case command
+
+      when /^bot\s+rules$/i
+        if only_on_demand #extended rules
+          help_message_rules = ''
+          message = "-\n\n\n===================================\n*Rules from channel <##{@channels_id[CHANNEL]}>*\n"
+          message += "To run the commands on this extended channel, add `!` before the command.\n"
+          help_message_rules = IO.readlines(rules_file).join
+          message += help_message_rules.scan(/#\s*help\s*:(.*)/).join("\n")
+          respond message, dest
+          unless rules_file.empty?
+            begin
+              eval(File.new(rules_file).read) if File.exist?(rules_file)
+            end
+          end
+          if defined?(git_project) and git_project.to_s!='' and help_message_rules != ''
+            respond "Git project: #{git_project}", dest
+          else
+            def git_project() '' end
+            def project_folder() '' end
+          end
+        end
+
+
+
+      #helpadmin: ----------------------------------------------
+      #helpadmin: `extend rules to CHANNEL_NAME`
+      #helpadmin: `use rules on CHANNEL_NAME`
+      #helpadmin:    It will allow to use the specific rules from this channel on the CHANNEL_NAME
+      #helpadmin:
+      when /^extend\s+rules\s+(to\s+)<#C\w+\|(.+)>/i, /^extend\s+rules\s+(to\s+)(.+)/i, 
+        /^use\s+rules\s+(on\s+)<#C\w+\|(.+)>/i, /^use\s+rules\s+(on\s+)(.+)/i 
+        if ON_MASTER_BOT
+          respond "You cannot use the rules from Master Channel on any other channel.", dest
+        elsif !ADMIN_USERS.include?(from) #not admin 
+          respond "Only admins can extend the rules. Admins on this channel: #{ADMIN_USERS}", dest
+        else
+          channel = $2
+          channels = client.web_client.channels_list.channels
+          channel_found = channels.detect { |c| c.name == channel }
+          members = client.web_client.conversations_members(channel: @channels_id[channel]).members unless channel_found.nil?
+          get_bots_created()
+          channels_in_use = []
+          @bots_created.each do |k,v| 
+            if v.key?(:extended) and v[:extended].include?(channel)
+              channels_in_use << v[:channel_name]
+            end
+          end
+          
+          if channel_found.nil?
+            respond "The channel you specified doesn't exist", dest
+          elsif @bots_created.key?(@channels_id[channel])
+            respond "There is a bot already running on that channel.", dest
+          elsif @bots_created[@channels_id[CHANNEL]][:extended].include?(channel)
+            respond "The rules are already extended to that channel.", dest
+          elsif !members.include?(config[:nick_id])
+            respond "You need to add first to the channel the smart bot user: #{config[:nick]}", dest
+          elsif !members.include?(user.id)
+            respond "You need to join that channel first", dest
+          else
+            channels_in_use.each do |channel_in_use|
+              respond "The rules from channel <##{@channels_id[channel_in_use]}> are already in use on that channel", dest
+            end
+            @bots_created[@channels_id[CHANNEL]][:extended] = [] unless @bots_created[@channels_id[CHANNEL]].key?(:extended)
+            @bots_created[@channels_id[CHANNEL]][:extended] << channel
+            update_bots_file()
+            respond "Now the rules from <##{@channels_id[CHANNEL]}> are available on <##{@channels_id[channel]}>", dest
+            respond "<@#{user.id}> extended the rules from <##{@channels_id[CHANNEL]}> to this channel so now you can talk to the Smart Bot on demand using those rules.", @channels_id[channel]
+            respond "Use `!` before the command you want to run", @channels_id[channel]
+            respond "To see the specific rules for this bot on this channel: `!bot rules`", @channels_id[channel]
+          end
+        end
+
+        #help: ----------------------------------------------
+        #help: `stop using rules on CHANNEL_NAME`
+        #help:    it will stop using the extended rules on the specified channel.
+        #help:
+      when /^stop using rules (on\s+)<#C\w+\|(.+)>/i, /^stop using rules (on\s+)(.+)/i
+        if !ADMIN_USERS.include?(from) #not admin 
+          respond "Only admins can extend or stop using the rules. Admins on this channel: #{ADMIN_USERS}", dest
+        else
+          channel = $2
+          get_bots_created()
+          if @bots_created[@channels_id[CHANNEL]][:extended].include?(channel)
+            @bots_created[@channels_id[CHANNEL]][:extended].delete(channel)
+            update_bots_file()
+            respond "The rules won't be accessible from <##{@channels_id[CHANNEL]}> from now on.", dest
+            respond "<@#{user.id}> removed the access to the rules of <##{@channels_id[CHANNEL]}> from this channel.", @channels_id[channel]
+          else
+            respond "The rules were not accessible from <##{@channels_id[channel]}>", dest
+          end
+        end
 
       #help: ----------------------------------------------
       #help: `add shortcut NAME: COMMAND`
@@ -1139,5 +1246,5 @@ class SlackSmartBot
     )
   end
 
-  private :update_bots_file, :get_channels_name_and_id, :update_shortcuts_file
+  private :update_bots_file, :get_bots_created, :get_channels_name_and_id, :update_shortcuts_file
 end

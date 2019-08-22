@@ -241,6 +241,7 @@ Apart of the specific commands you define on the rules file of the channel, you 
 
 >ruby require 'json'; res=[]; 20.times {res<<rand(100)}; my_json={result: res}; puts my_json.to_json
 
+>Also it is possible to attach a Ruby file.
 
 **_`add shortcut NAME: COMMAND`_**
 
@@ -278,8 +279,6 @@ Apart of the specific commands you define on the rules file of the channel, you 
 
 **_`use rules from CHANNEL`_**
 
-**_`use rules CHANNEL`_**
-
 >it will use the rules from the specified channel.
 
 >you need to be part of that channel to be able to use the rules.
@@ -288,11 +287,20 @@ Apart of the specific commands you define on the rules file of the channel, you 
 
 **_`stop using rules from CHANNEL`_**
 
-**_`stop using rules CHANNEL`_**
-
 >it will stop using the rules from the specified channel.
 
 >only when on a private conversation with the bot or in a private group
+
+**_`extend rules to CHANNEL_NAME`_**
+
+**_`use rules on CHANNEL_NAME`_**
+
+>it will allow to use the specific rules from this channel on the CHANNEL_NAME
+
+**_`stop using rules on CHANNEL_NAME`_**
+
+>it will stop using the extended rules on the specified channel.
+
 
 ### Available commands from channels without a Smart Bot
 **_`@BOT_NAME on #CHANNEL_NAME COMMAND`_**

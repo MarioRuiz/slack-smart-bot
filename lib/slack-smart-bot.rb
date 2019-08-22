@@ -145,6 +145,9 @@ class SlackSmartBot
         @bots_created = eval(file_conf)
       end
       @datetime_bots_created = File.mtime($0.gsub(".rb", "_bots.rb"))
+      @bots_created.each do |k,v| # to be compatible with old versions
+        v[:extended] = [] unless v.key?(:extended)
+      end
     end
   end
 
@@ -1227,6 +1230,8 @@ class SlackSmartBot
   end
 
   #to send a file to an user or channel
+  #send_file(dest, 'the message', "#{project_folder}/temp/logs_ptBI.log", 'message to be sent', 'text/plain', "text")
+  #send_file(dest, 'the message', "#{project_folder}/temp/example.jpeg", 'message to be sent', 'image/jpeg', "jpg")
   def send_file(to, msg, file, title, format, type = "text")
     if to[0] == "U" #user
       im = client.web_client.im_open(user: to)

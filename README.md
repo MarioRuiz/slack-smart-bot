@@ -274,22 +274,19 @@ Apart of the specific commands you define on the rules file of the channel, you 
 
 >It will display the shortcuts stored for the user and for :all
 
-**_`id channel CHANNEL_NAME`_**
->shows the id of a channel name
-
 **_`use rules from CHANNEL`_**
 
 >it will use the rules from the specified channel.
 
 >you need to be part of that channel to be able to use the rules.
 
->only when on a private conversation with the bot or in a private group
+>only when on a private conversation.
 
 **_`stop using rules from CHANNEL`_**
 
 >it will stop using the rules from the specified channel.
 
->only when on a private conversation with the bot or in a private group
+>only when on a private conversation.
 
 **_`extend rules to CHANNEL_NAME`_**
 
@@ -304,8 +301,6 @@ Apart of the specific commands you define on the rules file of the channel, you 
 
 ### Available commands from channels without a Smart Bot
 **_`@BOT_NAME on #CHANNEL_NAME COMMAND`_**
-
-**_`@BOT_NAME #CHANNEL_NAME COMMAND`_**
 
 >It will run the supplied command using the rules on the channel supplied.
 

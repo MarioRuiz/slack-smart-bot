@@ -108,17 +108,18 @@ def rules(user, command, processed, dest)
 
     # Examples sending a file to slack:
     #   send_file(to, msg, filepath, title, format, type = "text")
-    #   send_file(dest, 'the message', "#{project_folder}/temp/logs_ptBI.log", 'message to be sent', 'text/plain', "text")
-    #   send_file(dest, 'the message', "#{project_folder}/temp/example.jpeg", 'message to be sent', 'image/jpeg', "jpg")
+    #   send_file(dest, 'the message', "#{project_folder}/temp/logs_ptBI.log", 'title', 'text/plain', "text")
+    #   send_file(dest, 'the message', "#{project_folder}/temp/example.jpeg", 'title', 'image/jpeg', "jpg")
 
     else
       unless processed
-        if CHANNEL == dest or dest[0]=="D" or dest[0] == "G" #not on extended channels
+        if @channel_id == dest or dest[0]=="D" or dest[0] == "G" #not on extended channels
           resp = %w{ what huh sorry }.sample
           respond "#{firstname}: #{resp}?", dest
         end
       end
     end
+
   rescue => exception
     if defined?(@logger)
       @logger.fatal exception

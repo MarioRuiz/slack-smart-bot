@@ -29,6 +29,7 @@ SHORTCUTS_FILE = "slack-smart-bot_shortcuts_#{CHANNEL}.rb".gsub(" ", "_")
 
 class SlackSmartBot
   attr_accessor :config, :client
+  attr_reader :master_bot_id, :channel_id
   VERSION = Gem.loaded_specs.values.select { |x| x.name == "slack-smart-bot" }[0].version.to_s
 
   def initialize(config)
@@ -112,6 +113,8 @@ class SlackSmartBot
     @channels_id = Hash.new()
     @channels_name = Hash.new()
     get_channels_name_and_id()
+    @channel_id = @channels_id[CHANNEL].dup
+    @master_bot_id = @channels_id[MASTER_CHANNEL].dup
 
     client.on :close do |_data|
       m = "Connection closing, exiting. #{Time.now}"
@@ -197,63 +200,106 @@ class SlackSmartBot
       end
       #todo: sometimes data.user is nil, check the problem.
       @logger.warn "!dest is nil. user: #{data.user}, channel: #{data.channel}, message: #{data.text}" if dest.nil?
-      # Direct messages are treated only on the master bot
-      if !dest.nil? and ((dest[0] == "D" and ON_MASTER_BOT) or (dest[0] == "C" or dest[0] == "G")) and data.user.to_s != ""
-        begin
-          #todo: when changed @questions user_id then move user_info inside the ifs to avoid calling it when not necessary
-          user_info = client.web_client.users_info(user: data.user)
-          # if Direct message or we are in the channel of the bot
-          if data.text.size >= 2 and
-             ((data.text[0] == "`" and data.text[-1] == "`") or (data.text[0] == "*" and data.text[-1] == "*") or (data.text[0] == "_" and data.text[-1] == "_"))
-            data.text = data.text[1..-2]
-          end
-          if !data.files.nil? and data.files.size == 1 and
-             (data.text.match?(/^(ruby|code)\s*$/) or (data.text.match?(/^\s*$/) and data.files[0].filetype == "ruby") or
-              (data.text.match?(/^<@#{config[:nick_id]}>\s(on\s)?<#(\w+)\|(.+)>/im) and data.files[0].filetype == "ruby"))
-            res = Faraday.new("https://files.slack.com", headers: { "Authorization" => "Bearer #{config[:token]}" }).get(data.files[0].url_private)
-            data.text = "#{data.text} ruby #{res.body.to_s.force_encoding("UTF-8")}"
+      
+      typem = :dont_treat
+      if !dest.nil?
+        if data.text.match(/^<@#{config[:nick_id]}>\s(on\s)?<#(\w+)\|(.+)>\s*:?\s*(.*)/im)
+          channel_rules = $2
+          channel_rules_name = $3
+          #to be treated only on the bot of the requested channel
+          if @channel_id == channel_rules 
+            data.text = $4
+            typem = :on_call
           end
 
-          if data.text.match(/^<@#{config[:nick_id]}>\s(on\s)?<#(\w+)\|(.+)>\s*:?\s*(.+)/im)
-            channel_rules = $2
-            channel_rules_name = $3
-            command = $4
-            if command.size >= 2 and
-               ((command[0] == "`" and command[-1] == "`") or (command[0] == "*" and command[-1] == "*") or (command[0] == "_" and command[-1] == "_"))
-              command = command[1..-2]
-            end
-
-            command = "!" + command unless command[0] == "!"
-
-            if @channels_id[CHANNEL] == channel_rules #to be treated only on the bot of the requested channel
-              dest = data.channel
-
-              channels = client.web_client.channels_list.channels
-              channel_found = channels.detect { |c| c.name == channel_rules_name }
-              members = client.web_client.conversations_members(channel: @channels_id[channel_rules_name]).members unless channel_found.nil?
-              if channel_found.nil?
-                @logger.fatal "Not possible to find the channel #{channel_rules_name}"
-              elsif channel_found.name == MASTER_CHANNEL
-                respond "You cannot use the rules from Master Channel on any other channel.", dest
-              elsif @status != :on
-                respond "The bot in that channel is not :on", dest
-              elsif data.user == channel_found.creator or members.include?(data.user)
-                res = process_first(user_info.user, command, dest, channel_rules)
-              else
-                respond "You need to join the channel <##{channel_found.id}> to be able to use the rules.", dest
+        elsif dest == @master_bot_id
+          if ON_MASTER_BOT #only to be treated on master mot channel
+            typem = :on_master
+          end
+        elsif @bots_created.key?(dest)
+          if @channel_id == dest #only to be treated by the bot on the channel
+            typem = :on_bot
+          end
+        elsif dest[0]=="D" #Direct message
+          if ON_MASTER_BOT #only to be treated by master bot
+            typem = :on_dm
+          end
+        elsif dest[0]=="G" #private group
+          if ON_MASTER_BOT #only to be treated by master bot
+            typem = :on_pg
+          end
+        elsif dest[0]=='C' 
+          #only to be treated on the channel of the bot. excluding running ruby
+          if !ON_MASTER_BOT and @bots_created[@channel_id][:extended].include?(@channels_name[dest]) and
+            !data.text.match?(/^!?\s*(ruby|code)\s+/)
+            typem = :on_extended
+          elsif ON_MASTER_BOT and data.text.match?(/^!?\s*(ruby|code)\s+/) #or in case of running ruby, the master bot
+            @bots_created.each do |k,v|
+              if v.key?(:extended) and v[:extended].include?(@channels_name[dest])
+                typem = :on_extended
+                break
               end
             end
+          end
+        end
+      end
+      
+      unless typem == :dont_treat
+        begin
+          command = data.text
+
+          #todo: when changed @questions user_id then move user_info inside the ifs to avoid calling it when not necessary
+          user_info = client.web_client.users_info(user: data.user)
+          
+          #when added special characters on the message
+          if command.size >= 2 and
+             ((command[0] == "`" and command[-1] == "`") or (command[0] == "*" and command[-1] == "*") or (command[0] == "_" and command[-1] == "_"))
+            command = command[1..-2]
+          end
+
+          #ruby file attached
+          if !data.files.nil? and data.files.size == 1 and
+             (command.match?(/^(ruby|code)\s*$/) or (command.match?(/^\s*$/) and data.files[0].filetype == "ruby") or
+              (typem==:on_call and data.files[0].filetype == "ruby"))
+            res = Faraday.new("https://files.slack.com", headers: { "Authorization" => "Bearer #{config[:token]}" }).get(data.files[0].url_private)
+            command = "#{command} ruby #{res.body.to_s.force_encoding("UTF-8")}"
+          end
+
+          if typem == :on_call
+            command = "!" + command unless command[0] == "!" or command.match?(/^\s*$/)
+            
+            channels = client.web_client.channels_list.channels
+            channel_found = channels.detect { |c| c.name == channel_rules_name }
+            members = client.web_client.conversations_members(channel: @channels_id[channel_rules_name]).members unless channel_found.nil?
+            if channel_found.nil?
+              @logger.fatal "Not possible to find the channel #{channel_rules_name}"
+            elsif channel_found.name == MASTER_CHANNEL
+              respond "You cannot use the rules from Master Channel on any other channel.", dest
+            elsif @status != :on
+              respond "The bot in that channel is not :on", dest
+            elsif data.user == channel_found.creator or members.include?(data.user)
+              res = process_first(user_info.user, command, dest, channel_rules, typem)
+            else
+              respond "You need to join the channel <##{channel_found.id}> to be able to use the rules.", dest
+            end
+
           elsif @questions.keys.include?(user_info.user.name)
             #todo: @questions key should be the id not the name. change it everywhere
             dest = data.channel
-            res = process_first(user_info.user, data.text, dest, @channels_id[CHANNEL])
-          elsif CHANNEL != MASTER_CHANNEL and @bots_created[@channels_id[CHANNEL]].key?(:extended) and 
-            @bots_created[@channels_id[CHANNEL]][:extended].include?(@channels_name[data.channel]) and
-            data.text.size > 0 and data.text[0] != "-"
-            res = process_first(user_info.user, data.text, dest, @channels_id[CHANNEL])
-          elsif (dest[0] == "D" or @channels_id[CHANNEL] == data.channel or data.user == config[:nick_id]) and
-                data.text.size > 0 and data.text[0] != "-"
-            res = process_first(user_info.user, data.text, dest, data.channel)
+            res = process_first(user_info.user, command, dest, @channel_id, typem)
+
+          elsif ON_MASTER_BOT and typem ==:on_extended and
+            command.size > 0 and command[0] != "-"
+            # to run ruby only from the master bot for the case more than one extended
+            res = process_first(user_info.user, command, dest, @channel_id, typem)
+
+          elsif !ON_MASTER_BOT and @bots_created[@channel_id].key?(:extended) and 
+            @bots_created[@channel_id][:extended].include?(@channels_name[data.channel]) and
+            command.size > 0 and command[0] != "-"
+            res = process_first(user_info.user, command, dest, @channel_id, typem)
+          elsif (dest[0] == "D" or @channel_id == data.channel or data.user == config[:nick_id]) and
+                command.size > 0 and command[0] != "-"
+            res = process_first(user_info.user, command, dest, data.channel, typem)
             # if @botname on #channel_rules: do something
           end
         rescue Exception => stack
@@ -266,11 +312,14 @@ class SlackSmartBot
     client.start!
   end
 
-  def process_first(user, text, dest, dchannel)
+  def process_first(user, text, dest, dchannel, typem)
     nick = user.name
     rules_file = ""
 
-    if dest[0] == "C" or dest[0] == "G" # on a channel or private channel
+    if typem == :on_call
+      rules_file = RULES_FILE
+
+    elsif dest[0] == "C" or dest[0] == "G" # on a channel or private channel
       rules_file = RULES_FILE
 
       if @rules_imported.key?(user.id) and @rules_imported[user.id].key?(dchannel)
@@ -337,7 +386,7 @@ class SlackSmartBot
       elsif @shortcuts.keys.include?(:all) and @shortcuts[:all].keys.include?(command)
         text = @shortcuts[:all][command].dup
       else
-        respond "Shortcut not found", dest
+        respond "Shortcut not found", dest unless dest[0]=="C" and dchannel != dest #on extended channel
         return :next
       end
       text = "!" + text if addexcl and text[0] != "!"
@@ -352,7 +401,7 @@ class SlackSmartBot
     begin
       t = Thread.new do
         begin
-          processed = process(user, command, dest, dchannel, rules_file)
+          processed = process(user, command, dest, dchannel, rules_file, typem)
           @logger.info "command: #{nick}> #{command}" if processed
           on_demand = false
           if command.match(/^@?(#{config[:nick]}):*\s+(.+)/im) or
@@ -361,20 +410,15 @@ class SlackSmartBot
             command = $2
             on_demand = true
           end
-          if dest[0]=="C" and dchannel != dest # on extended channel only specific rules
-            only_on_demand = true
-          else
-            only_on_demand = false
-          end
           if @status == :on and
              (@questions.keys.include?(nick) or
-              (@listening.include?(nick) and !only_on_demand) or
+              (@listening.include?(nick) and typem!=:on_extended) or
               dest[0] == "D" or on_demand)
             @logger.info "command: #{nick}> #{command}" unless processed
             #todo: verify this
 
-            if dest[0] == "C" or dest[0] == "G" #only for channels, not for DM
-              if @rules_imported.key?(user.id) and @rules_imported[user.id].key?(dchannel)
+            if dest[0] == "C" or dest[0] == "G" or (dest[0]=="D" and typem==:on_call)
+              if typem!=:on_call and @rules_imported.key?(user.id) and @rules_imported[user.id].key?(dchannel)
                 if @bots_created.key?(@rules_imported[user.id][dchannel])
                   if @bots_created[@rules_imported[user.id][dchannel]][:status] != :on
                     respond "The bot on that channel is not :on", dest
@@ -442,12 +486,12 @@ class SlackSmartBot
   #help:
   #help: *General commands:*
   #help:
-  def process(user, command, dest, dchannel, rules_file)
+  def process(user, command, dest, dchannel, rules_file, typem)
     from = user.name
     firstname = from.split(/ /).first
     processed = true
 
-    unless dest[0]=="C" and dchannel!=dest # on extended channel only specific rules
+    if typem == :on_master or typem == :on_bot or typem ==:on_pg or typem == :on_dm
       case command
 
       #help: ----------------------------------------------
@@ -541,7 +585,7 @@ class SlackSmartBot
 
         #help: ===================================
         #help:
-        #help: *These commands will run only when on a private conversation with the bot or in a private group:*
+        #help: *These commands will run only when on a private conversation with the bot:*
         #help:
         #help: ----------------------------------------------
         #help: `use rules from CHANNEL`
@@ -869,10 +913,8 @@ class SlackSmartBot
       else
         processed = false
       end
-      only_on_demand = false
     else
       processed = false
-      only_on_demand = true
     end
 
     on_demand = false
@@ -886,8 +928,8 @@ class SlackSmartBot
     #only when :on and (listening or on demand or direct message)
     if @status == :on and
        (@questions.keys.include?(from) or
-        (@listening.include?(from) and !only_on_demand) or
-        dest[0] == "D" or on_demand)
+        (@listening.include?(from) and typem!=:on_extended) or
+        typem == :on_dm or typem ==:on_pg or on_demand)
       processed2 = true
 
       #help: ===================================
@@ -900,10 +942,12 @@ class SlackSmartBot
       case command
 
       when /^bot\s+rules$/i
-        if only_on_demand #extended rules
+        if typem == :on_extended or typem == :on_call #for the other cases above.
           help_message_rules = ''
           message = "-\n\n\n===================================\n*Rules from channel <##{@channels_id[CHANNEL]}>*\n"
-          message += "To run the commands on this extended channel, add `!` before the command.\n"
+          if typem == :on_extended
+            message += "To run the commands on this extended channel, add `!` before the command.\n"
+          end
           help_message_rules = IO.readlines(rules_file).join
           message += help_message_rules.scan(/#\s*help\s*:(.*)/).join("\n")
           respond message, dest
@@ -929,64 +973,68 @@ class SlackSmartBot
       #helpadmin:
       when /^extend\s+rules\s+(to\s+)<#C\w+\|(.+)>/i, /^extend\s+rules\s+(to\s+)(.+)/i, 
         /^use\s+rules\s+(on\s+)<#C\w+\|(.+)>/i, /^use\s+rules\s+(on\s+)(.+)/i 
-        if ON_MASTER_BOT
-          respond "You cannot use the rules from Master Channel on any other channel.", dest
-        elsif !ADMIN_USERS.include?(from) #not admin 
-          respond "Only admins can extend the rules. Admins on this channel: #{ADMIN_USERS}", dest
-        else
-          channel = $2
-          channels = client.web_client.channels_list.channels
-          channel_found = channels.detect { |c| c.name == channel }
-          members = client.web_client.conversations_members(channel: @channels_id[channel]).members unless channel_found.nil?
-          get_bots_created()
-          channels_in_use = []
-          @bots_created.each do |k,v| 
-            if v.key?(:extended) and v[:extended].include?(channel)
-              channels_in_use << v[:channel_name]
-            end
-          end
-          
-          if channel_found.nil?
-            respond "The channel you specified doesn't exist", dest
-          elsif @bots_created.key?(@channels_id[channel])
-            respond "There is a bot already running on that channel.", dest
-          elsif @bots_created[@channels_id[CHANNEL]][:extended].include?(channel)
-            respond "The rules are already extended to that channel.", dest
-          elsif !members.include?(config[:nick_id])
-            respond "You need to add first to the channel the smart bot user: #{config[:nick]}", dest
-          elsif !members.include?(user.id)
-            respond "You need to join that channel first", dest
+        unless typem == :on_extended
+          if ON_MASTER_BOT
+            respond "You cannot use the rules from Master Channel on any other channel.", dest
+          elsif !ADMIN_USERS.include?(from) #not admin 
+            respond "Only admins can extend the rules. Admins on this channel: #{ADMIN_USERS}", dest
           else
-            channels_in_use.each do |channel_in_use|
-              respond "The rules from channel <##{@channels_id[channel_in_use]}> are already in use on that channel", dest
+            channel = $2
+            channels = client.web_client.channels_list.channels
+            channel_found = channels.detect { |c| c.name == channel }
+            members = client.web_client.conversations_members(channel: @channels_id[channel]).members unless channel_found.nil?
+            get_bots_created()
+            channels_in_use = []
+            @bots_created.each do |k,v| 
+              if v.key?(:extended) and v[:extended].include?(channel)
+                channels_in_use << v[:channel_name]
+              end
             end
-            @bots_created[@channels_id[CHANNEL]][:extended] = [] unless @bots_created[@channels_id[CHANNEL]].key?(:extended)
-            @bots_created[@channels_id[CHANNEL]][:extended] << channel
-            update_bots_file()
-            respond "Now the rules from <##{@channels_id[CHANNEL]}> are available on <##{@channels_id[channel]}>", dest
-            respond "<@#{user.id}> extended the rules from <##{@channels_id[CHANNEL]}> to this channel so now you can talk to the Smart Bot on demand using those rules.", @channels_id[channel]
-            respond "Use `!` before the command you want to run", @channels_id[channel]
-            respond "To see the specific rules for this bot on this channel: `!bot rules`", @channels_id[channel]
+            
+            if channel_found.nil?
+              respond "The channel you specified doesn't exist", dest
+            elsif @bots_created.key?(@channels_id[channel])
+              respond "There is a bot already running on that channel.", dest
+            elsif @bots_created[@channels_id[CHANNEL]][:extended].include?(channel)
+              respond "The rules are already extended to that channel.", dest
+            elsif !members.include?(config[:nick_id])
+              respond "You need to add first to the channel the smart bot user: #{config[:nick]}", dest
+            elsif !members.include?(user.id)
+              respond "You need to join that channel first", dest
+            else
+              channels_in_use.each do |channel_in_use|
+                respond "The rules from channel <##{@channels_id[channel_in_use]}> are already in use on that channel", dest
+              end
+              @bots_created[@channels_id[CHANNEL]][:extended] = [] unless @bots_created[@channels_id[CHANNEL]].key?(:extended)
+              @bots_created[@channels_id[CHANNEL]][:extended] << channel
+              update_bots_file()
+              respond "Now the rules from <##{@channels_id[CHANNEL]}> are available on <##{@channels_id[channel]}>", dest
+              respond "<@#{user.id}> extended the rules from <##{@channels_id[CHANNEL]}> to this channel so now you can talk to the Smart Bot on demand using those rules.", @channels_id[channel]
+              respond "Use `!` before the command you want to run", @channels_id[channel]
+              respond "To see the specific rules for this bot on this channel: `!bot rules`", @channels_id[channel]
+            end
           end
         end
 
-        #help: ----------------------------------------------
-        #help: `stop using rules on CHANNEL_NAME`
-        #help:    it will stop using the extended rules on the specified channel.
-        #help:
+        #helpadmin: ----------------------------------------------
+        #helpadmin: `stop using rules on CHANNEL_NAME`
+        #helpadmin:    it will stop using the extended rules on the specified channel.
+        #helpadmin:
       when /^stop using rules (on\s+)<#C\w+\|(.+)>/i, /^stop using rules (on\s+)(.+)/i
-        if !ADMIN_USERS.include?(from) #not admin 
-          respond "Only admins can extend or stop using the rules. Admins on this channel: #{ADMIN_USERS}", dest
-        else
-          channel = $2
-          get_bots_created()
-          if @bots_created[@channels_id[CHANNEL]][:extended].include?(channel)
-            @bots_created[@channels_id[CHANNEL]][:extended].delete(channel)
-            update_bots_file()
-            respond "The rules won't be accessible from <##{@channels_id[CHANNEL]}> from now on.", dest
-            respond "<@#{user.id}> removed the access to the rules of <##{@channels_id[CHANNEL]}> from this channel.", @channels_id[channel]
+        unless typem == :on_extended
+          if !ADMIN_USERS.include?(from) #not admin 
+            respond "Only admins can extend or stop using the rules. Admins on this channel: #{ADMIN_USERS}", dest
           else
-            respond "The rules were not accessible from <##{@channels_id[channel]}>", dest
+            channel = $2
+            get_bots_created()
+            if @bots_created[@channels_id[CHANNEL]][:extended].include?(channel)
+              @bots_created[@channels_id[CHANNEL]][:extended].delete(channel)
+              update_bots_file()
+              respond "The rules won't be accessible from <##{@channels_id[CHANNEL]}> from now on.", dest
+              respond "<@#{user.id}> removed the access to the rules of <##{@channels_id[CHANNEL]}> from this channel.", @channels_id[channel]
+            else
+              respond "The rules were not accessible from <##{@channels_id[channel]}>", dest
+            end
           end
         end
 
@@ -1007,37 +1055,39 @@ class SlackSmartBot
       #help:        _Spanish Account_
       #help:
       when /^(add\s)?shortcut\s(for\sall)?\s*(.+)\s*:\s*(.+)/i, /^(add\s)sc\s(for\sall)?\s*(.+)\s*:\s*(.+)/i
-        for_all = $2
-        shortcut_name = $3.to_s.downcase
-        command_to_run = $4
-        @shortcuts[from] = Hash.new() unless @shortcuts.keys.include?(from)
+        unless typem == :on_extended
+          for_all = $2
+          shortcut_name = $3.to_s.downcase
+          command_to_run = $4
+          @shortcuts[from] = Hash.new() unless @shortcuts.keys.include?(from)
 
-        if !ADMIN_USERS.include?(from) and @shortcuts[:all].include?(shortcut_name) and !@shortcuts[from].include?(shortcut_name)
-          respond "Only the creator of the shortcut or an admin user can modify it", dest
-        elsif !@shortcuts[from].include?(shortcut_name)
-          #new shortcut
-          @shortcuts[from][shortcut_name] = command_to_run
-          @shortcuts[:all][shortcut_name] = command_to_run if for_all.to_s != ""
-          update_shortcuts_file()
-          respond "shortcut added", dest
-        else
-
-          #are you sure? to avoid overwriting existing
-          unless @questions.keys.include?(from)
-            ask("The shortcut already exists, are you sure you want to overwrite it?", command, from, dest)
+          if !ADMIN_USERS.include?(from) and @shortcuts[:all].include?(shortcut_name) and !@shortcuts[from].include?(shortcut_name)
+            respond "Only the creator of the shortcut or an admin user can modify it", dest
+          elsif !@shortcuts[from].include?(shortcut_name)
+            #new shortcut
+            @shortcuts[from][shortcut_name] = command_to_run
+            @shortcuts[:all][shortcut_name] = command_to_run if for_all.to_s != ""
+            update_shortcuts_file()
+            respond "shortcut added", dest
           else
-            case @questions[from]
-            when /^(yes|yep)/i
-              @shortcuts[from][shortcut_name] = command_to_run
-              @shortcuts[:all][shortcut_name] = command_to_run if for_all.to_s != ""
-              update_shortcuts_file()
-              respond "shortcut added", dest
-              @questions.delete(from)
-            when /^no/i
-              respond "ok, I won't add it", dest
-              @questions.delete(from)
+
+            #are you sure? to avoid overwriting existing
+            unless @questions.keys.include?(from)
+              ask("The shortcut already exists, are you sure you want to overwrite it?", command, from, dest)
             else
-              respond "I don't understand, yes or no?", dest
+              case @questions[from]
+              when /^(yes|yep)/i
+                @shortcuts[from][shortcut_name] = command_to_run
+                @shortcuts[:all][shortcut_name] = command_to_run if for_all.to_s != ""
+                update_shortcuts_file()
+                respond "shortcut added", dest
+                @questions.delete(from)
+              when /^no/i
+                respond "ok, I won't add it", dest
+                @questions.delete(from)
+              else
+                respond "I don't understand, yes or no?", dest
+              end
             end
           end
         end
@@ -1048,34 +1098,36 @@ class SlackSmartBot
         #help:    It will delete the shortcut with the supplied name
         #help:
       when /^delete\s+shortcut\s+(.+)/i, /^delete\s+sc\s+(.+)/i
-        shortcut = $1.to_s.downcase
-        deleted = false
+        unless typem == :on_extended
+          shortcut = $1.to_s.downcase
+          deleted = false
 
-        if !ADMIN_USERS.include?(from) and @shortcuts[:all].include?(shortcut) and !@shortcuts[from].include?(shortcut)
-          respond "Only the creator of the shortcut or an admin user can delete it", dest
-        elsif (@shortcuts.keys.include?(from) and @shortcuts[from].keys.include?(shortcut)) or
-              (ADMIN_USERS.include?(from) and @shortcuts[:all].include?(shortcut))
-          #are you sure? to avoid deleting by mistake
-          unless @questions.keys.include?(from)
-            ask("are you sure you want to delete it?", command, from, dest)
-          else
-            case @questions[from]
-            when /^(yes|yep)/i
-              respond "shortcut deleted!", dest
-              respond "#{shortcut}: #{@shortcuts[from][shortcut]}", dest
-              @shortcuts[from].delete(shortcut)
-              @shortcuts[:all].delete(shortcut)
-              @questions.delete(from)
-              update_shortcuts_file()
-            when /^no/i
-              respond "ok, I won't delete it", dest
-              @questions.delete(from)
+          if !ADMIN_USERS.include?(from) and @shortcuts[:all].include?(shortcut) and !@shortcuts[from].include?(shortcut)
+            respond "Only the creator of the shortcut or an admin user can delete it", dest
+          elsif (@shortcuts.keys.include?(from) and @shortcuts[from].keys.include?(shortcut)) or
+                (ADMIN_USERS.include?(from) and @shortcuts[:all].include?(shortcut))
+            #are you sure? to avoid deleting by mistake
+            unless @questions.keys.include?(from)
+              ask("are you sure you want to delete it?", command, from, dest)
             else
-              respond "I don't understand, yes or no?", dest
+              case @questions[from]
+              when /^(yes|yep)/i
+                respond "shortcut deleted!", dest
+                respond "#{shortcut}: #{@shortcuts[from][shortcut]}", dest
+                @shortcuts[from].delete(shortcut)
+                @shortcuts[:all].delete(shortcut)
+                @questions.delete(from)
+                update_shortcuts_file()
+              when /^no/i
+                respond "ok, I won't delete it", dest
+                @questions.delete(from)
+              else
+                respond "I don't understand, yes or no?", dest
+              end
             end
+          else
+            respond "shortcut not found", dest
           end
-        else
-          respond "shortcut not found", dest
         end
 
         #help: ----------------------------------------------
@@ -1084,39 +1136,43 @@ class SlackSmartBot
         #help:    It will display the shortcuts stored for the user and for :all
         #help:
       when /^see\sshortcuts/i, /^see\ssc/i
-        msg = ""
-        if @shortcuts[:all].keys.size > 0
-          msg = "*Available shortcuts for all:*\n"
-          @shortcuts[:all].each { |name, value|
-            msg += "    _#{name}: #{value}_\n"
-          }
-          respond msg, dest
-        end
-
-        if @shortcuts.keys.include?(from) and @shortcuts[from].keys.size > 0
-          new_hash = @shortcuts[from].dup
-          @shortcuts[:all].keys.each { |k| new_hash.delete(k) }
-          if new_hash.keys.size > 0
-            msg = "*Available shortcuts for #{from}:*\n"
-            new_hash.each { |name, value|
+        unless typem == :on_extended
+          msg = ""
+          if @shortcuts[:all].keys.size > 0
+            msg = "*Available shortcuts for all:*\n"
+            @shortcuts[:all].each { |name, value|
               msg += "    _#{name}: #{value}_\n"
             }
             respond msg, dest
           end
+
+          if @shortcuts.keys.include?(from) and @shortcuts[from].keys.size > 0
+            new_hash = @shortcuts[from].dup
+            @shortcuts[:all].keys.each { |k| new_hash.delete(k) }
+            if new_hash.keys.size > 0
+              msg = "*Available shortcuts for #{from}:*\n"
+              new_hash.each { |name, value|
+                msg += "    _#{name}: #{value}_\n"
+              }
+              respond msg, dest
+            end
+          end
+          respond "No shortcuts found", dest if msg == ""
         end
-        respond "No shortcuts found", dest if msg == ""
 
         #help: ----------------------------------------------
         #help: `id channel CHANNEL_NAME`
         #help:    shows the id of a channel name
         #help:
       when /^id\schannel\s<#C\w+\|(.+)>\s*/i, /^id channel (.+)/
-        channel_name = $1
-        get_channels_name_and_id()
-        if @channels_id.keys.include?(channel_name)
-          respond "the id of #{channel_name} is #{@channels_id[channel_name]}", dest
-        else
-          respond "channel: #{channel_name} not found", dest
+        unless typem == :on_extended
+          channel_name = $1
+          get_channels_name_and_id()
+          if @channels_id.keys.include?(channel_name)
+            respond "the id of #{channel_name} is #{@channels_id[channel_name]}", dest
+          else
+            respond "channel: #{channel_name} not found", dest
+          end
         end
 
         #help: ----------------------------------------------
@@ -1167,9 +1223,12 @@ class SlackSmartBot
         else
           respond "Sorry I cannot run this due security reasons", dest
         end
+
+
       else
         processed2 = false
-      end
+      end #of case
+
       processed = true if processed or processed2
     end
 

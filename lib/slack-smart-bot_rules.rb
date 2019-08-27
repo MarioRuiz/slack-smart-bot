@@ -44,6 +44,8 @@ end
 # help:
 def rules(user, command, processed, dest)
   from = user.name
+  display_name = user.profile.display_name
+
   if @testing
     puts "#{from}: #{command}"
     if @questions.keys.include?(from)
@@ -52,7 +54,6 @@ def rules(user, command, processed, dest)
       command = context
     end
   end
-  firstname = from.split(" ").first
   begin
     case command
 
@@ -98,12 +99,12 @@ def rules(user, command, processed, dest)
       stdout, stderr, status = Open3.capture3(process_to_run)
       if stderr == ""
         if stdout == ""
-          respond "#{user.name}: Nothing returned.", dest
+          respond "#{display_name}: Nothing returned.", dest
         else
-          respond "#{user.name}: #{stdout}", dest
+          respond "#{display_name}: #{stdout}", dest
         end
       else
-        respond "#{user.name}: #{stderr}", dest
+        respond "#{display_name}: #{stderr}", dest
       end
 
     # Examples sending a file to slack:
@@ -115,7 +116,7 @@ def rules(user, command, processed, dest)
       unless processed
         if @channel_id == dest or dest[0]=="D" or dest[0] == "G" #not on extended channels
           resp = %w{ what huh sorry }.sample
-          respond "#{firstname}: #{resp}?", dest
+          respond "#{display_name}: #{resp}?", dest
         end
       end
     end

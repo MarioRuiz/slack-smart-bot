@@ -202,7 +202,7 @@ class SlackSmartBot
       @logger.warn "!dest is nil. user: #{data.user}, channel: #{data.channel}, message: #{data.text}" if dest.nil?
       
       typem = :dont_treat
-      if !dest.nil?
+      if !dest.nil? and !data.text.nil? and !data.text.to_s.match?(/^\s*$/)
         if data.text.match(/^<@#{config[:nick_id]}>\s(on\s)?<#(\w+)\|(.+)>\s*:?\s*(.*)/im)
           channel_rules = $2
           channel_rules_name = $3
@@ -488,7 +488,7 @@ class SlackSmartBot
   #help:
   def process(user, command, dest, dchannel, rules_file, typem)
     from = user.name
-    firstname = from.split(/ /).first
+    display_name = user.profile.display_name
     processed = true
 
     if typem == :on_master or typem == :on_bot or typem ==:on_pg or typem == :on_dm
@@ -505,7 +505,7 @@ class SlackSmartBot
       when /^(Hello|Hallo|Hi|Hola|What's\sup|Hey|Hæ)\s(#{@salutations.join("|")})\s*$/i
         if @status == :on
           greetings = ["Hello", "Hallo", "Hi", "Hola", "What's up", "Hey", "Hæ"].sample
-          respond "#{greetings} #{firstname}", dest
+          respond "#{greetings} #{display_name}", dest
           if @rules_imported.key?(user.id) and @rules_imported[user.id].key?(user.id) and dest[0] == "D"
             respond "You are using specific rules for channel: <##{@rules_imported[user.id][user.id]}>", dest
           elsif @rules_imported.key?(user.id) and @rules_imported[user.id].key?(dchannel) and (dest[0] == "C" or dest[0] == "G")
@@ -524,7 +524,7 @@ class SlackSmartBot
       when /^(Bye|Bæ|Good\sBye|Adiós|Ciao|Bless|Bless\sBless|Adeu)\s(#{@salutations.join("|")})\s*$/i
         if @status == :on
           bye = ["Bye", "Bæ", "Good Bye", "Adiós", "Ciao", "Bless", "Bless bless", "Adeu"].sample
-          respond "#{bye} #{firstname}", dest
+          respond "#{bye} #{display_name}", dest
           @listening.delete(from)
         end
 
@@ -680,7 +680,7 @@ class SlackSmartBot
               case @questions[from]
               when /yes/i, /yep/i, /sure/i
                 respond "Game over!", dest
-                respond "Ciao #{firstname}!", dest
+                respond "Ciao #{display_name}!", dest
                 @bots_created.each { |key, value|
                   value[:thread] = ""
                   send_msg_channel(key, "Bot has been closed by #{from}")

@@ -308,6 +308,18 @@ Apart of the specific commands you define on the rules file of the channel, you 
 
 >Also you can use this command to call another bot from a channel with a running bot.
 
+### Creating cloud bots
+
+If you need to run a channel bot from a different machine you can use the command:
+
+**_`create cloud bot on #CHANNEL_NAME`_**
+
+After that you will need to copy your current Smart Bot folder into the the new location. Install all you need: Ruby, slack-smart-bot... and run the command supplied by the Smart Bot after you run the `create cloud` command.
+
+The new cloud bot will be managed by your Master Bot like the others, closing, pausing...
+
+This is very useful when you need to run certain processes on a different environment for example on a Windows machine while your Master Bot is on Ubuntu.
+
 ## Contributing
 
 Bug reports and pull requests are welcome on GitHub at https://github.com/marioruiz/slack-smart-bot.

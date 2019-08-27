@@ -68,11 +68,13 @@ class SlackSmartBot
       get_bots_created()
       if @bots_created.kind_of?(Hash)
         @bots_created.each { |key, value|
-          @logger.info "ruby #{$0} \"#{value[:channel_name]}\" \"#{value[:admins]}\" \"#{value[:rules_file]}\" #{value[:status].to_sym}"
-          t = Thread.new do
-            `ruby #{$0} \"#{value[:channel_name]}\" \"#{value[:admins]}\" \"#{value[:rules_file]}\" #{value[:status].to_sym}`
+          if !value.key?(:cloud) or (value.key?(:cloud) and value[:cloud] == false)
+            @logger.info "ruby #{$0} \"#{value[:channel_name]}\" \"#{value[:admins]}\" \"#{value[:rules_file]}\" #{value[:status].to_sym}"
+            t = Thread.new do
+              `ruby #{$0} \"#{value[:channel_name]}\" \"#{value[:admins]}\" \"#{value[:rules_file]}\" #{value[:status].to_sym}`
+            end
+            value[:thread] = t
           end
-          value[:thread] = t
         }
       end
     end
@@ -206,7 +208,7 @@ class SlackSmartBot
         if data.text.match(/^<@#{config[:nick_id]}>\s(on\s)?<#(\w+)\|(.+)>\s*:?\s*(.*)/im)
           channel_rules = $2
           channel_rules_name = $3
-          #to be treated only on the bot of the requested channel
+          # to be treated only on the bot of the requested channel
           if @channel_id == channel_rules 
             data.text = $4
             typem = :on_call
@@ -791,13 +793,15 @@ class SlackSmartBot
 
         #helpmaster: ----------------------------------------------
         #helpmaster: `create bot on CHANNEL_NAME`
+        #helpmaster: `create cloud bot on CHANNEL_NAME`
         #helpmaster:    creates a new bot on the channel specified
         #helpmaster:    it will work only if you are on Master channel
         #helpmaster:    the admins will be the master admins, the creator of the bot and the creator of the channel
-        #helpmaster:
-      when /^create\sbot\son\s<#C\w+\|(.+)>\s*/i, /^create\sbot\son\s(.+)\s*/i
+        #helpmaster:    follow the instructions in case creating cloud bots
+      when /^create\s+(cloud\s+)?bot\s+on\s+<#C\w+\|(.+)>\s*/i, /^create\s+(cloud\s+)?bot\s+on\s+(.+)\s*/i
         if ON_MASTER_BOT
-          channel = $1
+          cloud = !$1.nil?
+          channel = $2
 
           get_channels_name_and_id() unless @channels_name.keys.include?(channel) or @channels_id.keys.include?(channel)
           channel_id = nil
@@ -838,8 +842,12 @@ class SlackSmartBot
                 admin_users = [from, creator_info.user.name] + MASTER_USERS
                 admin_users.uniq!
                 @logger.info "ruby #{$0} \"#{channel}\" \"#{admin_users.join(",")}\" \"#{rules_file}\" on"
-                t = Thread.new do
-                  `ruby #{$0} \"#{channel}\" \"#{admin_users.join(",")}\" \"#{rules_file}\" on`
+                if cloud
+                  respond "Copy the bot folder to your cloud location and run `ruby #{$0} \"#{channel}\" \"#{admin_users.join(",")}\" \"#{rules_file}\" on&`", dest
+                else
+                  t = Thread.new do
+                    `ruby #{$0} \"#{channel}\" \"#{admin_users.join(",")}\" \"#{rules_file}\" on`
+                  end
                 end
                 @bots_created[channel_id] = {
                   creator_name: from,
@@ -850,6 +858,7 @@ class SlackSmartBot
                   rules_file: rules_file,
                   admins: admin_users.join(","),
                   extended: [],
+                  cloud: cloud,
                   thread: t,
                 }
                 respond "The bot has been created on channel: #{channel}. Rules file: #{File.basename rules_file}. Admins: #{admin_users.join(", ")}", dest

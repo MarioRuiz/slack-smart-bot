@@ -40,11 +40,25 @@ end
 
 The MASTER_CHANNEL will be the channel where you will be able to create other bots and will have special treatment.
 
-The MASTER_USERS will have full access to everything. The names should be written exactly the same like they appear on Slack.
+The MASTER_USERS will have full access to everything. You need to use the slack user name defined on https://YOUR_WORK_SPACE.slack.com/account/settings#username.
 
 For the token remember you need to generate a token on the Slack web for the bot user.
 
-This is something done in Slack, under [integrations](https://my.slack.com/services). Create a [new bot](https://my.slack.com/services/new/bot), and note its API token.
+You can get one by any of these options:
+
+- *[Slack App. Bot Token](https://api.slack.com/slack-apps)*. (Recommended)
+
+  1) [Create a Slack App](https://api.slack.com/apps?new_app=1)
+
+  1) Add a bot user to your app. On Add features and functionality section for your app, select *Bots*. Click on *Add a Bot User*
+
+  1) On your app click on the menu on the left: *OAuth & Permissions* and click on *Install App to Workspace*.
+
+  1) Copy your *Bot User OAuth Access Token*.
+
+
+- *[Legacy API Token](https://api.slack.com/custom-integrations/legacy-tokens)*. 
+
 
 *Remember to invite the smart bot to the channels where they will be accessible before creating the bot*
 

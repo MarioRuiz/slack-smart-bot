@@ -142,16 +142,18 @@ class SlackSmartBot
   end
 
   def get_bots_created
-    if !defined?(@datetime_bots_created) or @datetime_bots_created!=File.mtime($0.gsub(".rb", "_bots.rb"))
-      file_conf = IO.readlines($0.gsub(".rb", "_bots.rb")).join
-      if file_conf.to_s() == ""
-        @bots_created = {}
-      else
-        @bots_created = eval(file_conf)
-      end
-      @datetime_bots_created = File.mtime($0.gsub(".rb", "_bots.rb"))
-      @bots_created.each do |k,v| # to be compatible with old versions
-        v[:extended] = [] unless v.key?(:extended)
+    if File.exist?($0.gsub(".rb", "_bots.rb"))
+      if !defined?(@datetime_bots_created) or @datetime_bots_created!=File.mtime($0.gsub(".rb", "_bots.rb"))
+        file_conf = IO.readlines($0.gsub(".rb", "_bots.rb")).join
+        if file_conf.to_s() == ""
+          @bots_created = {}
+        else
+          @bots_created = eval(file_conf)
+        end
+        @datetime_bots_created = File.mtime($0.gsub(".rb", "_bots.rb"))
+        @bots_created.each do |k,v| # to be compatible with old versions
+          v[:extended] = [] unless v.key?(:extended)
+        end
       end
     end
   end
@@ -758,9 +760,22 @@ class SlackSmartBot
         if @status == :on
           respond "I'm listening to [#{@listening.join(", ")}]", dest
           if ON_MASTER_BOT and ADMIN_USERS.include?(from)
-            @bots_created.each { |key, value|
-              respond "#{key}: #{value}", dest
-            }
+            
+            @bots_created.each do |k,v|
+                msg = []
+                msg << "`#{v[:channel_name]}` (#{k}):"
+                msg << "\tcreator: #{v[:creator_name]}"
+                msg << "\tadmins: #{v[:admins]}"
+                msg << "\tstatus: #{v[:status]}"
+                msg << "\tcreated: #{v[:created]}"
+                msg << "\trules: #{v[:rules_file]}"
+                msg << "\textended: #{v[:extended]}"
+                msg << "\tcloud: #{v[:cloud]}"
+                if  ON_MASTER_BOT and v.key?(:cloud) and v[:cloud]
+                    msg << "\trunner: `ruby #{$0} \"#{v[:channel_name]}\" \"#{v[:admins]}\" \"#{v[:rules_file]}\" on&`"
+                end
+                respond msg.join("\n"), dest
+            end
           end
         end
 

@@ -29,12 +29,8 @@ settings = {
     token: 'xxxxxxxxxxxxxxxxxx' # the API Slack token
 }
 
-begin
-  puts "Connecting #{settings.inspect}"
-  SlackSmartBot.new(settings).listen
-rescue Exception => e
-  puts "Rescued: #{e.inspect}"
-end
+puts "Connecting #{settings.inspect}"
+SlackSmartBot.new(settings).listen
 
 ```
 

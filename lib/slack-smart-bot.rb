@@ -171,7 +171,12 @@ class SlackSmartBot
   end
 
   def get_channels_name_and_id
-    channels = client.web_client.channels_list.channels
+    #todo: add pagination for case more than 1000 channels on the workspace
+    channels = client.web_client.conversations_list(
+      types: 'private_channel,public_channel', 
+      limit: '1000',
+      exclude_archived: 'true').channels
+
     @channels_id = Hash.new()
     @channels_name = Hash.new()
     channels.each do |ch|
@@ -272,7 +277,11 @@ class SlackSmartBot
           if typem == :on_call
             command = "!" + command unless command[0] == "!" or command.match?(/^\s*$/)
             
-            channels = client.web_client.channels_list.channels
+            #todo: add pagination for case more than 1000 channels on the workspace
+            channels = client.web_client.conversations_list(
+              types: 'private_channel,public_channel', 
+              limit: '1000',
+              exclude_archived: 'true').channels
             channel_found = channels.detect { |c| c.name == channel_rules_name }
             members = client.web_client.conversations_members(channel: @channels_id[channel_rules_name]).members unless channel_found.nil?
             if channel_found.nil?
@@ -598,7 +607,12 @@ class SlackSmartBot
         #help:
       when /^use rules (from\s+)<#C\w+\|(.+)>/i, /^use rules (from\s+)(.+)/i
         channel = $2
-        channels = client.web_client.channels_list.channels
+        #todo: add pagination for case more than 1000 channels on the workspace
+        channels = client.web_client.conversations_list(
+          types: 'private_channel,public_channel', 
+          limit: '1000',
+          exclude_archived: 'true').channels
+
         channel_found = channels.detect { |c| c.name == channel }
         members = client.web_client.conversations_members(channel: @channels_id[channel]).members unless channel_found.nil?
 
@@ -826,7 +840,12 @@ class SlackSmartBot
           elsif @channels_id.key?(channel) #it is a channel name
             channel_id = @channels_id[channel]
           end
-          channels = client.web_client.channels_list.channels
+          #todo: add pagination for case more than 1000 channels on the workspace
+          channels = client.web_client.conversations_list(
+            types: 'private_channel,public_channel', 
+            limit: '1000',
+            exclude_archived: 'true').channels
+          @logger.info channels.inspect
           channel_found = channels.detect { |c| c.name == channel }
           members = client.web_client.conversations_members(channel: @channels_id[channel]).members unless channel_found.nil?
 
@@ -1004,7 +1023,12 @@ class SlackSmartBot
             respond "Only admins can extend the rules. Admins on this channel: #{ADMIN_USERS}", dest
           else
             channel = $2
-            channels = client.web_client.channels_list.channels
+            #todo: add pagination for case more than 1000 channels on the workspace
+            channels = client.web_client.conversations_list(
+              types: 'private_channel,public_channel', 
+              limit: '1000',
+              exclude_archived: 'true').channels
+  
             channel_found = channels.detect { |c| c.name == channel }
             members = client.web_client.conversations_members(channel: @channels_id[channel]).members unless channel_found.nil?
             get_bots_created()

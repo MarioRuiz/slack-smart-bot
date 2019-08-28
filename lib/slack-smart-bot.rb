@@ -845,7 +845,6 @@ class SlackSmartBot
             types: 'private_channel,public_channel', 
             limit: '1000',
             exclude_archived: 'true').channels
-          @logger.info channels.inspect
           channel_found = channels.detect { |c| c.name == channel }
           members = client.web_client.conversations_members(channel: @channels_id[channel]).members unless channel_found.nil?
 

@@ -372,7 +372,25 @@ class SlackSmartBot
               @logger.info "Changed status on #{channel_name} to :#{status}"
             end
           end
+        when /extended the rules from (.+) to be used on (.+)\.$/i
+          from_name = $1
+          to_name = $2
+          if ON_MASTER_BOT and @bots_created[@channels_id[from_name]][:cloud]
+            @bots_created[@channels_id[from_name]][:extended] << to_name
+            @bots_created[@channels_id[from_name]][:extended].uniq!
+            update_bots_file()
+          end
+
+        when /removed the access to the rules of (.+) from (.+)\.$/i
+          from_name = $1
+          to_name = $2
+          if ON_MASTER_BOT and @bots_created[@channels_id[from_name]][:cloud]
+            @bots_created[@channels_id[from_name]][:extended].delete(to_name)
+            update_bots_file()
+          end
+          
         end
+
         return :next #don't continue analyzing
       rescue Exception => stack
         @logger.fatal stack
@@ -560,7 +578,7 @@ class SlackSmartBot
             respond "*Commands for administrators:*\n#{help_message.scan(/#\s*help\s*admin:(.*)/).join("\n")}", dest
           end
           if ON_MASTER_BOT and (dest[0] == "C" or dest[0] == "G")
-            respond "*Commands only on Master Channel <##{@channels_id[MASTER_CHANNEL]}>:*\n#{help_message.scan(/#\s*help\s*master:(.*)/).join("\n")}", dest
+            respond "*Commands only on Master Channel <##{@master_bot_id}>:*\n#{help_message.scan(/#\s*help\s*master:(.*)/).join("\n")}", dest
           end
           respond help_message.scan(/#\s*help\s*:(.*)/).join("\n"), dest
         end
@@ -645,7 +663,7 @@ class SlackSmartBot
         #help: `stop using rules from CHANNEL`
         #help:    it will stop using the rules from the specified channel.
         #help:
-      when /^stop using rules (from\s+)<#C\w+\|(.+)>/i, /^stop using rules (from\s+)(.+)/i
+      when /^stop using rules (from\s+)<#\w+\|(.+)>/i, /^stop using rules (from\s+)(.+)/i
         channel = $2
         if @channels_id.key?(channel)
           channel_id = @channels_id[channel]
@@ -719,7 +737,7 @@ class SlackSmartBot
             respond "Only admin users can kill me", dest
           end
         else
-          respond "To do this you need to be an admin user in the master channel: <##{@channels_id[MASTER_CHANNEL]}>", dest
+          respond "To do this you need to be an admin user in the master channel: <##{@master_bot_id}>", dest
         end
 
         #helpadmin: ----------------------------------------------
@@ -770,7 +788,9 @@ class SlackSmartBot
         if version_remote != VERSION
           version_message = " There is a new available version: #{version_remote}."
         end
-        respond "Status: #{@status}. Version: #{VERSION}.#{version_message} Rules file: #{File.basename RULES_FILE} ", dest
+        require 'socket'
+        ip_address = Socket.ip_address_list.find { |ai| ai.ipv4? && !ai.ipv4_loopback? }.ip_address
+        respond "*#{Socket.gethostname} (#{ip_address})*\n\tStatus: #{@status}.\n\tVersion: #{VERSION}.#{version_message}\n\tRules file: #{File.basename RULES_FILE} ", dest
         if @status == :on
           respond "I'm listening to [#{@listening.join(", ")}]", dest
           if ON_MASTER_BOT and ADMIN_USERS.include?(from)
@@ -909,7 +929,7 @@ class SlackSmartBot
         else
           @logger.info MASTER_CHANNEL
           @logger.info @channel_id.inspect
-          respond "Sorry I cannot create bots from this channel, please visit the master channel: <##{@channels_id[MASTER_CHANNEL]}>", dest
+          respond "Sorry I cannot create bots from this channel, please visit the master channel: <##{@master_bot_id}>", dest
         end
 
         #helpmaster: ----------------------------------------------
@@ -947,7 +967,7 @@ class SlackSmartBot
             respond "There is no bot in this channel: #{channel}", dest
           end
         else
-          respond "Sorry I cannot kill bots from this channel, please visit the master channel: <##{@channels_id[MASTER_CHANNEL]}>", dest
+          respond "Sorry I cannot kill bots from this channel, please visit the master channel: <##{@master_bot_id}>", dest
         end
 
 
@@ -986,7 +1006,7 @@ class SlackSmartBot
       when /^bot\s+rules$/i
         if typem == :on_extended or typem == :on_call #for the other cases above.
           help_message_rules = ''
-          message = "-\n\n\n===================================\n*Rules from channel <##{@channels_id[CHANNEL]}>*\n"
+          message = "-\n\n\n===================================\n*Rules from channel #{CHANNEL}*\n"
           if typem == :on_extended
             message += "To run the commands on this extended channel, add `!` before the command.\n"
           end
@@ -1042,7 +1062,7 @@ class SlackSmartBot
               respond "The channel you specified doesn't exist", dest
             elsif @bots_created.key?(@channels_id[channel])
               respond "There is a bot already running on that channel.", dest
-            elsif @bots_created[@channels_id[CHANNEL]][:extended].include?(channel)
+            elsif @bots_created[@channel_id][:extended].include?(channel)
               respond "The rules are already extended to that channel.", dest
             elsif !members.include?(config[:nick_id])
               respond "You need to add first to the channel the smart bot user: #{config[:nick]}", dest
@@ -1052,11 +1072,12 @@ class SlackSmartBot
               channels_in_use.each do |channel_in_use|
                 respond "The rules from channel <##{@channels_id[channel_in_use]}> are already in use on that channel", dest
               end
-              @bots_created[@channels_id[CHANNEL]][:extended] = [] unless @bots_created[@channels_id[CHANNEL]].key?(:extended)
-              @bots_created[@channels_id[CHANNEL]][:extended] << channel
+              @bots_created[@channel_id][:extended] = [] unless @bots_created[@channel_id].key?(:extended)
+              @bots_created[@channel_id][:extended] << channel
               update_bots_file()
-              respond "Now the rules from <##{@channels_id[CHANNEL]}> are available on <##{@channels_id[channel]}>", dest
-              respond "<@#{user.id}> extended the rules from <##{@channels_id[CHANNEL]}> to this channel so now you can talk to the Smart Bot on demand using those rules.", @channels_id[channel]
+              respond "<@#{user.id}> extended the rules from #{CHANNEL} to be used on #{channel}.", @master_bot_id
+              respond "Now the rules from <##{@channel_id}> are available on <##{@channels_id[channel]}>", dest
+              respond "<@#{user.id}> extended the rules from <##{@channel_id}> to this channel so now you can talk to the Smart Bot on demand using those rules.", @channels_id[channel]
               respond "Use `!` before the command you want to run", @channels_id[channel]
               respond "To see the specific rules for this bot on this channel: `!bot rules`", @channels_id[channel]
             end
@@ -1067,20 +1088,21 @@ class SlackSmartBot
         #helpadmin: `stop using rules on CHANNEL_NAME`
         #helpadmin:    it will stop using the extended rules on the specified channel.
         #helpadmin:
-      when /^stop using rules (on\s+)<#C\w+\|(.+)>/i, /^stop using rules (on\s+)(.+)/i
+      when /^stop using rules (on\s+)<#\w+\|(.+)>/i, /^stop using rules (on\s+)(.+)/i
         unless typem == :on_extended
           if !ADMIN_USERS.include?(from) #not admin 
             respond "Only admins can extend or stop using the rules. Admins on this channel: #{ADMIN_USERS}", dest
           else
             channel = $2
             get_bots_created()
-            if @bots_created[@channels_id[CHANNEL]][:extended].include?(channel)
-              @bots_created[@channels_id[CHANNEL]][:extended].delete(channel)
+            if @bots_created[@channel_id][:extended].include?(channel)
+              @bots_created[@channel_id][:extended].delete(channel)
               update_bots_file()
-              respond "The rules won't be accessible from <##{@channels_id[CHANNEL]}> from now on.", dest
-              respond "<@#{user.id}> removed the access to the rules of <##{@channels_id[CHANNEL]}> from this channel.", @channels_id[channel]
+              respond "<@#{user.id}> removed the access to the rules of #{CHANNEL} from #{channel}.", @master_bot_id
+              respond "The rules won't be accessible from <##{@channels_id[channel]}> from now on.", dest
+              respond "<@#{user.id}> removed the access to the rules of <##{@channel_id}> from this channel.", @channels_id[channel]
             else
-              respond "The rules were not accessible from <##{@channels_id[channel]}>", dest
+              respond "The rules were not accessible from #{@channels_id[channel]}", dest
             end
           end
         end
@@ -1284,7 +1306,7 @@ class SlackSmartBot
 
   def respond(msg, dest = nil)
     if dest.nil?
-      client.message(channel: @channels_id[CHANNEL], text: msg, as_user: true)
+      client.message(channel: @channel_id, text: msg, as_user: true)
     elsif dest[0] == "C" or dest[0] == "G" # channel
       client.message(channel: dest, text: msg, as_user: true)
     elsif dest[0] == "D" # Direct message
@@ -1298,7 +1320,7 @@ class SlackSmartBot
   #to: user that should answer
   def ask(question, context, to, dest = nil)
     if dest.nil?
-      client.message(channel: @channels_id[CHANNEL], text: "#{to}: #{question}", as_user: true)
+      client.message(channel: @channel_id, text: "#{to}: #{question}", as_user: true)
     elsif dest[0] == "C" or dest[0] == "G" # channel
       client.message(channel: dest, text: "#{to}: #{question}", as_user: true)
     elsif dest[0] == "D" #private message

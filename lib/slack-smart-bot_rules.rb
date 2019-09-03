@@ -42,7 +42,7 @@ end
 # help:       `@NAME_OF_BOT THE_COMMAND`
 # help:       `NAME_OF_BOT THE_COMMAND`
 # help:
-def rules(user, command, processed, dest)
+def rules(user, command, processed, dest, files=[])
   from = user.name
   display_name = user.profile.display_name
 
@@ -106,6 +106,13 @@ def rules(user, command, processed, dest)
       else
         respond "#{display_name}: #{stderr}", dest
       end
+
+    # Example downloading a file from slack  
+    #  if !files.nil? and files.size == 1 and files[0].filetype == 'yaml'
+    #    require 'nice_http'
+    #    http = NiceHttp.new(host: "https://files.slack.com", headers: { "Authorization" => "Bearer #{config[:token]}" })
+    #    http.get(files[0].url_private_download, save_data: './tmp/')
+    #  end
 
     # Examples sending a file to slack:
     #   send_file(to, msg, filepath, title, format, type = "text")

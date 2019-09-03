@@ -8,6 +8,23 @@ The main scope of this ruby gem is to be used internally in your company so team
 
 slack-smart-bot can create bots on demand, create shortcuts, run ruby code... just on a chat channel, you can access it just from your mobile phone if you want and run those tests you forgot to run, get the results, restart a server... no limits.
 
+# Table of Contents
+
+- [Installation and configuration](#installation-and-configuration)
+- [Usage](#usage)
+  * [creating the MASTER BOT](#creating-the-master-bot)
+  * [How to access the smart bot](#how-to-access-the-smart-bot)
+  * [Available commands even when the bot is not listening to you](#available-commands-even-when-the-bot-is-not-listening-to-you)
+  * [Available commands only when listening to you or on demand or in a private conversation with the Smart Bot](#available-commands-only-when-listening-to-you-or-on-demand-or-in-a-private-conversation-with-the-smart-bot)
+  * [Available commands from channels without a Smart Bot](#available-commands-from-channels-without-a-smart-bot)
+  * [Creating cloud bots](#creating-cloud-bots)
+  * [Tips](#tips)
+    + [Send a file](#send-a-file)
+    + [Download a file](#download-a-file)
+- [Contributing](#contributing)
+- [License](#license)
+
+
 ## Installation and configuration
 
     $ gem install slack-smart-bot
@@ -329,6 +346,30 @@ After that you will need to copy your current Smart Bot folder into the the new 
 The new cloud bot will be managed by your Master Bot like the others, closing, pausing...
 
 This is very useful when you need to run certain processes on a different environment for example on a Windows machine while your Master Bot is on Ubuntu.
+
+### Tips
+
+#### Send a file
+
+```ruby
+    send_file(to, msg, filepath, title, format, type = "text")
+    send_file(dest, 'the message', "#{project_folder}/temp/logs_ptBI.log", 'title', 'text/plain', "text")
+    send_file(dest, 'the message', "#{project_folder}/temp/example.jpeg", 'title', 'image/jpeg', "jpg")
+```
+
+#### Download a file
+
+When uploading a file the message added to 'Add a message about the file' will be the command treated by the bot rule. Then in your rules file:
+
+```ruby
+    when /^do something with my file/i
+      if !files.nil? and files.size == 1 and files[0].filetype == 'yaml'
+        require 'nice_http'
+        http = NiceHttp.new(host: "https://files.slack.com", headers: { "Authorization" => "Bearer #{config[:token]}" })
+        res = http.get(files[0].url_private_download, save_data: './tmp/')
+        # if you want to directly access to the content use: `res.data`
+      end
+```
 
 ## Contributing
 

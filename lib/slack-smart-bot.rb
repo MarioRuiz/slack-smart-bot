@@ -291,7 +291,7 @@ class SlackSmartBot
             elsif @status != :on
               respond "The bot in that channel is not :on", dest
             elsif data.user == channel_found.creator or members.include?(data.user)
-              res = process_first(user_info.user, command, dest, channel_rules, typem)
+              res = process_first(user_info.user, command, dest, channel_rules, typem, data.files)
             else
               respond "You need to join the channel <##{channel_found.id}> to be able to use the rules.", dest
             end
@@ -299,20 +299,20 @@ class SlackSmartBot
           elsif @questions.keys.include?(user_info.user.name)
             #todo: @questions key should be the id not the name. change it everywhere
             dest = data.channel
-            res = process_first(user_info.user, command, dest, @channel_id, typem)
+            res = process_first(user_info.user, command, dest, @channel_id, typem, data.files)
 
           elsif ON_MASTER_BOT and typem ==:on_extended and
             command.size > 0 and command[0] != "-"
             # to run ruby only from the master bot for the case more than one extended
-            res = process_first(user_info.user, command, dest, @channel_id, typem)
+            res = process_first(user_info.user, command, dest, @channel_id, typem, data.files)
 
           elsif !ON_MASTER_BOT and @bots_created[@channel_id].key?(:extended) and 
             @bots_created[@channel_id][:extended].include?(@channels_name[data.channel]) and
             command.size > 0 and command[0] != "-"
-            res = process_first(user_info.user, command, dest, @channel_id, typem)
+            res = process_first(user_info.user, command, dest, @channel_id, typem, data.files)
           elsif (dest[0] == "D" or @channel_id == data.channel or data.user == config[:nick_id]) and
                 command.size > 0 and command[0] != "-"
-            res = process_first(user_info.user, command, dest, data.channel, typem)
+            res = process_first(user_info.user, command, dest, data.channel, typem, data.files)
             # if @botname on #channel_rules: do something
           end
         rescue Exception => stack
@@ -325,7 +325,7 @@ class SlackSmartBot
     client.start!
   end
 
-  def process_first(user, text, dest, dchannel, typem)
+  def process_first(user, text, dest, dchannel, typem, files)
     nick = user.name
     rules_file = ""
 
@@ -467,7 +467,11 @@ class SlackSmartBot
                 if defined?(rules)
                   command[0] = "" if command[0] == "!"
                   command.gsub!(/^@\w+:*\s*/, "")
-                  rules(user, command, processed, dest)
+                  if method(:rules).arity == 4
+                    rules(user, command, processed, dest)
+                  else
+                    rules(user, command, processed, dest, files)
+                  end
                 else
                   @logger.warn "It seems like rules method is not defined"
                 end
@@ -492,6 +496,11 @@ class SlackSmartBot
                   command[0] = "" if command[0] == "!"
                   command.gsub!(/^@\w+:*\s*/, "")
                   rules(user, command, processed, dest)
+                  if method(:rules).arity == 4
+                    rules(user, command, processed, dest)
+                  else
+                    rules(user, command, processed, dest, files)
+                  end
                 else
                   @logger.warn "It seems like rules method is not defined"
                 end

@@ -497,7 +497,6 @@ class SlackSmartBot
                 if defined?(rules)
                   command[0] = "" if command[0] == "!"
                   command.gsub!(/^@\w+:*\s*/, "")
-                  rules(user, command, processed, dest)
                   if method(:rules).arity == 4
                     rules(user, command, processed, dest)
                   else

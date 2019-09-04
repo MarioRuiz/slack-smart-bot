@@ -209,7 +209,9 @@ class SlackSmartBot
       end
       #todo: sometimes data.user is nil, check the problem.
       @logger.warn "!dest is nil. user: #{data.user}, channel: #{data.channel}, message: #{data.text}" if dest.nil?
-      
+      if !data.files.nil? and data.files.size == 1 and data.text.to_s == '' and data.files[0].filetype == "ruby"
+        data.text = 'ruby'
+      end 
       typem = :dont_treat
       if !dest.nil? and !data.text.nil? and !data.text.to_s.match?(/^\s*$/)
         if data.text.match(/^<@#{config[:nick_id]}>\s(on\s)?<#(\w+)\|(.+)>\s*:?\s*(.*)/im)
@@ -252,7 +254,6 @@ class SlackSmartBot
           end
         end
       end
-      
       unless typem == :dont_treat
         begin
           command = data.text
@@ -271,7 +272,8 @@ class SlackSmartBot
              (command.match?(/^(ruby|code)\s*$/) or (command.match?(/^\s*$/) and data.files[0].filetype == "ruby") or
               (typem==:on_call and data.files[0].filetype == "ruby"))
             res = Faraday.new("https://files.slack.com", headers: { "Authorization" => "Bearer #{config[:token]}" }).get(data.files[0].url_private)
-            command = "#{command} ruby #{res.body.to_s.force_encoding("UTF-8")}"
+            command += " ruby" if command!='ruby'
+            command = "#{command} #{res.body.to_s.force_encoding("UTF-8")}"
           end
 
           if typem == :on_call

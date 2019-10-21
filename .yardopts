@@ -2,4 +2,8 @@
 --title 'slack-smart-bot - Create a Slack bot that is smart and easy to expand.'
 --charset utf-8
 --markup markdown
-'lib/**/*.rb' - '*.md' - 'LICENSE'
+-
+lib/**/*.rb
+lib/slack/smart-bot/*.rb
+*.md
+LICENSE

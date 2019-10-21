@@ -1,0 +1,28 @@
+class SlackSmartBot
+
+  # helpadmin: ----------------------------------------------
+  # helpadmin: `kill routine NAME`
+  # helpadmin: `delete routine NAME`
+  # helpadmin: `remove routine NAME`
+  # helpadmin:    It will kill and remove the specified routine
+  # helpadmin:    You can use this command only if you are an admin user
+  # helpadmin:    NAME: one word to identify the routine
+  # helpadmin:    Examples:
+  # helpadmin:      _kill routine example_
+  # helpadmin:
+  def remove_routine(dest, from, name)
+    if ADMIN_USERS.include?(from) #admin user
+      if !ON_MASTER_BOT and dest[0] == "D"
+        respond "It's only possible to remove routines from MASTER channel from a direct message with the bot.", dest
+      elsif @routines.key?(@channel_id) and @routines[@channel_id].key?(name)
+        @routines[@channel_id].delete(name)
+        update_routines()
+        respond "The routine *`#{name}`* has been removed.", dest
+      else
+        respond "There isn't a routine with that name: *`#{name}`*.\nCall `see routines` to see added routines", dest
+      end
+    else
+      respond "Only admin users can delete routines", dest
+    end
+  end
+end

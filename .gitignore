@@ -10,6 +10,12 @@
 /test/tmp/
 /test/version_tmp/
 /tmp/
+/temp/
+*.log
+tmp.sh
+/spec/bot/*.rb
+/spec/bot/shourtcuts/
+!/spec/bot/smart-bot-example.rb
 
 # Used by dotenv library to load environment variables.
 # .env

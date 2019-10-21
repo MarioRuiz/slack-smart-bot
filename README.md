@@ -1,6 +1,8 @@
 # Slack Smart Bot
 
 [![Gem Version](https://badge.fury.io/rb/slack-smart-bot.svg)](https://rubygems.org/gems/slack-smart-bot)
+[![Build Status](https://travis-ci.com/MarioRuiz/slack-smart-bot.svg?branch=master)](https://github.com/MarioRuiz/slack-smart-bot)
+[![Coverage Status](https://coveralls.io/repos/github/MarioRuiz/slack-smart-bot/badge.svg?branch=master)](https://coveralls.io/github/MarioRuiz/slack-smart-bot?branch=master)
 
 Create a Slack bot that is really smart and so easy to expand.
 
@@ -13,17 +15,21 @@ slack-smart-bot can create bots on demand, create shortcuts, run ruby code... ju
 - [Installation and configuration](#installation-and-configuration)
 - [Usage](#usage)
   * [creating the MASTER BOT](#creating-the-master-bot)
-  * [How to access the smart bot](#how-to-access-the-smart-bot)
-  * [Available commands even when the bot is not listening to you](#available-commands-even-when-the-bot-is-not-listening-to-you)
-  * [Available commands only when listening to you or on demand or in a private conversation with the Smart Bot](#available-commands-only-when-listening-to-you-or-on-demand-or-in-a-private-conversation-with-the-smart-bot)
-  * [Available commands from channels without a Smart Bot](#available-commands-from-channels-without-a-smart-bot)
-  * [Creating cloud bots](#creating-cloud-bots)
+  * [How to access the Smart Bot](#how-to-access-the-smart-bot)
+  * [Bot Help](#bot-help)
+  * [Bot Management](#bot-management)
+    + [Cloud Bots](#cloud-bots)
+  * [Extending rules to other channels](#extending-rules-to-other-channels)
+  * [Using rules from other channels](#using-rules-from-other-channels)
+  * [Running Ruby code on a conversation](#running-ruby-code-on-a-conversation)
+  * [Sending notifications](#sending-notifications)
+  * [Shortcuts](#shortcuts)
+  * [Routines](#routines)
   * [Tips](#tips)
     + [Send a file](#send-a-file)
     + [Download a file](#download-a-file)
 - [Contributing](#contributing)
 - [License](#license)
-
 
 ## Installation and configuration
 
@@ -80,8 +86,9 @@ You can get one by any of these options:
 ### creating the MASTER BOT
 Let's guess the file you created was called my_smart_bot.rb so, just run it:
 ```
-ruby my_smart_bot.rb
+nohup ruby my_smart_bot.rb&
 ```
+nohup will prevent the terminal to send the signal exception: SIGHUP and kill the bot. & will run the process in background. You can use instead: `ruby my_smart_bot.rb & disown`
 
 After the run, it will be generated a rules file with the same name but adding _rules, in this example: my_smart_bot_rules.rb
 
@@ -92,7 +99,8 @@ You can add all the rules you want for your bot in the rules file, this is an ex
 ```ruby
 def rules(user, command, processed, dest)
   from = user.name
-  firstname = from.split(" ").first
+  display_name = user.profile.display_name
+
   case command
 
     # help: `echo SOMETHING`
@@ -106,7 +114,7 @@ def rules(user, command, processed, dest)
     # help:
     when /^go\sto\ssleep/i
       unless @questions.keys.include?(from)
-        ask("do you want me to take a siesta?", command, from)
+        ask "do you want me to take a siesta?"
       else
         case @questions[from]
           when /yes/i, /yep/i, /sure/i
@@ -119,7 +127,7 @@ def rules(user, command, processed, dest)
             respond "Thanks, I'm happy to be awake"
           else
             respond "I don't understand"
-            ask("are you sure do you want me to sleep? (yes or no)", "go to sleep", from)
+            ask "are you sure do you want me to sleep? (yes or no)"
         end
       end
 
@@ -128,231 +136,128 @@ def rules(user, command, processed, dest)
     # help:   It will run the process and report the results when done
     # help:
     when /^run something/i
-      respond "Running", dest
+      respond "Running"
 
       process_to_run = "ruby -v"
-      process_to_run = ("cd #{project_folder} &&" + process_to_run) if defined?(project_folder)
       stdout, stderr, status = Open3.capture3(process_to_run)
       if stderr == ""
         if stdout == ""
-          respond "#{user.name}: Nothing returned.", dest
+          respond "#{user.name}: Nothing returned."
         else
-          respond "#{user.name}: #{stdout}", dest
+          respond "#{user.name}: #{stdout}"
         end
       else
-        respond "#{user.name}: #{stderr}", dest
+        respond "#{user.name}: #{stdout} #{stderr}"
       end
 
     else
       unless processed
-        resp = %w{ what huh sorry }.sample
-        respond "#{firstname}: #{resp}?"
+          dont_understand()
       end
   end
 end
 
 ```
-### How to access the smart bot
+### How to access the Smart Bot
 You can access the bot directly on the MASTER CHANNEL, on a secondary channel where the bot is running and directly by opening a private chat with the bot, in this case the conversation will be just between you and the bot.
 
-### Available commands even when the bot is not listening to you
-Some of the commands are available always even when the bot is not listening to you but it is running
+On a Smart Bot channel you will be able to run some of the commands just by writing a command, for example: `bot help`
 
-**_`bot help`_**
+Some commands will be only available when the Smart Bot is listening to you. For the Smart Bot to start listening to you just say: `hi bot`. When the Smart Bot is listening to you, you can skip a message to be treated by the bot by starting the message with '-', for example: `- this message won't be treated`. When you want the Smart Bot Stop listening to you: `bye bot`. If you are on a direct conversation with the Smart Bot then it will be on *listening* mode all the time.
 
-**_`bot what can I do?`_**
+All the specific commands of the bot are specified on your rules file and can be added or changed accordingly. We usually call those commands: *rules*. Those rules are only available when the bot is listening to you.
 
->It will display all the commands we can use
->What is displayed by this command is what is written on your rules file like this: #help: THE TEXT TO SHOW
+Another way to run a command/rule is by asking *on demand*. In this case it is not necessary that the bot is listening to you.
 
-**_`Hello Bot`_**
+To run a command on demand:  
+  `!THE_COMMAND`  
+  `@NAME_OF_BOT THE_COMMAND`  
+  `NAME_OF_BOT THE_COMMAND`
 
-**_`Hello THE_NAME_OF_THE_BOT`_**
+Also you can always call the Smart Bot from any channel, even from channels without a running Smart Bot. You can use the External Call on Demand: `@NAME_OF_BOT on #CHANNEL_NAME COMMAND`. In this case you will call the bot on #CHANNEL_NAME.
 
->Also apart of Hello you can use Hallo, Hi, Hola, What's up, Hey, Hæ
+### Bot Help
+To get a full list of all commands and rules for a specific Smart Bot: `bot help`. It will show only the specific available commands for the user requesting.
 
->Bot starts listening to you
+If you want to search just for a specific command: `bot help COMMAND`
 
->If you want to avoid a single message to be treated by the smart bot, start the message by -
+To show only the specific rules of the Smart Bot defined on the rules file: `bot rules` or `bot rules COMMAND`
 
-**_`Bye Bot`_**
+### Bot Management
+To create a new bot on a channel, run on MASTER CHANNEL: `create bot on CHANNEL`. The admins of this new bot on that channel will be the MASTER ADMINS, the creator of the bot and the creator of that channel. It will create a new rules file linked to this new bot.
 
-**_`Bye THE_NAME_OF_THE_BOT`_**
+You can kill any bot running on any channel if you are an admin of that bot: `kill bot on CHANNEL`
 
->Also apart of Bye you can use Bæ, Good Bye, Adiós, Ciao, Bless, Bless Bless, Adeu
+If you want to pause a bot, from the channel of the bot: `pause bot`. To start it again: `start bot`
 
->Bot stops listening to you
+To see the status of the bots, on the MASTER CHANNEL: `bot status`
 
-**_`exit bot`_**
+To close the Master Bot, run on MASTER CHANNEL: `exit bot`
 
-**_`quit bot`_**
+#### Cloud Bots
+If you want to create a bot that will be running on a different machine: `create cloud bot on CHANNEL`. Even though the cloud bots are running on different machines, the management can be done through the MASTER CHANNEL. The new cloud bot will be managed by your Master Bot like the others, closing, pausing...
 
-**_`close bot`_**
+Cloud Bots are typically used to run commands on specific environments or even different OS or networks.
 
->The bot stops running and also stops all the bots created from this master channel
+### Extending rules to other channels
+If you want to extend the use of your specific rules on a Bot Channel to a third channel you can use the command: `extend rules to CHANNEL`
 
->You can use this command only if you are an admin user and you are on the master channel
+From that moment everybody part of that channel will be able to run the specific rules from the other channel but just on demand, for example: `!run something`
 
-**_`start bot`_**
+To stop allowing it: `stop using rules on CHANNEL`
 
-**_`start this bot`_**
+### Using rules from other channels
+To be able to access the rules from other channel, first of all you need to be a member of that channel. Then on a private conversation with the Smart Bot or from another bot channel: `use rules from CHANNEL`
 
->The bot will start to listen
+When you want to stop using those rules with the bot: `stop using rules from CHANNEL`
 
->You can use this command only if you are an admin user
+Also you can always call the Smart Bot from any channel, even from channels without a running Smart Bot. You can use the External Call on Demand: `@NAME_OF_BOT on #CHANNEL_NAME COMMAND`. In this case you will call the bot on #CHANNEL_NAME.
 
-**_`pause bot`_**
+### Running Ruby code on a conversation
+You can run Ruby code by using the command: `ruby THE_CODE`. For example: `!ruby require 'json'; res=[]; 20.times {res<<rand(100)}; my_json={result: res}; puts my_json.to_json`
 
-**_`pause this bot`_**
+Also it is possible to attach a Ruby file and the Smart Bot will run and post the output. You need to select Ruby as file format.
 
->The bot will pause so it will listen only to admin commands
+### Sending notifications
+You can send notifications from MASTER CHANNEL by using `notify MESSAGE`. All Bot Channels will be notified.
 
->You can use this command only if you are an admin user
+If you want to send a notification message to all channels the bot joined and direct conversations with the bot: `notify all MESSAGE`
 
-**_`bot status`_**
-   
->Displays the status of the bot
+And if you want to send a notification message to the specified channel and to its extended channels: `notify #CHANNEL MESSAGE`
 
->If on master channel and admin user also it will display info about bots created
+### Shortcuts
+Sometimes your commands or rules are too long and you want to add a shortcut to be executed.
 
-**_`create bot on CHANNEL_NAME`_**
+If you have for example a rule like this: `run tests on customers android app` and you want to add a shortcut: `add shortcut run tca: run tests on customers android app`
 
->Creates a new bot on the channel specified. 
+From that moment you will be able to run the command: `run tca`
 
->slack-smart-bot will create a default rules file specific for your channel. 
-You can edit it and add the rules you want. 
-As soon as you save the file after editing it will become available on your channel.
+That shortcut will be available for you, in case you want to make it available for everybody on the channel: `add shortcut for all Spanish account: ruby require 'iso/iban'; 10.times {puts ISO::IBAN.random('ES')}`
 
->It will work only if you are on Master channel
+To see available shortcuts: `see shortcuts` and to delete a particular shortcut: `delete shortcut NAME`
 
-**_`kill bot on CHANNEL_NAME`_**
+### Routines
+To add specific commands to be run automatically every certain amount of time or a specific time: `add routine NAME every NUMBER PERIOD COMMAND` or `add routine NAME at TIME COMMAND`
 
->Kills the bot on the specified channel
+Examples:  
+        `add routine run_tests every 3h run tests on customers`  
+        `add routine clean_db at 17:05 clean customers temp db`  
 
->Only works if you are on Master channel and you created that bot or you are an admin user
+Also instead of adding a Command to be executed, you can attach a file, then the routine will be created and the attached file will be executed on the criteria specified. Only Master Admins are allowed to use it this way.
 
-**_`notify MESSAGE`_**
-
-**_`notify all MESSAGE`_**
-
->It will send a notificaiton message to all bot channels
-
->It will send a notification message to all channels the bot joined and private conversations with the bot
-
->Only works if you are on Master channel and you are an admin user
-
-
-### Available commands only when listening to you or on demand or in a private conversation with the Smart Bot
-
-All the commands described on here or on your specific Rules file can be used when the bot is listening to you or on demand or in a private conversation with the Smart Bot.
-
-For the bot to start listening to you you need to use the "Hi bot" command or one of the aliases
-
-Also you can call any of these commands on demand by using:
-
-**_`!THE_COMMAND`_**
-
-**_`@BOT_NAME THE_COMMAND`_**
-
-**_`BOT_NAME THE_COMMAND`_**
-
-Apart of the specific commands you define on the rules file of the channel, you can use:
-
-**_`ruby RUBY_CODE`_**
-
-**_`code RUBY_CODE`_**
-
->runs the code supplied and returns the output. Also you can send a Ruby file. Examples:
-
->code puts (34344/99)*(34+14)
-
->ruby require 'json'; res=[]; 20.times {res<<rand(100)}; my_json={result: res}; puts my_json.to_json
-
->Also it is possible to attach a Ruby file.
-
-**_`add shortcut NAME: COMMAND`_**
-
-**_`add shortcut for all NAME: COMMAND`_**
-
-**_`shortchut NAME: COMMAND`_**
-
-**_`shortchut for all NAME: COMMAND`_**
-
->It will add a shortcut that will execute the command we supply.
-
->In case we supply 'for all' then the shorcut will be available for everybody
-
->Example:
->add shortcut for all Spanish account: /code require 'iso/iban'; 10.times {puts ISO::IBAN.random('ES')}
-
->Then to call this shortcut:
-
->sc spanish account
-
->spanish account
-
->shortcut Spanish Account
-
-**_`delete shortcut NAME`_**
-
->It will delete the shortcut with the supplied name
-
-**_`see shortcuts`_**
-
->It will display the shortcuts stored for the user and for :all
-
-**_`use rules from CHANNEL`_**
-
->it will use the rules from the specified channel.
-
->you need to be part of that channel to be able to use the rules.
-
->only when on a private conversation.
-
-**_`stop using rules from CHANNEL`_**
-
->it will stop using the rules from the specified channel.
-
->only when on a private conversation.
-
-**_`extend rules to CHANNEL_NAME`_**
-
-**_`use rules on CHANNEL_NAME`_**
-
->it will allow to use the specific rules from this channel on the CHANNEL_NAME
-
-**_`stop using rules on CHANNEL_NAME`_**
-
->it will stop using the extended rules on the specified channel.
-
-
-### Available commands from channels without a Smart Bot
-**_`@BOT_NAME on #CHANNEL_NAME COMMAND`_**
-
->It will run the supplied command using the rules on the channel supplied.
-
->You need to join the specified channel to be able to use those rules.
-
->Also you can use this command to call another bot from a channel with a running bot.
-
-### Creating cloud bots
-
-If you need to run a channel bot from a different machine you can use the command:
-
-**_`create cloud bot on #CHANNEL_NAME`_**
-
-After that you will need to copy your current Smart Bot folder into the the new location. Install all you need: Ruby, slack-smart-bot... and run the command supplied by the Smart Bot after you run the `create cloud` command.
-
-The new cloud bot will be managed by your Master Bot like the others, closing, pausing...
-
-This is very useful when you need to run certain processes on a different environment for example on a Windows machine while your Master Bot is on Ubuntu.
+Other routine commands:
+* `pause routine NAME`
+* `start routine NAME`
+* `remove routine NAME`
+* `run routine NAME`
+* `see routines`
 
 ### Tips
 
 #### Send a file
 
 ```ruby
-    send_file(to, msg, filepath, title, format, type = "text")
+    #send_file(to, msg, filepath, title, format, type = "text")
     send_file(dest, 'the message', "#{project_folder}/temp/logs_ptBI.log", 'title', 'text/plain', "text")
     send_file(dest, 'the message', "#{project_folder}/temp/example.jpeg", 'title', 'image/jpeg', "jpg")
 ```

@@ -1,1 +1,0 @@
-{:all=>{}, "smartbotuser2"=>{"example"=>"echo Text"}, "smartbotuser1"=>{"example"=>"echo Text"}}

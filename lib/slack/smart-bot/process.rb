@@ -129,7 +129,7 @@ class SlackSmartBot
       when /^bot\s+rules\s*(.+)?$/i
         help_command = $1
         bot_rules(dest, help_command, typem, rules_file, from)
-      when /^\s*(add\s)?shortcut\s(for\sall)?\s*(.+)\s*:\s*(.+)/i, /^(add\s)sc\s(for\sall)?\s*(.+)\s*:\s*(.+)/i
+      when /^\s*(add\s)?shortcut\s(for\sall)?\s*([^:]+)\s*:\s*(.+)/i, /^(add\s)sc\s(for\sall)?\s*([^:]+)\s*:\s*(.+)/i
         for_all = $2
         shortcut_name = $3.to_s.downcase
         command_to_run = $4

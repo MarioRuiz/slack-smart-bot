@@ -47,7 +47,7 @@ MASTER_USERS=["mario"]
 require 'slack-smart-bot'
 
 settings = {
-    nick: 'my_smart_bot', # the smart bot name
+    nick: 'smart-bot', # the smart bot name
     token: 'xxxxxxxxxxxxxxxxxx' # the API Slack token
 }
 
@@ -160,7 +160,7 @@ end
 ### How to access the Smart Bot
 You can access the bot directly on the MASTER CHANNEL, on a secondary channel where the bot is running and directly by opening a private chat with the bot, in this case the conversation will be just between you and the bot.
 
-On a Smart Bot channel you will be able to run some of the commands just by writing a command, for example: **_`bot help`
+On a Smart Bot channel you will be able to run some of the commands just by writing a command, for example: **_`bot help`_**
 
 Some commands will be only available when the Smart Bot is listening to you. For the Smart Bot to start listening to you just say: **_`hi bot`_**. When the Smart Bot is listening to you, you can skip a message to be treated by the bot by starting the message with '-', for example: **_`- this message won't be treated`_**. When you want the Smart Bot Stop listening to you: **_`bye bot`_**. If you are on a direct conversation with the Smart Bot then it will be on *listening* mode all the time.
 
@@ -171,9 +171,26 @@ Another way to run a command/rule is by asking *on demand*. In this case it is n
 To run a command on demand:  
   **_`!THE_COMMAND`_**  
   **_`@NAME_OF_BOT THE_COMMAND`_**  
-  **_`NAME_OF_BOT THE_COMMAND`_**
+  **_`NAME_OF_BOT THE_COMMAND`_**  
+
+Examples run a command on demand:
+>**_Peter>_** `!ruby puts Time.now`  
+>**_Smart-Bot>_** `2019-10-23 12:43:42 +0000`
+
+>**_Peter>_** `@smart-bot echo Example`  
+>**_Smart-Bot>_** `Example`
+
+>**_Peter>_** `smart-bot see shortcuts`  
+>**_Smart-Bot>_** `Available shortcuts for Peter:`  
+>`Spanish account: ruby require 'iso/iban'; 10.times {puts ISO::IBAN.random('ES')}`
 
 Also you can always call the Smart Bot from any channel, even from channels without a running Smart Bot. You can use the External Call on Demand: **_`@NAME_OF_BOT on #CHANNEL_NAME COMMAND`_**. In this case you will call the bot on #CHANNEL_NAME.
+
+Example:
+>**_Peter>_** `@smart-bot on #the_channel ruby puts Time.now`  
+>**_Smart-Bot>_** `2019-10-23 12:43:42 +0000`
+
+
 
 ### Bot Help
 To get a full list of all commands and rules for a specific Smart Bot: **_`bot help`_**. It will show only the specific available commands for the user requesting.
@@ -181,6 +198,12 @@ To get a full list of all commands and rules for a specific Smart Bot: **_`bot h
 If you want to search just for a specific command: **_`bot help COMMAND`_**
 
 To show only the specific rules of the Smart Bot defined on the rules file: **_`bot rules`_** or **_`bot rules COMMAND`_**
+
+Example:
+>**_Peter>_** `bot help echo`  
+>**_Smart-Bot>_** `echo SOMETHING`  
+    `repeats SOMETHING`
+
 
 ### Bot Management
 To create a new bot on a channel, run on MASTER CHANNEL: **_`create bot on CHANNEL`_**. The admins of this new bot on that channel will be the MASTER ADMINS, the creator of the bot and the creator of that channel. It will create a new rules file linked to this new bot.
@@ -206,14 +229,18 @@ From that moment everybody part of that channel will be able to run the specific
 To stop allowing it: **_`stop using rules on CHANNEL`_**
 
 ### Using rules from other channels
-To be able to access the rules from other channel, first of all you need to be a member of that channel. Then on a private conversation with the Smart Bot or from another bot channel: **_`use rules from CHANNEL`_**
+To be able to access the rules from other channel or from a direct conversation with the bot, first of all you need to be a member of that channel. Then on a direct conversation with the Smart Bot or from another bot channel: **_`use rules from CHANNEL`_**
 
 When you want to stop using those rules with the bot: **_`stop using rules from CHANNEL`_**
 
 Also you can always call the Smart Bot from any channel, even from channels without a running Smart Bot. You can use the External Call on Demand: **_`@NAME_OF_BOT on #CHANNEL_NAME COMMAND`_**. In this case you will call the bot on #CHANNEL_NAME.
 
 ### Running Ruby code on a conversation
-You can run Ruby code by using the command: **_`ruby THE_CODE`_**. For example: **_`!ruby require 'json'; res=[]; 20.times {res<<rand(100)}; my_json={result: res}; puts my_json.to_json`_**
+You can run Ruby code by using the command: **_`ruby THE_CODE`_**. 
+
+Example:
+>**_Peter>_** `!ruby require 'json'; res=[]; 20.times {res.push rand(100)}; my_json={result: res}; puts my_json.to_json`  
+>**_Smart-Bot>_** `{"result":[63,66,35,83,44,40,72,25,59,73,75,54,56,91,19,6,68,1,25,3]}`  
 
 Also it is possible to attach a Ruby file and the Smart Bot will run and post the output. You need to select Ruby as file format.
 
@@ -231,7 +258,14 @@ If you have for example a rule like this: **_`run tests on customers android app
 
 From that moment you will be able to run the command: **_`run tca`_**
 
-That shortcut will be available for you, in case you want to make it available for everybody on the channel: **_`add shortcut for all Spanish account: ruby require 'iso/iban'; 10.times {puts ISO::IBAN.random('ES')}`_**
+That shortcut will be available for you, in case you want to make it available for everybody on the channel: 
+Example:
+>**_Peter>_** `!add shortcut for all spanish bank account: ruby require 'iso/iban'; 3.times {puts ISO::IBAN.random('ES')}`  
+>**_Smart-Bot>_** `shortcut added`  
+>**_Peter>_** `!spanish bank account`  
+>**_Smart-Bot>_** `ES4664553191352006861448`  
+`ES4799209592433480943244`  
+`ES8888795057132445752702`  
 
 To see available shortcuts: **_`see shortcuts`_** and to delete a particular shortcut: **_`delete shortcut NAME`_**
 
@@ -239,8 +273,8 @@ To see available shortcuts: **_`see shortcuts`_** and to delete a particular sho
 To add specific commands to be run automatically every certain amount of time or a specific time: **_`add routine NAME every NUMBER PERIOD COMMAND`_** or **_`add routine NAME at TIME COMMAND`_**
 
 Examples:  
-        **_`add routine run_tests every 3h run tests on customers`_**  
-        **_`add routine clean_db at 17:05 clean customers temp db`_**  
+>**_`add routine run_tests every 3h run tests on customers`_**  
+>**_`add routine clean_db at 17:05 clean customers temp db`_**  
 
 Also instead of adding a Command to be executed, you can attach a file, then the routine will be created and the attached file will be executed on the criteria specified. Only Master Admins are allowed to use it this way.
 

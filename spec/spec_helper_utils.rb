@@ -114,12 +114,18 @@ def send_message(message, from: :ubot, to:, file_ruby: "")
   end
 
   if file_ruby.to_s == ""
-    http.post(path: "/api/chat.postMessage", data: {
-                channel: to_key,
-                as_user: true,
-                text: message,
-              })
-    sleep 1
+    if SIMULATE
+      open("./spec/bot/buffer_complete.log", "a") { |f|
+        f.puts "|#{to_key}|#{get_key(from)}|#{message}$$$"
+      }
+    else
+      http.post(path: "/api/chat.postMessage", data: {
+        channel: to_key,
+        as_user: true,
+        text: message,
+      })
+      sleep 1
+    end
   else
     request = {
       headers: { "Content-Type" => "application/x-www-form-urlencoded" },

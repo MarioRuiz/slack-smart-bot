@@ -42,7 +42,7 @@ class SlackSmartBot
         end
       elsif dest[0] == "C" or dest[0] == "G"
         #only to be treated on the channel of the bot. excluding running ruby
-        if !ON_MASTER_BOT and @bots_created[@channel_id][:extended].include?(@channels_name[dest]) and
+        if !ON_MASTER_BOT and @bots_created.key?(@channel_id) and @bots_created[@channel_id][:extended].include?(@channels_name[dest]) and
            !data.text.match?(/^!?\s*(ruby|code)\s+/)
           typem = :on_extended
         elsif ON_MASTER_BOT and data.text.match?(/^!?\s*(ruby|code)\s+/) #or in case of running ruby, the master bot
@@ -130,7 +130,7 @@ class SlackSmartBot
         @logger.fatal stack
       end
     else
-      if !ON_MASTER_BOT and (dest == @master_bot_id or dest[0] == "D") and
+      if !ON_MASTER_BOT and !dest.nil? and (dest == @master_bot_id or dest[0] == "D") and
          data.text.match?(/^\s*bot\s+status\s*$/i) and @admin_users_id.include?(data.user)
         respond "ping from #{CHANNEL}", dest
       end

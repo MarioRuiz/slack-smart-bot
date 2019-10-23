@@ -1,8 +1,31 @@
 class SlackSmartBot
+  def listen_simulate
+    @salutations = [config[:nick], "<@#{config[:nick_id]}>", "bot", "smart"]
+    @pings = []
+    get_bots_created()
+      @buffer_complete = [] unless defined?(@buffer_complete)
+      b = File.read("./buffer_complete.log")
+      result = b.scan(/^\|(\w+)\|(\w+)\|([^$]+)\$\$\$/m)
+      result.delete(nil)
+      new_messages = result[@buffer_complete.size..-1]
+      unless new_messages.nil? or new_messages.empty?
+        @buffer_complete = result
+        new_messages.each do |message|
+          channel = message[0].strip
+          user = message[1].strip
+          command = message[2].to_s.strip
+          # take in consideration that on simulation we are treating all messages even those that are not populated on real cases like when the message is not populated to the specific bot connection when message is sent with the bot
+          @logger.info "treat message: #{message}" if config.testing
+          treat_message({channel: channel, user: user, text: command})
+        end
+      end
+  end
+
   def listen
     @salutations = [config[:nick], "<@#{config[:nick_id]}>", "bot", "smart"]
     @pings = []
     get_bots_created()
+
     client.on :message do |data|
       unless data.user == "USLACKBOT"
         treat_message(data)

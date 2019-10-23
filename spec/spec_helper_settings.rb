@@ -1,6 +1,8 @@
 TESTING_SLACK_SMART_BOT = true
+SIMULATE = true
+
 require "slack-smart-bot"
-ENV["SLEEP_AFTER_SEND"] ||= "1"
+ENV["SLEEP_AFTER_SEND"] ||= "2"
 CMASTER = "CNC60J25U" #master_channel
 CBOT1CM = "CN0595D50" #bot1cm bot created by admin
 CBOT2CU = "CN1EFTKQB" #bot2cu bot created by user

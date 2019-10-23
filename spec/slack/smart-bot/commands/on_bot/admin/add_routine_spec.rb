@@ -46,18 +46,22 @@ RSpec.describe SlackSmartBot, "add_routine" do
       expect(buffer(to: channel, from: :ubot).join).to match(/Only admin users can use this command/)
     end
 
-    it "doesn't allow to create routine attaching file if not master admin" do
-      send_message "create routine example every 2s", from: :user1, to: :cbot2cu, file_ruby: "puts 'Sam'"
-      sleep 2
-      expect(buffer(to: :cbot2cu, from: :ubot).join).to match(/Only master admin users can add files to routines/)
+    unless SIMULATE
+      it "doesn't allow to create routine attaching file if not master admin" do
+        send_message "create routine example every 2s", from: :user1, to: :cbot2cu, file_ruby: "puts 'Sam'"
+        sleep 2
+        expect(buffer(to: :cbot2cu, from: :ubot).join).to match(/Only master admin users can add files to routines/)
+      end
     end
 
-    it "creates routine attaching file if master admin" do
-      send_message "create routine example every 2s", from: user, to: channel, file_ruby: "puts 'Sam'"
-      sleep 6
-      res = buffer(to: channel, from: :ubot).join
-      expect(res).to match(/Added routine \*`example`\* to the channel/)
-      expect(res).to match(/routine \*`example`\*: Sam/)
+    unless SIMULATE
+      it "creates routine attaching file if master admin" do
+        send_message "create routine example every 2s", from: user, to: channel, file_ruby: "puts 'Sam'"
+        sleep 6
+        res = buffer(to: channel, from: :ubot).join
+        expect(res).to match(/Added routine \*`example`\* to the channel/)
+        expect(res).to match(/routine \*`example`\*: Sam/)
+      end
     end
   end
 

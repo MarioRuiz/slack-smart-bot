@@ -25,23 +25,23 @@ RSpec.describe SlackSmartBot, "exit_bot" do
 
     it "doesn't allow to be used if not master admin" do
       send_message "!exit bot", from: :user1, to: channel
-      expect(buffer(to: channel, from: :ubot).join).to eq "Only admin users can kill me"
+      expect(buffer(to: channel, from: :ubot)[-1]).to eq "Only admin users can kill me"
     end
 
     it "responds to 'quit'" do
       send_message "quit bot", from: :user1, to: channel
-      expect(buffer(to: channel, from: :ubot).join).to eq "Only admin users can kill me"
+      expect(buffer(to: channel, from: :ubot)[-1]).to eq "Only admin users can kill me"
     end
 
     it "responds to 'close'" do
       send_message "close bot", from: :user1, to: channel
-      expect(buffer(to: channel, from: :ubot).join).to eq "Only admin users can kill me"
+      expect(buffer(to: channel, from: :ubot)[-1]).to eq "Only admin users can kill me"
     end
     it "can be cancelled" do
       send_message "close bot", from: user, to: channel
       expect(bufferc(to: channel, from: :ubot).join).to match(/are you sure\?/)
       send_message "no", from: user, to: channel
-      expect(buffer(to: channel, from: :ubot).join).to eq "Thanks, I'm happy to be alive"
+      expect(buffer(to: channel, from: :ubot)[-1]).to eq "Thanks, I'm happy to be alive"
     end
   end
 
@@ -51,7 +51,7 @@ RSpec.describe SlackSmartBot, "exit_bot" do
 
     it "can be called" do
       send_message "close bot", from: user, to: channel
-      expect(bufferc(to: channel, from: :ubot).join).to eq "Only admin users can kill me"
+      expect(bufferc(to: channel, from: :ubot)[-1]).to eq "Only admin users can kill me"
     end
   end
 

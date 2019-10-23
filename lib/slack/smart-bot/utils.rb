@@ -287,9 +287,9 @@ class SlackSmartBot
     end
 
     if help.key?(:rules_file)
-      @logger.info channel_type
+      @logger.info channel_type if config.testing
       if channel_type == :extended or channel_type == :direct
-        @logger.info help.rules_file
+        @logger.info help.rules_file if config.testing
         help.rules_file = help.rules_file.gsub(/^\s*\*These are specific commands.+NAME_OF_BOT THE_COMMAND`\s*$/im, "")
       end
       txt += help.rules_file

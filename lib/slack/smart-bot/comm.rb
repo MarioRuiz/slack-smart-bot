@@ -6,14 +6,26 @@ class SlackSmartBot
     dest = @channels_id[dest] if @channels_id.key?(dest) #it is a name of channel
 
     if dest.nil?
-      client.message(channel: @channel_id, text: msg, as_user: true)
+      if config[:simulate]
+        open("./buffer_complete.log", "a") { |f|
+          f.puts "|#{@channel_id}|#{config[:nick_id]}|#{msg}$$$"
+        }
+      else  
+        client.message(channel: @channel_id, text: msg, as_user: true)
+      end
       if config[:testing] and ON_MASTER_BOT
         open("./buffer.log", "a") { |f|
           f.puts "|#{@channel_id}|#{config[:nick_id]}|#{msg}"
         }
       end
     elsif dest[0] == "C" or dest[0] == "G" # channel
-      client.message(channel: dest, text: msg, as_user: true)
+      if config[:simulate]
+        open("./buffer_complete.log", "a") { |f|
+        f.puts "|#{dest}|#{config[:nick_id]}|#{msg}$$$"
+      }
+      else  
+        client.message(channel: dest, text: msg, as_user: true)
+      end
       if config[:testing] and ON_MASTER_BOT
         open("./buffer.log", "a") { |f|
           f.puts "|#{dest}|#{config[:nick_id]}|#{msg}"
@@ -56,14 +68,26 @@ class SlackSmartBot
     end
     message = "#{to}: #{question}"
     if dest.nil?
-      client.message(channel: @channel_id, text: message, as_user: true)
+      if config[:simulate]
+        open("./buffer_complete.log", "a") { |f|
+          f.puts "|#{@channel_id}|#{config[:nick_id]}|#{message}$$$"
+        }
+      else  
+        client.message(channel: @channel_id, text: message, as_user: true)
+      end
       if config[:testing] and ON_MASTER_BOT
         open("./buffer.log", "a") { |f|
           f.puts "|#{@channel_id}|#{config[:nick_id]}|#{message}"
         }
       end
     elsif dest[0] == "C" or dest[0] == "G" # channel
-      client.message(channel: dest, text: message, as_user: true)
+      if config[:simulate]
+        open("./buffer_complete.log", "a") { |f|
+          f.puts "|#{dest}|#{config[:nick_id]}|#{message}$$$"
+        }
+      else  
+        client.message(channel: dest, text: message, as_user: true)
+      end
       if config[:testing] and ON_MASTER_BOT
         open("./buffer.log", "a") { |f|
           f.puts "|#{dest}|#{config[:nick_id]}|#{message}"
@@ -87,7 +111,13 @@ class SlackSmartBot
       else
         @logger.fatal "Channel: #{to} not found. Message: #{msg}"
       end
-      client.message(channel: channel_id, text: msg, as_user: true)
+      if config[:simulate]
+        open("./buffer_complete.log", "a") { |f|
+          f.puts "|#{to}|#{config[:nick_id]}|#{msg}$$$"
+        }
+      else  
+        client.message(channel: channel_id, text: msg, as_user: true)
+      end
       if config[:testing] and ON_MASTER_BOT
         open("./buffer.log", "a") { |f|
           f.puts "|#{to}|#{config[:nick_id]}|#{msg}"
@@ -100,7 +130,13 @@ class SlackSmartBot
   def send_msg_user(id_user, msg)
     unless msg == ""
       if id_user[0] == "D"
-        client.message(channel: id_user, as_user: true, text: msg)
+        if config[:simulate]
+          open("./buffer_complete.log", "a") { |f|
+            f.puts "|#{id_user}|#{config[:nick_id]}|#{msg}$$$"
+          }
+        else  
+          client.message(channel: id_user, as_user: true, text: msg)
+        end
         if config[:testing] and ON_MASTER_BOT
           open("./buffer.log", "a") { |f|
             f.puts "|#{id_user}|#{config[:nick_id]}|#{msg}"
@@ -108,7 +144,13 @@ class SlackSmartBot
         end
       else
         im = client.web_client.im_open(user: id_user)
-        client.message(channel: im["channel"]["id"], as_user: true, text: msg)
+        if config[:simulate]
+          open("./buffer_complete.log", "a") { |f|
+            f.puts "|#{im["channel"]["id"]}|#{config[:nick_id]}|#{msg}$$$"
+          }
+        else  
+          client.message(channel: im["channel"]["id"], as_user: true, text: msg)
+        end
         if config[:testing] and ON_MASTER_BOT
           open("./buffer.log", "a") { |f|
             f.puts "|#{im["channel"]["id"]}|#{config[:nick_id]}|#{msg}"

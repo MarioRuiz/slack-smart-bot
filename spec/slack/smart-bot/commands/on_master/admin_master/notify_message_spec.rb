@@ -32,35 +32,35 @@ RSpec.describe SlackSmartBot, "notify_message" do
     it "notifies bots" do
       send_message "notify example", from: user, to: channel
       sleep 1
-      expect(buffer(to: :cbot1cm, from: :ubot).join).to eq "example"
-      expect(buffer(to: :cbot2cu, from: :ubot).join).to eq "example"
+      expect(buffer(to: :cbot1cm, from: :ubot)[-1]).to eq "example"
+      expect(buffer(to: :cbot2cu, from: :ubot)[-1]).to eq "example"
       expect(buffer(to: channel, from: :ubot).join).to match(/Bot channels have been notified/)
     end
 
     it "accepts on demand" do
       send_message "!notify example", from: user, to: channel
       sleep 1
-      expect(buffer(to: :cbot1cm, from: :ubot).join).to eq "example"
-      expect(buffer(to: :cbot2cu, from: :ubot).join).to eq "example"
+      expect(buffer(to: :cbot1cm, from: :ubot)[-1]).to eq "example"
+      expect(buffer(to: :cbot2cu, from: :ubot)[-1]).to eq "example"
       expect(buffer(to: channel, from: :ubot).join).to match(/Bot channels have been notified/)
     end
 
     it "notifies specific channel" do
       send_message "notify <##{CBOT1CM}|bot1cm> example", from: user, to: channel
       sleep 1
-      expect(buffer(to: :cbot1cm, from: :ubot).join).to eq "example"
-      expect(buffer(to: :cext1, from: :ubot).join).to eq "example"
-      expect(buffer(to: :cprivext, from: :ubot).join).to eq "example"
+      expect(buffer(to: :cbot1cm, from: :ubot)[-1]).to eq "example"
+      expect(buffer(to: :cext1, from: :ubot)[-1]).to eq "example"
+      expect(buffer(to: :cprivext, from: :ubot)[-1]).to eq "example"
       expect(buffer(to: channel, from: :ubot).join).to match(/Bot channel and extended channels have been notified/)
     end
     it "notifies all channels and users" do
       send_message "notify all example", from: user, to: channel
       sleep 3
-      expect(buffer(to: :cbot1cm, from: :ubot).join).to eq "example"
-      expect(buffer(to: :cext1, from: :ubot).join).to eq "example"
-      expect(buffer(to: :cprivext, from: :ubot).join).to eq "example"
-      expect(buffer(to: :cexternal, from: :ubot).join).to eq "example"
-      expect(buffer(to: DIRECT.user1.ubot, from: :ubot).join).to eq "example"
+      expect(buffer(to: :cbot1cm, from: :ubot)[-1]).to eq "example"
+      expect(buffer(to: :cext1, from: :ubot)[-1]).to eq "example"
+      expect(buffer(to: :cprivext, from: :ubot)[-1]).to eq "example"
+      expect(buffer(to: :cexternal, from: :ubot)[-1]).to eq "example"
+      expect(buffer(to: DIRECT.user1.ubot, from: :ubot)[-1]).to eq "example"
       expect(buffer(to: channel, from: :ubot).join).to match(/Channels and users have been notified/)
     end
   end

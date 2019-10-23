@@ -60,9 +60,11 @@ class SlackSmartBot
     config_log.delete(:token)
     config[:silent] = false unless config.key?(:silent)
     config[:testing] = false unless config.key?(:testing)
+    config[:simulate] = false unless config.key?(:simulate)
     @logger.info "Initializing bot: #{config_log.inspect}"
 
-    File.new("./buffer.log", "w") if config[:testing]
+    File.new("./buffer.log", "w") if config[:testing] and ON_MASTER_BOT
+    File.new("./buffer_complete.log", "w") if config[:simulate] and ON_MASTER_BOT
 
     config[:channel] = CHANNEL
     self.config = config

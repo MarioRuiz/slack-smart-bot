@@ -61,7 +61,7 @@ class SlackSmartBot
             Dir.mkdir("./routines/#{@channel_id}") unless Dir.exist?("./routines/#{@channel_id}")
 
             if !files.nil? && (files.size == 1)
-              @logger.info files[0].inspect
+              @logger.info files[0].inspect if config.testing
               file_path = "./routines/#{@channel_id}/#{name}#{files[0].name.scan(/[^\.]+(\.\w+$)/).join}"
               http = NiceHttp.new(host: "https://files.slack.com", headers: { "Authorization" => "Bearer #{config[:token]}" }, log_headers: :partial)
               http.get(files[0].url_private_download, save_data: file_path)

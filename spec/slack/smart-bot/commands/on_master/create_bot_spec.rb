@@ -59,33 +59,31 @@ RSpec.describe SlackSmartBot, "create_bot" do
     it "creates bot on channel name" do
       send_message "create bot on external_channel", from: user, to: channel
       sleep 10
-      expect(bufferc(to: :cexternal, from: :ubot).join).to match(/Smart Bot started/)
+      expect(bufferc(to: :cexternal, from: :ubot).join).to match(/Smart Bot started/) unless SIMULATE
       send_message "hi bot", from: user, to: :cexternal
       expect(buffer(to: :cexternal, from: :ubot).join).not_to eq ''
       send_message "bot status", from: user, to: :cexternal
       sleep 3
       expect(buffer(to: :cexternal, from: :ubot).join).to match(/Status: on/)
-      # removed these since the new bot is overwriting buffer.log
-      #message = buffer(to: channel, from: :ubot).join
-      #expect(message).to match(/The bot has been created on channel/)
-      #expect(message).to match(/Rules file:\s+slack-smart-bot_rules_#{CEXTERNAL}_smartbotuser1.rb/)
-      #expect(message).to match(/Admins: smartbotuser1, marioruizs/)
+      message = buffer(to: channel, from: :ubot).join
+      expect(message).to match(/The bot has been created on channel/)
+      expect(message).to match(/Rules file:\s+slack-smart-bot_rules_#{CEXTERNAL}_smartbotuser1.rb/)
+      expect(message).to match(/Admins: smartbotuser1, marioruizs/)
     end
 
     it "creates bot on channel id" do
       send_message "create bot on <##{CEXTERNAL}|external_channel>", from: user, to: channel
       sleep 10
-      expect(bufferc(to: :cexternal, from: :ubot).join).to match(/Smart Bot started/)
+      expect(bufferc(to: :cexternal, from: :ubot).join).to match(/Smart Bot started/) unless SIMULATE
       send_message "hi bot", from: user, to: :cexternal
       expect(buffer(to: :cexternal, from: :ubot).join).not_to eq ''
       send_message "bot status", from: user, to: :cexternal
       sleep 3
       expect(buffer(to: :cexternal, from: :ubot).join).to match(/Status: on/)
-      # removed these since the new bot is overwriting buffer.log
-      #message = buffer(to: channel, from: :ubot).join
-      #expect(message).to match(/The bot has been created on channel/)
-      #expect(message).to match(/Rules file:\s+slack-smart-bot_rules_#{CEXTERNAL}_smartbotuser1.rb/)
-      #expect(message).to match(/Admins: smartbotuser1, marioruizs/)
+      message = buffer(to: channel, from: :ubot).join
+      expect(message).to match(/The bot has been created on channel/)
+      expect(message).to match(/Rules file:\s+slack-smart-bot_rules_#{CEXTERNAL}_smartbotuser1.rb/)
+      expect(message).to match(/Admins: smartbotuser1, marioruizs/)
     end
 
     it "cannot create a bot if a bot is already running on channel" do

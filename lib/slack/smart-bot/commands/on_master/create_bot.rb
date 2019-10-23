@@ -86,8 +86,6 @@ class SlackSmartBot
         end
       end
     else
-      @logger.info MASTER_CHANNEL
-      @logger.info @channel_id.inspect
       respond "Sorry I cannot create bots from this channel, please visit the master channel: <##{@master_bot_id}>", dest
     end
   end

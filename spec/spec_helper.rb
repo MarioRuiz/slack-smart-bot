@@ -21,6 +21,7 @@ RSpec.configure do |config|
   config.before(:suite) do
     File.new("./spec/bot/buffer_copy.log", "w")
     unless ENV["RUNNING"] == "true"
+      File.new("./spec/bot/buffer_complete.log", "w")
       require "fileutils"
       FileUtils.rm_rf(Dir["./spec/bot/logs/*"])
       FileUtils.rm_rf(Dir["./spec/bot/routines/*"])
@@ -28,17 +29,21 @@ RSpec.configure do |config|
       FileUtils.rm_rf(Dir["./spec/bot/shortcuts/*"])
       File.delete("./spec/bot/rules/rules_imported.rb") if File.exists?("./spec/bot/rules/rules_imported.rb")
       system("cd spec/bot;ruby smart-bot-example.rb&")
-      started = false
-      tries = 0
-      while !started and tries < 5
-        sleep 10
-        if buffer(to: :cmaster, from: :ubot)[0].include?("Smart Bot started")
-          started = true
-        else
-          tries += 1
+      unless SIMULATE
+        started = false
+        tries = 0
+        while !started and tries < 5
+          sleep 10
+          if buffer(to: :cmaster, from: :ubot)[0].include?("Smart Bot started")
+            started = true
+          else
+            tries += 1
+          end
         end
+        expect(started).to eq true
+      else
+        sleep 10
       end
-      expect(started).to eq true
     end
     clean_buffer()
   end

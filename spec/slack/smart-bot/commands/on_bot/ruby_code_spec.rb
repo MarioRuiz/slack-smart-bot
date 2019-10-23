@@ -10,12 +10,12 @@ RSpec.describe SlackSmartBot, "ruby_code" do
 
     it "works: ruby puts 'Example' on demand" do
       send_message "!ruby puts 'Example'", from: user, to: channel
-      expect(buffer(to: channel, from: :ubot).join).to match(/^Example$/)
+      expect(buffer(to: channel, from: :ubot)[-1]).to match(/^Example$/)
     end
 
     it "works: code puts 'Example' on demand" do
       send_message "!code puts 'Example'", from: user, to: channel
-      expect(buffer(to: channel, from: :ubot).join).to match(/^Example$/)
+      expect(buffer(to: channel, from: :ubot)[-1]).to match(/^Example$/)
     end
 
     it "works: ruby puts 'Example' when listening" do
@@ -35,12 +35,12 @@ RSpec.describe SlackSmartBot, "ruby_code" do
 
     it "works: ruby puts 'Example' on demand" do
       send_message "!ruby puts 'Example'", from: user, to: channel
-      expect(buffer(to: channel, from: :ubot).join).to match(/^Example$/)
+      expect(buffer(to: channel, from: :ubot)[-1]).to match(/^Example$/)
     end
 
     it "works: code puts 'Example' on demand" do
       send_message "!code puts 'Example'", from: user, to: channel
-      expect(buffer(to: channel, from: :ubot).join).to match(/^Example$/)
+      expect(buffer(to: channel, from: :ubot)[-1]).to match(/^Example$/)
     end
 
     it "works: ruby puts 'Example' when listening" do
@@ -56,12 +56,12 @@ RSpec.describe SlackSmartBot, "ruby_code" do
 
     it "works: ruby puts 'Example'" do
       send_message "ruby puts 'Example'", from: user, to: channel
-      expect(buffer(to: channel, from: :ubot).join).to match(/^Example$/)
+      expect(buffer(to: channel, from: :ubot)[-1]).to match(/^Example$/)
     end
 
     it "works: code puts 'Example'" do
       send_message "code puts 'Example'", from: user, to: channel
-      expect(buffer(to: channel, from: :ubot).join).to match(/^Example$/)
+      expect(buffer(to: channel, from: :ubot)[-1]).to match(/^Example$/)
     end
   end
 
@@ -70,12 +70,12 @@ RSpec.describe SlackSmartBot, "ruby_code" do
 
     it "works: ruby puts 'Example' on demand" do
       send_message "!ruby puts 'Example'", from: :user1, to: channel
-      expect(buffer(to: channel, from: :ubot).join).to match(/^Example$/)
+      expect(buffer(to: channel, from: :ubot)[-1]).to match(/^Example$/)
     end
 
     it "works even for user not part of original channel" do
       send_message "!ruby puts 'Example'", from: :user2, to: channel
-      expect(buffer(to: channel, from: :ubot).join).to match(/^Example$/)
+      expect(buffer(to: channel, from: :ubot)[-1]).to match(/^Example$/)
     end
 
     it "doesn't work if not in demand" do
@@ -88,7 +88,7 @@ RSpec.describe SlackSmartBot, "ruby_code" do
     it "responds to external demand" do
       command = 'ruby puts "a"'
       send_message "<@#{UBOT}> on <##{CBOT1CM}|bot1cm> #{command}", from: :uadmin, to: :cexternal
-      expect(buffer(to: :cexternal, from: :ubot, tries: 4).join).not_to eq ""
+      expect(buffer(to: :cexternal, from: :ubot, tries: 10).join).not_to eq ""
     end
   end
 end

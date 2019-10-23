@@ -9,6 +9,15 @@ settings = {
   nick: "example", # the smart bot name
   token: ENV["SSB_TOKEN"], # the API Slack token
   testing: true,
+  simulate: true
 }
 
-SlackSmartBot.new(settings).listen
+if settings.simulate 
+  sb = SlackSmartBot.new(settings)
+  while true do
+    sb.listen_simulate()
+    sleep 0.2
+  end
+else
+  SlackSmartBot.new(settings).listen
+end

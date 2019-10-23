@@ -6,6 +6,9 @@
 /InstalledFiles
 /pkg/
 /spec/reports/
+/spec/bot/logs/
+/spec/bot/routines/
+/spec/bot/shortcuts/
 /spec/examples.txt
 /test/tmp/
 /test/version_tmp/
@@ -13,9 +16,8 @@
 /temp/
 *.log
 tmp.sh
-/spec/bot/*.rb
-/spec/bot/shourtcuts/
-!/spec/bot/smart-bot-example.rb
+/spec/bot/shortcuts/
+
 
 # Used by dotenv library to load environment variables.
 # .env

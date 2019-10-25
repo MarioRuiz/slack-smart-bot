@@ -5,7 +5,7 @@ class SlackSmartBot
   # helpmaster:    Only works if you are on Master channel and you created that bot or you are an admin user
   # helpmaster:
   def kill_bot_on_channel(dest, from, channel)
-    if ON_MASTER_BOT
+    if config.on_master_bot
       get_channels_name_and_id() unless @channels_name.keys.include?(channel) or @channels_id.keys.include?(channel)
       channel_id = nil
       if @channels_name.key?(channel) #it is an id

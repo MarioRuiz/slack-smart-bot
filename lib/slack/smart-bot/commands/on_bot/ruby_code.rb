@@ -14,7 +14,7 @@ class SlackSmartBot
            code.include?("ENV") or code.match?(/=\s*IO/)
       unless rules_file.empty?
         begin
-          eval(File.new(rules_file).read) if File.exist?(rules_file)
+          eval(File.new(config.path+rules_file).read) if File.exist?(config.path+rules_file)
         end
       end
 

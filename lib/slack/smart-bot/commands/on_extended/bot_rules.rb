@@ -13,7 +13,7 @@ class SlackSmartBot
         end
         respond("I didn't find any command starting by `#{help_command}`", dest) unless help_found
       else
-        message = "-\n\n\n===================================\n*Rules from channel #{CHANNEL}*\n"
+        message = "-\n\n\n===================================\n*Rules from channel #{config.channel}*\n"
         if typem == :on_extended
           message += "To run the commands on this extended channel, add `!` before the command.\n"
         end
@@ -23,7 +23,7 @@ class SlackSmartBot
 
       unless rules_file.empty?
         begin
-          eval(File.new(rules_file).read) if File.exist?(rules_file)
+          eval(File.new(config.path+rules_file).read) if File.exist?(config.path+rules_file)
         end
       end
       if defined?(git_project) and git_project.to_s != "" and help_message_rules != "" and help_command.to_s == ""

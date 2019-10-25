@@ -39,14 +39,13 @@ After you install it you will need just a couple of things to configure it.
 Create a file like this on the folder you want:
 
 ```ruby
-# the channel that will act like the master channel, main channel
-MASTER_CHANNEL="my_master_channel"
-#names of the master users
-MASTER_USERS=["mario"]
 
 require 'slack-smart-bot'
 
 settings = {
+    # the channel that will act like the master channel, main channel
+    master_channel: 'my_master_channel',
+    masters: ["mario"], #names of the master users
     nick: 'smart-bot', # the smart bot name
     token: 'xxxxxxxxxxxxxxxxxx' # the API Slack token
 }
@@ -56,9 +55,9 @@ SlackSmartBot.new(settings).listen
 
 ```
 
-The MASTER_CHANNEL will be the channel where you will be able to create other bots and will have special treatment.
+The master_channel will be the channel where you will be able to create other bots and will have special treatment.
 
-The MASTER_USERS will have full access to everything. You need to use the slack user name defined on https://YOUR_WORK_SPACE.slack.com/account/settings#username.
+The masters will have full access to everything. You need to use the slack user name defined on https://YOUR_WORK_SPACE.slack.com/account/settings#username.
 
 For the token remember you need to generate a token on the Slack web for the bot user.
 

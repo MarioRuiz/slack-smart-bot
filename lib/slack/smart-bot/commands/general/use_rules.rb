@@ -21,7 +21,7 @@ class SlackSmartBot
 
     if channel_found.nil?
       respond "The channel you are trying to use doesn't exist", dest
-    elsif channel_found.name == MASTER_CHANNEL
+    elsif channel_found.name == config.master_channel
       respond "You cannot use the rules from Master Channel on any other channel.", dest
     elsif !@bots_created.key?(@channels_id[channel])
       respond "There is no bot running on that channel.", dest
@@ -35,7 +35,7 @@ class SlackSmartBot
         else
           @rules_imported[user.id][user.id] = channel_found.id
         end
-        update_rules_imported() if ON_MASTER_BOT
+        update_rules_imported() if config.on_master_bot
         respond "I'm using now the rules from <##{channel_found.id}>", dest
 
         def git_project() "" end

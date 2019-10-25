@@ -4,6 +4,11 @@ RSpec.describe SlackSmartBot, "add_routine" do
     channel = :cbot1cm
     user = :uadmin
 
+    before(:all) do
+      sleep 1
+      send_message "delete routine example", from: user, to: channel
+    end
+
     after(:each) do
       sleep 1
       send_message "delete routine example", from: user, to: channel

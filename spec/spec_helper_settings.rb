@@ -1,4 +1,3 @@
-TESTING_SLACK_SMART_BOT = true
 SIMULATE = true
 
 require "slack-smart-bot"

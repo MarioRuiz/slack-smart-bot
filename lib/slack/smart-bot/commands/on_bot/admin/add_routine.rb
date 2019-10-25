@@ -19,8 +19,8 @@ class SlackSmartBot
   # helpadmin:      _add routine example at 17:05 ruby puts 'a'_
   # helpadmin:
   def add_routine(dest, from, user, name, type, number_time, period, command_to_run, files)
-    if files.nil? or files.size == 0 or (files.size > 0 and MASTER_USERS.include?(from))
-      if ADMIN_USERS.include?(from)
+    if files.nil? or files.size == 0 or (files.size > 0 and config.masters.include?(from))
+      if config.admins.include?(from)
         if @routines.key?(@channel_id) && @routines[@channel_id].key?(name)
           respond "I'm sorry but there is already a routine with that name.\nCall `see routines` to see added routines", dest
         else
@@ -58,18 +58,18 @@ class SlackSmartBot
               end
               every_in_seconds = 24 * 60 * 60
             end
-            Dir.mkdir("./routines/#{@channel_id}") unless Dir.exist?("./routines/#{@channel_id}")
+            Dir.mkdir("#{config.path}/routines/#{@channel_id}") unless Dir.exist?("#{config.path}/routines/#{@channel_id}")
 
             if !files.nil? && (files.size == 1)
               @logger.info files[0].inspect if config.testing
-              file_path = "./routines/#{@channel_id}/#{name}#{files[0].name.scan(/[^\.]+(\.\w+$)/).join}"
+              file_path = "#{config.path}/routines/#{@channel_id}/#{name}#{files[0].name.scan(/[^\.]+(\.\w+$)/).join}"
               http = NiceHttp.new(host: "https://files.slack.com", headers: { "Authorization" => "Bearer #{config[:token]}" }, log_headers: :partial)
               http.get(files[0].url_private_download, save_data: file_path)
               system("chmod +x #{file_path}")
             end
 
             @routines[@channel_id] = {} unless @routines.key?(@channel_id)
-            @routines[@channel_id][name] = { channel_name: CHANNEL, creator: from, creator_id: user.id, status: :on,
+            @routines[@channel_id][name] = { channel_name: config.channel, creator: from, creator_id: user.id, status: :on,
                                              every: every, every_in_seconds: every_in_seconds, at: at, file_path: file_path, command: command_to_run.to_s.strip,
                                              next_run: next_run.to_s, dest: dest, last_run: "", last_elapsed: "", running: false }
             update_routines

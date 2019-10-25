@@ -4,9 +4,9 @@ class SlackSmartBot
     rules_file = ""
 
     if typem == :on_call
-      rules_file = RULES_FILE
+      rules_file = config.rules_file
     elsif dest[0] == "C" or dest[0] == "G" # on a channel or private channel
-      rules_file = RULES_FILE
+      rules_file = config.rules_file
 
       if @rules_imported.key?(user.id) and @rules_imported[user.id].key?(dchannel)
         unless @bots_created.key?(@rules_imported[user.id][dchannel])
@@ -29,17 +29,23 @@ class SlackSmartBot
       begin
         case text
         when /^Bot has been (closed|killed) by/i
-          if CHANNEL == @channels_name[dchannel]
+          if config.channel == @channels_name[dchannel]
             @logger.info "#{nick}: #{text}"
-            exit!
+            if config.simulate #jal
+              @status = :off
+              config.simulate = false
+              Thread.exit
+            else
+              exit!
+            end
           end
         when /^Changed status on (.+) to :(.+)/i
           channel_name = $1
           status = $2
-          if ON_MASTER_BOT or CHANNEL == channel_name
+          if config.on_master_bot or config.channel == channel_name
             @bots_created[@channels_id[channel_name]][:status] = status.to_sym
             update_bots_file()
-            if CHANNEL == channel_name
+            if config.channel == channel_name
               @logger.info "#{nick}: #{text}"
             else #on master bot
               @logger.info "Changed status on #{channel_name} to :#{status}"
@@ -48,7 +54,7 @@ class SlackSmartBot
         when /extended the rules from (.+) to be used on (.+)\.$/i
           from_name = $1
           to_name = $2
-          if ON_MASTER_BOT and @bots_created[@channels_id[from_name]][:cloud]
+          if config.on_master_bot and @bots_created[@channels_id[from_name]][:cloud]
             @bots_created[@channels_id[from_name]][:extended] << to_name
             @bots_created[@channels_id[from_name]][:extended].uniq!
             update_bots_file()
@@ -56,7 +62,7 @@ class SlackSmartBot
         when /removed the access to the rules of (.+) from (.+)\.$/i
           from_name = $1
           to_name = $2
-          if ON_MASTER_BOT and @bots_created[@channels_id[from_name]][:cloud]
+          if config.on_master_bot and @bots_created[@channels_id[from_name]][:cloud]
             @bots_created[@channels_id[from_name]][:extended].delete(to_name)
             update_bots_file()
           end
@@ -131,7 +137,7 @@ class SlackSmartBot
               end
               unless rules_file.empty?
                 begin
-                  eval(File.new(rules_file).read) if File.exist?(rules_file)
+                  eval(File.new(config.path+rules_file).read) if File.exist?(config.path+rules_file)
                 rescue Exception => stack
                   @logger.fatal "ERROR ON RULES FILE: #{rules_file}"
                   @logger.fatal stack
@@ -154,7 +160,7 @@ class SlackSmartBot
               if @bots_created.key?(@rules_imported[user.id][user.id])
                 if @bots_created[@rules_imported[user.id][user.id]][:status] == :on
                   begin
-                    eval(File.new(rules_file).read) if File.exist?(rules_file)
+                    eval(File.new(config.path+rules_file).read) if File.exist?(config.path+rules_file)
                   rescue Exception => stack
                     @logger.fatal "ERROR ON imported RULES FILE: #{rules_file}"
                     @logger.fatal stack

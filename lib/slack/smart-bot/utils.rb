@@ -1,37 +1,40 @@
 class SlackSmartBot
   def update_bots_file
-    file = File.open($0.gsub(".rb", "_bots.rb"), "w")
+    file = File.open(config.file_path.gsub(".rb", "_bots.rb"), "w")
     bots_created = @bots_created.dup
-    bots_created.each { |k, v| v[:thread] = "" }
+    bots_created.each { |k, v| 
+      v[:thread] = "" 
+    }
     file.write bots_created.inspect
     file.close
   end
 
   def get_bots_created
-    if File.exist?($0.gsub(".rb", "_bots.rb"))
-      if !defined?(@datetime_bots_created) or @datetime_bots_created != File.mtime($0.gsub(".rb", "_bots.rb"))
-        file_conf = IO.readlines($0.gsub(".rb", "_bots.rb")).join
+    if File.exist?(config.file_path.gsub(".rb", "_bots.rb"))
+      if !defined?(@datetime_bots_created) or @datetime_bots_created != File.mtime(config.file_path.gsub(".rb", "_bots.rb"))
+        file_conf = IO.readlines(config.file_path.gsub(".rb", "_bots.rb")).join
         if file_conf.to_s() == ""
           @bots_created = {}
         else
           @bots_created = eval(file_conf)
         end
-        @datetime_bots_created = File.mtime($0.gsub(".rb", "_bots.rb"))
-        @bots_created.each do |k, v| # to be compatible with old versions
+        @datetime_bots_created = File.mtime(config.file_path.gsub(".rb", "_bots.rb"))
+        @bots_created.each do |k, v|
           v[:extended] = [] unless v.key?(:extended)
+          v[:rules_file].gsub!(/^\./, '')
         end
       end
     end
   end
 
   def update_shortcuts_file
-    file = File.open("./shortcuts/#{SHORTCUTS_FILE}", "w")
+    file = File.open("#{config.path}/shortcuts/#{config.shortcuts_file}", "w")
     file.write @shortcuts.inspect
     file.close
   end
 
   def update_rules_imported
-    file = File.open("./rules/rules_imported.rb", "w")
+    file = File.open("#{config.path}/rules/rules_imported.rb", "w")
     file.write @rules_imported.inspect
     file.close
   end
@@ -55,8 +58,8 @@ class SlackSmartBot
   end
 
   def get_routines(channel = @channel_id)
-    if File.exist?("./routines/routines_#{channel}.rb")
-      file_conf = IO.readlines("./routines/routines_#{channel}.rb").join
+    if File.exist?("#{config.path}/routines/routines_#{channel}.rb")
+      file_conf = IO.readlines("#{config.path}/routines/routines_#{channel}.rb").join
       unless file_conf.to_s() == ""
         @routines = eval(file_conf)
       end
@@ -64,7 +67,7 @@ class SlackSmartBot
   end
 
   def update_routines(channel = @channel_id)
-    file = File.open("./routines/routines_#{channel}.rb", "w")
+    file = File.open("#{config.path}/routines/routines_#{channel}.rb", "w")
     file.write (@routines.inspect)
     file.close
   end
@@ -72,6 +75,7 @@ class SlackSmartBot
   def create_routine_thread(name)
     t = Thread.new do
       while @routines.key?(@channel_id) and @routines[@channel_id].key?(name)
+        @logger.info "Routine: #{@routines[@channel_id][name].inspect}"
         started = Time.now
         if @status == :on and @routines[@channel_id][name][:status] == :on
           if @routines[@channel_id][name][:file_path].match?(/\.rb$/i)
@@ -175,9 +179,9 @@ class SlackSmartBot
                      :see_routines, :start_routine, :pause_routine, :remove_routine, :run_routine],
     }
     # user_type: :admin, :user, :admin_master
-    if MASTER_USERS.include?(from)
+    if config.masters.include?(from)
       user_type = :admin_master
-    elsif ADMIN_USERS.include?(from)
+    elsif config.admins.include?(from)
       user_type = :admin
     else
       user_type = :user
@@ -185,7 +189,7 @@ class SlackSmartBot
     # channel_type: :bot, :master_bot, :direct, :extended, :external
     if dest[0] == "D"
       channel_type = :direct
-    elsif ON_MASTER_BOT
+    elsif config.on_master_bot
       channel_type = :master_bot
     elsif @channel_id != dest
       channel_type = :extended
@@ -200,7 +204,7 @@ class SlackSmartBot
       help = @help_messages.deep_copy
     end
     if rules_file != ""
-      help[:rules_file] = IO.readlines(rules_file).join.scan(/#\s*help\s*\w*:(.*)/i).join("\n")
+      help[:rules_file] = IO.readlines(config.path+rules_file).join.scan(/#\s*help\s*\w*:(.*)/i).join("\n")
     end
 
     help = remove_hash_keys(help, :admin_master) unless user_type == :admin_master

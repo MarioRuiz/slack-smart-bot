@@ -8,8 +8,8 @@ class SlackSmartBot
   # helpadmin:    You can use this command only if you are an admin user and you are on the master channel
   # helpadmin:
   def exit_bot(command, from, dest, display_name)
-    if ON_MASTER_BOT
-      if ADMIN_USERS.include?(from) #admin user
+    if config.on_master_bot
+      if config.admins.include?(from) #admin user
         unless @questions.keys.include?(from)
           ask("are you sure?", command, from, dest)
         else
@@ -24,7 +24,13 @@ class SlackSmartBot
             }
             update_bots_file()
             sleep 0.5
-            exit!
+            if config.simulate #jal
+              @status = :off
+              config.simulate = false
+              Thread.exit
+            else
+              exit!
+            end
           when /no/i, /nope/i, /cancel/i
             @questions.delete(from)
             respond "Thanks, I'm happy to be alive", dest

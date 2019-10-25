@@ -124,6 +124,6 @@ def rules(user, command, processed, dest, files = [], rules_file = "")
     end
   rescue => exception
     @logger.fatal exception
-    respond "Unexpected error!! Please contact an admin to solve it: <@#{ADMIN_USERS.join(">, <@")}>"
+    respond "Unexpected error!! Please contact an admin to solve it: <@#{config.admins.join(">, <@")}>"
   end
 end

@@ -7,10 +7,10 @@ class SlackSmartBot
   # helpadmin:
   def extend_rules(dest, user, from, channel, typem)
     unless typem == :on_extended
-      if ON_MASTER_BOT
+      if config.on_master_bot
         respond "You cannot use the rules from Master Channel on any other channel.", dest
-      elsif !ADMIN_USERS.include?(from) #not admin
-        respond "Only admins can extend the rules. Admins on this channel: #{ADMIN_USERS}", dest
+      elsif !config.admins.include?(from) #not admin
+        respond "Only admins can extend the rules. Admins on this channel: #{config.admins}", dest
       else
         #todo: add pagination for case more than 1000 channels on the workspace
         channels = client.web_client.conversations_list(
@@ -47,7 +47,7 @@ class SlackSmartBot
           @bots_created[@channel_id][:extended] = [] unless @bots_created[@channel_id].key?(:extended)
           @bots_created[@channel_id][:extended] << channel
           update_bots_file()
-          respond "<@#{user.id}> extended the rules from #{CHANNEL} to be used on #{channel}.", @master_bot_id
+          respond "<@#{user.id}> extended the rules from #{config.channel} to be used on #{channel}.", @master_bot_id
           if @channels_id[channel][0] == "G"
             respond "Now the rules from <##{@channel_id}> are available on *#{channel}*", dest
           else

@@ -14,10 +14,10 @@ class SlackSmartBot
     end
     require "socket"
     ip_address = Socket.ip_address_list.find { |ai| ai.ipv4? && !ai.ipv4_loopback? }.ip_address
-    respond "*#{Socket.gethostname} (#{ip_address})*\n\tStatus: #{@status}.\n\tVersion: #{VERSION}.#{version_message}\n\tRules file: #{File.basename RULES_FILE}\n\tExtended: #{@bots_created[@channel_id][:extended] unless ON_MASTER_BOT}\n\tAdmins: #{ADMIN_USERS}\n\tBot time: #{Time.now}", dest
+    respond "*#{Socket.gethostname} (#{ip_address})*\n\tStatus: #{@status}.\n\tVersion: #{VERSION}.#{version_message}\n\tRules file: #{File.basename config.rules_file}\n\tExtended: #{@bots_created[@channel_id][:extended] unless config.on_master_bot}\n\tAdmins: #{config.admins}\n\tBot time: #{Time.now}", dest
     if @status == :on
       respond "I'm listening to [#{@listening.join(", ")}]", dest
-      if ON_MASTER_BOT and ADMIN_USERS.include?(from)
+      if config.on_master_bot and config.admins.include?(from)
         sleep 5
         @bots_created.each do |k, v|
           msg = []
@@ -29,8 +29,8 @@ class SlackSmartBot
           msg << "\trules: #{v[:rules_file]}"
           msg << "\textended: #{v[:extended]}"
           msg << "\tcloud: #{v[:cloud]}"
-          if ON_MASTER_BOT and v.key?(:cloud) and v[:cloud]
-            msg << "\trunner: `ruby #{$0} \"#{v[:channel_name]}\" \"#{v[:admins]}\" \"#{v[:rules_file]}\" on&`"
+          if config.on_master_bot and v.key?(:cloud) and v[:cloud]
+            msg << "\trunner: `ruby #{config.file} \"#{v[:channel_name]}\" \"#{v[:admins]}\" \"#{v[:rules_file]}\" on&`"
           end
           respond msg.join("\n"), dest
         end

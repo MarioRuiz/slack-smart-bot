@@ -15,7 +15,7 @@ class SlackSmartBot
           respond "You are not using those rules.", dest
         else
           @rules_imported[user.id].delete(dchannel)
-          update_rules_imported() if ON_MASTER_BOT
+          update_rules_imported() if config.on_master_bot
           respond "You won't be using those rules from now on.", dest
 
           def git_project() "" end
@@ -30,7 +30,7 @@ class SlackSmartBot
           respond "You are not using those rules.", dest
         else
           @rules_imported[user.id].delete(user.id)
-          update_rules_imported() if ON_MASTER_BOT
+          update_rules_imported() if config.on_master_bot
           respond "You won't be using those rules from now on.", dest
 
           def git_project() "" end

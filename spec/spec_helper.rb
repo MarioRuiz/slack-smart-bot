@@ -28,7 +28,51 @@ RSpec.configure do |config|
       FileUtils.rm_rf(Dir["./spec/bot/routines/**/*"])
       FileUtils.rm_rf(Dir["./spec/bot/shortcuts/*"])
       File.delete("./spec/bot/rules/rules_imported.rb") if File.exists?("./spec/bot/rules/rules_imported.rb")
-      system("cd spec/bot;ruby smart-bot-example.rb&")
+
+      @settings = {
+        nick: "example", # the smart bot name
+        token: ENV["SSB_TOKEN"], # the API Slack token
+        testing: true,
+        simulate: true,
+        masters: ['marioruizs'],
+        master_channel: 'master_channel',
+        path: './spec/bot/',
+        file: 'smart-bot-example.rb',
+        start_bots: false
+      }
+      Thread.new do
+        sb = SlackSmartBot.new(@settings)
+        while sb.config.simulate do
+          sb.listen_simulate()
+          sleep 0.2
+        end
+      end
+
+      Thread.new do
+        settings = @settings.deep_copy
+        settings.channel = 'bot1cm'
+        settings.rules_file = "/rules/CN0595D50/slack-smart-bot_rules_CN0595D50_marioruizs.rb"
+        settings.admins =["marioruizs"]
+        sb = SlackSmartBot.new(settings)
+        while sb.config.simulate do
+          sb.listen_simulate()
+          sleep 0.2
+        end
+      end
+
+      Thread.new do
+        settings = @settings.deep_copy
+        settings.channel = 'bot2cu'
+        settings.rules_file = "/rules/CN1EFTKQB/slack-smart-bot_rules_CN1EFTKQB_smartbotuser1.rb"
+        settings.admins = ['smartbotuser1','marioruizs']
+
+        sb = SlackSmartBot.new(settings)
+        while sb.config.simulate do
+          sb.listen_simulate()
+          sleep 0.2
+        end
+      end
+
       unless SIMULATE
         started = false
         tries = 0

@@ -11,8 +11,8 @@ class SlackSmartBot
   # helpadmin:
 
   def run_routine(dest, from, name)
-    if ADMIN_USERS.include?(from) #admin user
-      if !ON_MASTER_BOT and dest[0] == "D"
+    if config.admins.include?(from) #admin user
+      if !config.on_master_bot and dest[0] == "D"
         respond "It's only possible to run routines from MASTER channel from a direct message with the bot.", dest
       elsif @routines.key?(@channel_id) and @routines[@channel_id].key?(name)
         if @routines[@channel_id][name][:file_path] != ""

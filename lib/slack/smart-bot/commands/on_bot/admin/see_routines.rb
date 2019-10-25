@@ -7,11 +7,11 @@ class SlackSmartBot
   # helpadmin:    You can use this command only if you are an admin user
   # helpadmin:
   def see_routines(dest, from, user, all)
-    if ADMIN_USERS.include?(from) #admin user
+    if config.admins.include?(from) #admin user
       if all
         routines = {}
-        if ON_MASTER_BOT
-          Dir["./routines/routines_*.rb"].each do |rout|
+        if config.on_master_bot
+          Dir["#{config.path}/routines/routines_*.rb"].each do |rout|
             file_conf = IO.readlines(rout).join
             unless file_conf.to_s() == ""
               routines.merge!(eval(file_conf))
@@ -23,7 +23,7 @@ class SlackSmartBot
         end
       else
         if @rules_imported.key?(user.id) and @rules_imported[user.id].key?(user.id) and dest[0] == "D"
-          file_conf = IO.readlines("./routines/routines_#{@rules_imported[user.id][user.id]}").join
+          file_conf = IO.readlines("#{config.path}/routines/routines_#{@rules_imported[user.id][user.id]}.rb").join
           routines = eval(file_conf)
         else
           routines = @routines.deep_copy
@@ -46,7 +46,7 @@ class SlackSmartBot
             msg << "\tNext Run: #{v[:next_run]}"
             msg << "\tLast Run: #{v[:last_run]}"
             msg << "\tTime consumed on last run: #{v[:last_elapsed]}" unless v[:command] !=''
-            msg << "\tCommand: #{v[:command]}" unless v[:command] == ''
+            msg << "\tCommand: #{v[:command]}" unless v[:command].to_s.strip == ''
             msg << "\tFile: #{v[:file_path]}" unless v[:file_path] == ''
             respond msg.join("\n"), dest
           end

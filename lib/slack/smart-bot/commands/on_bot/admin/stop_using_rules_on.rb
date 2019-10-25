@@ -7,14 +7,14 @@ class SlackSmartBot
 
   def stop_using_rules_on(dest, user, from, channel, typem)
     unless typem == :on_extended
-      if !ADMIN_USERS.include?(from) #not admin
-        respond "Only admins can extend or stop using the rules. Admins on this channel: #{ADMIN_USERS}", dest
+      if !config.admins.include?(from) #not admin
+        respond "Only admins can extend or stop using the rules. Admins on this channel: #{config.admins}", dest
       else
         get_bots_created()
         if @bots_created[@channel_id][:extended].include?(channel)
           @bots_created[@channel_id][:extended].delete(channel)
           update_bots_file()
-          respond "<@#{user.id}> removed the access to the rules of #{CHANNEL} from #{channel}.", @master_bot_id
+          respond "<@#{user.id}> removed the access to the rules of #{config.channel} from #{channel}.", @master_bot_id
           if @channels_id[channel][0] == "G"
             respond "The rules won't be accessible from *#{channel}* from now on.", dest
           else

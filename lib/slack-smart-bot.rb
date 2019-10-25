@@ -16,29 +16,7 @@ require_relative "slack/smart-bot/process_first"
 require_relative "slack/smart-bot/process"
 require_relative "slack/smart-bot/utils"
 
-TESTING_SLACK_SMART_BOT ||= false
-unless TESTING_SLACK_SMART_BOT
-  if ARGV.size == 0
-    CHANNEL = MASTER_CHANNEL
-    ON_MASTER_BOT = true
-    ADMIN_USERS = MASTER_USERS
-    RULES_FILE = "#{$0.gsub(".rb", "_rules.rb")}" unless defined?(RULES_FILE)
-    unless File.exist?(RULES_FILE)
-      default_rules = (__FILE__).gsub(/\.rb$/, "_rules.rb")
-      FileUtils.copy_file(default_rules, RULES_FILE)
-    end
-    STATUS_INIT = :on
-    SHORTCUTS_FILE = "slack-smart-bot_shortcuts_#{CHANNEL}.rb".gsub(" ", "_")
-  else
-    ON_MASTER_BOT = false
-    CHANNEL = ARGV[0]
-    ADMIN_USERS = ARGV[1].split(",")
-    RULES_FILE = ARGV[2]
-    STATUS_INIT = ARGV[3].to_sym
-    SHORTCUTS_FILE = "slack-smart-bot_shortcuts_#{CHANNEL}.rb".gsub(" ", "_")
-  end
-end
-
+ADMIN_USERS = MASTER_USERS if defined?(MASTER_USERS) # for bg compatibility
 class SlackSmartBot
   attr_accessor :config, :client
   attr_reader :master_bot_id, :channel_id
@@ -51,22 +29,80 @@ class SlackSmartBot
   VERSION = version
 
   def initialize(config)
-    Dir.mkdir("./logs") unless Dir.exist?("./logs")
-    Dir.mkdir("./shortcuts") unless Dir.exist?("./shortcuts")
-    Dir.mkdir("./routines") unless Dir.exist?("./routines")
-    logfile = File.basename(RULES_FILE.gsub("_rules_", "_logs_"), ".rb") + ".log"
-    @logger = Logger.new("./logs/#{logfile}")
-    config_log = config.dup
-    config_log.delete(:token)
+    if config.key?(:path) and config[:path] != ''
+      config.path.chop! if config.path[-1]=="/"
+    else
+      config[:path] = '.'
+    end
     config[:silent] = false unless config.key?(:silent)
     config[:testing] = false unless config.key?(:testing)
     config[:simulate] = false unless config.key?(:simulate)
+    if config.path.to_s!='' and config.file.to_s==''
+      config.file = File.basename($0)
+    end
+    if config.key?(:file) and config.file!=''
+      config.file_path = "#{config.path}/#{config.file}"
+    else
+      config.file_path = $0
+      config.file = File.basename(config.file_path)
+      config.path = File.dirname(config.file_path)
+    end
+    Dir.mkdir("#{config.path}/logs") unless Dir.exist?("#{config.path}/logs")
+    Dir.mkdir("#{config.path}/shortcuts") unless Dir.exist?("#{config.path}/shortcuts")
+    Dir.mkdir("#{config.path}/routines") unless Dir.exist?("#{config.path}/routines")
+
+    config.masters = MASTER_USERS if config.masters.to_s=='' and defined?(MASTER_USERS)
+    config.master_channel = MASTER_CHANNEL if config.master_channel.to_s=='' and defined?(MASTER_CHANNEL)
+
+    if ARGV.size == 0 or (config.file.to_s!='' and config.file.to_s!=File.basename($0))
+      config.rules_file = "#{config.file.gsub(".rb", "_rules.rb")}" unless config.rules_file.to_s!=''
+      unless File.exist?(config.path + '/' + config.rules_file)
+        default_rules = (__FILE__).gsub(/\.rb$/, "_rules.rb")
+        FileUtils.copy_file(default_rules, config.path + '/' + config.rules_file)
+      end
+      config.admins = config.masters unless config.admins.to_s!=''
+      config.channel = config.master_channel unless config.channel.to_s!=''
+      config.status_init = :on unless config.status_init.to_s!=''
+    else
+      config.rules_file = ARGV[2]
+      config.admins = ARGV[1].split(",")
+      config.channel = ARGV[0]
+      config.status_init = ARGV[3].to_sym
+    end
+    config.rules_file[0]='' if config.rules_file[0]=='.'
+    config.rules_file='/'+config.rules_file if config.rules_file[0]!='/'
+
+    config.shortcuts_file = "slack-smart-bot_shortcuts_#{config.channel}.rb".gsub(" ", "_")
+    if config.channel == config.master_channel
+      config.on_master_bot = true
+      config.start_bots = true unless config.key?(:start_bots)
+    else
+      config.on_master_bot = false
+    end
+
+    if !config.key?(:token) or config.token.to_s == ''
+      abort "You need to supply a valid token key on the settings. key: :token"
+    elsif !config.key?(:masters) or !config.masters.is_a?(Array) or config.masters.size == 0
+      abort "You need to supply a masters array on the settings containing the user names of the master admins. key: :masters"
+    elsif !config.key?(:master_channel) or config.master_channel.to_s == ''
+      abort "You need to supply a master_channel on the settings. key: :master_channel"
+    elsif !config.key?(:channel) or config.channel.to_s == ''
+      abort "You need to supply a bot channel name on the settings. key: :channel"
+    end
+
+
+
+    logfile = File.basename(config.rules_file.gsub("_rules_", "_logs_"), ".rb") + ".log"
+    @logger = Logger.new("#{config.path}/logs/#{logfile}")
+    @logger.info ARGV.inspect #Jal
+
+    config_log = config.dup
+    config_log.delete(:token)
     @logger.info "Initializing bot: #{config_log.inspect}"
 
-    File.new("./buffer.log", "w") if config[:testing] and ON_MASTER_BOT
-    File.new("./buffer_complete.log", "w") if config[:simulate] and ON_MASTER_BOT
+    File.new("#{config.path}/buffer.log", "w") if config[:testing] and config.on_master_bot
+    File.new("#{config.path}/buffer_complete.log", "w") if config[:simulate] and config.on_master_bot
 
-    config[:channel] = CHANNEL
     self.config = config
 
     Slack.configure do |conf|
@@ -101,8 +137,8 @@ class SlackSmartBot
     @rules_imported = Hash.new()
     @routines = Hash.new()
 
-    if File.exist?("./shortcuts/#{SHORTCUTS_FILE}")
-      file_sc = IO.readlines("./shortcuts/#{SHORTCUTS_FILE}").join
+    if File.exist?("#{config.path}/shortcuts/#{config.shortcuts_file}")
+      file_sc = IO.readlines("#{config.path}/shortcuts/#{config.shortcuts_file}").join
       unless file_sc.to_s() == ""
         @shortcuts = eval(file_sc)
       end
@@ -110,14 +146,14 @@ class SlackSmartBot
 
     get_routines()
 
-    if ON_MASTER_BOT and File.exist?($0.gsub(".rb", "_bots.rb"))
+    if config.on_master_bot and File.exist?(config.file_path.gsub(".rb", "_bots.rb"))
       get_bots_created()
-      if @bots_created.kind_of?(Hash)
+      if @bots_created.kind_of?(Hash) and config.start_bots
         @bots_created.each { |key, value|
           if !value.key?(:cloud) or (value.key?(:cloud) and value[:cloud] == false)
-            @logger.info "ruby #{$0} \"#{value[:channel_name]}\" \"#{value[:admins]}\" \"#{value[:rules_file]}\" #{value[:status].to_sym}"
+            @logger.info "ruby #{config.file_path} \"#{value[:channel_name]}\" \"#{value[:admins]}\" \"#{value[:rules_file]}\" #{value[:status].to_sym}"
             t = Thread.new do
-              `ruby #{$0} \"#{value[:channel_name]}\" \"#{value[:admins]}\" \"#{value[:rules_file]}\" #{value[:status].to_sym}`
+              `ruby #{config.file_path} \"#{value[:channel_name]}\" \"#{value[:admins]}\" \"#{value[:rules_file]}\" #{value[:status].to_sym}`
             end
             value[:thread] = t
           end
@@ -126,8 +162,8 @@ class SlackSmartBot
     end
 
     # rules imported only for DM
-    if ON_MASTER_BOT and File.exist?("./rules/rules_imported.rb")
-      file_conf = IO.readlines("./rules/rules_imported.rb").join
+    if config.on_master_bot and File.exist?("#{config.path}/rules/rules_imported.rb")
+      file_conf = IO.readlines("#{config.path}/rules/rules_imported.rb").join
       unless file_conf.to_s() == ""
         @rules_imported = eval(file_conf)
       end
@@ -146,7 +182,7 @@ class SlackSmartBot
 
     begin
       @admin_users_id = []
-      ADMIN_USERS.each do |au|
+      config.admins.each do |au|
         user_info = client.web_client.users_info(user: "@#{au}")
         @admin_users_id << user_info.user.id
       end
@@ -154,7 +190,7 @@ class SlackSmartBot
       @logger.fatal "TooManyRequestsError"
       abort("TooManyRequestsError please re run the bot and be sure of executing first: killall ruby")
     rescue Exception => stack
-      abort("The admin user specified on settings: #{ADMIN_USERS.join(", ")}, doesn't exist on Slack. Execution aborted")
+      abort("The admin user specified on settings: #{config.admins.join(", ")}, doesn't exist on Slack. Execution aborted")
     end
 
     client.on :hello do
@@ -172,20 +208,20 @@ class SlackSmartBot
       end
       @routines.each do |ch, rout|
         rout.each do |k, v|
-          if !v[:running] and v[:channel_name] == CHANNEL
+          if !v[:running] and v[:channel_name] == config.channel
             create_routine_thread(k)
           end
         end
       end
     end
 
-    @status = STATUS_INIT
+    @status = config.status_init
     @questions = Hash.new()
     @channels_id = Hash.new()
     @channels_name = Hash.new()
     get_channels_name_and_id()
-    @channel_id = @channels_id[CHANNEL].dup
-    @master_bot_id = @channels_id[MASTER_CHANNEL].dup
+    @channel_id = @channels_id[config.channel].dup
+    @master_bot_id = @channels_id[config.master_channel].dup
 
     get_routines()
     if @routines.key?(@channel_id)

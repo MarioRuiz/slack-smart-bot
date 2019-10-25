@@ -1,7 +1,7 @@
 class SlackSmartBot
   def treat_message(data)
-    if config[:testing] and ON_MASTER_BOT
-      open("./buffer.log", "a") { |f|
+    if config[:testing] and config.on_master_bot
+      open("#{config.path}/buffer.log", "a") { |f|
         f.puts "|#{data.channel}|#{data.user}|#{data.text}"
       }
     end
@@ -15,7 +15,7 @@ class SlackSmartBot
     if !data.files.nil? and data.files.size == 1 and data.text.to_s == "" and data.files[0].filetype == "ruby"
       data.text = "ruby"
     end
-    if !dest.nil? and ON_MASTER_BOT and !data.text.nil? and data.text.match(/^ping from (.+)\s*$/) and data.user == config[:nick_id]
+    if !dest.nil? and config.on_master_bot and !data.text.nil? and data.text.match(/^ping from (.+)\s*$/) and data.user == config[:nick_id]
       @pings << $1
     end
     typem = :dont_treat
@@ -29,7 +29,7 @@ class SlackSmartBot
           typem = :on_call
         end
       elsif dest == @master_bot_id
-        if ON_MASTER_BOT #only to be treated on master mot channel
+        if config.on_master_bot #only to be treated on master mot channel
           typem = :on_master
         end
       elsif @bots_created.key?(dest)
@@ -37,15 +37,15 @@ class SlackSmartBot
           typem = :on_bot
         end
       elsif dest[0] == "D" #Direct message
-        if ON_MASTER_BOT #only to be treated by master bot
+        if config.on_master_bot #only to be treated by master bot
           typem = :on_dm
         end
       elsif dest[0] == "C" or dest[0] == "G"
         #only to be treated on the channel of the bot. excluding running ruby
-        if !ON_MASTER_BOT and @bots_created.key?(@channel_id) and @bots_created[@channel_id][:extended].include?(@channels_name[dest]) and
+        if !config.on_master_bot and @bots_created.key?(@channel_id) and @bots_created[@channel_id][:extended].include?(@channels_name[dest]) and
            !data.text.match?(/^!?\s*(ruby|code)\s+/)
           typem = :on_extended
-        elsif ON_MASTER_BOT and data.text.match?(/^!?\s*(ruby|code)\s+/) #or in case of running ruby, the master bot
+        elsif config.on_master_bot and data.text.match?(/^!?\s*(ruby|code)\s+/) #or in case of running ruby, the master bot
           @bots_created.each do |k, v|
             if v.key?(:extended) and v[:extended].include?(@channels_name[dest])
               typem = :on_extended
@@ -53,7 +53,7 @@ class SlackSmartBot
             end
           end
         end
-        if dest[0] == "G" and ON_MASTER_BOT and typem != :on_extended #private group
+        if dest[0] == "G" and config.on_master_bot and typem != :on_extended #private group
           typem = :on_pg
         end
       end
@@ -104,7 +104,7 @@ class SlackSmartBot
           members = client.web_client.conversations_members(channel: @channels_id[channel_rules_name]).members unless channel_found.nil?
           if channel_found.nil?
             @logger.fatal "Not possible to find the channel #{channel_rules_name}"
-          elsif channel_found.name == MASTER_CHANNEL
+          elsif channel_found.name == config.master_channel
             respond "You cannot use the rules from Master Channel on any other channel.", dest
           elsif @status != :on
             respond "The bot in that channel is not :on", dest
@@ -113,11 +113,11 @@ class SlackSmartBot
           else
             respond "You need to join the channel <##{channel_found.id}> to be able to use the rules.", dest
           end
-        elsif ON_MASTER_BOT and typem == :on_extended and
+        elsif config.on_master_bot and typem == :on_extended and
               command.size > 0 and command[0] != "-"
           # to run ruby only from the master bot for the case more than one extended
           res = process_first(user_info.user, command, dest, @channel_id, typem, data.files)
-        elsif !ON_MASTER_BOT and @bots_created[@channel_id].key?(:extended) and
+        elsif !config.on_master_bot and @bots_created[@channel_id].key?(:extended) and
               @bots_created[@channel_id][:extended].include?(@channels_name[data.channel]) and
               command.size > 0 and command[0] != "-"
           res = process_first(user_info.user, command, dest, @channel_id, typem, data.files)
@@ -130,9 +130,9 @@ class SlackSmartBot
         @logger.fatal stack
       end
     else
-      if !ON_MASTER_BOT and !dest.nil? and (dest == @master_bot_id or dest[0] == "D") and
+      if !config.on_master_bot and !dest.nil? and (dest == @master_bot_id or dest[0] == "D") and
          data.text.match?(/^\s*bot\s+status\s*$/i) and @admin_users_id.include?(data.user)
-        respond "ping from #{CHANNEL}", dest
+        respond "ping from #{config.channel}", dest
       end
     end
   end

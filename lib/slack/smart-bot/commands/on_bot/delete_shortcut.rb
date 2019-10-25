@@ -9,10 +9,10 @@ class SlackSmartBot
     unless typem == :on_extended
       deleted = false
 
-      if !ADMIN_USERS.include?(from) and @shortcuts[:all].include?(shortcut) and !@shortcuts[from].include?(shortcut)
+      if !config.admins.include?(from) and @shortcuts[:all].include?(shortcut) and !@shortcuts[from].include?(shortcut)
         respond "Only the creator of the shortcut or an admin user can delete it", dest
       elsif (@shortcuts.keys.include?(from) and @shortcuts[from].keys.include?(shortcut)) or
-            (ADMIN_USERS.include?(from) and @shortcuts[:all].include?(shortcut))
+            (config.admins.include?(from) and @shortcuts[:all].include?(shortcut))
         #are you sure? to avoid deleting by mistake
         unless @questions.keys.include?(from)
           ask("are you sure you want to delete it?", command, from, dest)

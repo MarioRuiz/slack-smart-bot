@@ -2,6 +2,7 @@
 
 [![Gem Version](https://badge.fury.io/rb/slack-smart-bot.svg)](https://rubygems.org/gems/slack-smart-bot)
 [![Build Status](https://travis-ci.com/MarioRuiz/slack-smart-bot.svg?branch=master)](https://github.com/MarioRuiz/slack-smart-bot)
+[![Coverage Status](https://coveralls.io/repos/github/MarioRuiz/slack-smart-bot/badge.svg?branch=master)](https://coveralls.io/github/MarioRuiz/slack-smart-bot?branch=master)
 
 Create a Slack bot that is really smart and so easy to expand.
 

@@ -130,6 +130,10 @@ RSpec.describe SlackSmartBot, "bot_help" do
         expect(buffer(to: channel, from: :ubot).join).not_to match(@without_bot)
         expect(buffer(to: channel, from: :ubot).join).to match(@rules)
       end
+      it "responds not found" do
+        send_message "bot rules SSSSSSS", from: :user2, to: channel
+        expect(buffer(to: channel, from: :ubot).join).to match(/I didn't find any rule starting by `SSSSSSS`/)
+      end
     end
     describe "bot channel" do
       channel = :cbot2cu

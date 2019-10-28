@@ -26,6 +26,16 @@ RSpec.describe SlackSmartBot, "stop_using_rules" do
       send_message "!which rules", from: user, to: channel
       expect(buffer(to: channel, from: :ubot).join).to match(/^bot1cm$/)
     end
+    it "displays message when no using those rules" do
+      send_message "stop using rules from master_channel", from: user, to: channel
+      expect(bufferc(to: channel, from: :ubot).join).to match(/You are not using those rules/)
+      sleep 1
+      send_message "stop using rules from bot2cu", from: user, to: channel
+      sleep 1
+      send_message "stop using rules from bot2cu", from: user, to: channel
+      sleep 1
+      expect(buffer(to: channel, from: :ubot).join).to match(/You were not using those rules/)
+    end
   end
 
   describe "on master channel" do
@@ -68,6 +78,12 @@ RSpec.describe SlackSmartBot, "stop_using_rules" do
       send_message "!which rules", from: user, to: channel
       expect(buffer(to: channel, from: :ubot).join).to match(/I don't understand/)
     end
+
+    it "displays message when no using those rules" do
+      send_message "stop using rules from master_channel", from: user, to: channel
+      expect(bufferc(to: channel, from: :ubot).join).to match(/You are not using those rules/)
+    end
+
   end
 
   describe "on extended channel" do

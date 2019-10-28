@@ -1,4 +1,4 @@
-SIMULATE = true
+SIMULATE = ENV['SIMULATE'].to_s == 'true'
 
 require "slack-smart-bot"
 ENV["SLEEP_AFTER_SEND"] ||= "2"

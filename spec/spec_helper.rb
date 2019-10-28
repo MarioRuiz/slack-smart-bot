@@ -47,6 +47,7 @@ RSpec.configure do |config|
           sleep 0.2
         end
       end
+      sleep 2
 
       Thread.new do
         settings = @settings.deep_copy
@@ -59,6 +60,7 @@ RSpec.configure do |config|
           sleep 0.2
         end
       end
+      sleep 2
 
       Thread.new do
         settings = @settings.deep_copy
@@ -72,6 +74,7 @@ RSpec.configure do |config|
           sleep 0.2
         end
       end
+      sleep 1
 
       unless SIMULATE
         started = false

@@ -51,6 +51,42 @@ RSpec.describe SlackSmartBot, "add_routine" do
       expect(buffer(to: channel, from: :ubot).join).to match(/Only admin users can use this command/)
     end
 
+    it "doesn't allow to create routine if already exist with same name" do
+      send_message "create routine example every 200s !ruby puts 'Sam'", from: user, to: channel
+      sleep 3
+      send_message "create routine example every 200s !ruby puts 'Sam'", from: user, to: channel
+      expect(buffer(to: channel, from: :ubot).join).to match(/I'm sorry but there is already a routine with that name/)
+    end
+
+    it "doesn't allow to create routine when wrong time" do
+      send_message "create routine example at 25:33 !ruby puts 'Sam'", from: user, to: channel
+      expect(buffer(to: channel, from: :ubot).join).to match(/Wrong time specified/)
+    end
+
+    it 'creates routine supplying days' do
+      send_message "create routine example every 2 days !ruby puts 'Sam'", from: user, to: channel
+      expect(bufferc(to: channel, from: :ubot).join).to match(/Added routine \*`example`\* to the channel/)
+      send_message 'see routines', from: user, to: channel
+      sleep 3
+      expect(buffer(to: channel, from: :ubot).join).to match(/Next Run: #{(Time.now+(24*2*60*60)).strftime("%Y-%m-%d")}/)
+    end
+
+    it 'creates routine supplying hours' do
+      send_message "create routine example every 2 hours !ruby puts 'Sam'", from: user, to: channel
+      expect(bufferc(to: channel, from: :ubot).join).to match(/Added routine \*`example`\* to the channel/)
+      send_message 'see routines', from: user, to: channel
+      sleep 3
+      expect(buffer(to: channel, from: :ubot).join).to match(/Next Run: #{(Time.now+(2*60*60)).strftime("%Y-%m-%d %H:%M")}/)
+    end
+
+    it 'creates routine supplying minutes' do
+      send_message "create routine example every 2 minutes !ruby puts 'Sam'", from: user, to: channel
+      expect(bufferc(to: channel, from: :ubot).join).to match(/Added routine \*`example`\* to the channel/)
+      send_message 'see routines', from: user, to: channel
+      sleep 3
+      expect(buffer(to: channel, from: :ubot).join).to match(/Next Run: #{(Time.now+(2*60)).strftime("%Y-%m-%d %H:%M")}/)
+    end
+
     unless SIMULATE
       it "doesn't allow to create routine attaching file if not master admin" do
         send_message "create routine example every 2s", from: :user1, to: :cbot2cu, file_ruby: "puts 'Sam'"

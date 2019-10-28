@@ -231,6 +231,16 @@ class SlackSmartBot
     end
     update_routines()
 
+    if config.simulate #not necessary to wait until bot started (client.on :hello)
+      @routines.each do |ch, rout|
+        rout.each do |k, v|
+          if !v[:running] and v[:channel_name] == config.channel
+            create_routine_thread(k)
+          end
+        end
+      end
+    end
+
     client.on :close do |_data|
       m = "Connection closing, exiting. #{Time.now}"
       @logger.info m

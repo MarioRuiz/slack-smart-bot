@@ -23,6 +23,16 @@ RSpec.describe SlackSmartBot, "ruby_code" do
       send_message "ruby puts 'Example'", from: user, to: channel
       expect(buffer(to: channel, from: :ubot).join).to match(/Example/)
     end
+
+    it "displays message when nothing returned" do
+      send_message "!ruby 3+2", from: user, to: channel
+      expect(buffer(to: channel, from: :ubot)[-1]).to match(/^Nothing returned. Remember you need to use p or puts to print$/)
+    end
+    it "displays security error" do
+      send_message "!ruby puts ENV['AAA']", from: user, to: channel
+      expect(buffer(to: channel, from: :ubot)[-1]).to match(/^Sorry I cannot run this due security reasons$/)
+    end
+    
   end
 
   describe "on master channel" do

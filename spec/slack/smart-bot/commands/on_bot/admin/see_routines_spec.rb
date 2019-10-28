@@ -44,6 +44,15 @@ RSpec.describe SlackSmartBot, "see_routines" do
       sleep 1
       expect(buffer(to: channel, from: :ubot).join).to match(/Only admin users can use this command/)
     end
+    it 'displays no routines when no routines added' do
+      sleep 1
+      send_message "delete routine example", from: user, to: channel
+      sleep 2
+      send_message "see routines", from: user, to: channel
+      sleep 2
+      expect(buffer(to: channel, from: :ubot).join).to match(/There are no routines added/)
+    end
+    
   end
 
   describe "on master channel" do

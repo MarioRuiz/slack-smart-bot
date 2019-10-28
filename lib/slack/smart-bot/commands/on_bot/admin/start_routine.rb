@@ -15,6 +15,19 @@ class SlackSmartBot
         respond "It's only possible to start routines from MASTER channel from a direct message with the bot.", dest
       elsif @routines.key?(@channel_id) and @routines[@channel_id].key?(name)
         @routines[@channel_id][name][:status] = :on
+        if @routines[@channel_id][name][:at]!=''
+          started = Time.now
+          if started.strftime("%k:%M:%S") < @routines[@channel_id][name][:at]
+            nt = @routines[@channel_id][name][:at].split(":")
+            next_run = Time.new(started.year, started.month, started.day, nt[0], nt[1], nt[2])
+          else
+            next_run = started + (24 * 60 * 60) # one more day
+            nt = @routines[@channel_id][name][:at].split(":")
+            next_run = Time.new(next_run.year, next_run.month, next_run.day, nt[0], nt[1], nt[2])
+          end
+          @routines[@channel_id][name][:next_run] = next_run.to_s
+          @routines[@channel_id][name][:sleeping] = (next_run - started).ceil
+        end
         update_routines()
         respond "The routine *`#{name}`* has been started. The change will take effect in less than 30 secs.", dest
       else

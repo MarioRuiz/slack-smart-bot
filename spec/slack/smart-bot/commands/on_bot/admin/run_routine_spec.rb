@@ -36,6 +36,12 @@ RSpec.describe SlackSmartBot, "run_routine" do
       sleep 1
       expect(buffer(to: channel, from: :ubot).join).to match(/Only admin users can run routines/)
     end
+    it "verifies name of routine exists" do
+      sleep 1
+      send_message "run routine examplexx", from: user, to: channel
+      expect(buffer(to: channel, from: :ubot).join).to match(/There isn't a routine with that name/)
+    end
+
   end
 
   describe "on master channel" do

@@ -29,6 +29,12 @@ RSpec.describe SlackSmartBot, "pause_routine" do
       send_message "pause routine example", from: :user1, to: channel
       expect(buffer(to: channel, from: :ubot).join).to match(/Only admin users can use this command/)
     end
+
+    it "verifies name of routine exists" do
+      send_message "pause routine examplexx", from: user, to: channel
+      expect(buffer(to: channel, from: :ubot).join).to match(/There isn't a routine with that name/)
+    end
+
   end
 
   describe "on master channel" do

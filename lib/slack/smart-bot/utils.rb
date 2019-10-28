@@ -116,7 +116,7 @@ class SlackSmartBot
             elapsed = 0
             require "time"
             every_in_seconds = Time.parse(@routines[@channel_id][name][:next_run]) - Time.now
-          elsif @routines[@channel_id][name][:next_run] == "" and @routines[@channel_id][name][:at] != "" #coming from start after pause for 'at'
+          elsif @routines[@channel_id][name][:at] != "" #coming from start after pause for 'at'
             if started.strftime("%k:%M:%S") < @routines[@channel_id][name][:at]
               nt = @routines[@channel_id][name][:at].split(":")
               next_run = Time.new(started.year, started.month, started.day, nt[0], nt[1], nt[2])
@@ -135,9 +135,9 @@ class SlackSmartBot
             @routines[@channel_id][name][:next_run] = (started + every_in_seconds).to_s
           end
           @routines[@channel_id][name][:running] = true
-          @routines[@channel_id][name][:sleeping] = every_in_seconds - elapsed
+          @routines[@channel_id][name][:sleeping] = (every_in_seconds - elapsed).ceil
           update_routines()
-          sleep(every_in_seconds - elapsed) unless elapsed > every_in_seconds
+          sleep(@routines[@channel_id][name][:sleeping]) unless elapsed > every_in_seconds
         else
           sleep 30
         end

@@ -64,27 +64,30 @@ RSpec.describe SlackSmartBot, "add_routine" do
     end
 
     it 'creates routine supplying days' do
+      started = Time.now+2
       send_message "create routine example every 2 days !ruby puts 'Sam'", from: user, to: channel
       expect(bufferc(to: channel, from: :ubot).join).to match(/Added routine \*`example`\* to the channel/)
       send_message 'see routines', from: user, to: channel
       sleep 3
-      expect(buffer(to: channel, from: :ubot).join).to match(/Next Run: #{(Time.now+(24*2*60*60)).strftime("%Y-%m-%d")}/)
+      expect(buffer(to: channel, from: :ubot).join).to match(/Next Run: #{(started+(24*2*60*60)).strftime("%Y-%m-%d")}/)
     end
 
     it 'creates routine supplying hours' do
+      started = Time.now+2
       send_message "create routine example every 2 hours !ruby puts 'Sam'", from: user, to: channel
       expect(bufferc(to: channel, from: :ubot).join).to match(/Added routine \*`example`\* to the channel/)
       send_message 'see routines', from: user, to: channel
       sleep 3
-      expect(buffer(to: channel, from: :ubot).join).to match(/Next Run: #{(Time.now+(2*60*60)).strftime("%Y-%m-%d %H:%M")}/)
+      expect(buffer(to: channel, from: :ubot).join).to match(/Next Run: #{(started+(2*60*60)).strftime("%Y-%m-%d %H:%M")}/)
     end
 
     it 'creates routine supplying minutes' do
+      started = Time.now+2
       send_message "create routine example every 2 minutes !ruby puts 'Sam'", from: user, to: channel
       expect(bufferc(to: channel, from: :ubot).join).to match(/Added routine \*`example`\* to the channel/)
       send_message 'see routines', from: user, to: channel
       sleep 3
-      expect(buffer(to: channel, from: :ubot).join).to match(/Next Run: #{(Time.now+(2*60)).strftime("%Y-%m-%d %H:%M")}/)
+      expect(buffer(to: channel, from: :ubot).join).to match(/Next Run: #{(started+(2*60)).strftime("%Y-%m-%d %H:%M")}/)
     end
 
     unless SIMULATE

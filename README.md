@@ -204,6 +204,23 @@ Example:
 >**_Smart-Bot>_** `echo SOMETHING`  
     `repeats SOMETHING`
 
+When you call a command that is not recognized, you will get suggestions from the Smart Bot.
+
+Remember when you add code to your rules you need to specify the help that will be displayed when using `bot help`, `bot rules`
+
+For the examples use _ and for the rules `. This is a good example of a Help supplied on rules source code:
+
+```ruby
+# help: `run TYPE tests on LOCATION`
+# help: `execute TYPE tests on LOCATION`
+# help:     run the specified tests on the indicated location
+# help:       TYPE: api, ui, smoke, load
+# help:       LOCATION: customers, db1..db10, global
+# help:  Examples:
+# help:     _run api tests on customers_
+# help:     _run ui tests on customers_
+# help:     _execute smoke tests on db1_
+```
 
 ### Bot Management
 To create a new bot on a channel, run on MASTER CHANNEL: **_`create bot on CHANNEL`_**. The admins of this new bot on that channel will be the MASTER ADMINS, the creator of the bot and the creator of that channel. It will create a new rules file linked to this new bot.

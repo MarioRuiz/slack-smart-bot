@@ -48,7 +48,7 @@ class SlackSmartBot
               every_in_seconds = number_time.to_i
             else # time
               at = number_time
-              if next_run.strftime("%k:%M:%S") < number_time
+              if next_run.strftime("%H:%M:%S") < number_time
                 nt = number_time.split(":")
                 next_run = Time.new(next_run.year, next_run.month, next_run.day, nt[0], nt[1], nt[2])
               else

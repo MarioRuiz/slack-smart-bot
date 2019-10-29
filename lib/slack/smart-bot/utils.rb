@@ -75,9 +75,9 @@ class SlackSmartBot
   def create_routine_thread(name)
     t = Thread.new do
       while @routines.key?(@channel_id) and @routines[@channel_id].key?(name)
-        @logger.info "Routine: #{@routines[@channel_id][name].inspect}"
         started = Time.now
         if @status == :on and @routines[@channel_id][name][:status] == :on
+          @logger.info "Routine: #{@routines[@channel_id][name].inspect}"
           if @routines[@channel_id][name][:file_path].match?(/\.rb$/i)
             ruby = "ruby "
           else
@@ -117,7 +117,7 @@ class SlackSmartBot
             require "time"
             every_in_seconds = Time.parse(@routines[@channel_id][name][:next_run]) - Time.now
           elsif @routines[@channel_id][name][:at] != "" #coming from start after pause for 'at'
-            if started.strftime("%k:%M:%S") < @routines[@channel_id][name][:at]
+            if started.strftime("%H:%M:%S") < @routines[@channel_id][name][:at]
               nt = @routines[@channel_id][name][:at].split(":")
               next_run = Time.new(started.year, started.month, started.day, nt[0], nt[1], nt[2])
             else

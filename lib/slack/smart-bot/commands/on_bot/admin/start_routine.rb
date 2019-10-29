@@ -17,7 +17,7 @@ class SlackSmartBot
         @routines[@channel_id][name][:status] = :on
         if @routines[@channel_id][name][:at]!=''
           started = Time.now
-          if started.strftime("%k:%M:%S") < @routines[@channel_id][name][:at]
+          if started.strftime("%H:%M:%S") < @routines[@channel_id][name][:at]
             nt = @routines[@channel_id][name][:at].split(":")
             next_run = Time.new(started.year, started.month, started.day, nt[0], nt[1], nt[2])
           else

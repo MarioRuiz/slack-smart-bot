@@ -21,9 +21,9 @@ RSpec.describe SlackSmartBot, "pause_bot" do
 
     it 'displays error if trying to use rules from a paused bot' do
       send_message "pause bot", from: :uadmin, to: channel
-      sleep 3
+      sleep 2
       send_message "use bot1cm", from: user, to: :cmaster
-      sleep 3
+      sleep 2
       expect(buffer(to: :cmaster, from: :ubot)[-1]).to match(/^The bot in that channel is not :on/)
     end
 

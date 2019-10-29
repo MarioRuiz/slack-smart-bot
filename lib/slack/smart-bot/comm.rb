@@ -113,14 +113,14 @@ class SlackSmartBot
       end
       if config[:simulate]
         open("#{config.path}/buffer_complete.log", "a") { |f|
-          f.puts "|#{to}|#{config[:nick_id]}|#{msg}$$$"
+          f.puts "|#{channel_id}|#{config[:nick_id]}|#{msg}$$$"
         }
       else  
         client.message(channel: channel_id, text: msg, as_user: true)
       end
       if config[:testing] and config.on_master_bot
         open("#{config.path}/buffer.log", "a") { |f|
-          f.puts "|#{to}|#{config[:nick_id]}|#{msg}"
+          f.puts "|#{channel_id}|#{config[:nick_id]}|#{msg}"
         }
       end
     end

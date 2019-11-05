@@ -48,6 +48,7 @@ class SlackSmartBot
             msg << "\tTime consumed on last run: #{v[:last_elapsed]}" unless v[:command] !=''
             msg << "\tCommand: #{v[:command]}" unless v[:command].to_s.strip == ''
             msg << "\tFile: #{v[:file_path]}" unless v[:file_path] == ''
+            msg << "\tSilent: #{v[:silent]}" unless !v[:silent]
             respond msg.join("\n"), dest
           end
         end

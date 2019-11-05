@@ -78,6 +78,12 @@ def rules(user, command, processed, dest, files = [], rules_file = "")
     when /^echo\s(.+)/i
       respond $1
 
+    when /^test silent (.+)$/i
+      tempo = $1
+      if Time.now.to_s > tempo
+        respond "Now yes" 
+      end
+
       # help: ----------------------------------------------
       # help: `go to sleep`
       # help:   it will sleep the bot for 5 seconds

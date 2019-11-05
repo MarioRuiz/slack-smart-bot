@@ -289,9 +289,12 @@ To see available shortcuts: **_`see shortcuts`_** and to delete a particular sho
 ### Routines
 To add specific commands to be run automatically every certain amount of time or a specific time: **_`add routine NAME every NUMBER PERIOD COMMAND`_** or **_`add routine NAME at TIME COMMAND`_**
 
+If you want to hide the routine executions use `add silent routine`. It won't show the routine name when executing.
+
 Examples:  
 >**_`add routine run_tests every 3h run tests on customers`_**  
 >**_`add routine clean_db at 17:05 clean customers temp db`_**  
+>**_`add silent routine clean_db at 17:05 clean customers temp db`_**  
 
 Also instead of adding a Command to be executed, you can attach a file, then the routine will be created and the attached file will be executed on the criteria specified. Only Master Admins are allowed to use it this way.
 

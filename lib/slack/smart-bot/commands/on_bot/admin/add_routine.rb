@@ -2,12 +2,15 @@ class SlackSmartBot
   # helpadmin: ----------------------------------------------
   # helpadmin: `add routine NAME every NUMBER PERIOD COMMAND`
   # helpadmin: `add routine NAME every NUMBER PERIOD`
+  # helpadmin: `add silent routine NAME every NUMBER PERIOD`
   # helpadmin: `create routine NAME every NUMBER PERIOD`
   # helpadmin: `add routine NAME at TIME COMMAND`
   # helpadmin: `add routine NAME at TIME`
+  # helpadmin: `add silent routine NAME at TIME`
   # helpadmin: `create routine NAME at TIME`
-  # helpadmin:    It will execute the command supplied. Only for Admin and Master Admins.
+  # helpadmin:    It will execute the command/rule supplied. Only for Admin and Master Admins.
   # helpadmin:    If no COMMAND supplied, then it will be necessary to attach a file with the code to be run and add this command as message to the file. ONLY for MASTER ADMINS.
+  # helpadmin:    In case *silent* provided then when executed will be only displayed if the routine returns a message
   # helpadmin:    NAME: one word to identify the routine
   # helpadmin:    NUMBER: Integer
   # helpadmin:    PERIOD: days, d, hours, h, minutes, mins, min, m, seconds, secs, sec, s
@@ -17,8 +20,9 @@ class SlackSmartBot
   # helpadmin:      _add routine example every 30s ruby puts 'a'_
   # helpadmin:      _add routine example every 3 days ruby puts 'a'_
   # helpadmin:      _add routine example at 17:05 ruby puts 'a'_
+  # helpadmin:      _create silent routine every 12 hours !Run customer tests_
   # helpadmin:
-  def add_routine(dest, from, user, name, type, number_time, period, command_to_run, files)
+  def add_routine(dest, from, user, name, type, number_time, period, command_to_run, files, silent)
     if files.nil? or files.size == 0 or (files.size > 0 and config.masters.include?(from))
       if config.admins.include?(from)
         if @routines.key?(@channel_id) && @routines[@channel_id].key?(name)
@@ -70,8 +74,10 @@ class SlackSmartBot
 
             @routines[@channel_id] = {} unless @routines.key?(@channel_id)
             @routines[@channel_id][name] = { channel_name: config.channel, creator: from, creator_id: user.id, status: :on,
-                                             every: every, every_in_seconds: every_in_seconds, at: at, file_path: file_path, command: command_to_run.to_s.strip,
-                                             next_run: next_run.to_s, dest: dest, last_run: "", last_elapsed: "", running: false }
+                                             every: every, every_in_seconds: every_in_seconds, at: at, file_path: file_path, 
+                                             command: command_to_run.to_s.strip, silent: silent,
+                                             next_run: next_run.to_s, dest: dest, last_run: "", last_elapsed: "", 
+                                             running: false }
             update_routines
             respond "Added routine *`#{name}`* to the channel", dest
             create_routine_thread(name)

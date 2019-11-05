@@ -8,6 +8,7 @@ require "fileutils"
 require "open3"
 require "nice_http"
 require "nice_hash"
+require 'cgi'
 
 require_relative "slack/smart-bot/comm"
 require_relative "slack/smart-bot/listen"
@@ -94,7 +95,6 @@ class SlackSmartBot
 
     logfile = File.basename(config.rules_file.gsub("_rules_", "_logs_"), ".rb") + ".log"
     @logger = Logger.new("#{config.path}/logs/#{logfile}")
-    @logger.info ARGV.inspect #Jal
 
     config_log = config.dup
     config_log.delete(:token)

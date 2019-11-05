@@ -11,15 +11,12 @@ class SlackSmartBot
   # helpadmin:      _kill routine example_
   # helpadmin:
   def remove_routine(dest, from, name)
-    @logger.info "Start:#{Time.now}"
     if config.admins.include?(from) #admin user
       if !config.on_master_bot and dest[0] == "D"
         respond "It's only possible to remove routines from MASTER channel from a direct message with the bot.", dest
       elsif @routines.key?(@channel_id) and @routines[@channel_id].key?(name)
         @routines[@channel_id].delete(name)
-        @logger.info "Cont:#{Time.now}"
         update_routines()
-        @logger.info "end:#{Time.now}"
         respond "The routine *`#{name}`* has been removed.", dest
       else
         respond "There isn't a routine with that name: *`#{name}`*.\nCall `see routines` to see added routines", dest
@@ -27,6 +24,5 @@ class SlackSmartBot
     else
       respond "Only admin users can delete routines", dest
     end
-    @logger.info "fin:#{Time.now}"
   end
 end

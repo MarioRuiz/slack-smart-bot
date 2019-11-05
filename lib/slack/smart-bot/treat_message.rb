@@ -1,5 +1,6 @@
 class SlackSmartBot
   def treat_message(data)
+    data.text = CGI.unescapeHTML(data.text)
     if config[:testing] and config.on_master_bot
       open("#{config.path}/buffer.log", "a") { |f|
         f.puts "|#{data.channel}|#{data.user}|#{data.text}"
@@ -109,21 +110,21 @@ class SlackSmartBot
           elsif @status != :on
             respond "The bot in that channel is not :on", dest
           elsif data.user == channel_found.creator or members.include?(data.user)
-            res = process_first(user_info.user, command, dest, channel_rules, typem, data.files)
+            process_first(user_info.user, command, dest, channel_rules, typem, data.files)
           else
             respond "You need to join the channel <##{channel_found.id}> to be able to use the rules.", dest
           end
         elsif config.on_master_bot and typem == :on_extended and
               command.size > 0 and command[0] != "-"
           # to run ruby only from the master bot for the case more than one extended
-          res = process_first(user_info.user, command, dest, @channel_id, typem, data.files)
+          process_first(user_info.user, command, dest, @channel_id, typem, data.files)
         elsif !config.on_master_bot and @bots_created[@channel_id].key?(:extended) and
               @bots_created[@channel_id][:extended].include?(@channels_name[data.channel]) and
               command.size > 0 and command[0] != "-"
-          res = process_first(user_info.user, command, dest, @channel_id, typem, data.files)
+          process_first(user_info.user, command, dest, @channel_id, typem, data.files)
         elsif (dest[0] == "D" or @channel_id == data.channel or data.user == config[:nick_id]) and
               command.size > 0 and command[0] != "-"
-          res = process_first(user_info.user, command, dest, data.channel, typem, data.files)
+          process_first(user_info.user, command, dest, data.channel, typem, data.files)
           # if @botname on #channel_rules: do something
         end
       rescue Exception => stack

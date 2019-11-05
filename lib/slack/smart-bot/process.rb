@@ -86,14 +86,15 @@ class SlackSmartBot
       when /^\s*kill\sbot\son\s<#C\w+\|(.+)>\s*$/i, /^kill\sbot\son\s(.+)\s*$/i
         channel = $1
         kill_bot_on_channel(dest, from, channel)
-      when /^\s*(add|create)\s+routine\s+(\w+)\s+(every)\s+(\d+)\s*(days|hours|minutes|seconds|mins|min|secs|sec|d|h|m|s)\s*(\s.+)?\s*$/i,
-           /^\s*(add|create)\s+routine\s+(\w+)\s+(at)\s+(\d+:\d+:?\d+?)\s*()(\s.+)?\s*$/i
-        name = $2.downcase
-        type = $3
-        number_time = $4
-        period = $5
-        command_to_run = $6
-        add_routine(dest, from, user, name, type, number_time, period, command_to_run, files)
+      when /^\s*(add|create)\s+(silent\s+)?routine\s+(\w+)\s+(every)\s+(\d+)\s*(days|hours|minutes|seconds|mins|min|secs|sec|d|h|m|s)\s*(\s.+)?\s*$/i,
+           /^\s*(add|create)\s+(silent\s+)?routine\s+(\w+)\s+(at)\s+(\d+:\d+:?\d+?)\s*()(\s.+)?\s*$/i
+        silent = $2.to_s!=''
+        name = $3.downcase
+        type = $4
+        number_time = $5
+        period = $6
+        command_to_run = $7
+        add_routine(dest, from, user, name, type, number_time, period, command_to_run, files, silent)
       when /^\s*(kill|delete|remove)\s+routine\s+(\w+)\s*$/i
         name = $2.downcase
         remove_routine(dest, from, name)

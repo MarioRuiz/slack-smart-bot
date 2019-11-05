@@ -41,7 +41,8 @@ def rules(user, command, processed, dest, files = [], rules_file = "")
     # help: ----------------------------------------------
     # help: `echo SOMETHING`
     # help:     repeats SOMETHING
-    # help:
+    # help:  Examples:
+    # help:     _echo I am the Smart Bot_
     when /^echo\s(.+)/i
       respond $1
 

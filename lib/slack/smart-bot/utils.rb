@@ -83,6 +83,8 @@ class SlackSmartBot
           else
             ruby = ""
           end
+          @routines[@channel_id][name][:silent] = false if !@routines[@channel_id][name].key?(:silent)
+
           if @routines[@channel_id][name][:at] == "" or
              (@routines[@channel_id][name][:at] != "" and @routines[@channel_id][name][:running] and
               @routines[@channel_id][name][:next_run] != "" and Time.now.to_s >= @routines[@channel_id][name][:next_run])
@@ -91,20 +93,26 @@ class SlackSmartBot
               process_to_run = ("cd #{project_folder} &&" + process_to_run) if defined?(project_folder)
 
               stdout, stderr, status = Open3.capture3(process_to_run)
+              if !@routines[@channel_id][name][:silent] or (@routines[@channel_id][name][:silent] and (stderr!='' or stdout!=''))
+                respond "routine *`#{name}`*: #{@routines[@channel_id][name][:file_path]}", @routines[@channel_id][name][:dest]
+              end
               if stderr == ""
                 unless stdout.match?(/\A\s*\z/)
-                  respond "routine *`#{name}`*: #{stdout}", @routines[@channel_id][name][:dest]
+                  respond stdout, @routines[@channel_id][name][:dest]
                 end
               else
-                respond "routine *`#{name}`*: #{stdout} #{stderr}", @routines[@channel_id][name][:dest]
+                respond "#{stdout} #{stderr}", @routines[@channel_id][name][:dest]
               end
             else #command
-              respond "routine *`#{name}`*: #{@routines[@channel_id][name][:command]}", @routines[@channel_id][name][:dest]
+              if !@routines[@channel_id][name][:silent]
+                respond "routine *`#{name}`*: #{@routines[@channel_id][name][:command]}", @routines[@channel_id][name][:dest]
+              end
               started = Time.now
-              treat_message({ channel: @routines[@channel_id][name][:dest],
-                             user: @routines[@channel_id][name][:creator_id],
-                             text: @routines[@channel_id][name][:command],
-                             files: nil })
+              data = { channel: @routines[@channel_id][name][:dest],
+                user: @routines[@channel_id][name][:creator_id],
+                text: @routines[@channel_id][name][:command],
+                files: nil }
+              treat_message(data)
             end
             # in case the routine was deleted while running the process
             if !@routines.key?(@channel_id) or !@routines[@channel_id].key?(name)

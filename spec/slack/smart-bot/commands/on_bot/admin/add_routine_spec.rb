@@ -36,6 +36,19 @@ RSpec.describe SlackSmartBot, "add_routine" do
       expect(res[1]).to match(/^Sam$/)
     end
 
+    it 'creates a silent routine and is displayed only when returns message' do
+      routine = "!test silent #{Time.now+10}"
+
+      send_message "add silent routine example every 2s #{routine}", from: user, to: channel
+      expect(bufferc(to: channel, from: :ubot).join).to match(/Added routine \*`example`\* to the channel/)
+      sleep 3
+      expect(buffer(to:channel, from: :ubot).join).to eq ''
+      sleep 7
+      res = buffer(to: channel, from: :ubot).join
+      #expect(res).to match(/routine \*`example`\*: !ruby puts 'Now yes'/)
+      expect(res).to match(/[^']Now yes/)
+    end
+
     it "accepts on demand" do
       send_message "!add routine example every 2s !ruby puts 'Sam'", from: user, to: channel
       expect(buffer(to: channel, from: :ubot).join).to match(/Added routine \*`example`\* to the channel/)
@@ -104,7 +117,8 @@ RSpec.describe SlackSmartBot, "add_routine" do
         sleep 6
         res = buffer(to: channel, from: :ubot).join
         expect(res).to match(/Added routine \*`example`\* to the channel/)
-        expect(res).to match(/routine \*`example`\*: Sam/)
+        expect(res).to match(/routine \*`example`\*: \.\/routines\/#{CBOT1CM}\/example\.rb/)
+        expect(res).to match(/Sam/)
       end
     end
   end

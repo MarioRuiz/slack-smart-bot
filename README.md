@@ -292,7 +292,7 @@ To add specific commands to be run automatically every certain amount of time or
 If you want to hide the routine executions use `add silent routine`. It won't show the routine name when executing.
 
 Examples:  
->**_`add routine run_tests every 3h run tests on customers`_**  
+>**_`add routine run_tests every 3h !run tests on customers`_**  
 >**_`add routine clean_db at 17:05 !clean customers temp db`_**  
 >**_`add silent routine clean_db at 17:05 !clean customers temp db`_**  
 

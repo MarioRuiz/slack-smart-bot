@@ -7,11 +7,11 @@ class SlackSmartBot
         help_found = false
         help_filtered.split(/^\s*-------*$/).each do |h|
           if h.match?(/[`_]#{help_command}/i)
-            respond h, dest
+            respond "*#{config.channel}*:#{h}", dest
             help_found = true
           end
         end
-        respond("I didn't find any command starting by `#{help_command}`", dest) unless help_found
+        respond("*#{config.channel}*: I didn't find any command starting by `#{help_command}`", dest) unless help_found
       else
         message = "-\n\n\n===================================\n*Rules from channel #{config.channel}*\n"
         if typem == :on_extended

@@ -109,6 +109,7 @@ class SlackSmartBot
           Thread.current[:user] = user
           Thread.current[:command] = command
           Thread.current[:rules_file] = rules_file
+          Thread.current[:typem] = typem
           processed = process(user, command, dest, dchannel, rules_file, typem, files)
           @logger.info "command: #{nick}> #{command}" if processed
           on_demand = false

@@ -151,7 +151,7 @@ def rules(user, command, processed, dest)
 
     else
       unless processed
-          dont_understand()
+        dont_understand()
       end
   end
 end

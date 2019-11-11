@@ -129,9 +129,7 @@ def rules(user, command, processed, dest, files = [], rules_file = "")
 
     else
       unless processed
-        if @channel_id == dest or dest[0] == "D" or dest[0] == "G" #not on extended channels
-          dont_understand(rules_file, command, user, dest)
-        end
+        dont_understand(rules_file, command, user, dest)
       end
     end
   rescue => exception

@@ -31,7 +31,7 @@ class SlackSmartBot
         end
 
         if channel_found.nil?
-          respond "The channel you specified doesn't exist", dest
+          respond "The channel you specified doesn't exist or I don't have access to it. Be sure I was invited to that channel.", dest
         elsif @bots_created.key?(@channels_id[channel])
           respond "There is a bot already running on that channel.", dest
         elsif @bots_created[@channel_id][:extended].include?(channel)

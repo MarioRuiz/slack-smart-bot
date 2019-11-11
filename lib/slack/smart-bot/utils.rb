@@ -19,8 +19,13 @@ class SlackSmartBot
           @bots_created = eval(file_conf)
         end
         @datetime_bots_created = File.mtime(config.file_path.gsub(".rb", "_bots.rb"))
+        @extended_from = {}
         @bots_created.each do |k, v|
           v[:extended] = [] unless v.key?(:extended)
+          v[:extended].each do |ch|
+            @extended_from[ch] = [] unless @extended_from.key?(ch)
+            @extended_from[ch] << k
+          end
           v[:rules_file].gsub!(/^\./, '')
         end
       end

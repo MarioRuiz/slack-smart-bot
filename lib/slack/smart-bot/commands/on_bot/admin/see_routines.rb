@@ -19,14 +19,14 @@ class SlackSmartBot
           end
         else
           respond "To see all routines on all channels you need to run the command on the master channel.\nI'll display only the routines on this channel.", dest
-          routines = @routines.deep_copy
+          routines = @routines.dup
         end
       else
         if @rules_imported.key?(user.id) and @rules_imported[user.id].key?(user.id) and dest[0] == "D"
           file_conf = IO.readlines("#{config.path}/routines/routines_#{@rules_imported[user.id][user.id]}.rb").join
           routines = eval(file_conf)
         else
-          routines = @routines.deep_copy
+          routines = @routines.dup
         end
       end
 

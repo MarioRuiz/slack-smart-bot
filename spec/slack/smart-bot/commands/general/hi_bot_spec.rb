@@ -38,18 +38,22 @@ RSpec.describe SlackSmartBot, "hi_bot" do
   end
   it "responds to `hi bot`" do
     send_message "`hi bot`", from: :user1, to: :cbot1cm
+    sleep 1
     expect(buffer(to: :cbot1cm, from: :ubot)[0]).to match(@hi_regexp)
   end
   it "responds to *hi bot*" do
     send_message "*hi bot*", from: :user1, to: :cbot1cm
+    sleep 1
     expect(buffer(to: :cbot1cm, from: :ubot)[0]).to match(@hi_regexp)
   end
   it "responds to _hi bot_" do
     send_message "_hi bot_", from: :user1, to: :cbot1cm
+    sleep 1
     expect(buffer(to: :cbot1cm, from: :ubot)[0]).to match(@hi_regexp)
   end
   it "doesn't respond on extended channel" do
     send_message "!hi bot", from: :uadmin, to: :cext1
+    sleep 1
     expect(buffer(to: :cext1, from: :ubot).join).to match(/I don't understand/)
   end
 
@@ -57,7 +61,8 @@ RSpec.describe SlackSmartBot, "hi_bot" do
     it "doesn't respond to external demand" do
       command = "hi bot"
       send_message "<@#{UBOT}> on <##{CBOT1CM}|bot1cm> #{command}", from: :uadmin, to: :cexternal
+      sleep 1
       expect(buffer(to: :cexternal, from: :ubot).join).to  match(/Take in consideration when on external calls/)
-  end
+    end
   end
 end

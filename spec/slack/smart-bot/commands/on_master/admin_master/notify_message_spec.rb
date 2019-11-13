@@ -79,7 +79,7 @@ RSpec.describe SlackSmartBot, "notify_message" do
   describe "on extended channel" do
     it "doesn't respond" do
       send_message "!notify example", from: :uadmin, to: :cext1
-      expect(buffer(to: :cext1, from: :ubot, tries: 4).join).to eq ""
+      expect(buffer(to: :cext1, from: :ubot).join).to match(/I don't understand/)
     end
   end
   describe "on external channel not extended" do

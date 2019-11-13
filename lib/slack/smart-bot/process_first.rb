@@ -110,6 +110,16 @@ class SlackSmartBot
           Thread.current[:command] = command
           Thread.current[:rules_file] = rules_file
           Thread.current[:typem] = typem
+          if (dest[0] == "C") || (dest[0] == "G") and @rules_imported.key?(user.id) &&
+            @rules_imported[user.id].key?(dchannel) && @bots_created.key?(@rules_imported[user.id][dchannel])
+              Thread.current[:using_channel] = @rules_imported[user.id][dchannel]
+          elsif dest[0] == "D" && @rules_imported.key?(user.id) && @rules_imported[user.id].key?(user.id) and
+            @bots_created.key?(@rules_imported[user.id][user.id])
+              Thread.current[:using_channel] = @rules_imported[user.id][user.id]
+          else
+              Thread.current[:using_channel] = ''
+          end
+
           processed = process(user, command, dest, dchannel, rules_file, typem, files)
           @logger.info "command: #{nick}> #{command}" if processed
           on_demand = false
@@ -193,7 +203,7 @@ class SlackSmartBot
                 respond "No rules running. You can use the command `use rules from CHANNEL` to specify the rules you want to use on this private conversation.\n`bot help` to see available commands.", dest
               end
               unless processed
-                dont_understand(__FILE__, command, user, dest)
+                dont_understand('')
               end
             end
           end

@@ -112,7 +112,7 @@ RSpec.describe SlackSmartBot, "use_rules" do
     it "doesn't respond" do
       send_message "!use rules from unknown", from: :uadmin, to: :cext1
       sleep 4
-      expect(buffer(to: :cext1, from: :ubot, tries: 4).join).to eq ""
+      expect(buffer(to: :cext1, from: :ubot).join).to match(/I don't understand/)
     end
   end
   describe "on external channel not extended" do
@@ -120,7 +120,8 @@ RSpec.describe SlackSmartBot, "use_rules" do
       command = "use rules from unknown"
       send_message "<@#{UBOT}> on <##{CBOT1CM}|bot1cm> #{command}", from: :uadmin, to: :cexternal
       sleep 4
-      expect(buffer(to: :cexternal, from: :ubot, tries: 4).join).to eq ""
-    end
+      expect(buffer(to: :cexternal, from: :ubot).join).to  match(/I don't understand/)
+      expect(buffer(to: :cexternal, from: :ubot).join).to  match(/Take in consideration when on external calls/)
+  end
   end
 end

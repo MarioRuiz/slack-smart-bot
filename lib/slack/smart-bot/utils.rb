@@ -38,6 +38,18 @@ class SlackSmartBot
     file.close
   end
 
+  def get_rules_imported
+    if File.exist?("#{config.path}/rules/rules_imported.rb")
+      if !defined?(@datetime_rules_imported) or @datetime_rules_imported != File.mtime("#{config.path}/rules/rules_imported.rb")        
+        @datetime_rules_imported = File.mtime("#{config.path}/rules/rules_imported.rb")
+        file_conf = IO.readlines("#{config.path}/rules/rules_imported.rb").join
+        unless file_conf.to_s() == ""
+          @rules_imported = eval(file_conf)
+        end
+      end
+    end
+  end
+  
   def update_rules_imported
     file = File.open("#{config.path}/rules/rules_imported.rb", "w")
     file.write @rules_imported.inspect
@@ -80,6 +92,7 @@ class SlackSmartBot
   def create_routine_thread(name)
     t = Thread.new do
       while @routines.key?(@channel_id) and @routines[@channel_id].key?(name)
+        @routines[@channel_id][name][:thread] = Thread.current
         started = Time.now
         if @status == :on and @routines[@channel_id][name][:status] == :on
           @logger.info "Routine: #{@routines[@channel_id][name].inspect}"

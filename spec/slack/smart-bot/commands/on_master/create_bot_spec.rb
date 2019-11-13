@@ -61,7 +61,7 @@ RSpec.describe SlackSmartBot, "create_bot" do
       sleep 10
       expect(bufferc(to: :cexternal, from: :ubot).join).to match(/Smart Bot started/) unless SIMULATE
       send_message "hi bot", from: user, to: :cexternal
-      expect(buffer(to: :cexternal, from: :ubot).join).not_to eq ''
+      expect(buffer(to: :cexternal, from: :ubot).join).not_to eq ""
       send_message "bot status", from: user, to: :cexternal
       sleep 3
       expect(buffer(to: :cexternal, from: :ubot).join).to match(/Status: on/)
@@ -76,7 +76,7 @@ RSpec.describe SlackSmartBot, "create_bot" do
       sleep 10
       expect(bufferc(to: :cexternal, from: :ubot).join).to match(/Smart Bot started/) unless SIMULATE
       send_message "hi bot", from: user, to: :cexternal
-      expect(buffer(to: :cexternal, from: :ubot).join).not_to eq ''
+      expect(buffer(to: :cexternal, from: :ubot).join).not_to eq ""
       send_message "bot status", from: user, to: :cexternal
       sleep 3
       expect(buffer(to: :cexternal, from: :ubot).join).to match(/Status: on/)
@@ -116,14 +116,15 @@ RSpec.describe SlackSmartBot, "create_bot" do
   describe "on extended channel" do
     it "doesn't respond" do
       send_message "!create bot on unknown", from: :uadmin, to: :cext1
-      expect(buffer(to: :cext1, from: :ubot, tries: 4).join).to eq ""
+      expect(buffer(to: :cext1, from: :ubot).join).to match(/I don't understand/)
     end
   end
   describe "on external channel not extended" do
     it "doesn't respond to external demand" do
       command = "create bot on unknown"
       send_message "<@#{UBOT}> on <##{CBOT1CM}|bot1cm> #{command}", from: :uadmin, to: :cexternal
-      expect(buffer(to: :cexternal, from: :ubot, tries: 4).join).to eq ""
+      expect(buffer(to: :cexternal, from: :ubot).join).to  match(/I don't understand/)
+      expect(buffer(to: :cexternal, from: :ubot).join).to  match(/Take in consideration when on external calls/)
     end
   end
 end

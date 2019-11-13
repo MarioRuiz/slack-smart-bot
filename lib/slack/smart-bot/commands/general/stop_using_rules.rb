@@ -9,13 +9,14 @@ class SlackSmartBot
     else
       channel_id = channel
     end
+
     if dest[0] == "C" or dest[0] == "G" #channel
       if @rules_imported.key?(user.id) and @rules_imported[user.id].key?(dchannel)
         if @rules_imported[user.id][dchannel] != channel_id
           respond "You are not using those rules.", dest
         else
           @rules_imported[user.id].delete(dchannel)
-          update_rules_imported() if config.on_master_bot
+          update_rules_imported()
           respond "You won't be using those rules from now on.", dest
 
           def git_project() "" end
@@ -30,7 +31,7 @@ class SlackSmartBot
           respond "You are not using those rules.", dest
         else
           @rules_imported[user.id].delete(user.id)
-          update_rules_imported() if config.on_master_bot
+          update_rules_imported()
           respond "You won't be using those rules from now on.", dest
 
           def git_project() "" end

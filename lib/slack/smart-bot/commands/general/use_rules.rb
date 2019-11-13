@@ -35,7 +35,7 @@ class SlackSmartBot
         else
           @rules_imported[user.id][user.id] = channel_found.id
         end
-        update_rules_imported() if config.on_master_bot
+        update_rules_imported()
         respond "I'm using now the rules from <##{channel_found.id}>", dest
 
         def git_project() "" end

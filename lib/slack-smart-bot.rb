@@ -161,13 +161,7 @@ class SlackSmartBot
       end
     end
 
-    # rules imported only for DM
-    if config.on_master_bot and File.exist?("#{config.path}/rules/rules_imported.rb")
-      file_conf = IO.readlines("#{config.path}/rules/rules_imported.rb").join
-      unless file_conf.to_s() == ""
-        @rules_imported = eval(file_conf)
-      end
-    end
+    get_rules_imported()
 
     begin
       user_info = client.web_client.users_info(user: "#{"@" if config[:nick][0] != "@"}#{config[:nick]}")

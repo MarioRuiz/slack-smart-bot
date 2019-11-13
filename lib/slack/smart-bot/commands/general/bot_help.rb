@@ -26,12 +26,8 @@ class SlackSmartBot
         end
       end
     else
-      if (dest[0] == "C") || (dest[0] == "G") and @rules_imported.key?(user.id) &&
-                                                  @rules_imported[user.id].key?(dchannel) && @bots_created.key?(@rules_imported[user.id][dchannel])
-        message = "*You are using rules from another channel: <##{@rules_imported[user.id][dchannel]}>. These are the specific commands for that channel:*"
-      elsif dest[0] == "D" && @rules_imported.key?(user.id) && @rules_imported[user.id].key?(user.id) and
-            @bots_created.key?(@rules_imported[user.id][user.id])
-        message = "*You are using rules from another channel: <##{@rules_imported[user.id][user.id]}>. These are the specific commands for that channel:*"
+      if Thread.current[:using_channel]!=''
+        message = "*You are using rules from another channel: <##{Thread.current[:using_channel]}>. These are the specific commands for that channel:*"
       end
       respond message, dest
     end

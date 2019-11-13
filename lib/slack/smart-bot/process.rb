@@ -135,8 +135,8 @@ class SlackSmartBot
         shortcut_name = $3.to_s.downcase
         command_to_run = $4
         add_shortcut(dest, from, typem, for_all, shortcut_name, command, command_to_run)
-      when /^\s*delete\s+shortcut\s+(.+)/i, /^delete\s+sc\s+(.+)/i
-        shortcut = $1.to_s.downcase
+      when /^\s*(delete|remove)\s+shortcut\s+(.+)/i, /^(delete|remove)\s+sc\s+(.+)/i
+        shortcut = $2.to_s.downcase
         delete_shortcut(dest, from, shortcut, typem, command)
       when /^\s*see\sshortcuts/i, /^see\ssc/i
         see_shortcuts(dest, from, typem)

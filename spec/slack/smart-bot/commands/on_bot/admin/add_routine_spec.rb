@@ -150,7 +150,7 @@ RSpec.describe SlackSmartBot, "add_routine" do
   describe "on extended channel" do
     it "doesn't respond" do
       send_message "!add routine example every 2s !ruby puts 'Sam'", from: :uadmin, to: :cext1
-      expect(buffer(to: :cext1, from: :ubot, tries: 4).join).to eq ""
+      expect(buffer(to: :cext1, from: :ubot).join).to match(/I don't understand/)
     end
   end
 
@@ -158,7 +158,8 @@ RSpec.describe SlackSmartBot, "add_routine" do
     it "doesn't respond to external demand" do
       command = 'add routine example every 2s !ruby puts "Sam"'
       send_message "<@#{UBOT}> on <##{CBOT1CM}|bot1cm> #{command}", from: :uadmin, to: :cexternal
-      expect(buffer(to: :cexternal, from: :ubot, tries: 4).join).to eq ""
-    end
+      expect(buffer(to: :cexternal, from: :ubot).join).to  match(/I don't understand/)
+      expect(buffer(to: :cexternal, from: :ubot).join).to  match(/Take in consideration when on external calls/)
+  end
   end
 end

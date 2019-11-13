@@ -50,14 +50,14 @@ RSpec.describe SlackSmartBot, "hi_bot" do
   end
   it "doesn't respond on extended channel" do
     send_message "!hi bot", from: :uadmin, to: :cext1
-    expect(buffer(to: :cext1, from: :ubot, tries: 4).join).to eq ""
+    expect(buffer(to: :cext1, from: :ubot).join).to match(/I don't understand/)
   end
 
   describe "on external channel not extended" do
     it "doesn't respond to external demand" do
       command = "hi bot"
       send_message "<@#{UBOT}> on <##{CBOT1CM}|bot1cm> #{command}", from: :uadmin, to: :cexternal
-      expect(buffer(to: :cexternal, from: :ubot, tries: 4).join).to eq ""
-    end
+      expect(buffer(to: :cexternal, from: :ubot).join).to  match(/Take in consideration when on external calls/)
+  end
   end
 end

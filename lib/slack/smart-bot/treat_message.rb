@@ -1,6 +1,10 @@
 class SlackSmartBot
   def treat_message(data)
-    data.text = CGI.unescapeHTML(data.text)
+    begin
+      data.text = CGI.unescapeHTML(data.text) unless data.text.to_s.match(/\A\s*\z/)
+    rescue
+      @logger.warn "Impossible to unescape the data.text:#{data.text}"
+    end
     if config[:testing] and config.on_master_bot
       open("#{config.path}/buffer.log", "a") { |f|
         f.puts "|#{data.channel}|#{data.user}|#{data.text}"
@@ -30,7 +34,7 @@ class SlackSmartBot
           typem = :on_call
         end
       elsif dest == @master_bot_id
-        if config.on_master_bot #only to be treated on master mot channel
+        if config.on_master_bot #only to be treated on master bot channel
           typem = :on_master
         end
       elsif @bots_created.key?(dest)
@@ -38,7 +42,15 @@ class SlackSmartBot
           typem = :on_bot
         end
       elsif dest[0] == "D" #Direct message
-        if config.on_master_bot #only to be treated by master bot
+        get_rules_imported()
+        if @rules_imported.key?(data.user) && @rules_imported[data.user].key?(data.user) and
+          @bots_created.key?(@rules_imported[data.user][data.user])
+          if @channel_id == @rules_imported[data.user][data.user]
+            #only to be treated by the channel we are 'using'
+            typem = :on_dm
+          end
+        elsif config.on_master_bot
+          #only to be treated by master bot
           typem = :on_dm
         end
       elsif dest[0] == "C" or dest[0] == "G"

@@ -58,14 +58,15 @@ RSpec.describe SlackSmartBot, "exit_bot" do
   describe "on extended channel" do
     it "doesn't respond" do
       send_message "!close bot", from: :uadmin, to: :cext1
-      expect(buffer(to: :cext1, from: :ubot, tries: 4).join).to eq ""
+      expect(buffer(to: :cext1, from: :ubot).join).to match(/I don't understand/)
     end
   end
   describe "on external channel not extended" do
     it "doesn't respond to external demand" do
       command = "close bot"
       send_message "<@#{UBOT}> on <##{CBOT1CM}|bot1cm> #{command}", from: :uadmin, to: :cexternal
-      expect(buffer(to: :cexternal, from: :ubot, tries: 4).join).to eq ""
+      expect(buffer(to: :cexternal, from: :ubot).join).to  match(/I don't understand/)
+      expect(buffer(to: :cexternal, from: :ubot).join).to  match(/Take in consideration when on external calls/)
     end
   end
 end

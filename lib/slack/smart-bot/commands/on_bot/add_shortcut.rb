@@ -39,7 +39,6 @@ class SlackSmartBot
         update_shortcuts_file()
         respond "shortcut added", dest
       else
-
         #are you sure? to avoid overwriting existing
         unless @questions.keys.include?(from)
           ask("The shortcut already exists, are you sure you want to overwrite it?", command, from, dest)

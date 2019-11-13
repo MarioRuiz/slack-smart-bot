@@ -13,10 +13,8 @@ class SlackSmartBot
     if @status == :on
       greetings = ["Hello", "Hallo", "Hi", "Hola", "What's up", "Hey", "Hæ"].sample
       respond "#{greetings} #{display_name}", dest
-      if @rules_imported.key?(user.id) and @rules_imported[user.id].key?(user.id) and dest[0] == "D"
-        respond "You are using specific rules for channel: <##{@rules_imported[user.id][user.id]}>", dest
-      elsif @rules_imported.key?(user.id) and @rules_imported[user.id].key?(dchannel) and (dest[0] == "C" or dest[0] == "G")
-        respond "You are using specific rules for channel: <##{@rules_imported[user.id][dchannel]}>", dest
+      if Thread.current[:using_channel]!=''
+        respond "You are using specific rules for channel: <##{Thread.current[:using_channel]}>", dest
       end
       @listening << from unless @listening.include?(from)
     end

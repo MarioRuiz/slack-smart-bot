@@ -15,6 +15,7 @@ class SlackSmartBot
       if !config.on_master_bot and dest[0] == "D"
         respond "It's only possible to remove routines from MASTER channel from a direct message with the bot.", dest
       elsif @routines.key?(@channel_id) and @routines[@channel_id].key?(name)
+        @routines[@channel_id][name][:thread].exit
         @routines[@channel_id].delete(name)
         update_routines()
         respond "The routine *`#{name}`* has been removed.", dest

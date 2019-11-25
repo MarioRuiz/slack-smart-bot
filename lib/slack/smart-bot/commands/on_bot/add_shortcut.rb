@@ -9,6 +9,7 @@ class SlackSmartBot
   # help: `shortcut for all NAME: COMMAND`
   # help:    It will add a shortcut that will execute the command we supply.
   # help:    In case we supply 'for all' then the shorcut will be available for everybody
+  # help:    If you want to use a shortcut as a inline shortcut inside a command you can do it by adding a $ fex: _!run tests $cust1_
   # help:    Example:
   # help:        _add shortcut for all Spanish account: code require 'iso/iban'; 10.times {puts ISO::IBAN.random('ES')}_
   # help:    Then to call this shortcut:

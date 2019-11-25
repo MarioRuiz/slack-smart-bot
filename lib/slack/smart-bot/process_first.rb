@@ -85,6 +85,27 @@ class SlackSmartBot
       addexcl = false
       command = text.downcase.lstrip.rstrip
     end
+
+    if command.include?('$') #for adding shortcuts inside commands
+      command.scan(/\$([^\$]+)/i).flatten.each do |sc|
+        sc.strip!
+        if @shortcuts.key?(nick) and @shortcuts[nick].keys.include?(sc)
+          command.gsub!("$#{sc}", @shortcuts[nick][sc])
+        elsif @shortcuts.key?(:all) and @shortcuts[:all].keys.include?(sc)
+          command.gsub!("$#{sc}", @shortcuts[:all][sc])
+        end
+      end
+      command.scan(/\$([^\s]+)/i).flatten.each do |sc|
+        sc.strip!
+        if @shortcuts.key?(nick) and @shortcuts[nick].keys.include?(sc)
+          command.gsub!("$#{sc}", @shortcuts[nick][sc])
+        elsif @shortcuts.key?(:all) and @shortcuts[:all].keys.include?(sc)
+          command.gsub!("$#{sc}", @shortcuts[:all][sc])
+        end
+      end
+      text = command
+      text = "!" + text if addexcl and text[0] != "!"
+    end
     if command.scan(/^(shortcut|sc)\s+([^:]+)\s*$/i).any? or
        (@shortcuts.keys.include?(:all) and @shortcuts[:all].keys.include?(command)) or
        (@shortcuts.keys.include?(nick) and @shortcuts[nick].keys.include?(command))

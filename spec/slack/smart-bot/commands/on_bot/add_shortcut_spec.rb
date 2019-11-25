@@ -103,6 +103,24 @@ RSpec.describe SlackSmartBot, "add_shortcut" do
       message = "You cannot create a shortcut for all with the same name than other user is using"
       expect(buffer(to: channel, from: :ubot)[-1]).to match(/#{message}/)
     end
+    it "calls shortcut on inline command" do
+      send_message "!shortcut example: This is a text to display", from: user, to: channel
+      send_message "!echo $example", from: user, to: channel
+      sleep 2
+      expect(buffer(to: channel, from: :ubot)[-1]).to match(/^This is a text to display$/)
+    end
+    it "calls two shortcuts on inline command" do
+      send_message "!shortcut example: This is a text to display", from: user, to: channel
+      send_message "!shortcut love: Love is in the air", from: user, to: channel
+      clean_buffer()
+      send_message "!echo $example $love", from: user, to: channel
+      sleep 2
+      buff = buffer(to: channel, from: :ubot).join
+      send_message "!delete shortcut love", from: user, to: channel
+      send_message "yes", from: user, to: channel
+      expect(buff).to match(/This is a text to display\sLove is in the air/)
+    end
+
   end
 
   describe "on master channel" do

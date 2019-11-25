@@ -284,6 +284,17 @@ Example:
 `ES4799209592433480943244`  
 `ES8888795057132445752702`  
 
+In case you want to use a shortcut as a inline shortcut inside a command you can do it by adding a $:
+Example:
+>**_Peter>_** `!add shortcut cust1: 3488823-1233`
+>**_Smart-Bot>_** `shortcut added`  
+>**_Peter>_** `!add shortcut cust2: 1111555-6688`
+>**_Smart-Bot>_** `shortcut added`  
+>**_Peter>_** `!run tests $cust1`  
+>**_Smart-Bot>_** `Running tests for customers 3488823-1233`  
+>**_Peter>_** `!run tests $cust1 $cust2`
+>**_Smart-Bot>_** `Running tests for customers 3488823-1233 1111555-6688`  
+
 To see available shortcuts: **_`see shortcuts`_** and to delete a particular shortcut: **_`delete shortcut NAME`_**
 
 ### Routines

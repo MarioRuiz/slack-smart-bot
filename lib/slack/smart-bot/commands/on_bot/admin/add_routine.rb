@@ -67,6 +67,9 @@ class SlackSmartBot
             if !files.nil? && (files.size == 1)
               @logger.info files[0].inspect if config.testing
               file_path = "#{config.path}/routines/#{@channel_id}/#{name}#{files[0].name.scan(/[^\.]+(\.\w+$)/).join}"
+              if files[0].filetype == "ruby" and files[0].name.scan(/[^\.]+(\.\w+$)/).join == ''
+                file_path += ".rb"
+              end
               http = NiceHttp.new(host: "https://files.slack.com", headers: { "Authorization" => "Bearer #{config[:token]}" }, log_headers: :partial)
               http.get(files[0].url_private_download, save_data: file_path)
               system("chmod +x #{file_path}")

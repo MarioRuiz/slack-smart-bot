@@ -296,7 +296,6 @@ class SlackSmartBot
         txt += help.on_bot[o]
       end
     end
-
     if help.key?(:on_bot) and help.on_bot.key?(:admin)
       txt += "===================================
         *Admin commands:*\n"
@@ -332,6 +331,7 @@ class SlackSmartBot
       end
       txt += help.rules_file
     end
+
     return txt
   end
 end

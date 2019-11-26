@@ -4,7 +4,6 @@ class SlackSmartBot
       dest = Thread.current[:dest]
     end
     dest = @channels_id[dest] if @channels_id.key?(dest) #it is a name of channel
-
     if dest.nil?
       if config[:simulate]
         open("#{config.path}/buffer_complete.log", "a") { |f|

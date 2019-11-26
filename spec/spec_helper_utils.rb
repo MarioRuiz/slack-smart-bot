@@ -1,4 +1,4 @@
-require "spec_helper_settings"
+require_relative "spec_helper_settings"
 
 def get_key(user)
   key = user

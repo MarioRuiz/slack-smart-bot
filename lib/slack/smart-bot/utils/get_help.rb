@@ -25,7 +25,7 @@ class SlackSmartBot
       channel_type = :bot
     end
 
-    @help_messages ||= build_help("#{__dir__}/commands")
+    @help_messages ||= build_help("#{__dir__}/../commands")
     if only_rules
       help = {}
     else

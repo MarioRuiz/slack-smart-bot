@@ -5,8 +5,7 @@ class SlackSmartBot
     get_bots_created()
       @buffer_complete = [] unless defined?(@buffer_complete)
       b = File.read("#{config.path}/buffer_complete.log")
-      b.gsub!("$$$","~~~")
-      result = b.scan(/^\|(\w+)\|(\w+)\|([^~]+)\~\~\~/m)
+      result = b.scan(/^\|(\w+)\|(\w+)\|([^~]+)~~~/m)
       result.delete(nil)
       new_messages = result[@buffer_complete.size..-1]
       unless new_messages.nil? or new_messages.empty?

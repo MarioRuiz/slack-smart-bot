@@ -14,6 +14,7 @@ require_relative "slack/smart-bot/comm"
 require_relative "slack/smart-bot/listen"
 require_relative "slack/smart-bot/treat_message"
 require_relative "slack/smart-bot/process_first"
+require_relative "slack/smart-bot/commands"
 require_relative "slack/smart-bot/process"
 require_relative "slack/smart-bot/utils"
 

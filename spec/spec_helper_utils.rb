@@ -116,7 +116,7 @@ def send_message(message, from: :ubot, to:, file_ruby: "")
   if file_ruby.to_s == ""
     if SIMULATE
       open("./spec/bot/buffer_complete.log", "a") { |f|
-        f.puts "|#{to_key}|#{get_key(from)}|#{message}$$$"
+        f.puts "|#{to_key}|#{get_key(from)}|#{message}~~~"
       }
     else
       http.post(path: "/api/chat.postMessage", data: {

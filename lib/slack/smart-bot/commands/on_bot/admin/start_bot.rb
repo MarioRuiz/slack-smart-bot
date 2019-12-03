@@ -10,6 +10,7 @@ class SlackSmartBot
     if config.admins.include?(from) #admin user
       respond "This bot is running and listening from now on. You can pause again: pause this bot", dest
       @status = :on
+      @bots_created[@channel_id][:status] = :on
       unless config.on_master_bot
         send_msg_channel config.master_channel, "Changed status on #{config.channel} to :on"
       end

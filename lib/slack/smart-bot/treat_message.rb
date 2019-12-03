@@ -71,7 +71,6 @@ class SlackSmartBot
         end
       end
     end
-
     unless typem == :dont_treat
       begin
         #todo: when changed @questions user_id then move user_info inside the ifs to avoid calling it when not necessary
@@ -146,6 +145,22 @@ class SlackSmartBot
       if !config.on_master_bot and !dest.nil? and (dest == @master_bot_id or dest[0] == "D") and
          data.text.match?(/^\s*bot\s+status\s*$/i) and @admin_users_id.include?(data.user)
         respond "ping from #{config.channel}", dest
+      elsif !config.on_master_bot and !dest.nil? and data.user == config[:nick_id] and dest == @master_bot_id
+        # to treat on other bots the status messages populated on master bot
+        case data.text
+        when /^Bot has been (closed|killed) by/i
+          sleep 2
+          get_bots_created()
+        when /^Changed status on (.+) to :(.+)/i
+          sleep 2
+          get_bots_created()
+        when /extended the rules from (.+) to be used on (.+)\.$/i
+          sleep 2
+          get_bots_created()
+        when /removed the access to the rules of (.+) from (.+)\.$/i
+          sleep 2
+          get_bots_created()
+        end
       end
     end
   end

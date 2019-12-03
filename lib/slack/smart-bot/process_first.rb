@@ -2,7 +2,6 @@ class SlackSmartBot
   def process_first(user, text, dest, dchannel, typem, files)
     nick = user.name
     rules_file = ""
-
     if typem == :on_call
       rules_file = config.rules_file
     elsif dest[0] == "C" or dest[0] == "G" # on a channel or private channel

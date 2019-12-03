@@ -142,7 +142,7 @@ def rules(user, command, processed, dest, files = [], rules_file = "")
 
     else
       unless processed
-        dont_understand(rules_file, command, user, dest)
+        dont_understand()
       end
     end
   rescue => exception

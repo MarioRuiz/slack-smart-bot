@@ -22,7 +22,6 @@ class SlackSmartBot
   end
 
   def listen
-    @salutations = [config[:nick], "<@#{config[:nick_id]}>", "bot", "smart"]
     @pings = []
     get_bots_created()
 

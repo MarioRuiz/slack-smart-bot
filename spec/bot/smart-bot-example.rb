@@ -1,7 +1,6 @@
 require_relative "../../lib/slack-smart-bot"
 
 settings = {
-  nick: "example", # the smart bot name
   token: ENV["SSB_TOKEN"], # the API Slack token
   testing: true,
   simulate: true,

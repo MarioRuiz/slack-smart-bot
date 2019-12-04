@@ -47,7 +47,6 @@ settings = {
     # the channel that will act like the master channel, main channel
     master_channel: 'my_master_channel',
     masters: ["mario"], #names of the master users
-    nick: 'smart-bot', # the smart bot name
     token: 'xxxxxxxxxxxxxxxxxx' # the API Slack token
 }
 

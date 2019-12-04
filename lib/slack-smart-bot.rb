@@ -165,17 +165,6 @@ class SlackSmartBot
     get_rules_imported()
 
     begin
-      user_info = client.web_client.users_info(user: "#{"@" if config[:nick][0] != "@"}#{config[:nick]}")
-      config[:nick_id] = user_info.user.id
-    rescue Slack::Web::Api::Errors::TooManyRequestsError
-      @logger.fatal "TooManyRequestsError"
-      abort("TooManyRequestsError please re run the bot and be sure of executing first: killall ruby")
-    rescue Exception => stack
-      @logger.fatal stack
-      abort("The bot user specified on settings: #{config[:nick]}, doesn't exist on Slack. Execution aborted")
-    end
-
-    begin
       @admin_users_id = []
       config.admins.each do |au|
         user_info = client.web_client.users_info(user: "@#{au}")
@@ -192,6 +181,10 @@ class SlackSmartBot
       m = "Successfully connected, welcome '#{client.self.name}' to the '#{client.team.name}' team at https://#{client.team.domain}.slack.com."
       puts m
       @logger.info m
+      config.nick = client.self.name
+      config.nick_id = client.self.id
+      @salutations = [config[:nick], "<@#{config[:nick_id]}>", "bot", "smart"]
+
       gems_remote = `gem list slack-smart-bot --remote`
       version_remote = gems_remote.to_s().scan(/slack-smart-bot \((\d+\.\d+\.\d+)/).join
       version_message = ""

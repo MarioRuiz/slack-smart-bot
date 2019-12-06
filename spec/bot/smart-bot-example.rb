@@ -7,7 +7,9 @@ settings = {
   masters: ['marioruizs'],
   master_channel: 'master_channel',
   path: './spec/bot/',
-  file: 'smart-bot-example.rb'
+  file: 'smart-bot-example.rb',
+  nick: 'example',
+  nick_id: 'UMSRCRTAR'
 }
 
 if settings.simulate 

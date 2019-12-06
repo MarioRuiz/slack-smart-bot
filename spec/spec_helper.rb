@@ -38,7 +38,8 @@ RSpec.configure do |config|
         master_channel: 'master_channel',
         path: './spec/bot/',
         file: 'smart-bot-example.rb',
-        start_bots: false
+        start_bots: false,
+        nick_id: 'UMSRCRTAR'
       }
       Thread.new do
         sb = SlackSmartBot.new(@settings)

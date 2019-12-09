@@ -153,10 +153,12 @@ class SlackSmartBot
         @bots_created.each { |key, value|
           if !value.key?(:cloud) or (value.key?(:cloud) and value[:cloud] == false)
             @logger.info "ruby #{config.file_path} \"#{value[:channel_name]}\" \"#{value[:admins]}\" \"#{value[:rules_file]}\" #{value[:status].to_sym}"
+            puts "Starting #{value[:channel_name]} Smart Bot"
             t = Thread.new do
               `ruby #{config.file_path} \"#{value[:channel_name]}\" \"#{value[:admins]}\" \"#{value[:rules_file]}\" #{value[:status].to_sym}`
             end
             value[:thread] = t
+            sleep value[:admins].size
           end
         }
       end
@@ -169,6 +171,7 @@ class SlackSmartBot
       config.admins.each do |au|
         user_info = client.web_client.users_info(user: "@#{au}")
         @admin_users_id << user_info.user.id
+        sleep 1
       end
     rescue Slack::Web::Api::Errors::TooManyRequestsError
       @logger.fatal "TooManyRequestsError"

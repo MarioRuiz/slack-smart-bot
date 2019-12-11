@@ -58,7 +58,7 @@ class SlackSmartBot
               respond "Copy the bot folder to your cloud location and run `ruby #{config.file} \"#{channel}\" \"#{admin_users.join(",")}\" \"#{rules_file}\" on&`", dest
             else
               t = Thread.new do
-                `ruby #{config.file_path} \"#{channel}\" \"#{admin_users.join(",")}\" \"#{rules_file}\" on`
+                `BOT_SILENT=false ruby #{config.file_path} \"#{channel}\" \"#{admin_users.join(",")}\" \"#{rules_file}\" on`
               end
             end
             @bots_created[channel_id] = {

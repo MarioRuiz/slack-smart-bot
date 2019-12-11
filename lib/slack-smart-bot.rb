@@ -36,7 +36,13 @@ class SlackSmartBot
     else
       config[:path] = '.'
     end
-    config[:silent] = false unless config.key?(:silent)
+    if ENV['BOT_SILENT'].to_s == 'true'
+      config[:silent] = true
+    elsif ENV['BOT_SILENT'].to_s == 'false'
+      config[:silent] = false
+    else
+      config[:silent] = false unless config.key?(:silent)
+    end
     config[:testing] = false unless config.key?(:testing)
     config[:simulate] = false unless config.key?(:simulate)
     if config.path.to_s!='' and config.file.to_s==''

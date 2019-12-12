@@ -8,7 +8,7 @@ class SlackSmartBot
   # help:    you need to be part of that channel to be able to use the rules.
   # help:
   def use_rules(dest, channel, user, dchannel)
-
+    get_bots_created()
     #todo: add pagination for case more than 1000 channels on the workspace
     channels = client.web_client.conversations_list(
       types: "private_channel,public_channel",

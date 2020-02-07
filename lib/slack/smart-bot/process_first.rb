@@ -1,7 +1,8 @@
 class SlackSmartBot
-  def process_first(user, text, dest, dchannel, typem, files)
+  def process_first(user, text, dest, dchannel, typem, files, ts, thread_ts)
     nick = user.name
     rules_file = ""
+    text.gsub!(/^!!/,'^') # to treat it just as ^
     if typem == :on_call
       rules_file = config.rules_file
     elsif dest[0] == "C" or dest[0] == "G" # on a channel or private channel
@@ -30,7 +31,7 @@ class SlackSmartBot
         when /^Bot has been (closed|killed) by/i
           if config.channel == @channels_name[dchannel]
             @logger.info "#{nick}: #{text}"
-            if config.simulate #jal
+            if config.simulate
               @status = :off
               config.simulate = false
               Thread.exit
@@ -76,13 +77,31 @@ class SlackSmartBot
 
     #only for shortcuts
     if text.match(/^@?(#{config[:nick]}):*\s+(.+)\s*/im) or
-       text.match(/^()!\s*(.+)\s*/im) or
-       text.match(/^()<@#{config[:nick_id]}>\s+(.+)\s*/im)
-      command = $2
-      addexcl = true
+      text.match(/^()\^\s*(.+)\s*/im) or
+      text.match(/^()!\s*(.+)\s*/im) or
+      text.match(/^()<@#{config[:nick_id]}>\s+(.+)\s*/im)
+       command2 = $2
+       if text.match?(/^()\^\s*(.+)/im)
+         add_double_excl = true
+         addexcl = false
+         if command2.match?(/^![^!]/) or command2.match?(/^\^/)
+          command2[0]=''
+         elsif command2.match?(/^!!/)
+          command2[0]=''
+          command2[1]=''
+         end
+       else
+        add_double_excl = false
+        addexcl = true
+       end
+       command = command2
     else
       addexcl = false
-      command = text.downcase.lstrip.rstrip
+      if text.include?('$') #for shortcuts inside commands
+        command = text.lstrip.rstrip
+      else
+        command = text.downcase.lstrip.rstrip
+      end
     end
 
     if command.include?('$') #for adding shortcuts inside commands
@@ -104,6 +123,7 @@ class SlackSmartBot
       end
       text = command
       text = "!" + text if addexcl and text[0] != "!"
+      text = "^" + text if add_double_excl
     end
     if command.scan(/^(shortcut|sc)\s+([^:]+)\s*$/i).any? or
        (@shortcuts.keys.include?(:all) and @shortcuts[:all].keys.include?(command)) or
@@ -118,6 +138,7 @@ class SlackSmartBot
         return :next #jal
       end
       text = "!" + text if addexcl and text[0] != "!"
+      text = "^" + text if add_double_excl
     end
 
     command = text
@@ -130,6 +151,15 @@ class SlackSmartBot
           Thread.current[:command] = command
           Thread.current[:rules_file] = rules_file
           Thread.current[:typem] = typem
+          Thread.current[:files?] = !files.nil? && files.size>0
+          Thread.current[:ts] = ts
+          Thread.current[:thread_ts] = thread_ts
+          if thread_ts.to_s == ''
+            Thread.current[:on_thread] = false
+            Thread.current[:thread_ts] = Thread.current[:ts] # to create the thread if necessary
+          else
+            Thread.current[:on_thread] = true
+          end
           if (dest[0] == "C") || (dest[0] == "G") and @rules_imported.key?(user.id) &&
             @rules_imported[user.id].key?(dchannel) && @bots_created.key?(@rules_imported[user.id][dchannel])
               Thread.current[:using_channel] = @rules_imported[user.id][dchannel]
@@ -140,14 +170,21 @@ class SlackSmartBot
               Thread.current[:using_channel] = ''
           end
 
-          processed = process(user, command, dest, dchannel, rules_file, typem, files)
+          processed = process(user, command, dest, dchannel, rules_file, typem, files, Thread.current[:thread_ts])
           @logger.info "command: #{nick}> #{command}" if processed
           on_demand = false
           if command.match(/^@?(#{config[:nick]}):*\s+(.+)/im) or
-             command.match(/^()!(.+)/im) or
-             command.match(/^()<@#{config[:nick_id]}>\s+(.+)/im)
-            command = $2
-            Thread.current[:command] = command
+            command.match(/^()!!(.+)/im) or
+            command.match(/^()\^(.+)/im) or
+            command.match(/^()!(.+)/im) or
+            command.match(/^()<@#{config[:nick_id]}>\s+(.+)/im)
+            command2 = $2
+            Thread.current[:command] = command2
+            if command2.match?(/^()!!(.+)/im) or
+              command.match?(/^()\^(.+)/im)
+              Thread.current[:on_thread] = true
+            end
+            command = command2
             on_demand = true
           end
           if @status == :on and

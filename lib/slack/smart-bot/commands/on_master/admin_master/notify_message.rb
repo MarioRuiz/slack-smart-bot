@@ -9,6 +9,7 @@ class SlackSmartBot
   # helpmaster:    Only works if you are on Master channel and you are a master admin user
   # helpmaster:
   def notify_message(dest, from, where, message)
+    save_stats(__method__)
     if config.on_master_bot
       if config.admins.include?(from) #admin user
         if where.nil? #not all and not channel

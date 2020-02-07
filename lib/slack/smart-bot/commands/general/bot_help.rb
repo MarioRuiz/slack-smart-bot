@@ -11,7 +11,7 @@ class SlackSmartBot
   # help:    `bot rules` will show only the specific rules for this channel.
   # help:
   def bot_help(user, from, dest, dchannel, specific, help_command, rules_file)
-    help_message_rules = ""
+    save_stats(__method__)
     help_found = false
 
     message = ""
@@ -19,7 +19,7 @@ class SlackSmartBot
     help_message = get_help(rules_file, dest, from, specific)
 
     if help_command.to_s != ""
-      help_message.split(/^\s*-------*$/).each do |h|
+      help_message.gsub(/====+/,'-'*30).split(/^\s*-------*$/).each do |h|
         if h.match?(/[`_]#{help_command}/i)
           respond h, dest
           help_found = true
@@ -52,7 +52,7 @@ class SlackSmartBot
           eval(File.new(config.path + rules_file).read) if File.exist?(config.path + rules_file)
         end
       end
-      if defined?(git_project) && (git_project.to_s != "") && (help_message_rules != "") && (help_command.to_s == "")
+      if defined?(git_project) && (git_project.to_s != "") && (help_command.to_s == "")
         respond "Git project: #{git_project}", dest
       else
         def git_project

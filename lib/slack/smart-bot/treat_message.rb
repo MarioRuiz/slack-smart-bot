@@ -1,9 +1,31 @@
 class SlackSmartBot
   def treat_message(data)
     begin
-      data.text = CGI.unescapeHTML(data.text) unless data.text.to_s.match(/\A\s*\z/)
+      unless data.text.to_s.match(/\A\s*\z/)
+        #to remove italic, bold... from data.text since there is no method on slack api
+        #only works when no @user or #channel mentioned
+        if !data.blocks.nil? and data.blocks.size > 0
+          data.blocks.each do |b|
+            if b.type == 'rich_text'
+              if b.elements.size > 0
+                b.elements.each do |e|
+                  if e.type == 'rich_text_section'
+                    if e.elements.size > 0 and e.elements.type.uniq == ['text']
+                      data.text = e.elements.text.join
+                    end
+                    break
+                  end
+                end
+              end
+              break
+            end
+          end
+        end
+        data.text = CGI.unescapeHTML(data.text)
+        data.text.gsub!("\u00A0", " ") #to change &nbsp; (asc char 160) into blank space
+      end
     rescue
-      @logger.warn "Impossible to unescape the data.text:#{data.text}"
+      @logger.warn "Impossible to unescape or clean format for data.text:#{data.text}"
     end
     if config[:testing] and config.on_master_bot
       open("#{config.path}/buffer.log", "a") { |f|
@@ -56,9 +78,10 @@ class SlackSmartBot
       elsif dest[0] == "C" or dest[0] == "G"
         #only to be treated on the channel of the bot. excluding running ruby
         if !config.on_master_bot and @bots_created.key?(@channel_id) and @bots_created[@channel_id][:extended].include?(@channels_name[dest]) and
-           !data.text.match?(/^!?\s*(ruby|code)\s+/)
+           !data.text.match?(/^!?\s*(ruby|code)\s+/) and !data.text.match?(/^!?!?\s*(ruby|code)\s+/) and !data.text.match?(/^\^?\s*(ruby|code)\s+/)
           typem = :on_extended
-        elsif config.on_master_bot and data.text.match?(/^!?\s*(ruby|code)\s+/) #or in case of running ruby, the master bot
+        elsif config.on_master_bot and (data.text.match?(/^!?\s*(ruby|code)\s+/) or data.text.match?(/^!?!?\s*(ruby|code)\s+/) or data.text.match?(/^\^?\s*(ruby|code)\s+/)  )
+          #or in case of running ruby, the master bot
           @bots_created.each do |k, v|
             if v.key?(:extended) and v[:extended].include?(@channels_name[dest])
               typem = :on_extended
@@ -104,7 +127,7 @@ class SlackSmartBot
         end
 
         if typem == :on_call
-          command = "!" + command unless command[0] == "!" or command.match?(/^\s*$/)
+          command = "!" + command unless command[0] == "!" or command.match?(/^\s*$/) or command[0] == "^"
 
           #todo: add pagination for case more than 1000 channels on the workspace
           channels = client.web_client.conversations_list(
@@ -121,21 +144,21 @@ class SlackSmartBot
           elsif @status != :on
             respond "The bot in that channel is not :on", dest
           elsif data.user == channel_found.creator or members.include?(data.user)
-            process_first(user_info.user, command, dest, channel_rules, typem, data.files)
+            process_first(user_info.user, command, dest, channel_rules, typem, data.files, data.ts, data.thread_ts)
           else
             respond "You need to join the channel <##{channel_found.id}> to be able to use the rules.", dest
           end
         elsif config.on_master_bot and typem == :on_extended and
               command.size > 0 and command[0] != "-"
           # to run ruby only from the master bot for the case more than one extended
-          process_first(user_info.user, command, dest, @channel_id, typem, data.files)
+          process_first(user_info.user, command, dest, @channel_id, typem, data.files, data.ts, data.thread_ts)
         elsif !config.on_master_bot and @bots_created[@channel_id].key?(:extended) and
               @bots_created[@channel_id][:extended].include?(@channels_name[data.channel]) and
               command.size > 0 and command[0] != "-"
-          process_first(user_info.user, command, dest, @channel_id, typem, data.files)
+          process_first(user_info.user, command, dest, @channel_id, typem, data.files, data.ts, data.thread_ts)
         elsif (dest[0] == "D" or @channel_id == data.channel or data.user == config[:nick_id]) and
               command.size > 0 and command[0] != "-"
-          process_first(user_info.user, command, dest, data.channel, typem, data.files)
+          process_first(user_info.user, command, dest, data.channel, typem, data.files, data.ts, data.thread_ts)
           # if @botname on #channel_rules: do something
         end
       rescue Exception => stack

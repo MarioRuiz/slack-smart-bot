@@ -6,6 +6,7 @@ settings = {
   simulate: true,
   masters: ['marioruizs'],
   master_channel: 'master_channel',
+  stats: true,
   path: './spec/bot/',
   file: 'smart-bot-example.rb',
   nick: 'example',

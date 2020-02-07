@@ -11,6 +11,7 @@ class SlackSmartBot
   # help:
   def hi_bot(user, dest, dchannel, from, display_name)
     if @status == :on
+      save_stats(__method__)
       greetings = ["Hello", "Hallo", "Hi", "Hola", "What's up", "Hey", "Hæ"].sample
       respond "#{greetings} #{display_name}", dest
       if Thread.current[:using_channel]!=''

@@ -6,6 +6,7 @@ class SlackSmartBot
   # help:
 
   def delete_shortcut(dest, from, shortcut, typem, command)
+    save_stats(__method__)
     unless typem == :on_extended
       deleted = false
 

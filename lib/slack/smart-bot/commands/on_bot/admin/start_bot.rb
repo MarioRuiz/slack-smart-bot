@@ -7,6 +7,7 @@ class SlackSmartBot
   # helpadmin:    You can use this command only if you are an admin user
   # helpadmin:
   def start_bot(dest, from)
+    save_stats(__method__)
     if config.admins.include?(from) #admin user
       respond "This bot is running and listening from now on. You can pause again: pause this bot", dest
       @status = :on

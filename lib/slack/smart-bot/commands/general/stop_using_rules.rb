@@ -4,6 +4,7 @@ class SlackSmartBot
   # help:    it will stop using the rules from the specified channel.
   # help:
   def stop_using_rules(dest, channel, user, dchannel)
+    save_stats(__method__)
     if @channels_id.key?(channel)
       channel_id = @channels_id[channel]
     else

@@ -5,6 +5,7 @@ class SlackSmartBot
   # helpadmin:    If on master channel and admin user also it will display info about bots created
   # helpadmin:
   def bot_status(dest, from)
+    save_stats(__method__)
     get_bots_created()
     gems_remote = `gem list slack-smart-bot --remote`
     version_remote = gems_remote.to_s().scan(/slack-smart-bot \((\d+\.\d+\.\d+)/).join

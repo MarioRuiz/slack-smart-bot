@@ -1,6 +1,7 @@
 class SlackSmartBot
 
   def dont_understand(rules_file = nil, command = nil, user = nil, dest = nil, answer = ["what?", "huh?", "sorry?", "what do you mean?", "I don't understand"], channel_rules: config.channel, typem: nil)
+    save_stats(:dont_understand)
     command = Thread.current[:command] if command.nil?
     user = Thread.current[:user] if user.nil?
     dest = Thread.current[:dest] if dest.nil?

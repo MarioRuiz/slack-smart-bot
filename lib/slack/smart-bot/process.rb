@@ -1,5 +1,5 @@
 class SlackSmartBot
-  def process(user, command, dest, dchannel, rules_file, typem, files)
+  def process(user, command, dest, dchannel, rules_file, typem, files, ts)
     from = user.name
     if user.profile.display_name.to_s.match?(/\A\s*\z/)
       user.profile.display_name = user.profile.real_name
@@ -9,10 +9,18 @@ class SlackSmartBot
 
     on_demand = false
     if command.match(/^@?(#{config[:nick]}):*\s+(.+)/im) or
+       command.match(/^()!!(.+)/im) or
+       command.match(/^()\^(.+)/im) or
        command.match(/^()!(.+)/im) or
        command.match(/^()<@#{config[:nick_id]}>\s+(.+)/im)
-      command = $2
-      on_demand = true
+        command2 = $2
+        Thread.current[:command] = command2
+        if command2.match?(/^()!!(.+)/im) or
+          command.match?(/^()\^(.+)/im)
+          Thread.current[:on_thread] = true
+        end
+        command = command2
+        on_demand = true
     end
 
     #todo: check :on_pg in this case
@@ -84,6 +92,24 @@ class SlackSmartBot
       when /^\s*see\s+(all\s+)?routines\s*$/i
         all = $1.to_s != ""
         see_routines(dest, from, user, all)
+      when /^\s*get\s+bot\s+logs?\s*$/i
+        get_bot_logs(dest, from, typem)
+      when /^\s*bot\s+stats\s*(.*)\s*$/i
+        opts = $1.to_s
+        all_opts = opts.downcase.split(' ')
+        st_channel = opts.scan(/<#(\w+)\|.+>/).join
+        st_from = opts.scan(/from\s+(\d\d\d\d[\/\-\.]\d\d[\/\-\.]\d\d)/).join
+        st_from = st_from.gsub('.','-').gsub('/','-')
+        st_to = opts.scan(/to\s+(\d\d\d\d[\/\-\.]\d\d[\/\-\.]\d\d)/).join
+        st_to = st_to.gsub('.','-').gsub('/','-')
+        st_user = opts.scan(/<@([^>]+)>/).join
+        exclude_masters = opts.match?(/exclude\s+masters?/i)
+        if all_opts.include?('today')
+          st_from = st_to = "#{Time.now.strftime("%Y-%m-%d")}"
+        end
+        exclude_command = opts.scan(/exclude\s+([^\s]+)/i).join
+        exclude_command = '' if exclude_command == 'masters'
+        bot_stats(dest, from, typem, st_channel, st_from, st_to, st_user, exclude_masters, exclude_command)
       else
         processed = false
       end

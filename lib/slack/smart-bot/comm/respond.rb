@@ -10,7 +10,11 @@ class SlackSmartBot
           f.puts "|#{@channel_id}|#{config[:nick_id]}|#{msg}~~~"
         }
       else  
-        client.message(channel: @channel_id, text: msg, as_user: true)
+        if Thread.current[:on_thread]
+          client.message(channel: @channel_id, text: msg, as_user: true, thread_ts: Thread.current[:thread_ts])
+        else
+          client.message(channel: @channel_id, text: msg, as_user: true)
+        end
       end
       if config[:testing] and config.on_master_bot
         open("#{config.path}/buffer.log", "a") { |f|
@@ -23,7 +27,11 @@ class SlackSmartBot
         f.puts "|#{dest}|#{config[:nick_id]}|#{msg}~~~"
       }
       else  
-        client.message(channel: dest, text: msg, as_user: true)
+        if Thread.current[:on_thread]
+          client.message(channel: dest, text: msg, as_user: true, thread_ts: Thread.current[:thread_ts])
+        else
+          client.message(channel: dest, text: msg, as_user: true)
+        end
       end
       if config[:testing] and config.on_master_bot
         open("#{config.path}/buffer.log", "a") { |f|

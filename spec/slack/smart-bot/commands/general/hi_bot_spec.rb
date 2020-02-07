@@ -65,4 +65,8 @@ RSpec.describe SlackSmartBot, "hi_bot" do
       expect(buffer(to: :cexternal, from: :ubot).join).to  match(/Take in consideration when on external calls/)
     end
   end
+
+  #todo: add tests for Slack Threads
+  #todo: add tests for react method
+
 end

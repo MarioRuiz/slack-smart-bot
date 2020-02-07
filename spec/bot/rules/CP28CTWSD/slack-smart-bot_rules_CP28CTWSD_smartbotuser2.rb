@@ -49,6 +49,9 @@ end
 # help:       `!THE_COMMAND`
 # help:       `@NAME_OF_BOT THE_COMMAND`
 # help:       `NAME_OF_BOT THE_COMMAND`
+# help:     To run a command on demand and add the respond on a thread:
+# help:       `^THE_COMMAND`
+# help:       `!!THE_COMMAND`
 # help:
 def rules(user, command, processed, dest, files = [], rules_file = "")
   from = user.name

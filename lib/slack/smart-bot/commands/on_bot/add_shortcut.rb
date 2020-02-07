@@ -18,6 +18,7 @@ class SlackSmartBot
   # help:        _Spanish Account_
   # help:
   def add_shortcut(dest, from, typem, for_all, shortcut_name, command, command_to_run)
+    save_stats(__method__)
     unless typem == :on_extended
       @shortcuts[from] = Hash.new() unless @shortcuts.keys.include?(from)
 

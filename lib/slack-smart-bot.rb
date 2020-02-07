@@ -45,6 +45,8 @@ class SlackSmartBot
     end
     config[:testing] = false unless config.key?(:testing)
     config[:simulate] = false unless config.key?(:simulate)
+    config[:stats] = false unless config.key?(:stats)
+
     if config.path.to_s!='' and config.file.to_s==''
       config.file = File.basename($0)
     end
@@ -54,6 +56,10 @@ class SlackSmartBot
       config.file_path = $0
       config.file = File.basename(config.file_path)
       config.path = File.dirname(config.file_path)
+    end
+    if config.stats
+      Dir.mkdir("#{config.path}/stats") unless Dir.exist?("#{config.path}/stats")
+      config.stats_path = "#{config.path}/stats/#{config.file.gsub(".rb", ".stats")}"
     end
     Dir.mkdir("#{config.path}/logs") unless Dir.exist?("#{config.path}/logs")
     Dir.mkdir("#{config.path}/shortcuts") unless Dir.exist?("#{config.path}/shortcuts")
@@ -101,6 +107,7 @@ class SlackSmartBot
 
 
     logfile = File.basename(config.rules_file.gsub("_rules_", "_logs_"), ".rb") + ".log"
+    config.log_file = logfile
     @logger = Logger.new("#{config.path}/logs/#{logfile}")
 
     config_log = config.dup

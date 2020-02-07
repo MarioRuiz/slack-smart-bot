@@ -30,6 +30,9 @@ end
 # help:       `!THE_COMMAND`
 # help:       `@NAME_OF_BOT THE_COMMAND`
 # help:       `NAME_OF_BOT THE_COMMAND`
+# help:     To run a command on demand and add the respond on a thread:
+# help:       `^THE_COMMAND`
+# help:       `!!THE_COMMAND`
 # help:
 def rules(user, command, processed, dest, files = [], rules_file = "")
   from = user.name
@@ -44,13 +47,16 @@ def rules(user, command, processed, dest, files = [], rules_file = "")
     # help:  Examples:
     # help:     _echo I am the Smart Bot_
     when /^echo\s(.+)/i
+      save_stats :echo
       respond $1
+      react :monkey_face
 
       # help: ----------------------------------------------
       # help: `go to sleep`
       # help:   it will sleep the bot for 5 seconds
       # help:
     when /^go\sto\ssleep/i
+      save_stats :to_to_sleep
       unless @questions.keys.include?(from)
         ask "do you want me to take a siesta?"
       else
@@ -59,7 +65,9 @@ def rules(user, command, processed, dest, files = [], rules_file = "")
           @questions.delete(from)
           respond "I'll be sleeping for 5 secs... just for you"
           respond "zZzzzzzZZZZZZzzzzzzz!"
+          react :sleeping
           sleep 5
+          react :sunny
         when /no/i, /nope/i, /cancel/i
           @questions.delete(from)
           respond "Thanks, I'm happy to be awake"
@@ -74,7 +82,8 @@ def rules(user, command, processed, dest, files = [], rules_file = "")
       # help:   It will run the process and report the results when done
       # help:
     when /^run something/i
-      respond "Running"
+      save_stats :run_something
+      react :runner
 
       process_to_run = "ruby -v"
       process_to_run = ("cd #{project_folder} &&" + process_to_run) if defined?(project_folder)
@@ -88,7 +97,9 @@ def rules(user, command, processed, dest, files = [], rules_file = "")
       else
         respond "#{display_name}: #{stdout} #{stderr}"
       end
-
+      
+      # Emoticons you can use with `react` command https://www.webfx.com/tools/emoji-cheat-sheet/
+      
       # Examples for respond and respond_direct
       #   # send 'the message' to the channel or direct message where the command was written
       #   respond "the message"

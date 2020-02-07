@@ -27,6 +27,7 @@ RSpec.configure do |config|
       FileUtils.rm_rf(Dir["./spec/bot/routines/*"])
       FileUtils.rm_rf(Dir["./spec/bot/routines/**/*"])
       FileUtils.rm_rf(Dir["./spec/bot/shortcuts/*"])
+      FileUtils.rm_rf(Dir["./spec/bot/stats/*"])
       File.delete("./spec/bot/rules/rules_imported.rb") if File.exists?("./spec/bot/rules/rules_imported.rb")
 
       @settings = {
@@ -39,6 +40,7 @@ RSpec.configure do |config|
         path: './spec/bot/',
         file: 'smart-bot-example.rb',
         start_bots: false,
+        stats: true,
         nick_id: 'UMSRCRTAR'
       }
       Thread.new do

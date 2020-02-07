@@ -8,6 +8,7 @@ class SlackSmartBot
   # helpmaster:    follow the instructions in case creating cloud bots
   # helpmaster:
   def create_bot(dest, from, cloud, channel)
+    save_stats(__method__)
     if config.on_master_bot
       get_channels_name_and_id() unless @channels_name.keys.include?(channel) or @channels_id.keys.include?(channel)
       channel_id = nil

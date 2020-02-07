@@ -8,6 +8,7 @@ class SlackSmartBot
   # help:
 
   def ruby_code(dest, code, rules_file)
+    save_stats(__method__)
     unless code.match?(/System/i) or code.match?(/Kernel/i) or code.include?("File") or
            code.include?("`") or code.include?("exec") or code.include?("spawn") or code.include?("IO.") or
            code.match?(/open3/i) or code.match?(/bundle/i) or code.match?(/gemfile/i) or code.include?("%x") or
@@ -36,7 +37,7 @@ class SlackSmartBot
             respond stdout, dest
           end
         else
-          respond stderr, dest
+          respond "#{stderr}\n#{stdout}", dest
         end
       rescue Exception => exc
         respond exc, dest

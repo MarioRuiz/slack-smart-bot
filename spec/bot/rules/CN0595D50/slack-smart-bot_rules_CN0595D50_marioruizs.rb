@@ -49,6 +49,9 @@ end
 # help:       `!THE_COMMAND`
 # help:       `@NAME_OF_BOT THE_COMMAND`
 # help:       `NAME_OF_BOT THE_COMMAND`
+# help:     To run a command on demand and add the respond on a thread:
+# help:       `^THE_COMMAND`
+# help:       `!!THE_COMMAND`
 # help:
 def rules(user, command, processed, dest, files = [], rules_file = "")
   from = user.name
@@ -68,14 +71,16 @@ def rules(user, command, processed, dest, files = [], rules_file = "")
     # help: `which rules`
     # help:  which rules for bot1cm
     # help:
-    when /^which rules$/i
+    when /^which\s+rules$/i
       respond "bot1cm"
+      react :thumbsup
 
       # help: ----------------------------------------------
       # help: `echo SOMETHING`
       # help:     repeats SOMETHING
       # help:
     when /^echo\s(.+)/i
+      save_stats(:echo)
       respond $1
 
     when /^test silent (.+)$/i

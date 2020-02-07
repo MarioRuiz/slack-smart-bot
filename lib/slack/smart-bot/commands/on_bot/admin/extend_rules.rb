@@ -6,6 +6,7 @@ class SlackSmartBot
   # helpadmin:    It will allow to use the specific rules from this channel on the CHANNEL_NAME
   # helpadmin:
   def extend_rules(dest, user, from, channel, typem)
+    save_stats(__method__)
     unless typem == :on_extended
       if config.on_master_bot
         respond "You cannot use the rules from Master Channel on any other channel.", dest

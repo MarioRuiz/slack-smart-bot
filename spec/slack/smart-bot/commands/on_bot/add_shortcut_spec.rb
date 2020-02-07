@@ -120,7 +120,12 @@ RSpec.describe SlackSmartBot, "add_shortcut" do
       send_message "yes", from: user, to: channel
       expect(buff).to match(/This is a text to display\sLove is in the air/)
     end
-
+    it "can use inline shortcut" do
+      send_message "!shortcut example: Text", from: user, to: channel
+      send_message "!echo $example", from: user, to: channel
+      sleep 2
+      expect(buffer(to: channel, from: :ubot)[-1]).to match(/^Text$/)
+    end
   end
 
   describe "on master channel" do

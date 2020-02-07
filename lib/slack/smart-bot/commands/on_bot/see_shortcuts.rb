@@ -5,6 +5,7 @@ class SlackSmartBot
   # help:    It will display the shortcuts stored for the user and for :all
   # help:
   def see_shortcuts(dest, from, typem)
+    save_stats(__method__)
     unless typem == :on_extended
       msg = ""
       if @shortcuts[:all].keys.size > 0

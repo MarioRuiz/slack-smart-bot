@@ -6,6 +6,7 @@ class SlackSmartBot
   # helpadmin:
 
   def stop_using_rules_on(dest, user, from, channel, typem)
+    save_stats(__method__)
     unless typem == :on_extended
       if !config.admins.include?(from) #not admin
         respond "Only admins can extend or stop using the rules. Admins on this channel: #{config.admins}", dest

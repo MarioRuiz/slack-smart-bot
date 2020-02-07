@@ -4,7 +4,7 @@ class SlackSmartBot
       general: [:hi_bot, :bye_bot, :bot_help, :bot_status, :use_rules, :stop_using_rules],
       on_bot: [:ruby_code, :add_shortcut, :delete_shortcut, :see_shortcuts],
       on_bot_admin: [:extend_rules, :stop_using_rules_on, :start_bot, :pause_bot, :add_routine,
-                     :see_routines, :start_routine, :pause_routine, :remove_routine, :run_routine],
+        :see_routines, :start_routine, :pause_routine, :remove_routine, :run_routine]
     }
     # user_type: :admin, :user, :admin_master
     if config.masters.include?(from)
@@ -34,20 +34,23 @@ class SlackSmartBot
     if rules_file != ""
       help[:rules_file] = IO.readlines(config.path+rules_file).join.scan(/#\s*help\s*\w*:(.*)/i).join("\n")
     end
-
     help = remove_hash_keys(help, :admin_master) unless user_type == :admin_master
     help = remove_hash_keys(help, :admin) unless user_type == :admin or user_type == :admin_master
     help = remove_hash_keys(help, :on_master) unless channel_type == :master_bot
     help = remove_hash_keys(help, :on_extended) unless channel_type == :extended
     help = remove_hash_keys(help, :on_dm) unless channel_type == :direct
     txt = ""
+
     if channel_type == :bot or channel_type == :master_bot
       txt += "===================================
       For the Smart Bot start listening to you say *hi bot*
       To run a command on demand even when the Smart Bot is not listening to you:
             *!THE_COMMAND*
             *@NAME_OF_BOT THE_COMMAND*
-            *NAME_OF_BOT THE_COMMAND*\n"
+            *NAME_OF_BOT THE_COMMAND*
+      To run a command on demand and add the respond on a thread:
+            *^THE_COMMAND*
+            *!!THE_COMMAND*\n"
     end
     if channel_type == :direct
       txt += "===================================
@@ -104,17 +107,20 @@ class SlackSmartBot
       end
     end
 
-    if help.key?(:on_master) and help.on_master.key?(:admin_master)
+    if help.key?(:on_bot) and help.on_bot.key?(:admin_master) and help.on_bot.admin_master.size > 0
+      txt += "===================================
+      *Master Admin commands:*\n"
+      help.on_bot.admin_master.each do |k, v|
+        txt += v if v.is_a?(String)
+      end
+    end
+
+    if help.key?(:on_master) and help.on_master.key?(:admin_master) and help.on_master.admin_master.size > 0
       txt += "===================================
       *Master Admin commands:*\n"
       help.on_master.admin_master.each do |k, v|
         txt += v if v.is_a?(String)
       end
-    end
-
-    if help.key?(:on_bot) and help.on_bot.key?(:admin_master) and help.on_bot.admin_master.size > 0
-      txt += "===================================
-      *Master Admin commands:*\n"
     end
 
     if help.key?(:rules_file)

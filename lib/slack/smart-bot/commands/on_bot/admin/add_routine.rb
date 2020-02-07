@@ -23,6 +23,7 @@ class SlackSmartBot
   # helpadmin:      _create silent routine every 12 hours !Run customer tests_
   # helpadmin:
   def add_routine(dest, from, user, name, type, number_time, period, command_to_run, files, silent)
+    save_stats(__method__)
     if files.nil? or files.size == 0 or (files.size > 0 and config.masters.include?(from))
       if config.admins.include?(from)
         if @routines.key?(@channel_id) && @routines[@channel_id].key?(name)

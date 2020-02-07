@@ -10,6 +10,11 @@ class SlackSmartBot
     else
       channel = to
     end
+    if Thread.current[:on_thread]
+      ts = Thread.current[:thread_ts]
+    else
+      ts = nil
+    end
 
     client.web_client.files_upload(
       channels: channel,
@@ -19,6 +24,7 @@ class SlackSmartBot
       filename: file,
       filetype: type,
       initial_comment: msg,
+      thread_ts: ts
     )
   end
 

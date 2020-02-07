@@ -106,6 +106,7 @@ def rules(user, command, processed, dest)
     # help:
     when /^echo\s(.+)/i
       respond $1
+      react :monkey_face
 
     # help: `go to sleep`
     # help:   it will sleep the bot for 10 seconds
@@ -119,7 +120,9 @@ def rules(user, command, processed, dest)
             @questions.delete(from)
             respond "I'll be sleeping for 10 secs... just for you"
             respond "zZzzzzzZZZZZZzzzzzzz!"
+            react :sleeping
             sleep 10
+            react :sunny
           when /no/i, /nope/i, /cancel/i
             @questions.delete(from)
             respond "Thanks, I'm happy to be awake"
@@ -134,7 +137,7 @@ def rules(user, command, processed, dest)
     # help:   It will run the process and report the results when done
     # help:
     when /^run something/i
-      respond "Running"
+      react :runner
 
       process_to_run = "ruby -v"
       stdout, stderr, status = Open3.capture3(process_to_run)
@@ -171,6 +174,9 @@ To run a command on demand:
   **_`!THE_COMMAND`_**  
   **_`@NAME_OF_BOT THE_COMMAND`_**  
   **_`NAME_OF_BOT THE_COMMAND`_**  
+To run a command on demand and add the respond on a thread:
+  **_`^THE_COMMAND`_**
+  **_`!!THE_COMMAND`_**
 
 Examples run a command on demand:
 >**_Peter>_** `!ruby puts Time.now`  
@@ -182,12 +188,18 @@ Examples run a command on demand:
 >**_Peter>_** `smart-bot see shortcuts`  
 >**_Smart-Bot>_** `Available shortcuts for Peter:`  
 >`Spanish account: ruby require 'iso/iban'; 10.times {puts ISO::IBAN.random('ES')}`
+>**_Peter>_** `!!echo Example`
+>                 **_Smart-Bot>_** `Example`
+>**_Peter>_** `^echo Example`
+>                 **_Smart-Bot>_** `Example`
 
 Also you can always call the Smart Bot from any channel, even from channels without a running Smart Bot. You can use the External Call on Demand: **_`@NAME_OF_BOT on #CHANNEL_NAME COMMAND`_**. In this case you will call the bot on #CHANNEL_NAME.
 
 Example:
 >**_Peter>_** `@smart-bot on #the_channel ruby puts Time.now`  
 >**_Smart-Bot>_** `2019-10-23 12:43:42 +0000`
+>**_Peter>_** `@smart-bot on #the_channel ^ruby puts Time.now`  
+                 >**_Smart-Bot>_** `2019-10-23 12:43:42 +0000`
 
 
 
@@ -231,6 +243,10 @@ If you want to pause a bot, from the channel of the bot: **_`pause bot`_**. To s
 To see the status of the bots, on the MASTER CHANNEL: **_`bot status`_**
 
 To close the Master Bot, run on MASTER CHANNEL: **_`exit bot`_**
+
+If you are a Master Admin on a Direct Message with the Smart Bot you can call the **_`bot stats`_** and get use stats of the users. You need to set to <true> the `stats` settings when initializing the Smart Bot. Take a look at `bot help bot stats` for more info.
+
+You can also get the bot logs of the bot channel you are using by calling `get bot logs`. You need to be a Master Admin user on a DM with the Smart Bot.
 
 #### Cloud Bots
 If you want to create a bot that will be running on a different machine: **_`create cloud bot on CHANNEL`_**. Even though the cloud bots are running on different machines, the management can be done through the MASTER CHANNEL. The new cloud bot will be managed by your Master Bot like the others, closing, pausing...

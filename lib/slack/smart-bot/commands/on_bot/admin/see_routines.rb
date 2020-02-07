@@ -7,6 +7,7 @@ class SlackSmartBot
   # helpadmin:    You can use this command only if you are an admin user
   # helpadmin:
   def see_routines(dest, from, user, all)
+    save_stats(__method__)
     if config.admins.include?(from) #admin user
       if all
         routines = {}

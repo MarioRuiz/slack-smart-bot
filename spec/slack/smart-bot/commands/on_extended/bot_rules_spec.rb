@@ -11,7 +11,7 @@ RSpec.describe SlackSmartBot, "bot_rules" do
     it "responds to !bot rules" do
       send_message "!bot rules", from: user, to: channel
       expect(buffer(to: channel, from: :ubot).join).to match(/Rules from channel bot1cm/)
-      expect(buffer(to: channel, from: :ubot).join).to match(/To run the commands on this extended channel, add `!` before the command/)
+      expect(buffer(to: channel, from: :ubot).join).to match(/To run the commands on this extended channel, add `!`, `!!` or `^` before the command./)
       expect(buffer(to: channel, from: :ubot).join).to match(/which rules for bot1cm/)
     end
     it "responds to !bot rules COMMAND" do

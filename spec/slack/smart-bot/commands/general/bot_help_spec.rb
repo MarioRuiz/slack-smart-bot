@@ -41,7 +41,7 @@ RSpec.describe SlackSmartBot, "bot_help" do
         expect(buffer(to: channel, from: :ubot).join).to match(@general_nlist)
         expect(buffer(to: channel, from: :ubot).join).to match(@general_list)
         expect(buffer(to: channel, from: :ubot).join).to match(@admin)
-        expect(buffer(to: channel, from: :ubot).join).not_to match(@master_admin)
+        expect(buffer(to: channel, from: :ubot).join).to match(@master_admin)
         expect(buffer(to: channel, from: :ubot).join).not_to match(@direct)
         expect(buffer(to: channel, from: :ubot).join).to match(@without_bot)
         expect(buffer(to: channel, from: :ubot).join).to match(@rules)

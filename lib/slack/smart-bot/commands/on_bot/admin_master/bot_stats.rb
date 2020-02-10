@@ -44,7 +44,7 @@ class SlackSmartBot
                 to+= " 23:59:59 +0000"
                 rows = []
 
-                Dir["#{config.stats_path}.*.log"].each do |file|
+                Dir["#{config.stats_path}.*.log"].sort.each do |file|
                     if file >= "#{config.stats_path}.#{from_file}.log" or file <= "#{config.stats_path}.#{to_file}.log"
                         CSV.foreach(file, headers: true, header_converters: :symbol, converters: :numeric) do |row|
                             row[:date] = row[:date].to_s

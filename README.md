@@ -174,8 +174,8 @@ To run a command on demand:
   **_`!THE_COMMAND`_**  
   **_`@NAME_OF_BOT THE_COMMAND`_**  
   **_`NAME_OF_BOT THE_COMMAND`_**  
-To run a command on demand and add the respond on a thread:
-  **_`^THE_COMMAND`_**
+To run a command on demand and add the respond on a thread:  
+  **_`^THE_COMMAND`_**  
   **_`!!THE_COMMAND`_**
 
 Examples run a command on demand:
@@ -187,21 +187,30 @@ Examples run a command on demand:
 
 >**_Peter>_** `smart-bot see shortcuts`  
 >**_Smart-Bot>_** `Available shortcuts for Peter:`  
->`Spanish account: ruby require 'iso/iban'; 10.times {puts ISO::IBAN.random('ES')}`
->**_Peter>_** `!!echo Example`
->                 **_Smart-Bot>_** `Example`
->**_Peter>_** `^echo Example`
->                 **_Smart-Bot>_** `Example`
+>`Spanish account: ruby require 'iso/iban'; 10.times {puts ISO::IBAN.random('ES')}`  
+>**_Peter>_** `!!echo Example`  
+>. . . . . . . . .**_Smart-Bot>_** `Example`  
+>**_Peter>_** `^echo Example`  
+>. . . . . . . . .**_Smart-Bot>_** `Example`
 
 Also you can always call the Smart Bot from any channel, even from channels without a running Smart Bot. You can use the External Call on Demand: **_`@NAME_OF_BOT on #CHANNEL_NAME COMMAND`_**. In this case you will call the bot on #CHANNEL_NAME.
 
 Example:
 >**_Peter>_** `@smart-bot on #the_channel ruby puts Time.now`  
->**_Smart-Bot>_** `2019-10-23 12:43:42 +0000`
+>**_Smart-Bot>_** `2019-10-23 12:43:42 +0000`  
 >**_Peter>_** `@smart-bot on #the_channel ^ruby puts Time.now`  
-                 >**_Smart-Bot>_** `2019-10-23 12:43:42 +0000`
+>. . . . . . . . .**_Smart-Bot>_** `2019-10-23 12:43:42 +0000`
 
+If you want the Smart Bot just listen to part of the message you send, add the commands you want using '`' and start the line with '-!', '-!!' or '-^'
 
+Examples:
+>**_Peter>_** ``-!This text won't be treated but this one yes `ruby puts 'a'` and also this one `ruby puts 'b'` ``  
+>**_Smart-Bot>_** `a`  
+>**_Smart-Bot>_** `b`
+
+>**_Peter>_** ``-^This text won't be treated but this one yes `ruby puts 'a'` and also this one `ruby puts 'b'` ``  
+>. . . . . . . . .**_Smart-Bot>_** `a`  
+>. . . . . . . . .**_Smart-Bot>_** `b`
 
 ### Bot Help
 To get a full list of all commands and rules for a specific Smart Bot: **_`bot help`_**. It will show only the specific available commands for the user requesting.

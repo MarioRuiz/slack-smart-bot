@@ -1,10 +1,10 @@
 class SlackSmartBot
-  def treat_message(data)
+  def treat_message(data, remove_blocks = true)
     begin
       unless data.text.to_s.match(/\A\s*\z/)
         #to remove italic, bold... from data.text since there is no method on slack api
         #only works when no @user or #channel mentioned
-        if !data.blocks.nil? and data.blocks.size > 0
+        if remove_blocks and !data.blocks.nil? and data.blocks.size > 0
           data.blocks.each do |b|
             if b.type == 'rich_text'
               if b.elements.size > 0

@@ -14,9 +14,27 @@ class SlackSmartBot
           channel = message[0].strip
           user = message[1].strip
           command = message[2].to_s.strip
-          # take in consideration that on simulation we are treating all messages even those that are not populated on real cases like when the message is not populated to the specific bot connection when message is sent with the bot
+          # take in consideration that on simulation we are treating all messages even those that are not populated on real cases like when the message is not populated to the specific bot connection when message is sent with the bot          
           @logger.info "treat message: #{message}" if config.testing
-          treat_message({channel: channel, user: user, text: command})
+
+
+          if command.match?(/^\s*\-!!/) or command.match?(/^\s*\-\^/)
+            command.scan(/`([^`]+)`/).flatten.each do |cmd|
+              if cmd.to_s!=''
+                cmd = "^#{cmd}"
+                treat_message({channel: channel, user: user, text: cmd}, false)
+              end
+            end
+          elsif command.match?(/^\s*\-!/)
+            command.scan(/`([^`]+)`/).flatten.each do |cmd|
+              if cmd.to_s!=''
+                cmd = "!#{cmd}"
+                treat_message({channel: channel, user: user, text: cmd}, false)
+              end
+            end
+          else
+            treat_message({channel: channel, user: user, text: command})
+          end
         end
       end
   end
@@ -26,8 +44,26 @@ class SlackSmartBot
     get_bots_created()
 
     client.on :message do |data|
-      unless data.user == "USLACKBOT"
-        treat_message(data)
+      unless data.user == "USLACKBOT" or data.text.nil?
+        if data.text.match?(/^\s*\-!!/) or data.text.match?(/^\s*\-\^/)
+          data.text.scan(/`([^`]+)`/).flatten.each do |cmd|
+            if cmd.to_s!=''
+              datao = data.dup
+              datao.text = "^#{cmd}"
+              treat_message(datao, false)
+            end
+          end
+        elsif data.text.match?(/^\s*\-!/)
+          data.text.scan(/`([^`]+)`/).flatten.each do |cmd|
+            if cmd.to_s!=''
+              datao = data.dup
+              datao.text = "!#{cmd}"
+              treat_message(datao, false)
+            end
+          end
+        else
+          treat_message(data)
+        end
       end
     end
 

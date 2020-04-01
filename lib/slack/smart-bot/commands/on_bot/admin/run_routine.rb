@@ -22,6 +22,7 @@ class SlackSmartBot
           else
             ruby = ""
           end
+          started = Time.now
           process_to_run = "#{ruby}#{Dir.pwd}#{@routines[@channel_id][name][:file_path][1..-1]}"
           process_to_run = ("cd #{project_folder} &&" + process_to_run) if defined?(project_folder)
 

@@ -1,5 +1,6 @@
 class SlackSmartBot
   def treat_message(data, remove_blocks = true)
+
     begin
       unless data.text.to_s.match(/\A\s*\z/)
         #to remove italic, bold... from data.text since there is no method on slack api
@@ -10,8 +11,15 @@ class SlackSmartBot
               if b.elements.size > 0
                 b.elements.each do |e|
                   if e.type == 'rich_text_section'
-                    if e.elements.size > 0 and e.elements.type.uniq == ['text']
-                      data.text = e.elements.text.join
+                    if e.elements.size > 0 and (e.elements.type.uniq - ['link', 'text']) == []
+                      data.text = ''
+                      e.elements.each do |el|
+                        if el.type == 'text'
+                          data.text += el.text
+                        else
+                          data.text += el.url
+                        end
+                      end
                     end
                     break
                   end
@@ -98,7 +106,6 @@ class SlackSmartBot
       begin
         #todo: when changed @questions user_id then move user_info inside the ifs to avoid calling it when not necessary
         user_info = client.web_client.users_info(user: data.user)
-
         if @questions.key?(user_info.user.name)
           if data.text.match?(/^\s*(Bye|Bæ|Good\sBye|Adiós|Ciao|Bless|Bless\sBless|Adeu)\s(#{@salutations.join("|")})\s*$/i)
             @questions.delete(user_info.user.name)
@@ -107,6 +114,11 @@ class SlackSmartBot
             command = @questions[user_info.user.name]
             @questions[user_info.user.name] = data.text
           end
+        elsif @repl_sessions.key?(user_info.user.name) and dest==@repl_sessions[user_info.user.name][:dest] and 
+          ((@repl_sessions[user_info.user.name][:on_thread] and data.thread_ts == @repl_sessions[user_info.user.name][:thread_ts]) or
+           (!@repl_sessions[user_info.user.name][:on_thread] and data.thread_ts.to_s == '' ))
+          @repl_sessions[user_info.user.name][:command] = data.text
+          command = 'repl'
         else
           command = data.text
         end

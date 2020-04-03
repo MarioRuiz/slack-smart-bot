@@ -188,7 +188,8 @@ class SlackSmartBot
             on_demand = true
           end
           if @status == :on and
-             (@questions.keys.include?(nick) or
+             (@questions.key?(nick) or
+             @repl_sessions.key?(nick) or 
               (@listening.include?(nick) and typem != :on_extended) or
               dest[0] == "D" or on_demand)
             @logger.info "command: #{nick}> #{command}" unless processed

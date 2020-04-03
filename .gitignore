@@ -10,6 +10,7 @@
 /spec/bot/routines/
 /spec/bot/shortcuts/
 /spec/examples.txt
+/spec/bot/repl
 /test/tmp/
 /test/version_tmp/
 /tmp/

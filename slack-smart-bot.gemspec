@@ -13,10 +13,11 @@ Gem::Specification.new do |s|
   s.homepage    = 'https://github.com/MarioRuiz/slack-smart-bot'
   s.license       = 'MIT'
   s.add_runtime_dependency 'slack-ruby-client', '~> 0.14', '>= 0.14.5'
-  s.add_runtime_dependency 'nice_http', '~> 1.7', '>= 1.7.24'
+  s.add_runtime_dependency 'nice_http', '~> 1.8'
   s.add_runtime_dependency 'nice_hash', '~> 1'
   s.add_runtime_dependency 'async-websocket', '~> 0.8.0'
-  s.add_development_dependency 'rspec', '~> 3.8', '>= 3.8.0'
+  s.add_runtime_dependency 'awesome_print', '~> 1.8'
+  s.add_development_dependency 'rspec', '~> 3.9'
   s.required_ruby_version = '>= 2.4'
   s.post_install_message = "Thanks for installing! Visit us on https://github.com/MarioRuiz/slack-smart-bot"
   s.test_files    = s.files.grep(%r{^(test|spec|features)/})

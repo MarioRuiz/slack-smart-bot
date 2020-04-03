@@ -119,7 +119,8 @@ class SlackSmartBot
 
     # only when :on and (listening or on demand or direct message)
     if @status == :on and
-       (@questions.keys.include?(from) or
+       (@questions.key?(from) or
+       @repl_sessions.key?(from) or 
         (@listening.include?(from) and typem != :on_extended) or
         typem == :on_dm or typem == :on_pg or on_demand)
       processed2 = true
@@ -158,6 +159,22 @@ class SlackSmartBot
         code.gsub!("\\r", "\r")
         @logger.info code
         ruby_code(dest, code, rules_file)
+      when /^\s*(repl|irb|live)\s*()()$/i, 
+        /^\s*(repl|irb|live)\s+([\w\-]+)()\s*$/i,
+        /^\s*(repl|irb|live)\s+([\w\-]+)\s+(.+)\s*$/i,
+        /^\s*(repl|irb|live)\s+()(.+)\s*$/i
+        session_name = $2
+        opts = " #{$3}"
+        env_vars = opts.scan(/\s+[\w\-]+="[^"]+"/i) + opts.scan(/\s+[\w\-]+='[^']+'/i)  
+        opts.scan(/\s+[\w\-]+=[^'"\s]+/i).flatten.each do |ev|
+          env_vars << ev.gsub('=',"='") + "'"
+        end
+        env_vars.each_with_index do |ev, idx|
+            ev.gsub!("=","']=")
+            ev.lstrip!
+            env_vars[idx] = "ENV['#{ev}"
+        end
+        repl(dest, from, session_name, env_vars.flatten, rules_file, command)
       else
         processed2 = false
       end #of case

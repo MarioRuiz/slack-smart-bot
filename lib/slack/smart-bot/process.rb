@@ -120,8 +120,10 @@ class SlackSmartBot
     # only when :on and (listening or on demand or direct message)
     if @status == :on and
        (@questions.key?(from) or
-       @repl_sessions.key?(from) or 
-        (@listening.include?(from) and typem != :on_extended) or
+       (@repl_sessions.key?(from) and dest==@repl_sessions[from][:dest] and 
+        ((@repl_sessions[from][:on_thread] and Thread.current[:thread_ts] == @repl_sessions[from][:thread_ts]) or
+         (!@repl_sessions[from][:on_thread] and !Thread.current[:on_thread]))) or 
+       (@listening.include?(from) and typem != :on_extended) or
         typem == :on_dm or typem == :on_pg or on_demand)
       processed2 = true
 

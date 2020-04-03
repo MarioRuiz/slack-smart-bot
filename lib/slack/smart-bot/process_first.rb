@@ -189,8 +189,10 @@ class SlackSmartBot
           end
           if @status == :on and
              (@questions.key?(nick) or
-             @repl_sessions.key?(nick) or 
-              (@listening.include?(nick) and typem != :on_extended) or
+             (@repl_sessions.key?(nick) and dest==@repl_sessions[nick][:dest] and 
+               ((@repl_sessions[nick][:on_thread] and thread_ts == @repl_sessions[nick][:thread_ts]) or
+                (!@repl_sessions[nick][:on_thread] and !Thread.current[:on_thread] ))) or 
+             (@listening.include?(nick) and typem != :on_extended) or
               dest[0] == "D" or on_demand)
             @logger.info "command: #{nick}> #{command}" unless processed
             #todo: verify this

@@ -17,7 +17,12 @@ class SlackSmartBot
       if Thread.current[:using_channel]!=''
         respond "You are using specific rules for channel: <##{Thread.current[:using_channel]}>", dest
       end
-      @listening << from unless @listening.include?(from)
+      @listening[from] = {} unless @listening.key?(from)
+      if Thread.current[:on_thread]
+        @listening[from][Thread.current[:thread_ts]] = Time.now
+      else
+        @listening[from][dest] = Time.now
+      end
     end
   end
 end

@@ -123,7 +123,9 @@ class SlackSmartBot
        (@repl_sessions.key?(from) and dest==@repl_sessions[from][:dest] and 
         ((@repl_sessions[from][:on_thread] and Thread.current[:thread_ts] == @repl_sessions[from][:thread_ts]) or
          (!@repl_sessions[from][:on_thread] and !Thread.current[:on_thread]))) or 
-       (@listening.include?(from) and typem != :on_extended) or
+         (@listening.key?(from) and typem != :on_extended and 
+         ((@listening[from].key?(dest) and !Thread.current[:on_thread]) or 
+          (@listening[from].key?(Thread.current[:thread_ts]) and Thread.current[:on_thread] ) )) or
         typem == :on_dm or typem == :on_pg or on_demand)
       processed2 = true
 

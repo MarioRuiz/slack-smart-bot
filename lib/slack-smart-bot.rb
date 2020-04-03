@@ -143,7 +143,7 @@ class SlackSmartBot
       end
     end
 
-    @listening = Array.new
+    @listening = Hash.new()
 
     @bots_created = Hash.new()
     @shortcuts = Hash.new()

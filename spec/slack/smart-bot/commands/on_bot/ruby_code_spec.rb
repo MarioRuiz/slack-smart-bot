@@ -32,7 +32,6 @@ RSpec.describe SlackSmartBot, "ruby_code" do
       send_message "!ruby puts ENV['AAA']", from: user, to: channel
       expect(buffer(to: channel, from: :ubot)[-1]).to match(/^Sorry I cannot run this due security reasons$/)
     end
-    
   end
 
   describe "on master channel" do

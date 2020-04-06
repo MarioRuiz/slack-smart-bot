@@ -17,46 +17,51 @@ class SlackSmartBot
   # help:        _shortcut Spanish Account_
   # help:        _Spanish Account_
   # help:
-  def add_shortcut(dest, from, typem, for_all, shortcut_name, command, command_to_run)
+  def add_shortcut(dest, user, typem, for_all, shortcut_name, command, command_to_run)
     save_stats(__method__)
     unless typem == :on_extended
-      @shortcuts[from] = Hash.new() unless @shortcuts.keys.include?(from)
-
-      found_other = false
-      if for_all.to_s != ""
-        @shortcuts.each { |sck, scv|
-          if sck != :all and sck != from and scv.key?(shortcut_name)
-            found_other = true
-          end
-        }
-      end
-      if !config.admins.include?(from) and @shortcuts[:all].include?(shortcut_name) and !@shortcuts[from].include?(shortcut_name)
-        respond "Only the creator of the shortcut can modify it", dest
-      elsif found_other
-        respond "You cannot create a shortcut for all with the same name than other user is using", dest
-      elsif !@shortcuts[from].include?(shortcut_name)
-        #new shortcut
-        @shortcuts[from][shortcut_name] = command_to_run
-        @shortcuts[:all][shortcut_name] = command_to_run if for_all.to_s != ""
-        update_shortcuts_file()
-        respond "shortcut added", dest
+      from = user.name
+      if config[:allow_access].key?(__method__) and !config[:allow_access][__method__].include?(user.name) and !config[:allow_access][__method__].include?(user.id)
+        respond "You don't have access to use this command, please contact an Admin to be able to use it: <@#{config.admins.join(">, <@")}>"
       else
-        #are you sure? to avoid overwriting existing
-        unless @questions.keys.include?(from)
-          ask("The shortcut already exists, are you sure you want to overwrite it?", command, from, dest)
+        @shortcuts[from] = Hash.new() unless @shortcuts.keys.include?(from)
+
+        found_other = false
+        if for_all.to_s != ""
+          @shortcuts.each { |sck, scv|
+            if sck != :all and sck != from and scv.key?(shortcut_name)
+              found_other = true
+            end
+          }
+        end
+        if !config.admins.include?(from) and @shortcuts[:all].include?(shortcut_name) and !@shortcuts[from].include?(shortcut_name)
+          respond "Only the creator of the shortcut can modify it", dest
+        elsif found_other
+          respond "You cannot create a shortcut for all with the same name than other user is using", dest
+        elsif !@shortcuts[from].include?(shortcut_name)
+          #new shortcut
+          @shortcuts[from][shortcut_name] = command_to_run
+          @shortcuts[:all][shortcut_name] = command_to_run if for_all.to_s != ""
+          update_shortcuts_file()
+          respond "shortcut added", dest
         else
-          case @questions[from]
-          when /^(yes|yep)/i
-            @shortcuts[from][shortcut_name] = command_to_run
-            @shortcuts[:all][shortcut_name] = command_to_run if for_all.to_s != ""
-            update_shortcuts_file()
-            respond "shortcut added", dest
-            @questions.delete(from)
-          when /^no/i
-            respond "ok, I won't add it", dest
-            @questions.delete(from)
+          #are you sure? to avoid overwriting existing
+          unless @questions.keys.include?(from)
+            ask("The shortcut already exists, are you sure you want to overwrite it?", command, from, dest)
           else
-            ask "I don't understand, yes or no?", command, from, dest
+            case @questions[from]
+            when /^(yes|yep)/i
+              @shortcuts[from][shortcut_name] = command_to_run
+              @shortcuts[:all][shortcut_name] = command_to_run if for_all.to_s != ""
+              update_shortcuts_file()
+              respond "shortcut added", dest
+              @questions.delete(from)
+            when /^no/i
+              respond "ok, I won't add it", dest
+              @questions.delete(from)
+            else
+              ask "I don't understand, yes or no?", command, from, dest
+            end
           end
         end
       end

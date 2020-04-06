@@ -25,6 +25,7 @@ slack-smart-bot can create bots on demand, create shortcuts, run ruby code... ju
   * [Sending notifications](#sending-notifications)
   * [Shortcuts](#shortcuts)
   * [Routines](#routines)
+  * [Limit who has access to a command](#limit-who-has-access-to-a-command)
   * [Tips](#tips)
     + [Send a file](#send-a-file)
     + [Download a file](#download-a-file)
@@ -340,6 +341,35 @@ Other routine commands:
 * **_`run routine NAME`_**
 * **_`see routines`_**
 
+### Limit who has access to a command
+
+If you want to define who has access to certain commands you can specify it on the settings when starting the Smart Bot:
+
+```ruby
+settings = {
+    # the channel that will act like the master channel, main channel
+    master_channel: 'my_master_channel',
+    masters: ["mario"], #names of the master users
+    token: 'xxxxxxxxxxxxxxxxxx', # the API Slack token
+    allow_access: {
+      repl: [ 'marioruiz', 'peterlondon', 'UMYAAS8E7F'],
+      ruby_code: [ 'marioruiz', 'UMYAAS8E7F', 'samcooke']
+    }
+}
+```
+You can use the user name or the user id.
+
+If you want to change who has access to a certain command without restarting the Smart Bot you can do it on the rules file:
+
+```ruby
+config.allow_access.repl = ['marioruiz', 'samcooke']
+```
+
+These are the commands that are possible to be limited:
+
+`bot_help, bot_rules, bot_status, use_rules, add_shortcut, delete_shortcut, repl, ruby_code, see_shortcuts, create_bot`
+
+
 ### Tips
 
 #### Send a file
@@ -358,7 +388,7 @@ When uploading a file the message added to 'Add a message about the file' will b
     when /^do something with my file/i
       if !files.nil? and files.size == 1 and files[0].filetype == 'yaml'
         require 'nice_http'
-        http = NiceHttp.new(host: "https://files.slack.com", headers: { "Authorization" => "Bearer #{config[:token]}" })
+        http = NiceHttp.new(host: "https://files.slack.com", headers: { "Authorization" => "Bearer #{config.token}" })
         res = http.get(files[0].url_private_download, save_data: './tmp/')
         # if you want to directly access to the content use: `res.data`
       end

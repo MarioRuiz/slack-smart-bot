@@ -68,6 +68,23 @@ def rules(user, command, processed, dest, files = [], rules_file = "")
   begin
     case command
 
+    when /^set_access$/
+      config.allow_access = {
+        bot_help: ['marioruizs', 'UMYQS8E7L'],
+        bot_rules: ['marioruizs', 'UMYQS8E7L'],
+        bot_status: ['marioruizs', 'UMYQS8E7L'],
+        use_rules: ['marioruizs', 'UMYQS8E7L'],
+        add_shortcut: ['marioruizs', 'UMYQS8E7L'],
+        delete_shortcut: ['marioruizs', 'UMYQS8E7L'],
+        repl: ['marioruizs', 'UMYQS8E7L'],
+        ruby_code: ['marioruizs', 'UMYQS8E7L'],
+        see_shortcuts: ['marioruizs', 'UMYQS8E7L'],
+        create_bot: ['marioruizs', 'UMYQS8E7L']
+      }
+    when /^unset_access$/
+      config.allow_access = {
+      }
+
     # help: `which rules`
     # help:  which rules for bot1cm
     # help:

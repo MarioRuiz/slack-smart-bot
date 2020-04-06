@@ -1,6 +1,7 @@
 class SlackSmartBot
   def process(user, command, dest, dchannel, rules_file, typem, files, ts)
     from = user.name
+    
     if user.profile.display_name.to_s.match?(/\A\s*\z/)
       user.profile.display_name = user.profile.real_name
     end
@@ -56,7 +57,7 @@ class SlackSmartBot
       when /^\s*pause\s(this\s)?bot$/i
         pause_bot(dest, from)
       when /^\s*bot\sstatus/i
-        bot_status(dest, from)
+        bot_status(dest, user)
       when /\Anotify\s+<#(C\w+)\|.+>\s+(.+)\s*\z/im, /\Anotify\s+(all)?\s*(.+)\s*\z/im
         where = $1
         message = $2
@@ -64,7 +65,7 @@ class SlackSmartBot
       when /^\s*create\s+(cloud\s+)?bot\s+on\s+<#C\w+\|(.+)>\s*/i, /^create\s+(cloud\s+)?bot\s+on\s+(.+)\s*/i
         cloud = !$1.nil?
         channel = $2
-        create_bot(dest, from, cloud, channel)
+        create_bot(dest, user, cloud, channel)
       when /^\s*kill\sbot\son\s<#C\w+\|(.+)>\s*$/i, /^kill\sbot\son\s(.+)\s*$/i
         channel = $1
         kill_bot_on_channel(dest, from, channel)
@@ -134,17 +135,17 @@ class SlackSmartBot
       # bot rules for extended channels
       when /^bot\s+rules\s*(.+)?$/i
         help_command = $1
-        bot_rules(dest, help_command, typem, rules_file, from)
+        bot_rules(dest, help_command, typem, rules_file, user)
       when /^\s*(add\s)?shortcut\s(for\sall)?\s*([^:]+)\s*:\s*(.+)/i, /^(add\s)sc\s(for\sall)?\s*([^:]+)\s*:\s*(.+)/i
         for_all = $2
         shortcut_name = $3.to_s.downcase
         command_to_run = $4
-        add_shortcut(dest, from, typem, for_all, shortcut_name, command, command_to_run)
+        add_shortcut(dest, user, typem, for_all, shortcut_name, command, command_to_run)
       when /^\s*(delete|remove)\s+shortcut\s+(.+)/i, /^(delete|remove)\s+sc\s+(.+)/i
         shortcut = $2.to_s.downcase
-        delete_shortcut(dest, from, shortcut, typem, command)
+        delete_shortcut(dest, user, shortcut, typem, command)
       when /^\s*see\sshortcuts/i, /^see\ssc/i
-        see_shortcuts(dest, from, typem)
+        see_shortcuts(dest, user, typem)
 
         #kept to be backwards compatible
       when /^\s*id\schannel\s<#C\w+\|(.+)>\s*/i, /^id channel (.+)/
@@ -162,7 +163,7 @@ class SlackSmartBot
         code.gsub!("\\n", "\n")
         code.gsub!("\\r", "\r")
         @logger.info code
-        ruby_code(dest, code, rules_file)
+        ruby_code(dest, user, code, rules_file)
       when /^\s*(repl|irb|live)\s*()()$/i, 
         /^\s*(repl|irb|live)\s+([\w\-]+)()\s*$/i,
         /^\s*(repl|irb|live)\s+([\w\-]+)\s+(.+)\s*$/i,
@@ -178,7 +179,7 @@ class SlackSmartBot
             ev.lstrip!
             env_vars[idx] = "ENV['#{ev}"
         end
-        repl(dest, from, session_name, env_vars.flatten, rules_file, command)
+        repl(dest, user, session_name, env_vars.flatten, rules_file, command)
       else
         processed2 = false
       end #of case

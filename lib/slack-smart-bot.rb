@@ -46,6 +46,7 @@ class SlackSmartBot
     config[:testing] = false unless config.key?(:testing)
     config[:simulate] = false unless config.key?(:simulate)
     config[:stats] = false unless config.key?(:stats)
+    config[:allow_access] = Hash.new unless config.key?(:allow_access)
 
     if config.path.to_s!='' and config.file.to_s==''
       config.file = File.basename($0)

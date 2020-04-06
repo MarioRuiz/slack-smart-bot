@@ -103,6 +103,15 @@ class SlackSmartBot
       end
     end
     unless typem == :dont_treat
+      if (Time.now - @last_activity_check) > 60 * 30 #every 30 minutes
+        @last_activity_check = Time.now
+        @listening.each do |k,v|
+          v.each do |kk, vv|
+            @listening[k].delete(kk) if (Time.now - vv) > 60 * 30
+          end
+          @listening.delete(k) if @listening[k].empty?
+        end
+      end
       begin
         #todo: when changed @questions user_id then move user_info inside the ifs to avoid calling it when not necessary
         user_info = client.web_client.users_info(user: data.user)

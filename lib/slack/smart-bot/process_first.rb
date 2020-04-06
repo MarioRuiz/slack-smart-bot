@@ -268,6 +268,15 @@ class SlackSmartBot
                 dont_understand('')
               end
             end
+
+            if processed and @listening.key?(nick)
+              if Thread.current[:on_thread] and @listening[nick].key?(Thread.current[:thread_ts])
+                @listening[nick][Thread.current[:thread_ts]] = Time.now
+              elsif !Thread.current[:on_thread] and @listening[nick].key?(dest)
+                @listening[nick][dest] = Time.now
+              end
+            end
+
           end
         rescue Exception => stack
           @logger.fatal stack

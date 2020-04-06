@@ -63,15 +63,6 @@ class SlackSmartBot
             end
           end
         else
-          if (Time.now - @last_activity_check) > 60 * 30 #every 30 minutes
-            @last_activity_check = Time.now
-            @listening.each do |k,v|
-              v.each do |kk, vv|
-                @listening[k].delete(kk) if (Time.now - vv) > 60 * 30
-              end
-              @listening.delete(k) if @listening[k].empty?
-            end
-          end
           treat_message(data)
         end
       end

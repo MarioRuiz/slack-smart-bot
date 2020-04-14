@@ -2,6 +2,7 @@ class SlackSmartBot
   def listen_simulate
     @salutations = [config[:nick], "<@#{config[:nick_id]}>", "bot", "smart"]
     @pings = []
+    @last_activity_check = Time.now
     get_bots_created()
       @buffer_complete = [] unless defined?(@buffer_complete)
       b = File.read("#{config.path}/buffer_complete.log")

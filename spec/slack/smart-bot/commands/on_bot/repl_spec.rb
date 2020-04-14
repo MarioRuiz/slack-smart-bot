@@ -58,9 +58,13 @@ RSpec.describe SlackSmartBot, "repl" do
 
     it 'responds continuosly' do
       send_message "!repl", from: user, to: channel
+      sleep 1
       send_message "a = 2222", from: user, to: channel
+      sleep 1
       expect(buffer(to: channel, from: :ubot).join).to match(/2222/)
+      sleep 1
       send_message "a += 3", from: user, to: channel
+      sleep 1
       expect(buffer(to: channel, from: :ubot).join).to match(/2225/)
     end
 

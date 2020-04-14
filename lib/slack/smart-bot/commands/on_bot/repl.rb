@@ -101,14 +101,14 @@ class SlackSmartBot
             eval(\"require \'nice_http\'\" , bindme' + serialt + ')
 
             file_input_repl = File.open(\"' + Dir.pwd + '/repl/' + @channel_id + '/' + session_name + '.input\", \"r\")
+            if File.exist?(\"./.smart-bot-repl\")
+              begin
+                eval(File.read(\"./.smart-bot-repl\"), bindme' + serialt + ')
+              rescue Exception => resp_repl
+              end
+            end
             while true do 
               sleep 0.2 
-              if File.exist?(\"./.smart-bot-repl\")
-                begin
-                  eval(File.read(\"./.smart-bot-repl\"), bindme' + serialt + ')
-                rescue Exception => resp_repl
-                end
-              end
               code_to_run_repl = file_input_repl.read
               if code_to_run_repl.to_s!=''
                 if code_to_run_repl.to_s.match?(/^quit$/i) or 

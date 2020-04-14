@@ -68,5 +68,6 @@ RSpec.describe SlackSmartBot, "hi_bot" do
 
   #todo: add tests for Slack Threads
   #todo: add tests for react method
+  #todo: add tests for listening on slack threads
 
 end

@@ -22,6 +22,7 @@ slack-smart-bot can create bots on demand, create shortcuts, run ruby code... ju
   * [Extending rules to other channels](#extending-rules-to-other-channels)
   * [Using rules from other channels](#using-rules-from-other-channels)
   * [Running Ruby code on a conversation](#running-ruby-code-on-a-conversation)
+    + [REPL](#repl)
   * [Sending notifications](#sending-notifications)
   * [Shortcuts](#shortcuts)
   * [Routines](#routines)
@@ -165,7 +166,7 @@ You can access the bot directly on the MASTER CHANNEL, on a secondary channel wh
 
 On a Smart Bot channel you will be able to run some of the commands just by writing a command, for example: **_`bot help`_**
 
-Some commands will be only available when the Smart Bot is listening to you. For the Smart Bot to start listening to you just say: **_`hi bot`_**. When the Smart Bot is listening to you, you can skip a message to be treated by the bot by starting the message with '-', for example: **_`- this message won't be treated`_**. When you want the Smart Bot Stop listening to you: **_`bye bot`_**. If you are on a direct conversation with the Smart Bot then it will be on *listening* mode all the time.
+Some commands will be only available when the Smart Bot is listening to you. For the Smart Bot to start listening to you just say: **_`hi bot`_**. When the Smart Bot is listening to you, you can skip a message to be treated by the bot by starting the message with '-', for example: **_`-this message won't be treated`_**. When you want the Smart Bot Stop listening to you: **_`bye bot`_**. The Smart Bot will automatically stop listening to you after 30 minutes of inactivity. If you are on a direct conversation with the Smart Bot then it will be on *listening* mode all the time.
 
 All the specific commands of the bot are specified on your rules file and can be added or changed accordingly. We usually call those commands: *rules*. Those rules are only available when the bot is listening to you.
 
@@ -286,6 +287,62 @@ Example:
 
 Also it is possible to attach a Ruby file and the Smart Bot will run and post the output. You need to select Ruby as file format.
 
+#### REPL
+Easily starts a REPL session so you will be able to create a script directly from the slack conversation. You will be able to share the REPL so they can run it or see the content.
+
+It Will run all we write as a ruby command and will keep the session values until we finish the session sending `quit`, `exit` or `bye` 
+
+You can specify a SESSION_NAME that admits from a to Z, numbers, - and _. If no SESSION_NAME supplied it will be treated as a temporary REPL.
+If 'private' specified in the command the REPL will be accessible only by you and it will be displayed only to you when `see repls`
+
+To avoid a message to be treated when a session started, start the message with '-'.
+
+Send puts, print, p or pp if you want to print out something when using `run repl` later.
+
+If you declare on your rules file a method called `project_folder` returning the path for the project folder, the code will be executed from that folder. 
+
+By default it will be automatically loaded the gems: `string_pattern`, `nice_hash` and `nice_http`
+
+To pre-execute some ruby when starting the session add the code to `.smart-bot-repl` file on the project root folder defined on `project_folder`
+
+If you want to see the methods of a class or module you created use `ls TheModuleOrClass`
+
+You can supply the Environmental Variables you need for the Session
+
+Examples:  
+  _repl CreateCustomer LOCATION=spain HOST='https://10.30.40.50:8887'_  
+  _repl CreateCustomer: "It creates a random customer for testing" LOCATION=spain HOST='https://10.30.40.50:8887'_  
+  _repl delete\_logs_  
+  _private repl random-ssn_  
+  _repl_
+
+
+Running Example:
+>**_Peter>_** `!repl Create10RandomUsers: "This is just an example"`  
+>**_Smart-Bot>_** `Session name: *Create10RandomUsers*`  
+>**_Peter>_** `http = NiceHttp.new("https://reqres.in/")`  
+>**_Smart-Bot>_** `#<NiceHttp:0x00007fc6e216e328 @host="reqres.in", @port=443...>`  
+>**_Peter>_** `request = { path: '/api/users' }`  
+>**_Smart-Bot>_** `{ :path => "/api/users" }`  
+>**_Peter>_** `request.data = { name: '1-10:L', job: 'leader|worker' }`  
+>**_Smart-Bot>_** `{ :name => "1-10:L", :job => "leader|worker" }`  
+>**_Peter>_** `request.data.generate`  
+>**_Smart-Bot>_** `{ :name => "kLam", :job => "leader" }`  
+>**_Peter>_** `10.times { http.post(request.generate) } `  
+>**_Smart-Bot>_** `10`  
+>**_Peter>_** `puts "10 Random Users Created"`  
+>**_Smart-Bot>_** `10 Random Users Created`  
+>**_Peter>_** `quit`  
+>**_Smart-Bot>_** `REPL session finished: Create10RandomUsers`  
+
+
+>**_Peter>_** `run repl Create10RandomUsers`  
+>**_Smart-Bot>_** `Running REPL Create10RandomUsers`  
+>**_Smart-Bot>_** `Create10RandomUsers: 10 Random Users Created`  
+
+
+Other REPL commands: `see repls`, `run repl SESSION_NAME ENV_VAR=value`, `get repl SESSION_NAME`, `delete repl SESSION_NAME`
+
 ### Sending notifications
 You can send notifications from MASTER CHANNEL by using **_`notify MESSAGE`_**. All Bot Channels will be notified.
 
@@ -367,7 +424,7 @@ config.allow_access.repl = ['marioruiz', 'samcooke']
 
 These are the commands that are possible to be limited:
 
-`bot_help, bot_rules, bot_status, use_rules, add_shortcut, delete_shortcut, repl, ruby_code, see_shortcuts, create_bot`
+`bot_help, bot_rules, bot_status, use_rules, add_shortcut, delete_shortcut, repl, run_repl, get_repl, delete_repl, see_repls, ruby_code, see_shortcuts, create_bot`
 
 
 ### Tips

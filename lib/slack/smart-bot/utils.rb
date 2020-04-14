@@ -11,3 +11,6 @@ require_relative 'utils/update_routines'
 require_relative 'utils/update_rules_imported'
 require_relative 'utils/update_shortcuts_file'
 require_relative 'utils/save_stats'
+require_relative 'utils/get_repls'
+require_relative 'utils/update_repls'
+

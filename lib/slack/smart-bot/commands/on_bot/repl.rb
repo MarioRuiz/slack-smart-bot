@@ -4,22 +4,33 @@ class SlackSmartBot
   # help: `live`
   # help: `irb`
   # help: `repl SESSION_NAME`
+  # help: `private repl SESSION_NAME`
   # help: `repl ENV_VAR=VALUE`
   # help: `repl SESSION_NAME ENV_VAR=VALUE ENV_VAR='VALUE'`
+  # help: `repl SESSION_NAME: "DESCRIPTION"`
+  # help: `repl SESSION_NAME: "DESCRIPTION" ENV_VAR=VALUE ENV_VAR='VALUE'`
   # help: 
   # help:     Will run all we write as a ruby command and will keep the session values. 
+  # help:     SESSION_NAME only admits from a to Z, numbers, - and _
+  # help:     If no SESSION_NAME supplied it will be treated as a temporary REPL
+  # help:     If 'private' specified the repl will be accessible only by you and it will be displayed only to you when `see repls`
   # help:     To avoid a message to be treated, start the message with '-'.
   # help:     Send _quit_, _bye_ or _exit_ to finish the session.
+  # help:     Send puts, print, p or pp if you want to print out something when using `run repl` later.
   # help:     After 30 minutes of no communication with the Smart Bot the session will be dismissed.
   # help:     If you declare on your rules file a method called `project_folder` returning the path for the project folder, the code will be executed from that folder. 
   # help:     By default it will be automatically loaded the gems: string_pattern, nice_hash and nice_http
   # help:     To pre-execute some ruby when starting the session add the code to .smart-bot-repl file on the project root folder defined on project_folder
   # help:     If you want to see the methods of a class or module you created use _ls TheModuleOrClass_
   # help:     You can supply the Environmental Variables you need for the Session
-  # help:     Example:
+  # help:     Examples:
   # help:       _repl CreateCustomer LOCATION=spain HOST='https://10.30.40.50:8887'_
+  # help:       _repl CreateCustomer: "It creates a random customer for testing" LOCATION=spain HOST='https://10.30.40.50:8887'_
+  # help:       _repl delete_logs_
+  # help:       _private repl random-ssn_
   # help:
-  def repl(dest, user, session_name, env_vars, rules_file, command)
+  def repl(dest, user, session_name, env_vars, rules_file, command, description, type)
+    #todo: add more tests
     from = user.name
     if config[:allow_access].key?(__method__) and !config[:allow_access][__method__].include?(user.name) and !config[:allow_access][__method__].include?(user.id)
       respond "You don't have access to use this command, please contact an Admin to be able to use it: <@#{config.admins.join(">, <@")}>"
@@ -32,7 +43,9 @@ class SlackSmartBot
         serialt = Time.now.strftime("%Y%m%d%H%M%S%N")
         if session_name.to_s==''
           session_name = "#{from}_#{serialt}"
+          temp_repl = true
         else
+          temp_repl = false
           i = 0
           name = session_name
           while File.exist?("#{config.path}/repl/#{@channel_id}/#{session_name}.input")
@@ -40,19 +53,34 @@ class SlackSmartBot
             session_name = "#{name}#{i}"
           end
         end
+        @repl_sessions[from] = {
+          name: session_name,
+          dest: dest,
+          started: Time.now,
+          finished: Time.now,
+          input: [],
+          on_thread: Thread.current[:on_thread],
+          thread_ts: Thread.current[:thread_ts]
+        }
 
-        @repl_sessions[from] = {}
-        @repl_sessions[from][:name] = session_name
-        @repl_sessions[from][:dest] = dest
-        @repl_sessions[from][:started] = Time.now
-        @repl_sessions[from][:finished] = Time.now
-        @repl_sessions[from][:input] = []
-        @repl_sessions[from][:on_thread] = Thread.current[:on_thread]
-        @repl_sessions[from][:thread_ts] = Thread.current[:thread_ts]
+        unless temp_repl
+          @repls[session_name] = {
+              created: @repl_sessions[from][:started].to_s,
+              accessed: @repl_sessions[from][:started].to_s,
+              creator_name: user.name,
+              creator_id: user.id,
+              description: description,
+              type: type,
+              runs_by_creator: 0,
+              runs_by_others: 0,
+              gets: 0
+          }
+          update_repls()        
+        end
     
         message = "Session name: *#{session_name}*
         From now on I will execute all you write as a Ruby command and I will keep the session open until you send `quit` or `bye` or `exit`. 
-        I will respond with the result so it is not necessary you send `print`, `puts`, `put` or `pp`. 
+        I will respond with the result so it is not necessary you send `print`, `puts`, `p` or `pp` unless you want it as the output when calling `run repl`. 
         If you want to avoid a message to be treated by me, start the message with '-'. 
         After 30 minutes of no communication with the Smart Bot the session will be dismissed.
         If you want to see the methods of a class or module you created use _ls TheModuleOrClass_
@@ -92,6 +120,7 @@ class SlackSmartBot
                     code_to_run_repl = \"#{code_to_run_repl.scan(/^\s*ls\s+(.+)/).join}.methods - Object.methods\"
                   end
                   begin
+                    code_to_run_repl.gsub!(/^\s*(puts|print|p|pp)\s/, \"\")
                     resp_repl = eval(code_to_run_repl.to_s, bindme' + serialt + ')
                   rescue Exception => resp_repl
                   end

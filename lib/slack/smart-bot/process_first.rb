@@ -233,7 +233,7 @@ class SlackSmartBot
               if @bots_created.key?(@rules_imported[user.id][user.id])
                 if @bots_created[@rules_imported[user.id][user.id]][:status] == :on
                   begin
-                    eval(File.new(config.path+rules_file).read) if File.exist?(config.path+rules_file)
+                    eval(File.new(config.path+rules_file).read) if File.exist?(config.path+rules_file) and !['.','..'].include?(config.path + rules_file)
                   rescue Exception => stack
                     @logger.fatal "ERROR ON imported RULES FILE: #{rules_file}"
                     @logger.fatal stack

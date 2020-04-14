@@ -151,6 +151,7 @@ class SlackSmartBot
     @shortcuts[:all] = Hash.new()
     @rules_imported = Hash.new()
     @routines = Hash.new()
+    @repls = Hash.new()
 
     if File.exist?("#{config.path}/shortcuts/#{config.shortcuts_file}")
       file_sc = IO.readlines("#{config.path}/shortcuts/#{config.shortcuts_file}").join
@@ -160,6 +161,7 @@ class SlackSmartBot
     end
 
     get_routines()
+    get_repls()
 
     if config.on_master_bot and File.exist?(config.file_path.gsub(".rb", "_bots.rb"))
       get_bots_created()
@@ -230,6 +232,7 @@ class SlackSmartBot
     @master_bot_id = @channels_id[config.master_channel].dup
 
     get_routines()
+    get_repls()
     if @routines.key?(@channel_id)
       @routines[@channel_id].each do |k, v|
         @routines[@channel_id][k][:running] = false

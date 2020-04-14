@@ -164,10 +164,35 @@ class SlackSmartBot
         code.gsub!("\\r", "\r")
         @logger.info code
         ruby_code(dest, user, code, rules_file)
-      when /^\s*(repl|irb|live)\s*()()$/i, 
-        /^\s*(repl|irb|live)\s+([\w\-]+)()\s*$/i,
-        /^\s*(repl|irb|live)\s+([\w\-]+)\s+(.+)\s*$/i,
-        /^\s*(repl|irb|live)\s+()(.+)\s*$/i
+      when /^\s*(private\s+)?(repl|irb|live)\s*()()()$/i, 
+        /^\s*(private\s+)?(repl|irb|live)\s+([\w\-]+)()()\s*$/i,
+        /^\s*(private\s+)?(repl|irb|live)\s+([\w\-]+)\s*:\s*"(.+)"()\s*$/i,
+        /^\s*(private\s+)?(repl|irb|live)\s+([\w\-]+)\s*:\s*"(.+)"\s+(.+)\s*$/i,
+        /^\s*(private\s+)?(repl|irb|live)\s+([\w\-]+)()\s+(.+)\s*$/i,
+        /^\s*(private\s+)?(repl|irb|live)()\s+()(.+)\s*$/i
+        if $1.to_s!=''
+          type = :private
+        else
+          type = :public
+        end
+        session_name = $3
+        description = $4
+        opts = " #{$5}"
+        env_vars = opts.scan(/\s+[\w\-]+="[^"]+"/i) + opts.scan(/\s+[\w\-]+='[^']+'/i)  
+        opts.scan(/\s+[\w\-]+=[^'"\s]+/i).flatten.each do |ev|
+          env_vars << ev.gsub('=',"='") + "'"
+        end
+        env_vars.each_with_index do |ev, idx|
+            ev.gsub!("=","']=")
+            ev.lstrip!
+            env_vars[idx] = "ENV['#{ev}"
+        end
+        repl(dest, user, session_name, env_vars.flatten, rules_file, command, description, type)
+      when /^\s*get\s+(repl|irb|live)\s+([\w\-]+)\s*/i
+        session_name = $2
+        get_repl(dest, user, session_name)      
+      when /^\s*run\s+(repl|irb|live)\s+([\w\-]+)()\s*$/i,
+        /^\s*run\s+(repl|irb|live)\s+([\w\-]+)\s+(.+)\s*$/i
         session_name = $2
         opts = " #{$3}"
         env_vars = opts.scan(/\s+[\w\-]+="[^"]+"/i) + opts.scan(/\s+[\w\-]+='[^']+'/i)  
@@ -179,7 +204,12 @@ class SlackSmartBot
             ev.lstrip!
             env_vars[idx] = "ENV['#{ev}"
         end
-        repl(dest, user, session_name, env_vars.flatten, rules_file, command)
+        run_repl(dest, user, session_name, env_vars.flatten, rules_file)      
+      when /^\s*(delete|remove)\s+(repl|irb|live)\s+([\w\-]+)\s*$/i
+        repl_name = $3.downcase
+        delete_repl(dest, user, repl_name)
+      when /^\s*see\s+(repls|repl|irb|irbs)\s*$/i
+        see_repls(dest, user, typem)
       else
         processed2 = false
       end #of case

@@ -129,7 +129,7 @@ class SlackSmartBot
                   end
                   if resp_repl.to_s != \"\"
                     open(\"' + Dir.pwd + '/repl/' + @channel_id + '/' + session_name + '.output\", \"a+\") {|f|
-                      f.puts \"\`\`\`#{resp_repl.ai}\`\`\`\"
+                      f.puts \"\`\`\`\n#{resp_repl.ai}\n\`\`\`\"
                     }
                     unless error
                       open(\"' + Dir.pwd + '/repl/' + @channel_id + '/' + session_name + '.run\", \"a+\") {|f|

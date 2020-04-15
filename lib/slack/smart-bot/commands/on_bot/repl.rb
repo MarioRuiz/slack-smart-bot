@@ -100,7 +100,36 @@ class SlackSmartBot
             require \"amazing_print\"
             bindme' + serialt + ' = binding
             eval(\"require \'nice_http\'\" , bindme' + serialt + ')
-
+            def repl_params(met)
+              res = []
+              met.parameters.each do |par|
+                if par[0]==:req
+                  res << par[1].to_s
+                elsif par[0]==:keyreq
+                  res << par[1].to_s + \":\"
+                elsif par[0]==:key
+                  res << \"?\"+par[1].to_s + \":\"
+                elsif par[0]==:opt
+                  res << \"?\"+par[1].to_s
+                elsif par[0]==:rest
+                  res << \"*\"+par[1].to_s
+                elsif par[0]==:keyrest
+                  res << \"**\"+par[1].to_s
+                else
+                  res << par[1].to_s
+                end
+              end
+              \"(#{res.join(\", \")})\"
+            end
+            def ls(obj)
+              mets = (obj.methods - Object.methods)
+              res = []
+              mets.each do |met|
+                res << \"#{met}#{repl_params(obj.method(met))}\"
+              end
+              res.sort
+            end
+            
             file_input_repl = File.open(\"' + Dir.pwd + '/repl/' + @channel_id + '/' + session_name + '.input\", \"r\")
             if File.exist?(\"./.smart-bot-repl\")
               begin
@@ -112,6 +141,7 @@ class SlackSmartBot
               sleep 0.2 
               code_to_run_repl = file_input_repl.read
               if code_to_run_repl.to_s!=''
+                add_to_run_repl = true
                 if code_to_run_repl.to_s.match?(/^quit$/i) or 
                   code_to_run_repl.to_s.match?(/^exit$/i) or 
                   code_to_run_repl.to_s.match?(/^bye bot$/i) or
@@ -119,7 +149,7 @@ class SlackSmartBot
                   exit
                 else
                   if code_to_run_repl.match?(/^\s*ls\s+(.+)/)
-                    code_to_run_repl = \"#{code_to_run_repl.scan(/^\s*ls\s+(.+)/).join}.methods - Object.methods\"
+                    add_to_run_repl = false
                   end
                   error = false
                   begin
@@ -131,7 +161,7 @@ class SlackSmartBot
                     open(\"' + Dir.pwd + '/repl/' + @channel_id + '/' + session_name + '.output\", \"a+\") {|f|
                       f.puts \"\`\`\`\n#{resp_repl.ai}\n\`\`\`\"
                     }
-                    unless error
+                    unless error or !add_to_run_repl
                       open(\"' + Dir.pwd + '/repl/' + @channel_id + '/' + session_name + '.run\", \"a+\") {|f|
                         f.puts code_to_run_repl
                       }

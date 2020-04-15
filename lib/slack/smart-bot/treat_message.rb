@@ -126,14 +126,29 @@ class SlackSmartBot
         elsif @repl_sessions.key?(user_info.user.name) and dest==@repl_sessions[user_info.user.name][:dest] and 
           ((@repl_sessions[user_info.user.name][:on_thread] and data.thread_ts == @repl_sessions[user_info.user.name][:thread_ts]) or
            (!@repl_sessions[user_info.user.name][:on_thread] and data.thread_ts.to_s == '' ))
-          @repl_sessions[user_info.user.name][:command] = data.text
+          
+          if data.text.size >= 6 and data.text[0..2] == "```" and data.text[-3..-1] == "```"
+            if data.text.size == 6
+              @repl_sessions[user_info.user.name][:command] = ""
+            else
+              @repl_sessions[user_info.user.name][:command] = data.text[3..-4]
+            end
+          else   
+            @repl_sessions[user_info.user.name][:command] = data.text
+          end
           command = 'repl'
         else
           command = data.text
         end
 
         #when added special characters on the message
-        if command.size >= 2 and
+        if command.size >= 6 and command[0..2]=="```" and command[-3..-1]=="```"
+          if command.size == 6
+            command = ''
+          else
+            command = command[3..-4]
+          end
+        elsif command.size >= 2 and
            ((command[0] == "`" and command[-1] == "`") or (command[0] == "*" and command[-1] == "*") or (command[0] == "_" and command[-1] == "_"))
           command = command[1..-2]
         end

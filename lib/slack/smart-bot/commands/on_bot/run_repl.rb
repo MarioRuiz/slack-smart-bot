@@ -21,7 +21,7 @@ class SlackSmartBot
       save_stats(__method__)
       Dir.mkdir("#{config.path}/repl") unless Dir.exist?("#{config.path}/repl")
       Dir.mkdir("#{config.path}/repl/#{@channel_id}") unless Dir.exist?("#{config.path}/repl/#{@channel_id}")
-      if File.exist?("#{config.path}/repl/#{@channel_id}/#{session_name}.input")
+      if File.exist?("#{config.path}/repl/#{@channel_id}/#{session_name}.run")
         if @repls.key?(session_name) and @repls[session_name][:type] == :private and 
           @repls[session_name][:creator_name]!=user.name and 
           !config.admins.include?(user.name)
@@ -48,7 +48,7 @@ class SlackSmartBot
             content += File.read("#{project_folder}/.smart-bot-repl")
             content += "\n"
           end
-          content += File.read("#{config.path}/repl/#{@channel_id}/#{session_name}.input").gsub(/^(quit|exit|bye)$/i,'')
+          content += File.read("#{config.path}/repl/#{@channel_id}/#{session_name}.run").gsub(/^(quit|exit|bye)$/i,'') #todo: remove this gsub, it will never contain it
           Dir.mkdir("#{project_folder}/tmp") unless Dir.exist?("#{project_folder}/tmp")
           Dir.mkdir("#{project_folder}/tmp/repl") unless Dir.exist?("#{project_folder}/tmp/repl")
           File.write("#{project_folder}/tmp/repl/#{session_name}.rb", content, mode: "w+")

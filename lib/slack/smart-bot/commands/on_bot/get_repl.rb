@@ -15,7 +15,7 @@ class SlackSmartBot
     else
       Dir.mkdir("#{config.path}/repl") unless Dir.exist?("#{config.path}/repl")
       Dir.mkdir("#{config.path}/repl/#{@channel_id}") unless Dir.exist?("#{config.path}/repl/#{@channel_id}")
-      if File.exist?("#{config.path}/repl/#{@channel_id}/#{session_name}.input")
+      if File.exist?("#{config.path}/repl/#{@channel_id}/#{session_name}.run")
         if @repls.key?(session_name) and @repls[session_name][:type] == :private and 
           @repls[session_name][:creator_name]!=user.name and 
           !config.admins.include?(user.name)
@@ -32,7 +32,7 @@ class SlackSmartBot
             content += File.read("#{project_folder}/.smart-bot-repl")
             content += "\n"
           end
-          content += File.read("#{config.path}/repl/#{@channel_id}/#{session_name}.input").gsub(/^(quit|exit|bye)$/i,'')
+          content += File.read("#{config.path}/repl/#{@channel_id}/#{session_name}.run").gsub(/^(quit|exit|bye)$/i,'') #todo: remove this gsub it will never contain it
           File.write("#{config.path}/repl/#{@channel_id}/#{session_name}.rb", content, mode: "w+")
           send_file(dest, "REPL #{session_name} on #{config.channel}", "#{config.path}/repl/#{@channel_id}/#{session_name}.rb", " REPL #{session_name} on #{config.channel}", 'text/plain', "ruby")
         end

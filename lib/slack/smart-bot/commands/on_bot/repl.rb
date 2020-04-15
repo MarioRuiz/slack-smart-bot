@@ -93,10 +93,11 @@ class SlackSmartBot
         
         File.write("#{config.path}/repl/#{@channel_id}/#{@repl_sessions[from][:name]}.input", "", mode: "a+")
         File.write("#{config.path}/repl/#{@channel_id}/#{@repl_sessions[from][:name]}.output", "", mode: "a+")
+        File.write("#{config.path}/repl/#{@channel_id}/#{@repl_sessions[from][:name]}.run", "", mode: "a+")
         
         process_to_run = '
             ruby -e "' + env_vars.join("\n") + '
-            require \"awesome_print\"
+            require \"amazing_print\"
             bindme' + serialt + ' = binding
             eval(\"require \'nice_http\'\" , bindme' + serialt + ')
 
@@ -120,15 +121,21 @@ class SlackSmartBot
                   if code_to_run_repl.match?(/^\s*ls\s+(.+)/)
                     code_to_run_repl = \"#{code_to_run_repl.scan(/^\s*ls\s+(.+)/).join}.methods - Object.methods\"
                   end
+                  error = false
                   begin
-                    code_to_run_repl.gsub!(/^\s*(puts|print|p|pp)\s/, \"\")
-                    resp_repl = eval(code_to_run_repl.to_s, bindme' + serialt + ')
+                    resp_repl = eval(code_to_run_repl.gsub(/^\s*(puts|print|p|pp)\s/, \"\"), bindme' + serialt + ')
                   rescue Exception => resp_repl
+                    error = true
                   end
                   if resp_repl.to_s != \"\"
                     open(\"' + Dir.pwd + '/repl/' + @channel_id + '/' + session_name + '.output\", \"a+\") {|f|
-                      f.puts \"\`\`\`#{resp_repl.awesome_inspect}\`\`\`\"
+                      f.puts \"\`\`\`#{resp_repl.ai}\`\`\`\"
                     }
+                    unless error
+                      open(\"' + Dir.pwd + '/repl/' + @channel_id + '/' + session_name + '.run\", \"a+\") {|f|
+                        f.puts code_to_run_repl
+                      }
+                    end
                   end
                 end
               end

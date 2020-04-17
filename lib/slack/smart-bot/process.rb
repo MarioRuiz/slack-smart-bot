@@ -206,7 +206,7 @@ class SlackSmartBot
         end
         run_repl(dest, user, session_name, env_vars.flatten, rules_file)      
       when /^\s*(delete|remove)\s+(repl|irb|live)\s+([\w\-]+)\s*$/i
-        repl_name = $3.downcase
+        repl_name = $3
         delete_repl(dest, user, repl_name)
       when /^\s*see\s+(repls|repl|irb|irbs)\s*$/i
         see_repls(dest, user, typem)

@@ -198,7 +198,13 @@ class SlackSmartBot
             sleep 0.2
             resp_repl = file_output_repl.read
             if resp_repl.to_s!=''
-              respond resp_repl, dest
+              if resp_repl.to_s.lines.count < 60
+                respond resp_repl, dest
+              else
+                resp_repl.gsub!(/^```/,'')
+                resp_repl.gsub!(/```$/,'')
+                send_file(dest, "", 'response.rb', "", 'text/plain', "ruby", content: resp_repl)
+              end
             end
           rescue Exception => excp
             @logger.fatal excp

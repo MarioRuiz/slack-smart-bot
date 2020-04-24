@@ -15,7 +15,7 @@ class SlackSmartBot
       message = ""
       @repls.sort.to_h.each do |session_name, repl|
         if (repl.creator_name == user.name or repl.type == :public) or (config.admins.include?(user.name) and typem == :on_dm)
-          message += "(#{repl.type}) *#{session_name}*: #{repl.description} / created: #{repl.created} / accessed: #{repl.accessed} / creator: <@#{repl.creator_name}> / runs: #{repl.runs_by_creator+repl.runs_by_others} / gets: #{repl.gets} \n"
+          message += "(#{repl.type}) *#{session_name}*: #{repl.description} / created: #{repl.created} / accessed: #{repl.accessed} / creator: #{repl.creator_name} / runs: #{repl.runs_by_creator+repl.runs_by_others} / gets: #{repl.gets} \n"
         end
       end
       message = "No repls created" if message == ''

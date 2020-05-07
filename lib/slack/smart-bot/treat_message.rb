@@ -32,6 +32,8 @@ class SlackSmartBot
         data.text = CGI.unescapeHTML(data.text)
         data.text.gsub!("\u00A0", " ") #to change &nbsp; (asc char 160) into blank space
       end
+      data.text.gsub!('’', "'")
+      data.text.gsub!('“', '"')
     rescue
       @logger.warn "Impossible to unescape or clean format for data.text:#{data.text}"
     end

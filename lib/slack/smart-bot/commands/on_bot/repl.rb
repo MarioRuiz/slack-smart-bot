@@ -82,6 +82,7 @@ class SlackSmartBot
         message = "Session name: *#{session_name}*
         From now on I will execute all you write as a Ruby command and I will keep the session open until you send `quit` or `bye` or `exit`. 
         I will respond with the result so it is not necessary you send `print`, `puts`, `p` or `pp` unless you want it as the output when calling `run repl`. 
+        Use `p` to print a message raw, exacly like it is returned. 
         If you want to avoid a message to be treated by me, start the message with '-'. 
         After 30 minutes of no communication with the Smart Bot the session will be dismissed.
         If you want to see the methods of a class or module you created use _ls TheModuleOrClass_
@@ -158,9 +159,15 @@ class SlackSmartBot
                     error = true
                   end
                   if resp_repl.to_s != \"\"
-                    open(\"' + Dir.pwd + '/repl/' + @channel_id + '/' + session_name + '.output\", \"a+\") {|f|
-                      f.puts \"\`\`\`\n#{resp_repl.ai}\n\`\`\`\"
-                    }
+                    if code_to_run_repl.match?(/^\s*p\s+/i)
+                      open(\"' + Dir.pwd + '/repl/' + @channel_id + '/' + session_name + '.output\", \"a+\") {|f|
+                        f.puts \"\`\`\`\n#{resp_repl.inspect}\n\`\`\`\"
+                      }
+                    else
+                      open(\"' + Dir.pwd + '/repl/' + @channel_id + '/' + session_name + '.output\", \"a+\") {|f|
+                        f.puts \"\`\`\`\n#{resp_repl.ai}\n\`\`\`\"
+                      }
+                    end
                     unless error or !add_to_run_repl
                       open(\"' + Dir.pwd + '/repl/' + @channel_id + '/' + session_name + '.run\", \"a+\") {|f|
                         f.puts code_to_run_repl
@@ -198,7 +205,7 @@ class SlackSmartBot
             sleep 0.2
             resp_repl = file_output_repl.read
             if resp_repl.to_s!=''
-              if resp_repl.to_s.lines.count < 60
+              if resp_repl.to_s.lines.count < 60 and resp_repl.to_s.size < 3500
                 respond resp_repl, dest
               else
                 resp_repl.gsub!(/^```/,'')

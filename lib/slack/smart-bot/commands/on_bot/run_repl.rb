@@ -52,7 +52,7 @@ class SlackSmartBot
           Dir.mkdir("#{project_folder}/tmp") unless Dir.exist?("#{project_folder}/tmp")
           Dir.mkdir("#{project_folder}/tmp/repl") unless Dir.exist?("#{project_folder}/tmp/repl")
           File.write("#{project_folder}/tmp/repl/#{session_name}.rb", content, mode: "w+")
-          process_to_run = "ruby  #{project_folder}/tmp/repl/#{session_name}.rb"
+          process_to_run = "ruby  ./tmp/repl/#{session_name}.rb"
           process_to_run = ("cd #{project_folder} && #{process_to_run}") if defined?(project_folder)
           respond "Running REPL #{session_name}"
           stdout, stderr, status = Open3.capture3(process_to_run)
@@ -60,10 +60,19 @@ class SlackSmartBot
             if stdout == ""
               respond "*#{session_name}*: Nothing returned."
             else
-              respond "*#{session_name}*: #{stdout}"
+              if stdout.to_s.lines.count < 60 and stdout.to_s.size < 3500
+                respond "*#{session_name}*: #{stdout}"
+              else
+                send_file(dest, "", 'response.rb', "", 'text/plain', "ruby", content: stdout)
+              end
             end
           else
-            respond "*#{session_name}*: #{stdout} #{stderr}"
+            if (stdout.to_s+stderr.to_s).lines.count < 60
+              respond "*#{session_name}*: #{stdout} #{stderr}"
+            else
+              send_file(dest, "", 'response.rb', "", 'text/plain', "ruby", content: (stdout.to_s+stderr.to_s))
+            end
+
           end
         end
       else

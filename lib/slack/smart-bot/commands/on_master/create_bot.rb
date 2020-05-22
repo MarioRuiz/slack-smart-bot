@@ -46,12 +46,12 @@ class SlackSmartBot
               rules_file = "slack-smart-bot_rules_#{channel_id}_#{from.gsub(" ", "_")}.rb"
               if defined?(RULES_FOLDER)
                 rules_file = RULES_FOLDER + rules_file
-                general_rules_file = RULES_FOLDER + 'general_rules_file.rb'
+                general_rules_file = RULES_FOLDER + 'general_rules.rb'
               else
                 Dir.mkdir("#{config.path}/rules") unless Dir.exist?("#{config.path}/rules")
                 Dir.mkdir("#{config.path}/rules/#{channel_id}") unless Dir.exist?("#{config.path}/rules/#{channel_id}")
                 rules_file = "/rules/#{channel_id}/" + rules_file
-                general_rules_file = "/rules/general_rules_file.rb"
+                general_rules_file = "/rules/general_rules.rb"
               end
               default_rules = (__FILE__).gsub(/slack\/smart-bot\/commands\/on_master\/create_bot\.rb$/, "slack-smart-bot_rules.rb")
               default_general_rules = (__FILE__).gsub(/slack\/smart-bot\/commands\/on_master\/create_bot\.rb$/, "slack-smart-bot_general_rules.rb")

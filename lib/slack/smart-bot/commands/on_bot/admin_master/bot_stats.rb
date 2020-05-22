@@ -13,6 +13,7 @@ class SlackSmartBot
     # helpadmin: `bot stats CHANNEL exclude masters from YYYY/MM/DD to YYYY/MM/DD`
     # helpadmin: `bot stats today`
     # helpadmin: `bot stats exclude COMMAND_ID`
+    # helpadmin: `bot stats monthly`
     # helpadmin:    To see the bot stats
     # helpadmin:    You can use this command only if you are a Master admin user and if you are in a private conversation with the bot
     # helpadmin:    You need to set stats to true to generate the stats when running the bot instance.
@@ -21,8 +22,9 @@ class SlackSmartBot
     # helpadmin:      _bot stats @peter.wind_
     # helpadmin:      _bot stats #sales from 2019/12/15 to 2019/12/31_
     # helpadmin:      _bot stats #sales today_
+    # helpadmin:      _bot stats #sales monthly_
     # helpadmin:
-    def bot_stats(dest, from_user, typem, channel_id, from, to, user, exclude_masters, exclude_command)
+    def bot_stats(dest, from_user, typem, channel_id, from, to, user, exclude_masters, exclude_command, monthly)
         require 'csv'
         if config.stats
             message = []
@@ -43,6 +45,7 @@ class SlackSmartBot
                 from+= " 00:00:00 +0000"
                 to+= " 23:59:59 +0000"
                 rows = []
+                rows_month = {}
 
                 Dir["#{config.stats_path}.*.log"].sort.each do |file|
                     if file >= "#{config.stats_path}.#{from_file}.log" or file <= "#{config.stats_path}.#{to_file}.log"
@@ -54,6 +57,10 @@ class SlackSmartBot
                                         if row[:bot_channel_id] == channel_id or channel_id == ''
                                             if row[:date] >= from and row[:date] <= to
                                                 rows << row.to_h
+                                                if monthly
+                                                    rows_month[row[:date][0..6]] = 0 unless rows_month.key?(row[:date][0..6])
+                                                    rows_month[row[:date][0..6]] += 1
+                                                end
                                             end
                                         end
                                     end
@@ -79,6 +86,12 @@ class SlackSmartBot
                     message << "*Total calls <##{channel_id}>*: #{total} from #{from_short} to #{to_short}"
                 end
                 if total > 0
+                    if monthly 
+                        message << '*Totals by month*'
+                        rows_month.each do |k,v|
+                            message << "\t#{k}: #{v} (#{(v.to_f*100/total).round(2)}%)"
+                        end
+                    end
 
                     if channel_id == ''
                         message << "*Channels*"

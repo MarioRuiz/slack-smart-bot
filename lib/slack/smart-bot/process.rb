@@ -105,12 +105,15 @@ class SlackSmartBot
         st_to = st_to.gsub('.','-').gsub('/','-')
         st_user = opts.scan(/<@([^>]+)>/).join
         exclude_masters = opts.match?(/exclude\s+masters?/i)
+        monthly = false
         if all_opts.include?('today')
           st_from = st_to = "#{Time.now.strftime("%Y-%m-%d")}"
+        elsif all_opts.include?('monthly')
+          monthly = true
         end
         exclude_command = opts.scan(/exclude\s+([^\s]+)/i).join
         exclude_command = '' if exclude_command == 'masters'
-        bot_stats(dest, from, typem, st_channel, st_from, st_to, st_user, exclude_masters, exclude_command)
+        bot_stats(dest, from, typem, st_channel, st_from, st_to, st_user, exclude_masters, exclude_command, monthly)
       else
         processed = false
       end

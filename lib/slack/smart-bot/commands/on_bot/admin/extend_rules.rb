@@ -54,7 +54,7 @@ class SlackSmartBot
             respond "Now the rules from <##{@channel_id}> are available on *<##{@channels_id[channel]}>*", dest
           end
           respond "<@#{user.id}> extended the rules from <##{@channel_id}> to this channel so now you can talk to the Smart Bot on demand using those rules.", @channels_id[channel]
-          respond "Use `!` before the command you want to run", @channels_id[channel]
+          respond "Use `!` or `^` or `!!` before the command you want to run", @channels_id[channel]
           respond "To see the specific rules for this bot on this channel: `!bot rules` or `!bot rules COMMAND`", @channels_id[channel]
         end
       end

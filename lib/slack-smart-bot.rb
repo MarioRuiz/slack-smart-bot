@@ -36,13 +36,7 @@ class SlackSmartBot
     else
       config[:path] = '.'
     end
-    if ENV['BOT_SILENT'].to_s == 'true'
-      config[:silent] = true
-    elsif ENV['BOT_SILENT'].to_s == 'false'
-      config[:silent] = false
-    else
-      config[:silent] = false unless config.key?(:silent)
-    end
+    config[:silent] = false unless config.key?(:silent)
     config[:testing] = false unless config.key?(:testing)
     config[:simulate] = false unless config.key?(:simulate)
     config[:stats] = false unless config.key?(:stats)
@@ -210,7 +204,8 @@ class SlackSmartBot
       if version_remote != VERSION
         version_message = ". There is a new available version: #{version_remote}."
       end
-      unless config[:silent]
+      if !config[:silent] or ENV['BOT_SILENT'].to_s == 'false'
+        ENV['BOT_SILENT'] = 'true' if config[:silent] == 'true' and ENV['BOT_SILENT'].to_s != 'true'
         respond "Smart Bot started v#{VERSION}#{version_message}\nIf you want to know what I can do for you: `bot help`.\n`bot rules` if you want to display just the specific rules of this channel.\nYou can talk to me privately if you prefer it."
       end
       @routines.each do |ch, rout|

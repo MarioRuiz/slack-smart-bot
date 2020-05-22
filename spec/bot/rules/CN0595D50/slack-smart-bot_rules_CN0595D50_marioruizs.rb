@@ -65,113 +65,111 @@ def rules(user, command, processed, dest, files = [], rules_file = "")
       command = context
     end
   end
-  begin
-    case command
 
-    when /^set_access$/
-      config.allow_access = {
-        bot_help: ['marioruizs', 'UMYQS8E7L'],
-        bot_rules: ['marioruizs', 'UMYQS8E7L'],
-        bot_status: ['marioruizs', 'UMYQS8E7L'],
-        use_rules: ['marioruizs', 'UMYQS8E7L'],
-        add_shortcut: ['marioruizs', 'UMYQS8E7L'],
-        delete_shortcut: ['marioruizs', 'UMYQS8E7L'],
-        repl: ['marioruizs', 'UMYQS8E7L'],
-        ruby_code: ['marioruizs', 'UMYQS8E7L'],
-        see_shortcuts: ['marioruizs', 'UMYQS8E7L'],
-        create_bot: ['marioruizs', 'UMYQS8E7L']
-      }
-    when /^unset_access$/
-      config.allow_access = {
-      }
+  load './rules/general_rules.rb'
+  
+  unless general_rules(user, command, processed, dest, files, rules_file)
 
-    # help: `which rules`
-    # help:  which rules for bot1cm
-    # help:
-    when /^which\s+rules$/i
-      respond "bot1cm"
-      react :thumbsup
+    begin
+      case command
 
-      # help: ----------------------------------------------
-      # help: `echo SOMETHING`
-      # help:     repeats SOMETHING
+      when /^set_access$/
+        config.allow_access = {
+          bot_help: ['marioruizs', 'UMYQS8E7L'],
+          bot_rules: ['marioruizs', 'UMYQS8E7L'],
+          bot_status: ['marioruizs', 'UMYQS8E7L'],
+          use_rules: ['marioruizs', 'UMYQS8E7L'],
+          add_shortcut: ['marioruizs', 'UMYQS8E7L'],
+          delete_shortcut: ['marioruizs', 'UMYQS8E7L'],
+          repl: ['marioruizs', 'UMYQS8E7L'],
+          ruby_code: ['marioruizs', 'UMYQS8E7L'],
+          see_shortcuts: ['marioruizs', 'UMYQS8E7L'],
+          create_bot: ['marioruizs', 'UMYQS8E7L']
+        }
+      when /^unset_access$/
+        config.allow_access = {
+        }
+
+      # help: `which rules`
+      # help:  which rules for bot1cm
       # help:
-    when /^echo\s(.+)/i
-      save_stats(:echo)
-      respond $1
+      when /^which\s+rules$/i
+        respond "bot1cm"
+        react :thumbsup
 
-    when /^test silent (.+)$/i
-      tempo = $1
-      if Time.now.to_s > tempo
-        respond "Now yes" 
-      end
+      when /^test silent (.+)$/i
+        tempo = $1
+        if Time.now.to_s > tempo
+          respond "Now yes" 
+        end
 
-      # help: ----------------------------------------------
-      # help: `go to sleep`
-      # help:   it will sleep the bot for 5 seconds
-      # help:
-    when /^go\sto\ssleep/i
-      unless @questions.keys.include?(from)
-        ask "do you want me to take a siesta?"
-      else
-        case @questions[from]
-        when /yes/i, /yep/i, /sure/i
-          @questions.delete(from)
-          respond "I'll be sleeping for 5 secs... just for you"
-          respond "zZzzzzzZZZZZZzzzzzzz!"
-          sleep 5
-        when /no/i, /nope/i, /cancel/i
-          @questions.delete(from)
-          respond "Thanks, I'm happy to be awake"
+        # help: ----------------------------------------------
+        # help: `go to sleep`
+        # help:   it will sleep the bot for 5 seconds
+        # help:
+      when /^go\sto\ssleep/i
+        unless @questions.keys.include?(from)
+          ask "do you want me to take a siesta?"
         else
-          respond "I don't understand"
-          ask "are you sure do you want me to sleep? (yes or no)"
+          case @questions[from]
+          when /yes/i, /yep/i, /sure/i
+            @questions.delete(from)
+            respond "I'll be sleeping for 5 secs... just for you"
+            respond "zZzzzzzZZZZZZzzzzzzz!"
+            sleep 5
+          when /no/i, /nope/i, /cancel/i
+            @questions.delete(from)
+            respond "Thanks, I'm happy to be awake"
+          else
+            respond "I don't understand"
+            ask "are you sure do you want me to sleep? (yes or no)"
+          end
+        end
+
+        # help: ----------------------------------------------
+        # help: `run something`
+        # help:   It will run the process and report the results when done
+        # help:
+      when /^run something/i
+        respond "Running"
+
+        process_to_run = "ruby -v"
+        process_to_run = ("cd #{project_folder} &&" + process_to_run) if defined?(project_folder)
+        stdout, stderr, status = Open3.capture3(process_to_run)
+        if stderr == ""
+          if stdout == ""
+            respond "#{display_name}: Nothing returned."
+          else
+            respond "#{display_name}: #{stdout}"
+          end
+        else
+          respond "#{display_name}: #{stderr}"
+        end
+
+        # Example downloading a file from slack
+        #  if !files.nil? and files.size == 1 and files[0].filetype == 'yaml'
+        #    require 'nice_http'
+        #    http = NiceHttp.new(host: "https://files.slack.com", headers: { "Authorization" => "Bearer #{config[:token]}" })
+        #    http.get(files[0].url_private_download, save_data: './tmp/')
+        #  end
+
+        # Examples sending a file to slack:
+        #   send_file(to, msg, filepath, title, format, type = "text")
+        #   send_file(dest, 'the message', "#{project_folder}/temp/logs_ptBI.log", 'title', 'text/plain', "text")
+        #   send_file(dest, 'the message', "#{project_folder}/temp/example.jpeg", 'title', 'image/jpeg', "jpg")
+
+      else
+        unless processed
+          dont_understand()
         end
       end
-
-      # help: ----------------------------------------------
-      # help: `run something`
-      # help:   It will run the process and report the results when done
-      # help:
-    when /^run something/i
-      respond "Running"
-
-      process_to_run = "ruby -v"
-      process_to_run = ("cd #{project_folder} &&" + process_to_run) if defined?(project_folder)
-      stdout, stderr, status = Open3.capture3(process_to_run)
-      if stderr == ""
-        if stdout == ""
-          respond "#{display_name}: Nothing returned."
-        else
-          respond "#{display_name}: #{stdout}"
-        end
+    rescue => exception
+      if defined?(@logger)
+        @logger.fatal exception
+        respond "Unexpected error!! Please contact an admin to solve it: <@#{config.admins.join(">, <@")}>"
       else
-        respond "#{display_name}: #{stderr}"
+        puts exception
       end
-
-      # Example downloading a file from slack
-      #  if !files.nil? and files.size == 1 and files[0].filetype == 'yaml'
-      #    require 'nice_http'
-      #    http = NiceHttp.new(host: "https://files.slack.com", headers: { "Authorization" => "Bearer #{config[:token]}" })
-      #    http.get(files[0].url_private_download, save_data: './tmp/')
-      #  end
-
-      # Examples sending a file to slack:
-      #   send_file(to, msg, filepath, title, format, type = "text")
-      #   send_file(dest, 'the message', "#{project_folder}/temp/logs_ptBI.log", 'title', 'text/plain', "text")
-      #   send_file(dest, 'the message', "#{project_folder}/temp/example.jpeg", 'title', 'image/jpeg', "jpg")
-
-    else
-      unless processed
-        dont_understand()
-      end
-    end
-  rescue => exception
-    if defined?(@logger)
-      @logger.fatal exception
-      respond "Unexpected error!! Please contact an admin to solve it: <@#{config.admins.join(">, <@")}>"
-    else
-      puts exception
     end
   end
 end

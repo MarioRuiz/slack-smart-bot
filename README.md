@@ -159,8 +159,11 @@ def rules(user, command, processed, dest)
       end
   end
 end
-
 ```
+
+Also you can add general rules that will be available on all Smart Bot channels to `./rules/general_rules.rb`
+
+
 ### How to access the Smart Bot
 You can access the bot directly on the MASTER CHANNEL, on a secondary channel where the bot is running and directly by opening a private chat with the bot, in this case the conversation will be just between you and the bot.
 

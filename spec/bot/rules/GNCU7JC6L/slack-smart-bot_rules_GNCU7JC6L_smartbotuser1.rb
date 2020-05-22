@@ -65,82 +65,80 @@ def rules(user, command, processed, dest, files = [], rules_file = "")
       command = context
     end
   end
-  begin
-    case command
+  load './rules/general_rules.rb'
+  
+  unless general_rules(user, command, processed, dest, files, rules_file)
 
-    # help: ----------------------------------------------
-    # help: `echo SOMETHING`
-    # help:     repeats SOMETHING
-    # help:
-    when /^echo\s(.+)/i
-      respond $1, dest
+    begin
+      case command
 
-      # help: ----------------------------------------------
-      # help: `go to sleep`
-      # help:   it will sleep the bot for 5 seconds
-      # help:
-    when /^go\sto\ssleep/i
-      unless @questions.keys.include?(from)
-        ask("do you want me to take a siesta?", command, from, dest)
-      else
-        case @questions[from]
-        when /yes/i, /yep/i, /sure/i
-          @questions.delete(from)
-          respond "I'll be sleeping for 5 secs... just for you", dest
-          respond "zZzzzzzZZZZZZzzzzzzz!", dest
-          sleep 5
-        when /no/i, /nope/i, /cancel/i
-          @questions.delete(from)
-          respond "Thanks, I'm happy to be awake", dest
+        # help: ----------------------------------------------
+        # help: `go to sleep`
+        # help:   it will sleep the bot for 5 seconds
+        # help:
+      when /^go\sto\ssleep/i
+        unless @questions.keys.include?(from)
+          ask("do you want me to take a siesta?", command, from, dest)
         else
-          respond "I don't understand", dest
-          ask("are you sure do you want me to sleep? (yes or no)", command, from, dest)
+          case @questions[from]
+          when /yes/i, /yep/i, /sure/i
+            @questions.delete(from)
+            respond "I'll be sleeping for 5 secs... just for you", dest
+            respond "zZzzzzzZZZZZZzzzzzzz!", dest
+            sleep 5
+          when /no/i, /nope/i, /cancel/i
+            @questions.delete(from)
+            respond "Thanks, I'm happy to be awake", dest
+          else
+            respond "I don't understand", dest
+            ask("are you sure do you want me to sleep? (yes or no)", command, from, dest)
+          end
+        end
+
+        # help: ----------------------------------------------
+        # help: `run something`
+        # help:   It will run the process and report the results when done
+        # help:
+      when /^run something/i
+        respond "Running", dest
+
+        process_to_run = "ruby -v"
+        process_to_run = ("cd #{project_folder} &&" + process_to_run) if defined?(project_folder)
+        stdout, stderr, status = Open3.capture3(process_to_run)
+        if stderr == ""
+          if stdout == ""
+            respond "#{display_name}: Nothing returned.", dest
+          else
+            respond "#{display_name}: #{stdout}", dest
+          end
+        else
+          respond "#{display_name}: #{stdout} #{stderr}", dest
+        end
+
+        # Example downloading a file from slack
+        #  if !files.nil? and files.size == 1 and files[0].filetype == 'yaml'
+        #    require 'nice_http'
+        #    http = NiceHttp.new(host: "https://files.slack.com", headers: { "Authorization" => "Bearer #{config[:token]}" })
+        #    http.get(files[0].url_private_download, save_data: './tmp/')
+        #  end
+
+        # Examples sending a file to slack:
+        #   send_file(to, msg, filepath, title, format, type = "text")
+        #   send_file(dest, 'the message', "#{project_folder}/temp/logs_ptBI.log", 'title', 'text/plain', "text")
+        #   send_file(dest, 'the message', "#{project_folder}/temp/example.jpeg", 'title', 'image/jpeg', "jpg")
+
+      else
+        unless processed
+          dont_understand(rules_file, command, user, dest)
         end
       end
-
-      # help: ----------------------------------------------
-      # help: `run something`
-      # help:   It will run the process and report the results when done
-      # help:
-    when /^run something/i
-      respond "Running", dest
-
-      process_to_run = "ruby -v"
-      process_to_run = ("cd #{project_folder} &&" + process_to_run) if defined?(project_folder)
-      stdout, stderr, status = Open3.capture3(process_to_run)
-      if stderr == ""
-        if stdout == ""
-          respond "#{display_name}: Nothing returned.", dest
-        else
-          respond "#{display_name}: #{stdout}", dest
-        end
+    rescue => exception
+      if defined?(@logger)
+        @logger.fatal exception
+        respond "Unexpected error!! Please contact an admin to solve it: <@#{config.admins.join(">, <@")}>", dest
       else
-        respond "#{display_name}: #{stdout} #{stderr}", dest
+        puts exception
       end
-
-      # Example downloading a file from slack
-      #  if !files.nil? and files.size == 1 and files[0].filetype == 'yaml'
-      #    require 'nice_http'
-      #    http = NiceHttp.new(host: "https://files.slack.com", headers: { "Authorization" => "Bearer #{config[:token]}" })
-      #    http.get(files[0].url_private_download, save_data: './tmp/')
-      #  end
-
-      # Examples sending a file to slack:
-      #   send_file(to, msg, filepath, title, format, type = "text")
-      #   send_file(dest, 'the message', "#{project_folder}/temp/logs_ptBI.log", 'title', 'text/plain', "text")
-      #   send_file(dest, 'the message', "#{project_folder}/temp/example.jpeg", 'title', 'image/jpeg', "jpg")
-
-    else
-      unless processed
-        dont_understand(rules_file, command, user, dest)
-      end
-    end
-  rescue => exception
-    if defined?(@logger)
-      @logger.fatal exception
-      respond "Unexpected error!! Please contact an admin to solve it: <@#{config.admins.join(">, <@")}>", dest
-    else
-      puts exception
     end
   end
 end

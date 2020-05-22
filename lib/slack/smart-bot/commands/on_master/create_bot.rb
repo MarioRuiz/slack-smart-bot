@@ -46,14 +46,19 @@ class SlackSmartBot
               rules_file = "slack-smart-bot_rules_#{channel_id}_#{from.gsub(" ", "_")}.rb"
               if defined?(RULES_FOLDER)
                 rules_file = RULES_FOLDER + rules_file
+                general_rules_file = RULES_FOLDER + 'general_rules_file.rb'
               else
                 Dir.mkdir("#{config.path}/rules") unless Dir.exist?("#{config.path}/rules")
                 Dir.mkdir("#{config.path}/rules/#{channel_id}") unless Dir.exist?("#{config.path}/rules/#{channel_id}")
                 rules_file = "/rules/#{channel_id}/" + rules_file
+                general_rules_file = "/rules/general_rules_file.rb"
               end
               default_rules = (__FILE__).gsub(/slack\/smart-bot\/commands\/on_master\/create_bot\.rb$/, "slack-smart-bot_rules.rb")
+              default_general_rules = (__FILE__).gsub(/slack\/smart-bot\/commands\/on_master\/create_bot\.rb$/, "slack-smart-bot_general_rules.rb")
+              
               File.delete(config.path + rules_file) if File.exist?(config.path + rules_file)
               FileUtils.copy_file(default_rules, config.path + rules_file) unless File.exist?(config.path + rules_file)
+              FileUtils.copy_file(default_general_rules, config.path + general_rules_file) unless File.exist?(config.path + general_rules_file)
               admin_users = Array.new()
               creator_info = client.web_client.users_info(user: channel_found.creator)
               admin_users = [from, creator_info.user.name] + config.masters

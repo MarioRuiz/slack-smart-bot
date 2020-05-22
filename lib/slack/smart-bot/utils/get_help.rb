@@ -32,7 +32,11 @@ class SlackSmartBot
       help = @help_messages.deep_copy
     end
     if rules_file != ""
-      help[:rules_file] = IO.readlines(config.path+rules_file).join.scan(/#\s*help\s*\w*:(.*)/i).join("\n")
+      help[:rules_file] = ''
+      help[:rules_file] += IO.readlines(config.path+rules_file).join.scan(/#\s*help\s*\w*:(.*)/i).join("\n") + "\n"
+      if File.exist?(config.path+'/rules/general_rules.rb')
+        help[:rules_file] += IO.readlines(config.path+'/rules/general_rules.rb').join.scan(/#\s*help\s*\w*:(.*)/i).join("\n")
+      end
     end
     help = remove_hash_keys(help, :admin_master) unless user_type == :admin_master
     help = remove_hash_keys(help, :admin) unless user_type == :admin or user_type == :admin_master

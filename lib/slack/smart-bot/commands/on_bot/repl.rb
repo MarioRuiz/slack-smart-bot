@@ -101,34 +101,8 @@ class SlackSmartBot
             require \"amazing_print\"
             bindme' + serialt + ' = binding
             eval(\"require \'nice_http\'\" , bindme' + serialt + ')
-            def repl_params(met)
-              res = []
-              met.parameters.each do |par|
-                if par[0]==:req
-                  res << par[1].to_s
-                elsif par[0]==:keyreq
-                  res << par[1].to_s + \":\"
-                elsif par[0]==:key
-                  res << \"?\"+par[1].to_s + \":\"
-                elsif par[0]==:opt
-                  res << \"?\"+par[1].to_s
-                elsif par[0]==:rest
-                  res << \"*\"+par[1].to_s
-                elsif par[0]==:keyrest
-                  res << \"**\"+par[1].to_s
-                else
-                  res << par[1].to_s
-                end
-              end
-              \"(#{res.join(\", \")})\"
-            end
             def ls(obj)
-              mets = (obj.methods - Object.methods)
-              res = []
-              mets.each do |met|
-                res << \"#{met}#{repl_params(obj.method(met))}\"
-              end
-              res.sort
+              (obj.methods - Object.methods)
             end
             
             file_input_repl = File.open(\"' + Dir.pwd + '/repl/' + @channel_id + '/' + session_name + '.input\", \"r\")

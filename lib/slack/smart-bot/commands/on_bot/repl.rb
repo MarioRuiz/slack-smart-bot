@@ -208,8 +208,8 @@ class SlackSmartBot
               if resp_repl.to_s.lines.count < 60 and resp_repl.to_s.size < 3500
                 respond resp_repl, dest
               else
-                resp_repl.gsub!(/^```/,'')
-                resp_repl.gsub!(/```$/,'')
+                resp_repl.gsub!(/^\s*```/,'')
+                resp_repl.gsub!(/```\s*$/,'')
                 send_file(dest, "", 'response.rb', "", 'text/plain', "ruby", content: resp_repl)
               end
             end
@@ -223,7 +223,7 @@ class SlackSmartBot
         @repl_sessions[from][:command] = ''
         code.gsub!("\\n", "\n")
         code.gsub!("\\r", "\r")
-        # Disabled for the moment sinde it is deleting lines with '}'
+        # Disabled for the moment since it is deleting lines with '}'
         #code.gsub!(/^\W*$/, "") #to remove special chars from slack when copy/pasting.
         if code.match?(/System/i) or code.match?(/Kernel/i) or code.include?("File") or
           code.include?("`") or code.include?("exec") or code.include?("spawn") or code.include?("IO.") or

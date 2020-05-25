@@ -169,11 +169,11 @@ class SlackSmartBot
         ruby_code(dest, user, code, rules_file)
       when /^\s*(private\s+)?(repl|irb|live)\s*()()()$/i, 
         /^\s*(private\s+)?(repl|irb|live)\s+([\w\-]+)()()\s*$/i,
-        /^\s*(private\s+)?(repl|irb|live)\s+([\w\-]+)\s*:\s*"(.+)"()\s*$/i,
-        /^\s*(private\s+)?(repl|irb|live)\s+([\w\-]+)\s*:\s*"(.+)"\s+(.+)\s*$/i,
+        /^\s*(private\s+)?(repl|irb|live)\s+([\w\-]+)\s*:\s+"([^"]+)"()\s*$/i,
+        /^\s*(private\s+)?(repl|irb|live)\s+([\w\-]+)\s*:\s+"([^"]+)"\s+(.+)\s*$/i,
         /^\s*(private\s+)?(repl|irb|live)\s+([\w\-]+)()\s+(.+)\s*$/i,
         /^\s*(private\s+)?(repl|irb|live)()\s+()(.+)\s*$/i
-        if $1.to_s!=''
+            if $1.to_s!=''
           type = :private
         else
           type = :public

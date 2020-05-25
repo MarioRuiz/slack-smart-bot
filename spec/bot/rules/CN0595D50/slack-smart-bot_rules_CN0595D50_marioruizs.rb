@@ -66,7 +66,7 @@ def rules(user, command, processed, dest, files = [], rules_file = "")
     end
   end
 
-  load './rules/general_rules.rb'
+  load "#{config.path}/rules/general_rules.rb"
   
   unless general_rules(user, command, processed, dest, files, rules_file)
 

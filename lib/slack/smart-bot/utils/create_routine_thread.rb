@@ -55,11 +55,28 @@ class SlackSmartBot
             require "time"
             every_in_seconds = Time.parse(@routines[@channel_id][name][:next_run]) - Time.now
           elsif @routines[@channel_id][name][:at] != "" #coming from start after pause for 'at'
-            if started.strftime("%H:%M:%S") < @routines[@channel_id][name][:at]
+
+            if @routines[@channel_id][name].key?(:dayweek) and @routines[@channel_id][name][:dayweek].to_s!=''
+              day = @routines[@channel_id][name][:dayweek]
+              days = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday']
+              incr = days.index(day) - Time.now.wday
+              if incr < 0 
+                incr = (7+incr)*24*60*60
+              else
+                incr = incr * 24 * 60 * 60
+              end
+              days = incr/(24*60*60)
+              whole_period = 7 * 24 * 60 * 60 # one week
+            else
+              days = 0
+              whole_period = 24 * 60 * 60 # one day
+            end
+
+            if started.strftime("%H:%M:%S") < @routines[@channel_id][name][:at] and days == 0
               nt = @routines[@channel_id][name][:at].split(":")
               next_run = Time.new(started.year, started.month, started.day, nt[0], nt[1], nt[2])
             else
-              next_run = started + (24 * 60 * 60) # one more day
+              next_run = started + whole_period # one more day/week
               nt = @routines[@channel_id][name][:at].split(":")
               next_run = Time.new(next_run.year, next_run.month, next_run.day, nt[0], nt[1], nt[2])
             end

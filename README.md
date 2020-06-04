@@ -391,6 +391,7 @@ Examples:
 >**_`add routine run_tests every 3h !run tests on customers`_**  
 >**_`add routine clean_db at 17:05 !clean customers temp db`_**  
 >**_`add silent routine clean_db at 17:05 !clean customers temp db`_**  
+>**_`add routine clean_custdb on Mondays at 05:00 !clean customers db`_**  
 
 Also instead of adding a Command to be executed, you can attach a file, then the routine will be created and the attached file will be executed on the criteria specified. Only Master Admins are allowed to use it this way.
 

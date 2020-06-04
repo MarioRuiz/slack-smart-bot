@@ -44,6 +44,7 @@ class SlackSmartBot
             msg << "\tStatus: #{v[:status]}"
             msg << "\tEvery: #{v[:every]}" unless v[:every] == ""
             msg << "\tAt: #{v[:at]}" unless v[:at] == ""
+            msg << "\tOn: #{v[:dayweek]}" unless !v.key?(:dayweek) or v[:dayweek].to_s == "" 
             msg << "\tNext Run: #{v[:next_run]}"
             msg << "\tLast Run: #{v[:last_run]}"
             msg << "\tTime consumed on last run: #{v[:last_elapsed]}" unless v[:command] !=''

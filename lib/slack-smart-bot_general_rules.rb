@@ -8,12 +8,15 @@ def general_rules(user, command, processed, dest, files = [], rules_file = "")
 
         # help: ----------------------------------------------
         # help: `echo SOMETHING`
-        # help:     repeats SOMETHING
+        # help: `INTEGER echo SOMETHING`
+        # help:     repeats SOMETHING. If INTEGER supplied then that number of times.
         # help:  Examples:
         # help:     _echo I am the Smart Bot_
-        when /^echo\s(.+)/i
-            save_stats :echo
-            respond $1
+        # help:     _100 echo :heart:_
+      when /^(\d*)\s*echo\s(.+)/i
+        save_stats :echo
+        $1.to_s == '' ? times = 1 : times = $1.to_i
+        respond ($2*times).to_s
 
       else
         return false

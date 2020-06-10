@@ -102,16 +102,16 @@ class SlackSmartBot
                         end
                     end
                     if user==''
-                        message << "*Users*"
                         users = rows.user_name.uniq.sort
+                        message << "*Users* - #{users.size}"
                         users.each do |user|
                             count = rows.count {|h| h.user_name==user}
                             message << "\t#{user}: #{count} (#{(count.to_f*100/total).round(2)}%)"
                         end
                     end
 
-                    message << "*Commands*"
                     commands = rows.command.uniq.sort
+                    message << "*Commands* - #{commands.size}"
                     commands.each do |command|
                         count = rows.count {|h| h.command==command}
                         message << "\t#{command}: #{count} (#{(count.to_f*100/total).round(2)}%)"

@@ -46,6 +46,8 @@ class SlackSmartBot
                 to+= " 23:59:59 +0000"
                 rows = []
                 rows_month = {}
+                users_month = {}
+                commands_month = {}
 
                 Dir["#{config.stats_path}.*.log"].sort.each do |file|
                     if file >= "#{config.stats_path}.#{from_file}.log" or file <= "#{config.stats_path}.#{to_file}.log"
@@ -59,7 +61,11 @@ class SlackSmartBot
                                                 rows << row.to_h
                                                 if monthly
                                                     rows_month[row[:date][0..6]] = 0 unless rows_month.key?(row[:date][0..6])
+                                                    users_month[row[:date][0..6]] = [] unless users_month.key?(row[:date][0..6])
+                                                    commands_month[row[:date][0..6]] = [] unless commands_month.key?(row[:date][0..6])
                                                     rows_month[row[:date][0..6]] += 1
+                                                    users_month[row[:date][0..6]] << row[:user_name]
+                                                    commands_month[row[:date][0..6]] << row[:command]
                                                 end
                                             end
                                         end
@@ -87,9 +93,9 @@ class SlackSmartBot
                 end
                 if total > 0
                     if monthly 
-                        message << '*Totals by month*'
+                        message << '*Totals by month / users / commands*'
                         rows_month.each do |k,v|
-                            message << "\t#{k}: #{v} (#{(v.to_f*100/total).round(2)}%)"
+                            message << "\t#{k}: #{v} (#{(v.to_f*100/total).round(2)}%) / #{users_month[k].uniq.size} / #{commands_month[k].uniq.size}"
                         end
                     end
 

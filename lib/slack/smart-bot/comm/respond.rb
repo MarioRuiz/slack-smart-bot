@@ -38,7 +38,7 @@ class SlackSmartBot
           f.puts "|#{dest}|#{config[:nick_id]}|#{msg}"
         }
       end
-    elsif dest[0] == "D" or dest[0] == "U" # Direct message
+    elsif dest[0] == "D" or dest[0] == "U"  or dest[0] == "W" # Direct message
       send_msg_user(dest, msg)
     elsif dest[0] == "@"
       begin

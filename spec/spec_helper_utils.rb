@@ -101,7 +101,7 @@ def send_message(message, from: :ubot, to:, file_ruby: "")
 
   http = NiceHttp.new(host: "https://slack.com", headers: { "Authorization" => "Bearer #{token}" }, log_headers: :partial)
 
-  if to_key[0] == "U" #message from user to user (Direct Message)
+  if to_key[0] == "U" or to_key[0] == "W" #message from user to user (Direct Message)
     unless DIRECT.key?(from)
       DIRECT[from] = {}
     end

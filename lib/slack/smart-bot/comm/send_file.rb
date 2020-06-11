@@ -8,7 +8,7 @@ class SlackSmartBot
   def send_file(to, msg, file, title, format, type = "text", content: '')
     unless config[:simulate]
       file = 'myfile' if file.to_s == '' and content!=''
-      if to[0] == "U" #user
+      if to[0] == "U" or to[0] == "W" #user
         im = client.web_client.im_open(user: to)
         channel = im["channel"]["id"]
       else

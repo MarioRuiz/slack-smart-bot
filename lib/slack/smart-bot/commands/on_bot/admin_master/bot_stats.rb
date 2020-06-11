@@ -93,9 +93,18 @@ class SlackSmartBot
                 end
                 if total > 0
                     if monthly 
-                        message << '*Totals by month / users / commands*'
+                        message << '*Totals by month / commands / users (%new)*'
+                        all_users = []
+                        new_users = []
                         rows_month.each do |k,v|
-                            message << "\t#{k}: #{v} (#{(v.to_f*100/total).round(2)}%) / #{users_month[k].uniq.size} / #{commands_month[k].uniq.size}"
+                            if all_users.empty?
+                                message_new_users = ''
+                            else
+                                new_users = (users_month[k]-all_users).uniq
+                                message_new_users = "(#{new_users.size*100/users_month[k].uniq.size}%)"
+                            end
+                            all_users += users_month[k]
+                            message << "\t#{k}: #{v} (#{(v.to_f*100/total).round(2)}%) / #{commands_month[k].uniq.size} / #{users_month[k].uniq.size} #{message_new_users}"
                         end
                     end
 

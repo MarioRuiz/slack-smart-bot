@@ -36,6 +36,10 @@ class SlackSmartBot
             if !File.exist?("#{config.stats_path}.#{Time.now.strftime("%Y-%m")}.log")
                 message<<'No stats'
             else
+                if user!=''
+                    user_info = client.web_client.users_info(user: user)
+                    user_name = user_info.user.name
+                end
                 from = "#{Time.now.strftime("%Y-%m")}-01" if from == ''
                 to = "#{Time.now.strftime("%Y-%m-%d")}" if to == ''
                 from_short = from
@@ -54,7 +58,7 @@ class SlackSmartBot
                         CSV.foreach(file, headers: true, header_converters: :symbol, converters: :numeric) do |row|
                             row[:date] = row[:date].to_s
                             if !exclude_masters or (exclude_masters and !config.masters.include?(row[:user_name]))
-                                if user=='' or (user!='' and row[:user_id] == user)
+                                if user=='' or (user!='' and row[:user_name] == user_name)
                                     if exclude_command == '' or (exclude_command!='' and row[:command]!=exclude_command)
                                         if row[:bot_channel_id] == channel_id or channel_id == ''
                                             if row[:date] >= from and row[:date] <= to

@@ -22,7 +22,7 @@ class SlackSmartBot
     # helpadmin:      _bot stats @peter.wind_
     # helpadmin:      _bot stats #sales from 2019/12/15 to 2019/12/31_
     # helpadmin:      _bot stats #sales today_
-    # helpadmin:      _bot stats #sales monthly_
+    # helpadmin:      _bot stats #sales from 2020-01-01 monthly_
     # helpadmin:
     def bot_stats(dest, from_user, typem, channel_id, from, to, user, exclude_masters, exclude_command, monthly)
         require 'csv'

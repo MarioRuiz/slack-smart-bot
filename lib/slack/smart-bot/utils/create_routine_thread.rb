@@ -13,7 +13,6 @@ class SlackSmartBot
             ruby = ""
           end
           @routines[@channel_id][name][:silent] = false if !@routines[@channel_id][name].key?(:silent)
-
           if @routines[@channel_id][name][:at] == "" or
              (@routines[@channel_id][name][:at] != "" and @routines[@channel_id][name][:running] and
               @routines[@channel_id][name][:next_run] != "" and Time.now.to_s >= @routines[@channel_id][name][:next_run])
@@ -55,7 +54,6 @@ class SlackSmartBot
             require "time"
             every_in_seconds = Time.parse(@routines[@channel_id][name][:next_run]) - Time.now
           elsif @routines[@channel_id][name][:at] != "" #coming from start after pause for 'at'
-
             if @routines[@channel_id][name].key?(:dayweek) and @routines[@channel_id][name][:dayweek].to_s!=''
               day = @routines[@channel_id][name][:dayweek]
               days = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday']
@@ -76,7 +74,8 @@ class SlackSmartBot
               nt = @routines[@channel_id][name][:at].split(":")
               next_run = Time.new(started.year, started.month, started.day, nt[0], nt[1], nt[2])
             else
-              next_run = started + whole_period # one more day/week
+              days = 7 if days == 0 and started.strftime("%H:%M:%S") > @routines[@channel_id][name][:at]
+              next_run = started + (days * 24 * 60 * 60) # one more day/week
               nt = @routines[@channel_id][name][:at].split(":")
               next_run = Time.new(next_run.year, next_run.month, next_run.day, nt[0], nt[1], nt[2])
             end

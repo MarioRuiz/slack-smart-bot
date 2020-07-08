@@ -124,6 +124,7 @@ def rules(user, command, processed, dest)
             respond "zZzzzzzZZZZZZzzzzzzz!"
             react :sleeping
             sleep 10
+            unreact :sleeping
             react :sunny
           when /no/i, /nope/i, /cancel/i
             @questions.delete(from)
@@ -152,6 +153,8 @@ def rules(user, command, processed, dest)
       else
         respond "#{user.name}: #{stdout} #{stderr}"
       end
+      
+      unreact :runner
 
     else
       unless processed

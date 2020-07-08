@@ -60,6 +60,7 @@ def rules(user, command, processed, dest, files = [], rules_file = "")
             respond "zZzzzzzZZZZZZzzzzzzz!"
             react :sleeping
             sleep 5
+            unreact :sleeping
             react :sunny
           when /no/i, /nope/i, /cancel/i
             @questions.delete(from)
@@ -81,6 +82,7 @@ def rules(user, command, processed, dest, files = [], rules_file = "")
         process_to_run = "ruby -v"
         process_to_run = ("cd #{project_folder} &&" + process_to_run) if defined?(project_folder)
         stdout, stderr, status = Open3.capture3(process_to_run)
+        unreact :runner
         if stderr == ""
           if stdout == ""
             respond "#{display_name}: Nothing returned."

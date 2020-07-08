@@ -64,17 +64,23 @@ class SlackSmartBot
                 incr = incr * 24 * 60 * 60
               end
               days = incr/(24*60*60)
-              whole_period = 7 * 24 * 60 * 60 # one week
+              weekly = true
             else
               days = 0
-              whole_period = 24 * 60 * 60 # one day
+              weekly = false
             end
 
             if started.strftime("%H:%M:%S") < @routines[@channel_id][name][:at] and days == 0
               nt = @routines[@channel_id][name][:at].split(":")
               next_run = Time.new(started.year, started.month, started.day, nt[0], nt[1], nt[2])
             else
-              days = 7 if days == 0 and started.strftime("%H:%M:%S") > @routines[@channel_id][name][:at]
+              if days == 0 and started.strftime("%H:%M:%S") > @routines[@channel_id][name][:at]
+                if weekly
+                    days = 7
+                else
+                    days = 1
+                end
+              end
               next_run = started + (days * 24 * 60 * 60) # one more day/week
               nt = @routines[@channel_id][name][:at].split(":")
               next_run = Time.new(next_run.year, next_run.month, next_run.day, nt[0], nt[1], nt[2])

@@ -177,10 +177,20 @@ class SlackSmartBot
     get_rules_imported()
 
     begin
+      #todo: take in consideration the case that the value supplied on config.masters and config.admins are the ids and not the user names
       @admin_users_id = []
+      @master_admin_users_id = []
       config.admins.each do |au|
         user_info = client.web_client.users_info(user: "@#{au}")
         @admin_users_id << user_info.user.id
+        if config.masters.include?(au)
+          @master_admin_users_id << user_info.user.id
+        end
+        sleep 1
+      end
+      (config.masters-config.admins).each do |au|
+        user_info = client.web_client.users_info(user: "@#{au}")
+        @master_admin_users_id << user_info.user.id
         sleep 1
       end
     rescue Slack::Web::Api::Errors::TooManyRequestsError

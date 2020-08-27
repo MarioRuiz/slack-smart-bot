@@ -32,14 +32,10 @@ class SlackSmartBot
             message = ["You need to set stats to true to generate the stats when running the bot instance."]
         end
         save_stats(__method__)
-        if config.masters.include?(from_user) and typem==:on_dm #master admin user
+        if (config.masters.include?(from_user) or @master_admin_users_id.include?(from_user)) and typem==:on_dm #master admin user
             if !File.exist?("#{config.stats_path}.#{Time.now.strftime("%Y-%m")}.log")
                 message<<'No stats'
             else
-                if user!=''
-                    user_info = client.web_client.users_info(user: user)
-                    user_name = user_info.user.name
-                end
                 from = "#{Time.now.strftime("%Y-%m")}-01" if from == ''
                 to = "#{Time.now.strftime("%Y-%m-%d")}" if to == ''
                 from_short = from
@@ -52,13 +48,56 @@ class SlackSmartBot
                 rows_month = {}
                 users_month = {}
                 commands_month = {}
-
+                users_id_name = {}
+                users_name_id = {}
+    
+                # to translate global and enterprise users since sometimes was returning different names/ids
+                Dir["#{config.stats_path}.*.log"].sort.each do |file|
+                    if file >= "#{config.stats_path}.#{from_file}.log" or file <= "#{config.stats_path}.#{to_file}.log"
+                        CSV.foreach(file, headers: true, header_converters: :symbol, converters: :numeric) do |row|
+                            unless users_id_name.key?(row[:user_id])
+                                users_id_name[row[:user_id]] = row[:user_name]
+                            end
+                            unless users_name_id.key?(row[:user_name])
+                                users_name_id[row[:user_name]] = row[:user_id]
+                            end
+    
+                        end
+                    end
+                end
+    
+                if user!=''
+                    user_info = client.web_client.users_info(user: user)
+                    if users_id_name.key?(user_info.user.id)
+                        user_name = users_id_name[user_info.user.id]
+                    else
+                        user_name = user_info.user.name
+                    end
+                    if users_name_id.key?(user_info.user.name)
+                        user_id = users_name_id[user_info.user.name]
+                    else
+                        user_id = user_info.user.id
+                    end
+                end
+                master_admins = config.masters.dup
+                config.masters.each do |u|
+                    if users_id_name.key?(u)
+                        master_admins << users_id_name[u]
+                    elsif users_name_id.key?(u)
+                        master_admins << users_name_id[u]
+                    end
+                end
+    
                 Dir["#{config.stats_path}.*.log"].sort.each do |file|
                     if file >= "#{config.stats_path}.#{from_file}.log" or file <= "#{config.stats_path}.#{to_file}.log"
                         CSV.foreach(file, headers: true, header_converters: :symbol, converters: :numeric) do |row|
                             row[:date] = row[:date].to_s
-                            if !exclude_masters or (exclude_masters and !config.masters.include?(row[:user_name]))
-                                if user=='' or (user!='' and row[:user_name] == user_name)
+                            row[:user_name] = users_id_name[row[:user_id]]
+                            row[:user_id] = users_name_id[row[:user_name]]
+                            if !exclude_masters or (exclude_masters and !master_admins.include?(row[:user_name]) and 
+                                                    !master_admins.include?(row[:user_id]) and
+                                                    !@master_admin_users_id.include?(row[:user_id]))
+                                if user=='' or (user!='' and row[:user_name] == user_name) or (user!='' and row[:user_id] == user_id)
                                     if exclude_command == '' or (exclude_command!='' and row[:command]!=exclude_command)
                                         if row[:bot_channel_id] == channel_id or channel_id == ''
                                             if row[:date] >= from and row[:date] <= to
@@ -68,7 +107,7 @@ class SlackSmartBot
                                                     users_month[row[:date][0..6]] = [] unless users_month.key?(row[:date][0..6])
                                                     commands_month[row[:date][0..6]] = [] unless commands_month.key?(row[:date][0..6])
                                                     rows_month[row[:date][0..6]] += 1
-                                                    users_month[row[:date][0..6]] << row[:user_name]
+                                                    users_month[row[:date][0..6]] << row[:user_id]
                                                     commands_month[row[:date][0..6]] << row[:command]
                                                 end
                                             end
@@ -79,7 +118,6 @@ class SlackSmartBot
                         end
                     end
                 end
-
                 total = rows.size
                 if exclude_masters
                     message << 'Excluding master admins'
@@ -111,7 +149,7 @@ class SlackSmartBot
                             message << "\t#{k}: #{v} (#{(v.to_f*100/total).round(2)}%) / #{commands_month[k].uniq.size} / #{users_month[k].uniq.size} #{message_new_users}"
                         end
                     end
-
+    
                     if channel_id == ''
                         message << "*Channels*"
                         channels = rows.bot_channel.uniq.sort
@@ -121,21 +159,25 @@ class SlackSmartBot
                         end
                     end
                     if user==''
-                        users = rows.user_name.uniq.sort
+                        users = rows.user_id.uniq.sort
                         message << "*Users* - #{users.size}"
+                        count_user = {}
                         users.each do |user|
-                            count = rows.count {|h| h.user_name==user}
-                            message << "\t#{user}: #{count} (#{(count.to_f*100/total).round(2)}%)"
+                            count = rows.count {|h| h.user_id==user}
+                            count_user[user] = count
+                        end
+                        count_user.sort_by {|k,v| -v}.each do |user, count|
+                           message << "\t#{users_id_name[user]}: #{count} (#{(count.to_f*100/total).round(2)}%)"
                         end
                     end
-
+    
                     commands = rows.command.uniq.sort
                     message << "*Commands* - #{commands.size}"
                     commands.each do |command|
                         count = rows.count {|h| h.command==command}
                         message << "\t#{command}: #{count} (#{(count.to_f*100/total).round(2)}%)"
                     end
-
+    
                     message << "*Message type*"
                     types = rows.type_message.uniq.sort
                     types.each do |type|
@@ -144,7 +186,6 @@ class SlackSmartBot
                     end
                     message << "*Last activity*: #{rows[-1].date} #{rows[-1].bot_channel} #{rows[-1].type_message} #{rows[-1].user_name} #{rows[-1].command}"
                 end
-                
             end
         else
             message<<"Only Master admin users on a private conversation with the bot can see the bot stats."

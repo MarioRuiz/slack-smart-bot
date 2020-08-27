@@ -74,7 +74,7 @@ class SlackSmartBot
               nt = @routines[@channel_id][name][:at].split(":")
               next_run = Time.new(started.year, started.month, started.day, nt[0], nt[1], nt[2])
             else
-              if days == 0 and started.strftime("%H:%M:%S") > @routines[@channel_id][name][:at]
+              if days == 0 and started.strftime("%H:%M:%S") >= @routines[@channel_id][name][:at]
                 if weekly
                     days = 7
                 else

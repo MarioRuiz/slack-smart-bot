@@ -117,7 +117,8 @@ class SlackSmartBot
       begin
         #todo: when changed @questions user_id then move user_info inside the ifs to avoid calling it when not necessary
         user_info = client.web_client.users_info(user: data.user)
-        user_info.user.id = data.user #todo: remove this line when slack issue with Wxxxx Uxxxx fixed
+        #user_info.user.id = data.user #todo: remove this line when slack issue with Wxxxx Uxxxx fixed
+        data.user = user_info.user.id  #todo: remove this line when slack issue with Wxxxx Uxxxx fixed
         if @questions.key?(user_info.user.name)
           if data.text.match?(/^\s*(Bye|Bæ|Good\sBye|Adiós|Ciao|Bless|Bless\sBless|Adeu)\s(#{@salutations.join("|")})\s*$/i)
             @questions.delete(user_info.user.name)

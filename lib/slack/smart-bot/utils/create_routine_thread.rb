@@ -23,7 +23,11 @@ class SlackSmartBot
               stdout, stderr, status = Open3.capture3(process_to_run)
               if !@routines[@channel_id][name][:silent] or (@routines[@channel_id][name][:silent] and 
                 (!stderr.match?(/\A\s*\z/) or !stdout.match?(/\A\s*\z/)))
-                respond "routine *`#{name}`*: #{@routines[@channel_id][name][:file_path]}", @routines[@channel_id][name][:dest]
+                if @routines[@channel_id][name][:dest]!=@channel_id
+                  respond "routine from <##{@channel_id}> *`#{name}`*: #{@routines[@channel_id][name][:file_path]}", @routines[@channel_id][name][:dest]
+                else
+                  respond "routine *`#{name}`*: #{@routines[@channel_id][name][:file_path]}", @routines[@channel_id][name][:dest]
+                end
               end
               if stderr == ""
                 unless stdout.match?(/\A\s*\z/)
@@ -34,10 +38,15 @@ class SlackSmartBot
               end
             else #command
               if !@routines[@channel_id][name][:silent]
-                respond "routine *`#{name}`*: #{@routines[@channel_id][name][:command]}", @routines[@channel_id][name][:dest]
+                if @routines[@channel_id][name][:dest]!=@channel_id
+                  respond "routine from <##{@channel_id}> *`#{name}`*: #{@routines[@channel_id][name][:command]}", @routines[@channel_id][name][:dest]
+                else
+                  respond "routine *`#{name}`*: #{@routines[@channel_id][name][:command]}", @routines[@channel_id][name][:dest]
+                end
               end
               started = Time.now
-              data = { channel: @routines[@channel_id][name][:dest],
+              data = { channel: @channel_id,
+                dest: @routines[@channel_id][name][:dest],
                 user: @routines[@channel_id][name][:creator_id],
                 text: @routines[@channel_id][name][:command],
                 files: nil }

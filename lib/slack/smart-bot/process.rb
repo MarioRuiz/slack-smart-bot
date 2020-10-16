@@ -69,16 +69,17 @@ class SlackSmartBot
       when /^\s*kill\sbot\son\s<#C\w+\|(.+)>\s*$/i, /^kill\sbot\son\s(.+)\s*$/i
         channel = $1
         kill_bot_on_channel(dest, from, channel)
-      when /^\s*(add|create)\s+(silent\s+)?routine\s+(\w+)\s+(every)\s+(\d+)\s*(days|hours|minutes|seconds|mins|min|secs|sec|d|h|m|s)\s*(\s.+)?\s*$/i,
-        /^\s*(add|create)\s+(silent\s+)?routine\s+(\w+)\s+on\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday)s?\s+at\s+(\d+:\d+:?\d+?)\s*()(\s.+)?\s*$/i,
-        /^\s*(add|create)\s+(silent\s+)?routine\s+(\w+)\s+(at)\s+(\d+:\d+:?\d+?)\s*()(\s.+)?\s*$/i
+      when /^\s*(add|create)\s+(silent\s+)?routine\s+(\w+)\s+(every)\s+(\d+)\s*(days|hours|minutes|seconds|mins|min|secs|sec|d|h|m|s)\s*(\s<#(C\w+)\|.+>\s*)?(\s.+)?\s*$/i,
+        /^\s*(add|create)\s+(silent\s+)?routine\s+(\w+)\s+on\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday)s?\s+at\s+(\d+:\d+:?\d+?)\s*()(\s<#(C\w+)\|.+>\s*)?(\s.+)?\s*$/i,
+        /^\s*(add|create)\s+(silent\s+)?routine\s+(\w+)\s+(at)\s+(\d+:\d+:?\d+?)\s*()(\s<#(C\w+)\|.+>\s*)?(\s.+)?\s*$/i
         silent = $2.to_s!=''
         name = $3.downcase
         type = $4
         number_time = $5
         period = $6
-        command_to_run = $7
-        add_routine(dest, from, user, name, type, number_time, period, command_to_run, files, silent)
+        channel = $8
+        command_to_run = $9
+        add_routine(dest, from, user, name, type, number_time, period, command_to_run, files, silent, channel)
       when /^\s*(kill|delete|remove)\s+routine\s+(\w+)\s*$/i
         name = $2.downcase
         remove_routine(dest, from, name)

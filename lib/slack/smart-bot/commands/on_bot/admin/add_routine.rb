@@ -1,11 +1,14 @@
 class SlackSmartBot
   # helpadmin: ----------------------------------------------
   # helpadmin: `add routine NAME every NUMBER PERIOD COMMAND`
+  # helpadmin: `add routine NAME every NUMBER PERIOD #CHANNEL COMMAND`
   # helpadmin: `add routine NAME every NUMBER PERIOD`
   # helpadmin: `add silent routine NAME every NUMBER PERIOD`
   # helpadmin: `create routine NAME every NUMBER PERIOD`
   # helpadmin: `add routine NAME at TIME COMMAND`
+  # helpadmin: `add routine NAME at TIME #CHANNEL COMMAND`
   # helpadmin: `add routine NAME on DAYWEEK at TIME COMMAND`
+  # helpadmin: `add routine NAME on DAYWEEK at TIME #CHANNEL COMMAND`
   # helpadmin: `add routine NAME at TIME`
   # helpadmin: `add silent routine NAME at TIME`
   # helpadmin: `create routine NAME at TIME`
@@ -17,15 +20,17 @@ class SlackSmartBot
   # helpadmin:    PERIOD: days, d, hours, h, minutes, mins, min, m, seconds, secs, sec, s
   # helpadmin:    TIME: time at format HH:MM:SS
   # helpadmin:    DAYWEEK: Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday. And their plurals.
+  # helpadmin:    #CHANNEL: the destination channel where the results will be published. If not supplied then the bot channel by default or a DM if the command is run from a DM.
   # helpadmin:    COMMAND: any valid smart bot command or rule
   # helpadmin:    Examples:
   # helpadmin:      _add routine example every 30s ruby puts 'a'_
   # helpadmin:      _add routine example every 3 days ruby puts 'a'_
   # helpadmin:      _add routine example at 17:05 ruby puts 'a'_
-  # helpadmin:      _create silent routine every 12 hours !Run customer tests_
+  # helpadmin:      _create silent routine Example every 12 hours !Run customer tests_
   # helpadmin:      _add routine example on Mondays at 05:00 !run customer tests_
+  # helpadmin:      _add routine example on Tuesdays at 09:00 #SREChannel !run db cleanup_
   # helpadmin:
-  def add_routine(dest, from, user, name, type, number_time, period, command_to_run, files, silent)
+  def add_routine(dest, from, user, name, type, number_time, period, command_to_run, files, silent, channel)
     save_stats(__method__)
     if files.nil? or files.size == 0 or (files.size > 0 and config.masters.include?(from))
       if config.admins.include?(from)
@@ -94,12 +99,12 @@ class SlackSmartBot
               http.get(files[0].url_private_download, save_data: file_path)
               system("chmod +x #{file_path}")
             end
-
+            channel = dest if channel.to_s == ''
             @routines[@channel_id] = {} unless @routines.key?(@channel_id)
             @routines[@channel_id][name] = { channel_name: config.channel, creator: from, creator_id: user.id, status: :on,
                                              every: every, every_in_seconds: every_in_seconds, at: at, dayweek: dayweek, file_path: file_path, 
                                              command: command_to_run.to_s.strip, silent: silent,
-                                             next_run: next_run.to_s, dest: dest, last_run: "", last_elapsed: "", 
+                                             next_run: next_run.to_s, dest: channel, last_run: "", last_elapsed: "", 
                                              running: false }
             update_routines
             respond "Added routine *`#{name}`* to the channel", dest

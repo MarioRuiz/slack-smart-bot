@@ -42,7 +42,9 @@ class SlackSmartBot
         f.puts "|#{data.channel}|#{data.user}|#{data.text}"
       }
     end
-    if data.channel[0] == "D" or data.channel[0] == "C" or data.channel[0] == "G" #Direct message or Channel or Private Channel
+    if data.key?(:dest) and data.dest.to_s!='' # for run routines and publish on different channels
+      dest = data.dest
+    elsif data.channel[0] == "D" or data.channel[0] == "C" or data.channel[0] == "G" #Direct message or Channel or Private Channel
       dest = data.channel
     else # not treated
       dest = nil
@@ -65,15 +67,15 @@ class SlackSmartBot
           data.text = $4
           typem = :on_call
         end
-      elsif dest == @master_bot_id
+      elsif data.channel == @master_bot_id
         if config.on_master_bot #only to be treated on master bot channel
           typem = :on_master
         end
-      elsif @bots_created.key?(dest)
-        if @channel_id == dest #only to be treated by the bot on the channel
+      elsif @bots_created.key?(data.channel)
+        if @channel_id == data.channel #only to be treated by the bot on the channel
           typem = :on_bot
         end
-      elsif dest[0] == "D" #Direct message
+      elsif data.channel[0] == "D" #Direct message
         get_rules_imported()
         if @rules_imported.key?(data.user) && @rules_imported[data.user].key?(data.user) and
           @bots_created.key?(@rules_imported[data.user][data.user])
@@ -85,21 +87,21 @@ class SlackSmartBot
           #only to be treated by master bot
           typem = :on_dm
         end
-      elsif dest[0] == "C" or dest[0] == "G"
+      elsif data.channel[0] == "C" or data.channel[0] == "G"
         #only to be treated on the channel of the bot. excluding running ruby
-        if !config.on_master_bot and @bots_created.key?(@channel_id) and @bots_created[@channel_id][:extended].include?(@channels_name[dest]) and
+        if !config.on_master_bot and @bots_created.key?(@channel_id) and @bots_created[@channel_id][:extended].include?(@channels_name[data.channel]) and
            !data.text.match?(/^!?\s*(ruby|code)\s+/) and !data.text.match?(/^!?!?\s*(ruby|code)\s+/) and !data.text.match?(/^\^?\s*(ruby|code)\s+/)
           typem = :on_extended
         elsif config.on_master_bot and (data.text.match?(/^!?\s*(ruby|code)\s+/) or data.text.match?(/^!?!?\s*(ruby|code)\s+/) or data.text.match?(/^\^?\s*(ruby|code)\s+/)  )
           #or in case of running ruby, the master bot
           @bots_created.each do |k, v|
-            if v.key?(:extended) and v[:extended].include?(@channels_name[dest])
+            if v.key?(:extended) and v[:extended].include?(@channels_name[data.channel])
               typem = :on_extended
               break
             end
           end
         end
-        if dest[0] == "G" and config.on_master_bot and typem != :on_extended #private group
+        if data.channel[0] == "G" and config.on_master_bot and typem != :on_extended #private group
           typem = :on_pg
         end
       end
@@ -127,7 +129,7 @@ class SlackSmartBot
             command = @questions[user_info.user.name]
             @questions[user_info.user.name] = data.text
           end
-        elsif @repl_sessions.key?(user_info.user.name) and dest==@repl_sessions[user_info.user.name][:dest] and 
+        elsif @repl_sessions.key?(user_info.user.name) and data.channel==@repl_sessions[user_info.user.name][:dest] and 
           ((@repl_sessions[user_info.user.name][:on_thread] and data.thread_ts == @repl_sessions[user_info.user.name][:thread_ts]) or
            (!@repl_sessions[user_info.user.name][:on_thread] and data.thread_ts.to_s == '' ))
           
@@ -172,13 +174,13 @@ class SlackSmartBot
           if channel_found.nil?
             @logger.fatal "Not possible to find the channel #{channel_rules_name}"
           elsif channel_found.name == config.master_channel
-            respond "You cannot use the rules from Master Channel on any other channel.", dest
+            respond "You cannot use the rules from Master Channel on any other channel.", data.channel
           elsif @status != :on
-            respond "The bot in that channel is not :on", dest
+            respond "The bot in that channel is not :on", data.channel
           elsif data.user == channel_found.creator or members.include?(data.user)
             process_first(user_info.user, command, dest, channel_rules, typem, data.files, data.ts, data.thread_ts)
           else
-            respond "You need to join the channel <##{channel_found.id}> to be able to use the rules.", dest
+            respond "You need to join the channel <##{channel_found.id}> to be able to use the rules.", data.channel
           end
         elsif config.on_master_bot and typem == :on_extended and
               command.size > 0 and command[0] != "-"
@@ -197,7 +199,7 @@ class SlackSmartBot
         @logger.fatal stack
       end
     else
-      if !config.on_master_bot and !dest.nil? and (dest == @master_bot_id or dest[0] == "D") and
+      if !config.on_master_bot and !dest.nil? and (data.channel == @master_bot_id or dest[0] == "D") and
          data.text.match?(/^\s*bot\s+status\s*$/i) and @admin_users_id.include?(data.user)
         respond "ping from #{config.channel}", dest
       elsif !config.on_master_bot and !dest.nil? and data.user == config[:nick_id] and dest == @master_bot_id

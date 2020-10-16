@@ -386,7 +386,7 @@ Example:
 To see available shortcuts: **_`see shortcuts`_** and to delete a particular shortcut: **_`delete shortcut NAME`_**
 
 ### Routines
-To add specific commands to be run automatically every certain amount of time or a specific time: **_`add routine NAME every NUMBER PERIOD COMMAND`_** or **_`add routine NAME at TIME COMMAND`_**
+To add specific commands to be run automatically every certain amount of time or a specific time: **_`add routine NAME every NUMBER PERIOD COMMAND`_** or **_`add routine NAME at TIME COMMAND`_**. Also just before the command you can supply the channel where you want to publish the results, if not channel supplied then it would be the SmartBot Channel or on the DM if the command is run from there. Remember the SmartBot needs to have access to the channel where you want to publish.
 
 If you want to hide the routine executions use `add silent routine`. It won't show the routine name when executing.
 
@@ -395,6 +395,7 @@ Examples:
 >**_`add routine clean_db at 17:05 !clean customers temp db`_**  
 >**_`add silent routine clean_db at 17:05 !clean customers temp db`_**  
 >**_`add routine clean_custdb on Mondays at 05:00 !clean customers db`_**  
+>**_`add routine clean_custdb on Tuesdays at 09:00 #SREChannel !clean customers db`_**  
 
 Also instead of adding a Command to be executed, you can attach a file, then the routine will be created and the attached file will be executed on the criteria specified. Only Master Admins are allowed to use it this way.
 

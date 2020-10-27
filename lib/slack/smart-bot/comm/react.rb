@@ -8,7 +8,7 @@ class SlackSmartBot
       ts = Thread.current[:ts]
     end
     begin
-      client.web_client.reactions_add(channel: Thread.current[:dest], name: emoji, timestamp: ts)
+      client.web_client.reactions_add(channel: Thread.current[:dest], name: emoji, timestamp: ts) unless settings.simulate
     rescue Exception => stack
       @logger.warn stack
     end

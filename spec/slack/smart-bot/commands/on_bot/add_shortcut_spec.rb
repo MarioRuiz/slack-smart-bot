@@ -24,27 +24,32 @@ RSpec.describe SlackSmartBot, "add_shortcut" do
     it "works: add shortcut when listening" do
       send_message "Hi bot", from: user, to: channel
       send_message "add shortcut example: echo Text", from: user, to: channel
+      sleep 0.5 if SIMULATE
       expect(buffer(to: channel, from: :ubot).join).to match(/shortcut added/)
     end
 
     it "works: add sc" do
       send_message "!add sc example: echo Text", from: user, to: channel
-      expect(buffer(to: channel, from: :ubot).join).to match(/^shortcut added$/)
+      sleep 0.5 if SIMULATE
+      expect(buffer(to: channel, from: :ubot).join).to match(/shortcut added$/)
     end
 
     it "works: add shortcut for all" do
       send_message "!add shortcut for all example: echo Text", from: user, to: channel
-      expect(buffer(to: channel, from: :ubot).join).to match(/^shortcut added$/)
+      sleep 0.5 if SIMULATE
+      expect(buffer(to: channel, from: :ubot).join).to match(/shortcut added$/)
     end
 
     it "works: shortcut" do
       send_message "!shortcut example: echo Text", from: user, to: channel
-      expect(buffer(to: channel, from: :ubot).join).to match(/^shortcut added$/)
+      sleep 0.5 if SIMULATE
+      expect(buffer(to: channel, from: :ubot).join).to match(/shortcut added$/)
     end
 
     it "works: shortcut for all" do
       send_message "!shortcut for all example: echo Text", from: user, to: channel
-      expect(buffer(to: channel, from: :ubot).join).to match(/^shortcut added$/)
+      sleep 0.5 if SIMULATE
+      expect(buffer(to: channel, from: :ubot).join).to match(/shortcut added$/)
     end
 
     it "calls shortcut using: shortcut NAME" do
@@ -56,6 +61,8 @@ RSpec.describe SlackSmartBot, "add_shortcut" do
     it "calls shortcut using: sc NAME" do
       send_message "!shortcut example: echo Text", from: user, to: channel
       send_message "!sc example", from: user, to: channel
+      sleep 0.5 if SIMULATE
+
       expect(buffer(to: channel, from: :ubot)[-1]).to match(/^Text$/)
     end
     it "calls shortcut using: NAME" do
@@ -166,7 +173,7 @@ RSpec.describe SlackSmartBot, "add_shortcut" do
     it "calls shortcut using: shortcut NAME" do
       send_message "shortcut example: ruby puts 'Text'", from: user, to: channel
       send_message "shortcut example", from: user, to: channel
-      sleep 2
+      sleep 3
       expect(buffer(to: channel, from: :ubot)[-1]).to match(/^Text$/)
     end
   end

@@ -27,6 +27,7 @@ RSpec.describe SlackSmartBot, "delete_shortcut" do
 
     it "works: delete shortcut on demand" do
       send_message "!delete shortcut example", from: user, to: channel
+      sleep 0.5 if SIMULATE
       expect(bufferc(to: channel, from: :ubot)[-1]).to match(/are you sure you want to delete it?/)
       send_message "yes", from: user, to: channel
       expect(buffer(to: channel, from: :ubot)[0]).to match(/shortcut deleted/)
@@ -35,6 +36,8 @@ RSpec.describe SlackSmartBot, "delete_shortcut" do
     it "works: delete shortcut when listening" do
       send_message "Hi bot", from: user, to: channel
       send_message "delete shortcut example", from: user, to: channel
+      sleep 0.5 if SIMULATE
+
       expect(bufferc(to: channel, from: :ubot)[-1]).to match(/are you sure you want to delete it?/)
       send_message "yes", from: user, to: channel
       expect(buffer(to: channel, from: :ubot)[0]).to match(/shortcut deleted/)

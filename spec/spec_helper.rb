@@ -43,6 +43,9 @@ RSpec.configure do |config|
         stats: true,
         nick_id: 'UMSRCRTAR'
       }
+      require_relative 'bot/client.rb'
+      @settings.client = csettings.client
+      
       Thread.new do
         sb = SlackSmartBot.new(@settings)
         while sb.config.simulate do
@@ -140,6 +143,8 @@ RSpec.configure do |config|
     # `true` in RSpec 4.
     mocks.verify_partial_doubles = true
   end
+  
+  config.example_status_persistence_file_path = "spec/examples.txt"
 
   # This option will default to `:apply_to_host_groups` in RSpec 4 (and will
   # have no way to turn it off -- the option exists only for backwards

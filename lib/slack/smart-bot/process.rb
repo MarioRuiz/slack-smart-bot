@@ -2,10 +2,15 @@ class SlackSmartBot
   def process(user, command, dest, dchannel, rules_file, typem, files, ts)
     from = user.name
     
-    if user.profile.display_name.to_s.match?(/\A\s*\z/)
-      user.profile.display_name = user.profile.real_name
+    if config.simulate
+      display_name = user.profile.display_name
+    else
+      if user.profile.display_name.to_s.match?(/\A\s*\z/)
+        user.profile.display_name = user.profile.real_name
+      end
+      display_name = user.profile.display_name
     end
-    display_name = user.profile.display_name
+    
     processed = true
 
     on_demand = false

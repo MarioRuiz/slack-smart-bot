@@ -15,14 +15,10 @@ class SlackSmartBot
       respond "You don't have access to use this command, please contact an Admin to be able to use it: <@#{config.admins.join(">, <@")}>"
     else
       #todo: add pagination for case more than 1000 channels on the workspace
-      channels = client.web_client.conversations_list(
-        types: "private_channel,public_channel",
-        limit: "1000",
-        exclude_archived: "true",
-      ).channels
+      channels = get_channels()
 
       channel_found = channels.detect { |c| c.name == channel }
-      members = client.web_client.conversations_members(channel: @channels_id[channel]).members unless channel_found.nil?
+      members = get_channel_members(@channels_id[channel]) unless channel_found.nil?
 
       if channel_found.nil?
         respond "The channel you are trying to use doesn't exist", dest

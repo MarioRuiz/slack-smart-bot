@@ -1,5 +1,5 @@
 class SlackSmartBot
-  def process_first(user, text, dest, dchannel, typem, files, ts, thread_ts)
+  def process_first(user, text, dest, dchannel, typem, files, ts, thread_ts, routine)
     nick = user.name
     rules_file = ""
     text.gsub!(/^!!/,'^') # to treat it just as ^
@@ -154,6 +154,7 @@ class SlackSmartBot
           Thread.current[:files?] = !files.nil? && files.size>0
           Thread.current[:ts] = ts
           Thread.current[:thread_ts] = thread_ts
+          Thread.current[:routine] = routine
           if thread_ts.to_s == ''
             Thread.current[:on_thread] = false
             Thread.current[:thread_ts] = Thread.current[:ts] # to create the thread if necessary

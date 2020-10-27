@@ -19,7 +19,7 @@
 tmp.sh
 /spec/bot/shortcuts/
 tmp.rb
-
+/spec/examples.txt
 # Used by dotenv library to load environment variables.
 # .env
 

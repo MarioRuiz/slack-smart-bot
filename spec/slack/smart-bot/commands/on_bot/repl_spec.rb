@@ -43,6 +43,8 @@ RSpec.describe SlackSmartBot, "repl" do
     it 'ends the session when sending quit' do
       send_message "!repl", from: user, to: channel
       send_message "quit", from: user, to: channel
+      sleep 0.5 if SIMULATE
+
       expect(buffer(to: channel, from: :ubot).join).to match(/REPL session finished: \w+_\d+/)
     end
     it 'ends the session when sending exit' do

@@ -89,7 +89,7 @@ class SlackSmartBot
       config.on_master_bot = false
     end
 
-    if !config.key?(:token) or config.token.to_s == ''
+    if (!config.key?(:token) or config.token.to_s == '') and !config.simulate
       abort "You need to supply a valid token key on the settings. key: :token"
     elsif !config.key?(:masters) or !config.masters.is_a?(Array) or config.masters.size == 0
       abort "You need to supply a masters array on the settings containing the user names of the master admins. key: :masters"
@@ -114,15 +114,21 @@ class SlackSmartBot
 
     self.config = config
 
-    Slack.configure do |conf|
-      conf.token = config[:token]
+    unless config.simulate and config.key?(:client)
+      Slack.configure do |conf|
+        conf.token = config[:token]
+      end
     end
     restarts = 0
     created = false
     while restarts < 200 and !created
       begin
         @logger.info "Connecting #{config_log.inspect}"
-        self.client = Slack::RealTime::Client.new(start_method: :rtm_connect)
+        if config.simulate and config.key?(:client)
+          self.client = config.client
+        else
+          self.client = Slack::RealTime::Client.new(start_method: :rtm_connect)
+        end
         created = true
       rescue Exception => e
         restarts += 1
@@ -181,7 +187,7 @@ class SlackSmartBot
       @admin_users_id = []
       @master_admin_users_id = []
       config.admins.each do |au|
-        user_info = client.web_client.users_info(user: "@#{au}")
+        user_info = get_user_info("@#{au}")
         @admin_users_id << user_info.user.id
         if config.masters.include?(au)
           @master_admin_users_id << user_info.user.id
@@ -189,7 +195,7 @@ class SlackSmartBot
         sleep 1
       end
       (config.masters-config.admins).each do |au|
-        user_info = client.web_client.users_info(user: "@#{au}")
+        user_info = get_user_info("@#{au}")
         @master_admin_users_id << user_info.user.id
         sleep 1
       end
@@ -197,33 +203,15 @@ class SlackSmartBot
       @logger.fatal "TooManyRequestsError"
       abort("TooManyRequestsError please re run the bot and be sure of executing first: killall ruby")
     rescue Exception => stack
+      pp stack if config.testing
       abort("The admin user specified on settings: #{config.admins.join(", ")}, doesn't exist on Slack. Execution aborted")
     end
 
-    client.on :hello do
-      m = "Successfully connected, welcome '#{client.self.name}' to the '#{client.team.name}' team at https://#{client.team.domain}.slack.com."
-      puts m
-      @logger.info m
-      config.nick = client.self.name
-      config.nick_id = client.self.id
-      @salutations = [config[:nick], "<@#{config[:nick_id]}>", "bot", "smart"]
-
-      gems_remote = `gem list slack-smart-bot --remote`
-      version_remote = gems_remote.to_s().scan(/slack-smart-bot \((\d+\.\d+\.\d+)/).join
-      version_message = ""
-      if version_remote != VERSION
-        version_message = ". There is a new available version: #{version_remote}."
-      end
-      if !config[:silent] or ENV['BOT_SILENT'].to_s == 'false'
-        ENV['BOT_SILENT'] = 'true' if config[:silent] == 'true' and ENV['BOT_SILENT'].to_s != 'true'
-        respond "Smart Bot started v#{VERSION}#{version_message}\nIf you want to know what I can do for you: `bot help`.\n`bot rules` if you want to display just the specific rules of this channel.\nYou can talk to me privately if you prefer it."
-      end
-      @routines.each do |ch, rout|
-        rout.each do |k, v|
-          if !v[:running] and v[:channel_name] == config.channel
-            create_routine_thread(k)
-          end
-        end
+    if config.simulate and config.key?(:client)
+      event_hello()
+    else
+      client.on :hello do
+        event_hello()
       end
     end
 
@@ -253,20 +241,19 @@ class SlackSmartBot
           end
         end
       end
+    else
+      client.on :close do |_data|
+        m = "Connection closing, exiting. #{Time.now}"
+        @logger.info m
+        @logger.info _data
+      end
+  
+      client.on :closed do |_data|
+        m = "Connection has been disconnected. #{Time.now}"
+        @logger.info m
+        @logger.info _data
+      end
     end
-
-    client.on :close do |_data|
-      m = "Connection closing, exiting. #{Time.now}"
-      @logger.info m
-      @logger.info _data
-    end
-
-    client.on :closed do |_data|
-      m = "Connection has been disconnected. #{Time.now}"
-      @logger.info m
-      @logger.info _data
-    end
-
     self
   end
 

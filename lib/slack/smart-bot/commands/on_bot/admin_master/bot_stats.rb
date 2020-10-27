@@ -67,7 +67,7 @@ class SlackSmartBot
                 end
     
                 if user!=''
-                    user_info = client.web_client.users_info(user: user)
+                    user_info = get_user_info(user)
                     if users_id_name.key?(user_info.user.id)
                         user_name = users_id_name[user_info.user.id]
                     else

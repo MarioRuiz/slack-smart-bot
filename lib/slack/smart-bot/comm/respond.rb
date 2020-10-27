@@ -7,7 +7,7 @@ class SlackSmartBot
     if dest.nil?
       if config[:simulate]
         open("#{config.path}/buffer_complete.log", "a") { |f|
-          f.puts "|#{@channel_id}|#{config[:nick_id]}|#{msg}~~~"
+          f.puts "|#{@channel_id}|#{config[:nick_id]}|#{config[:nick]}|#{msg}~~~"
         }
       else  
         if Thread.current[:on_thread]
@@ -18,13 +18,13 @@ class SlackSmartBot
       end
       if config[:testing] and config.on_master_bot
         open("#{config.path}/buffer.log", "a") { |f|
-          f.puts "|#{@channel_id}|#{config[:nick_id]}|#{msg}"
+          f.puts "|#{@channel_id}|#{config[:nick_id]}|#{config[:nick]}|#{msg}"
         }
       end
     elsif dest[0] == "C" or dest[0] == "G" # channel
       if config[:simulate]
         open("#{config.path}/buffer_complete.log", "a") { |f|
-        f.puts "|#{dest}|#{config[:nick_id]}|#{msg}~~~"
+        f.puts "|#{dest}|#{config[:nick_id]}|#{config[:nick]}|#{msg}~~~"
       }
       else  
         if Thread.current[:on_thread]
@@ -35,14 +35,14 @@ class SlackSmartBot
       end
       if config[:testing] and config.on_master_bot
         open("#{config.path}/buffer.log", "a") { |f|
-          f.puts "|#{dest}|#{config[:nick_id]}|#{msg}"
+          f.puts "|#{dest}|#{config[:nick_id]}|#{config[:nick]}|#{msg}"
         }
       end
     elsif dest[0] == "D" or dest[0] == "U"  or dest[0] == "W" # Direct message
       send_msg_user(dest, msg)
     elsif dest[0] == "@"
       begin
-        user_info = client.web_client.users_info(user: dest)
+        user_info = get_user_info(dest)
         send_msg_user(user_info.user.id, msg)
       rescue Exception => stack
         @logger.warn("user #{dest} not found.")

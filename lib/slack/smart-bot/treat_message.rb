@@ -37,9 +37,11 @@ class SlackSmartBot
     rescue
       @logger.warn "Impossible to unescape or clean format for data.text:#{data.text}"
     end
+    data.routine = false unless data.key?(:routine)
+
     if config[:testing] and config.on_master_bot
       open("#{config.path}/buffer.log", "a") { |f|
-        f.puts "|#{data.channel}|#{data.user}|#{data.text}"
+        f.puts "|#{data.channel}|#{data.user}|#{data.user_name}|#{data.text}"
       }
     end
     if data.key?(:dest) and data.dest.to_s!='' # for run routines and publish on different channels
@@ -118,7 +120,8 @@ class SlackSmartBot
       end
       begin
         #todo: when changed @questions user_id then move user_info inside the ifs to avoid calling it when not necessary
-        user_info = client.web_client.users_info(user: data.user)
+        user_info = get_user_info(data.user)
+
         #user_info.user.id = data.user #todo: remove this line when slack issue with Wxxxx Uxxxx fixed
         data.user = user_info.user.id  #todo: remove this line when slack issue with Wxxxx Uxxxx fixed
         if @questions.key?(user_info.user.name)
@@ -164,13 +167,9 @@ class SlackSmartBot
           command = "!" + command unless command[0] == "!" or command.match?(/^\s*$/) or command[0] == "^"
 
           #todo: add pagination for case more than 1000 channels on the workspace
-          channels = client.web_client.conversations_list(
-            types: "private_channel,public_channel",
-            limit: "1000",
-            exclude_archived: "true",
-          ).channels
+          channels = get_channels()
           channel_found = channels.detect { |c| c.name == channel_rules_name }
-          members = client.web_client.conversations_members(channel: @channels_id[channel_rules_name]).members unless channel_found.nil?
+          members = get_channel_members(@channels_id[channel_rules_name]) unless channel_found.nil?
           if channel_found.nil?
             @logger.fatal "Not possible to find the channel #{channel_rules_name}"
           elsif channel_found.name == config.master_channel
@@ -178,21 +177,21 @@ class SlackSmartBot
           elsif @status != :on
             respond "The bot in that channel is not :on", data.channel
           elsif data.user == channel_found.creator or members.include?(data.user)
-            process_first(user_info.user, command, dest, channel_rules, typem, data.files, data.ts, data.thread_ts)
+            process_first(user_info.user, command, dest, channel_rules, typem, data.files, data.ts, data.thread_ts, data.routine)
           else
             respond "You need to join the channel <##{channel_found.id}> to be able to use the rules.", data.channel
           end
         elsif config.on_master_bot and typem == :on_extended and
               command.size > 0 and command[0] != "-"
           # to run ruby only from the master bot for the case more than one extended
-          process_first(user_info.user, command, dest, @channel_id, typem, data.files, data.ts, data.thread_ts)
+          process_first(user_info.user, command, dest, @channel_id, typem, data.files, data.ts, data.thread_ts, data.routine)
         elsif !config.on_master_bot and @bots_created[@channel_id].key?(:extended) and
               @bots_created[@channel_id][:extended].include?(@channels_name[data.channel]) and
               command.size > 0 and command[0] != "-"
-          process_first(user_info.user, command, dest, @channel_id, typem, data.files, data.ts, data.thread_ts)
+          process_first(user_info.user, command, dest, @channel_id, typem, data.files, data.ts, data.thread_ts, data.routine)
         elsif (dest[0] == "D" or @channel_id == data.channel or data.user == config[:nick_id]) and
               command.size > 0 and command[0] != "-"
-          process_first(user_info.user, command, dest, data.channel, typem, data.files, data.ts, data.thread_ts)
+          process_first(user_info.user, command, dest, data.channel, typem, data.files, data.ts, data.thread_ts, data.routine)
           # if @botname on #channel_rules: do something
         end
       rescue Exception => stack

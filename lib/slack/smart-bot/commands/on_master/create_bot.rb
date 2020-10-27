@@ -24,13 +24,9 @@ class SlackSmartBot
           channel_id = @channels_id[channel]
         end
         #todo: add pagination for case more than 1000 channels on the workspace
-        channels = client.web_client.conversations_list(
-          types: "private_channel,public_channel",
-          limit: "1000",
-          exclude_archived: "true",
-        ).channels
+        channels = get_channels()
         channel_found = channels.detect { |c| c.name == channel }
-        members = client.web_client.conversations_members(channel: @channels_id[channel]).members unless channel_found.nil?
+        members = get_channel_members(@channels_id[channel]) unless channel_found.nil?
 
         if channel_id.nil?
           respond "There is no channel with that name: #{channel}, please be sure is written exactly the same", dest
@@ -60,7 +56,7 @@ class SlackSmartBot
               FileUtils.copy_file(default_rules, config.path + rules_file) unless File.exist?(config.path + rules_file)
               FileUtils.copy_file(default_general_rules, config.path + general_rules_file) unless File.exist?(config.path + general_rules_file)
               admin_users = Array.new()
-              creator_info = client.web_client.users_info(user: channel_found.creator)
+              creator_info = get_user_info(channel_found.creator)
               admin_users = [from, creator_info.user.name] + config.masters
               admin_users.uniq!
               @logger.info "ruby #{config.file_path} \"#{channel}\" \"#{admin_users.join(",")}\" \"#{rules_file}\" on"

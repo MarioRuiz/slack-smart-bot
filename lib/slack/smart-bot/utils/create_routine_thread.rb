@@ -19,7 +19,15 @@ class SlackSmartBot
             if @routines[@channel_id][name][:file_path] != ""
               process_to_run = "#{ruby}#{Dir.pwd}#{@routines[@channel_id][name][:file_path][1..-1]}"
               process_to_run = ("cd #{project_folder} &&" + process_to_run) if defined?(project_folder)
-
+              data = {
+                dest: @routines[@channel_id][name][:dest],
+                typem: 'routine_file',
+                user: {id: @routines[@channel_id][name][:creator_id], name: @routines[@channel_id][name][:creator]},
+                files: false,
+                command: @routines[@channel_id][name][:file_path],
+                routine: true
+              }            
+              save_stats(name, data: data)
               stdout, stderr, status = Open3.capture3(process_to_run)
               if !@routines[@channel_id][name][:silent] or (@routines[@channel_id][name][:silent] and 
                 (!stderr.match?(/\A\s*\z/) or !stdout.match?(/\A\s*\z/)))
@@ -49,7 +57,8 @@ class SlackSmartBot
                 dest: @routines[@channel_id][name][:dest],
                 user: @routines[@channel_id][name][:creator_id],
                 text: @routines[@channel_id][name][:command],
-                files: nil }
+                files: nil,
+                routine: true }
               treat_message(data)
             end
             # in case the routine was deleted while running the process

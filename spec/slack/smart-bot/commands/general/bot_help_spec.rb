@@ -135,6 +135,13 @@ RSpec.describe SlackSmartBot, "bot_help" do
         send_message "bot rules SSSSSSS", from: :user2, to: channel
         expect(buffer(to: channel, from: :ubot).join).to match(/I didn't find any rule starting by `SSSSSSS`/)
       end
+      it "includes help from external loaded or required rules" do
+        #for example from general_rules.rb
+        send_message "bot rules echo", from: :user2, to: channel
+        expect(buffer(to: channel, from: :ubot).join).not_to match(/I didn't find any rule starting by `echo`/)
+        expect(buffer(to: channel, from: :ubot).join).to match(/echo SOMETHING/)
+      end
+
     end
     describe "bot channel" do
       channel = :cbot2cu

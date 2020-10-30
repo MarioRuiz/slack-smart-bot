@@ -34,8 +34,21 @@ class SlackSmartBot
     if rules_file != ""
       help[:rules_file] = ''
       help[:rules_file] += IO.readlines(config.path+rules_file).join.scan(/#\s*help\s*\w*:(.*)/i).join("\n") + "\n"
-      if File.exist?(config.path+'/rules/general_rules.rb')
-        help[:rules_file] += IO.readlines(config.path+'/rules/general_rules.rb').join.scan(/#\s*help\s*\w*:(.*)/i).join("\n")
+      # to get all the help from other rules files added to the main rules file by using require or load. For example general_rules.rb
+      res = IO.readlines(config.path+rules_file).join.scan(/$\s*(load|require)\s("|')(.+)("|')/)
+      rules_help = []
+      txt = ''
+      if res.size>0
+        res.each do |r|
+          begin
+            eval("txt = \"#{r[2]}\"")
+            rules_help << txt if File.exist?(txt)
+          rescue
+          end
+        end
+      end
+      rules_help.each do |rh|
+        help[:rules_file] += IO.readlines(rh).join.scan(/#\s*help\s*\w*:(.*)/i).join("\n")
       end
     end
     help = remove_hash_keys(help, :admin_master) unless user_type == :admin_master

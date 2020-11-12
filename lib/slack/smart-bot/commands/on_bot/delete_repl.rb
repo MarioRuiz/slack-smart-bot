@@ -20,6 +20,7 @@ class SlackSmartBot
           @repls.delete(session_name)
           update_repls()
           File.rename("#{config.path}/repl/#{@channel_id}/#{session_name}.input", "#{config.path}/repl/#{@channel_id}/#{session_name}_#{Time.now.strftime("%Y%m%d%H%M%S%N")}.deleted")
+          File.delete("#{config.path}/repl/#{@channel_id}/#{session_name}.output") if File.exist?("#{config.path}/repl/#{@channel_id}/#{session_name}.output")
           File.delete("#{config.path}/repl/#{@channel_id}/#{session_name}.run") if File.exist?("#{config.path}/repl/#{@channel_id}/#{session_name}.run")
           respond "REPL #{session_name} deleted"
         else

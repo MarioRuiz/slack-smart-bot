@@ -50,9 +50,30 @@ RSpec.describe SlackSmartBot, "bot_stats" do
       end
       
       it "returns stats" do
+        Dir.glob("./spec/bot/stats/*.log").each {|file| File.delete(file)}
         send_message "bot stats", from: user, to: channel
-        expect(bufferc(to: channel, from: :ubot).join).to match(/Total calls/)
+        expect(bufferc(to: channel, from: :ubot).join).to match(/\*Total calls\*: 1\s+/)
       end
+      it 'excludes master admins' do
+        Dir.glob("./spec/bot/stats/*.log").each {|file| File.delete(file)}
+        send_message "hi bot", from: user, to: channel
+        send_message "bot stats exclude masters", from: user, to: channel
+        expect(buffer(to: channel, from: :ubot).join).to match(/Excluding master admins/)
+        expect(bufferc(to: channel, from: :ubot).join).to match(/\*Total calls\*: 0\s+/)
+      end
+      it 'excludes routines' do
+        Dir.glob("./spec/bot/stats/*.log").each {|file| File.delete(file)}
+        send_message "hi bot", from: user, to: channel
+        sleep 0.2
+        stats_file = "./spec/bot/stats/#{Dir.children('./spec/bot/stats/')[0]}"
+        content = File.read(stats_file).dup
+        content.gsub!(',marioruizs,',',routine/marioruizs,')
+        File.open(stats_file, "w") {|file| file.puts content }
+        send_message "bot stats exclude routines", from: user, to: channel
+        expect(buffer(to: channel, from: :ubot).join).to match(/Excluding routines/)
+        expect(bufferc(to: channel, from: :ubot).join).not_to match(/\*Total calls\*: 2\s+/)
+      end
+      
       #todo: add more tests for options
     end
   

@@ -3,6 +3,7 @@ class SlackSmartBot
     # helpadmin: `bot stats`
     # helpadmin: `bot stats USER_NAME`
     # helpadmin: `bot stats exclude masters`
+    # helpadmin: `bot stats exclude routines`
     # helpadmin: `bot stats from YYYY/MM/DD`
     # helpadmin: `bot stats from YYYY/MM/DD to YYYY/MM/DD`
     # helpadmin: `bot stats CHANNEL`
@@ -24,7 +25,7 @@ class SlackSmartBot
     # helpadmin:      _bot stats #sales today_
     # helpadmin:      _bot stats #sales from 2020-01-01 monthly_
     # helpadmin:
-    def bot_stats(dest, from_user, typem, channel_id, from, to, user, exclude_masters, exclude_command, monthly)
+    def bot_stats(dest, from_user, typem, channel_id, from, to, user, exclude_masters, exclude_routines, exclude_command, monthly)
         require 'csv'
         if config.stats
             message = []
@@ -97,18 +98,20 @@ class SlackSmartBot
                             if !exclude_masters or (exclude_masters and !master_admins.include?(row[:user_name]) and 
                                                     !master_admins.include?(row[:user_id]) and
                                                     !@master_admin_users_id.include?(row[:user_id]))
-                                if user=='' or (user!='' and row[:user_name] == user_name) or (user!='' and row[:user_id] == user_id)
-                                    if exclude_command == '' or (exclude_command!='' and row[:command]!=exclude_command)
-                                        if row[:bot_channel_id] == channel_id or channel_id == ''
-                                            if row[:date] >= from and row[:date] <= to
-                                                rows << row.to_h
-                                                if monthly
-                                                    rows_month[row[:date][0..6]] = 0 unless rows_month.key?(row[:date][0..6])
-                                                    users_month[row[:date][0..6]] = [] unless users_month.key?(row[:date][0..6])
-                                                    commands_month[row[:date][0..6]] = [] unless commands_month.key?(row[:date][0..6])
-                                                    rows_month[row[:date][0..6]] += 1
-                                                    users_month[row[:date][0..6]] << row[:user_id]
-                                                    commands_month[row[:date][0..6]] << row[:command]
+                                if !exclude_routines or (exclude_routines and !row[:user_name].match?(/^routine\//) )
+                                    if user=='' or (user!='' and row[:user_name] == user_name) or (user!='' and row[:user_id] == user_id)
+                                        if exclude_command == '' or (exclude_command!='' and row[:command]!=exclude_command)
+                                            if row[:bot_channel_id] == channel_id or channel_id == ''
+                                                if row[:date] >= from and row[:date] <= to
+                                                    rows << row.to_h
+                                                    if monthly
+                                                        rows_month[row[:date][0..6]] = 0 unless rows_month.key?(row[:date][0..6])
+                                                        users_month[row[:date][0..6]] = [] unless users_month.key?(row[:date][0..6])
+                                                        commands_month[row[:date][0..6]] = [] unless commands_month.key?(row[:date][0..6])
+                                                        rows_month[row[:date][0..6]] += 1
+                                                        users_month[row[:date][0..6]] << row[:user_id]
+                                                        commands_month[row[:date][0..6]] << row[:command]
+                                                    end
                                                 end
                                             end
                                         end
@@ -121,6 +124,9 @@ class SlackSmartBot
                 total = rows.size
                 if exclude_masters
                     message << 'Excluding master admins'
+                end
+                if exclude_routines
+                    message << 'Excluding routines'
                 end
                 if exclude_command != ''
                     message << "Excluding command #{exclude_command}"

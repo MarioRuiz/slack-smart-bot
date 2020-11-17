@@ -367,7 +367,7 @@ That shortcut will be available for you, in case you want to make it available f
 Example:
 >**_Peter>_** `!add shortcut for all spanish bank account: ruby require 'iso/iban'; 3.times {puts ISO::IBAN.random('ES')}`  
 >**_Smart-Bot>_** `shortcut added`  
->**_Peter>_** `!spanish bank account`  
+>**_John>_** `!spanish bank account`  
 >**_Smart-Bot>_** `ES4664553191352006861448`  
 `ES4799209592433480943244`  
 `ES8888795057132445752702`  

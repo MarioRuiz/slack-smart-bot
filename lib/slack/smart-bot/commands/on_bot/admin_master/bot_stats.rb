@@ -15,17 +15,20 @@ class SlackSmartBot
     # helpadmin: `bot stats today`
     # helpadmin: `bot stats exclude COMMAND_ID`
     # helpadmin: `bot stats monthly`
+    # helpadmin: `bot stats alldata`
     # helpadmin:    To see the bot stats
     # helpadmin:    You can use this command only if you are a Master admin user and if you are in a private conversation with the bot
     # helpadmin:    You need to set stats to true to generate the stats when running the bot instance.
+    # helpadmin:    If alldata option supplied then it will be attached files including all data for users and commands and not only the top 10.
     # helpadmin:    Examples:
     # helpadmin:      _bot stats #sales_
     # helpadmin:      _bot stats @peter.wind_
     # helpadmin:      _bot stats #sales from 2019/12/15 to 2019/12/31_
     # helpadmin:      _bot stats #sales today_
     # helpadmin:      _bot stats #sales from 2020-01-01 monthly_
+    # helpadmin:      _bot stats exclude routines masters from 2021/01/01 monthly_
     # helpadmin:
-    def bot_stats(dest, from_user, typem, channel_id, from, to, user, exclude_masters, exclude_routines, exclude_command, monthly)
+    def bot_stats(dest, from_user, typem, channel_id, from, to, user, exclude_masters, exclude_routines, exclude_command, monthly, all_data)
         require 'csv'
         if config.stats
             message = []
@@ -164,24 +167,54 @@ class SlackSmartBot
                             message << "\t#{channel}: #{count} (#{(count.to_f*100/total).round(2)}%)"
                         end
                     end
+                    users_attachment = []
                     if user==''
                         users = rows.user_id.uniq.sort
-                        message << "*Users* - #{users.size}"
+                        if users.size > 10
+                            message << "*Users* - #{users.size} (Top 10)"
+                        else
+                            message << "*Users* - #{users.size}"
+                        end
                         count_user = {}
                         users.each do |user|
                             count = rows.count {|h| h.user_id==user}
                             count_user[user] = count
                         end
+                        i = 0
                         count_user.sort_by {|k,v| -v}.each do |user, count|
-                           message << "\t#{users_id_name[user]}: #{count} (#{(count.to_f*100/total).round(2)}%)"
+                            i+=1
+                            if i <= 10
+                                message << "\t#{users_id_name[user]}: #{count} (#{(count.to_f*100/total).round(2)}%)"
+                            end
+                            if users.size > 10 and all_data
+                                users_attachment << "\t#{users_id_name[user]}: #{count} (#{(count.to_f*100/total).round(2)}%)"
+                            end
                         end
                     end
-    
+                    commands_attachment = []
+
                     commands = rows.command.uniq.sort
-                    message << "*Commands* - #{commands.size}"
+                    count_command = {}
                     commands.each do |command|
                         count = rows.count {|h| h.command==command}
-                        message << "\t#{command}: #{count} (#{(count.to_f*100/total).round(2)}%)"
+                        count_command[command] = count
+                    end
+
+                    if commands.size > 10
+                        message << "*Commands* - #{commands.size} (Top 10)"
+                    else
+                        message << "*Commands* - #{commands.size}"
+                    end
+
+                    i = 0
+                    count_command.sort_by {|k,v| -v}.each do |command, count|
+                        i+=1
+                        if i <= 10
+                            message << "\t#{command}: #{count} (#{(count.to_f*100/total).round(2)}%)"
+                        end
+                        if commands.size > 10 and all_data
+                            commands_attachment << "\t#{command}: #{count} (#{(count.to_f*100/total).round(2)}%)"
+                        end
                     end
     
                     message << "*Message type*"
@@ -191,6 +224,12 @@ class SlackSmartBot
                         message << "\t#{type}: #{count} (#{(count.to_f*100/total).round(2)}%)"
                     end
                     message << "*Last activity*: #{rows[-1].date} #{rows[-1].bot_channel} #{rows[-1].type_message} #{rows[-1].user_name} #{rows[-1].command}"
+                    if users_attachment.size>0
+                        send_file(dest, "", 'users.txt', "", 'text/plain', "text", content: users_attachment.join("\n"))
+                    end
+                    if commands_attachment.size>0
+                        send_file(dest, "", 'commands.txt', "", 'text/plain', "text", content: commands_attachment.join("\n"))
+                    end
                 end
             end
         else

@@ -105,6 +105,7 @@ class SlackSmartBot
       when /^\s*bot\s+stats\s*(.*)\s*$/i
         opts = $1.to_s
         all_opts = opts.downcase.split(' ')
+        all_data = all_opts.include?('alldata')
         st_channel = opts.scan(/<#(\w+)\|.+>/).join
         st_from = opts.scan(/from\s+(\d\d\d\d[\/\-\.]\d\d[\/\-\.]\d\d)/).join
         st_from = st_from.gsub('.','-').gsub('/','-')
@@ -128,7 +129,7 @@ class SlackSmartBot
           monthly = true
         end
         exclude_command = opts.scan(/exclude\s+([^\s]+)/i).join
-        bot_stats(dest, from, typem, st_channel, st_from, st_to, st_user, exclude_masters, exclude_routines, exclude_command, monthly)
+        bot_stats(dest, from, typem, st_channel, st_from, st_to, st_user, exclude_masters, exclude_routines, exclude_command, monthly, all_data)
       else
         processed = false
       end

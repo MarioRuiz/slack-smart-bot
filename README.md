@@ -309,7 +309,7 @@ If you declare on your rules file a method called `project_folder` returning the
 
 By default it will be automatically loaded the gems: `string_pattern`, `nice_hash` and `nice_http`
 
-To pre-execute some ruby when starting the session add the code to `.smart-bot-repl` file on the project root folder defined on `project_folder`
+To pre-execute some ruby when starting the session add the code to `.smart-bot-repl` file on the project root folder defined on `project_folder`. Then that file will be always executed before the REPL started or created. In that case if we want to avoid to run that file before the REPL we can do it adding the word 'clean' before the command `clean repl`.
 
 If you want to see the methods of a class or module you created use `ls TheModuleOrClass`
 

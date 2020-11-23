@@ -5,6 +5,7 @@ class SlackSmartBot
   # help: `irb`
   # help: `repl SESSION_NAME`
   # help: `private repl SESSION_NAME`
+  # help: `clean repl SESSION_NAME`
   # help: `repl ENV_VAR=VALUE`
   # help: `repl SESSION_NAME ENV_VAR=VALUE ENV_VAR='VALUE'`
   # help: `repl SESSION_NAME: "DESCRIPTION"`
@@ -14,6 +15,7 @@ class SlackSmartBot
   # help:     SESSION_NAME only admits from a to Z, numbers, - and _
   # help:     If no SESSION_NAME supplied it will be treated as a temporary REPL
   # help:     If 'private' specified the repl will be accessible only by you and it will be displayed only to you when `see repls`
+  # help:     If 'clean' specified the repl won't pre execute the code written on the .smart-bot-repl file
   # help:     To avoid a message to be treated, start the message with '-'.
   # help:     Send _quit_, _bye_ or _exit_ to finish the session.
   # help:     Send puts, print, p or pp if you want to print out something when using `run repl` later.
@@ -96,6 +98,19 @@ class SlackSmartBot
         File.write("#{config.path}/repl/#{@channel_id}/#{@repl_sessions[from][:name]}.output", "", mode: "a+")
         File.write("#{config.path}/repl/#{@channel_id}/#{@repl_sessions[from][:name]}.run", "", mode: "a+")
         
+        if type != :private_clean and type != :public_clean
+          pre_execute = '
+            if File.exist?(\"./.smart-bot-repl\")
+              begin
+                eval(File.read(\"./.smart-bot-repl\"), bindme' + serialt + ')
+              rescue Exception => resp_repl
+              end
+            end
+          '
+        else
+          pre_execute = ''
+        end
+
         process_to_run = '
             ruby -e "' + env_vars.join("\n") + '
             require \"amazing_print\"
@@ -105,13 +120,8 @@ class SlackSmartBot
               (obj.methods - Object.methods)
             end
             
-            file_input_repl = File.open(\"' + Dir.pwd + '/repl/' + @channel_id + '/' + session_name + '.input\", \"r\")
-            if File.exist?(\"./.smart-bot-repl\")
-              begin
-                eval(File.read(\"./.smart-bot-repl\"), bindme' + serialt + ')
-              rescue Exception => resp_repl
-              end
-            end
+            file_input_repl = File.open(\"./repl/' + @channel_id + '/' + session_name + '.input\", \"r\")
+            ' + pre_execute + '
             while true do 
               sleep 0.2 
               code_to_run_repl = file_input_repl.read
@@ -134,16 +144,16 @@ class SlackSmartBot
                   end
                   if resp_repl.to_s != \"\"
                     if code_to_run_repl.match?(/^\s*p\s+/i)
-                      open(\"' + Dir.pwd + '/repl/' + @channel_id + '/' + session_name + '.output\", \"a+\") {|f|
+                      open(\"./repl/' + @channel_id + '/' + session_name + '.output\", \"a+\") {|f|
                         f.puts \"\`\`\`\n#{resp_repl.inspect}\n\`\`\`\"
                       }
                     else
-                      open(\"' + Dir.pwd + '/repl/' + @channel_id + '/' + session_name + '.output\", \"a+\") {|f|
+                      open(\"./repl/' + @channel_id + '/' + session_name + '.output\", \"a+\") {|f|
                         f.puts \"\`\`\`\n#{resp_repl.ai}\n\`\`\`\"
                       }
                     end
                     unless error or !add_to_run_repl
-                      open(\"' + Dir.pwd + '/repl/' + @channel_id + '/' + session_name + '.run\", \"a+\") {|f|
+                      open(\"./repl/' + @channel_id + '/' + session_name + '.run\", \"a+\") {|f|
                         f.puts code_to_run_repl
                       }
                     end

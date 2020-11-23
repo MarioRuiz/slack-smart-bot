@@ -183,17 +183,16 @@ class SlackSmartBot
         code.gsub!("\\r", "\r")
         @logger.info code
         ruby_code(dest, user, code, rules_file)
-      when /^\s*(private\s+)?(repl|irb|live)\s*()()()$/i, 
-        /^\s*(private\s+)?(repl|irb|live)\s+([\w\-]+)()()\s*$/i,
-        /^\s*(private\s+)?(repl|irb|live)\s+([\w\-]+)\s*:\s+"([^"]+)"()\s*$/i,
-        /^\s*(private\s+)?(repl|irb|live)\s+([\w\-]+)\s*:\s+"([^"]+)"\s+(.+)\s*$/i,
-        /^\s*(private\s+)?(repl|irb|live)\s+([\w\-]+)()\s+(.+)\s*$/i,
-        /^\s*(private\s+)?(repl|irb|live)()\s+()(.+)\s*$/i
-            if $1.to_s!=''
-          type = :private
-        else
-          type = :public
-        end
+      when /^\s*(private\s+|clean\s+|clean\s+private\s+|private\s+clean\s+)?(repl|irb|live)\s*()()()$/i, 
+        /^\s*(private\s+|clean\s+|clean\s+private\s+|private\s+clean\s+)?(repl|irb|live)\s+([\w\-]+)()()\s*$/i,
+        /^\s*(private\s+|clean\s+|clean\s+private\s+|private\s+clean\s+)?(repl|irb|live)\s+([\w\-]+)\s*:\s+"([^"]+)"()\s*$/i,
+        /^\s*(private\s+|clean\s+|clean\s+private\s+|private\s+clean\s+)?(repl|irb|live)\s+([\w\-]+)\s*:\s+"([^"]+)"\s+(.+)\s*$/i,
+        /^\s*(private\s+|clean\s+|clean\s+private\s+|private\s+clean\s+)?(repl|irb|live)\s+([\w\-]+)()\s+(.+)\s*$/i,
+        /^\s*(private\s+|clean\s+|clean\s+private\s+|private\s+clean\s+)?(repl|irb|live)()\s+()(.+)\s*$/i
+        opts_type = $1.to_s.downcase.split(' ')
+        opts_type.include?('private') ? type = :private : type = :public
+        type = "#{type}_clean".to_sym if opts_type.include?('clean')
+        
         session_name = $3
         description = $4
         opts = " #{$5}"

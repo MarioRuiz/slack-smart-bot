@@ -22,7 +22,7 @@ class SlackSmartBot
       Dir.mkdir("#{config.path}/repl") unless Dir.exist?("#{config.path}/repl")
       Dir.mkdir("#{config.path}/repl/#{@channel_id}") unless Dir.exist?("#{config.path}/repl/#{@channel_id}")
       if File.exist?("#{config.path}/repl/#{@channel_id}/#{session_name}.run")
-        if @repls.key?(session_name) and @repls[session_name][:type] == :private and 
+        if @repls.key?(session_name) and (@repls[session_name][:type] == :private or @repls[session_name][:type] == :private_clean) and 
           @repls[session_name][:creator_name]!=user.name and 
           !config.admins.include?(user.name)
           respond "The REPL with session name: #{session_name} is private", dest
@@ -44,7 +44,7 @@ class SlackSmartBot
               eval(File.new(config.path+rules_file).read) if File.exist?(config.path+rules_file)
             end
           end
-          if File.exist?("#{project_folder}/.smart-bot-repl")
+          if File.exist?("#{project_folder}/.smart-bot-repl") and @repls[session_name][:type] != :private_clean and @repls[session_name][:type] != :public_clean
             content += File.read("#{project_folder}/.smart-bot-repl")
             content += "\n"
           end

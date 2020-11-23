@@ -35,7 +35,7 @@ class SlackSmartBot
         elsif @bots_created.keys.include?(channel_id)
           respond "There is already a bot in this channel: #{channel}, kill it before", dest
         elsif config[:nick_id] != channel_found.creator and !members.include?(config[:nick_id])
-          respond "You need to add first to the channel the smart bot user: #{config[:nick]}", dest
+          respond "You need to add first to the channel the smart bot user: <@#{config[:nick_id]}>", dest
         else
           if channel_id != config[:channel]
             begin

@@ -34,17 +34,19 @@ RSpec.configure do |config|
         nick: "example", # the smart bot name
         token: ENV["SSB_TOKEN"], # the API Slack token
         testing: true,
-        simulate: true,
+        simulate: ENV['SIMULATE']=='true',
         masters: ['marioruizs'],
         master_channel: 'master_channel',
         path: './spec/bot/',
         file: 'smart-bot-example.rb',
         start_bots: false,
         stats: true,
-        nick_id: 'UMSRCRTAR'
+        nick_id: 'UMSRCRTAR',
       }
-      require_relative 'bot/client.rb'
-      @settings.client = csettings.client
+      if @settings.simulate
+        require_relative 'bot/client.rb'
+        @settings.client = csettings.client
+      end
       
       Thread.new do
         sb = SlackSmartBot.new(@settings)

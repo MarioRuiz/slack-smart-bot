@@ -7,7 +7,7 @@ settings = {
   master_channel: 'master_channel',
   stats: true,
   file: 'smart-bot-example.rb',
-  nick: 'example',
+  nick: 'example', 
   nick_id: 'UMSRCRTAR'
 }
 

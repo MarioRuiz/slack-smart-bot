@@ -35,7 +35,7 @@ class SlackSmartBot
         elsif !members.include?(user.id)
           respond "You need to join that channel first", dest
         elsif !members.include?(config[:nick_id])
-          respond "You need to add first to the channel the smart bot user: #{config[:nick]}", dest
+          respond "You need to add first to the channel the smart bot user: <@#{config[:nick_id]}>", dest
         else
           channels_in_use.each do |channel_in_use|
             respond "The rules from channel <##{@channels_id[channel_in_use]}> are already in use on that channel", dest

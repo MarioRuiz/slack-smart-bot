@@ -57,15 +57,24 @@ RSpec.describe SlackSmartBot, "repl" do
       send_message "bye", from: user, to: channel
       expect(buffer(to: channel, from: :ubot).join).to match(/REPL session finished: \w+_\d+/)
     end
+    it 'executes the .smart-bot-repl file' do
+      send_message "!repl prerun ", from: user, to: channel
+      send_message "puts LOLO", from: user, to: channel
+      expect(buffer(to: channel, from: :ubot).join).to match(/beautiful/i)
+    end
 
-    unless SIMULATE
-      it 'responds continuosly' do
-        send_message "!repl", from: user, to: channel
-        send_message "a = 2222", from: user, to: channel
-        expect(buffer(to: channel, from: :ubot).join).to match(/2222/)
-        send_message "a += 3", from: user, to: channel
-        expect(buffer(to: channel, from: :ubot).join).to match(/2225/)
-      end
+    it 'creates repls with option clean' do
+      send_message "!clean repl", from: user, to: channel
+      send_message "puts LOLO", from: user, to: channel
+      expect(buffer(to: channel, from: :ubot).join).not_to match(/beautiful/i)
+    end
+
+    it 'responds continuosly' do
+      send_message "!repl", from: user, to: channel
+      send_message "a = 2222", from: user, to: channel
+      expect(buffer(to: channel, from: :ubot).join).to match(/2222/)
+      send_message "a += 3", from: user, to: channel
+      expect(buffer(to: channel, from: :ubot).join).to match(/2225/)
     end
 
   end

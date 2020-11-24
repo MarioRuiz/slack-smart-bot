@@ -2,7 +2,7 @@
 #path to the project folder
 # for example "#{`eval echo ~$USER`.chop}/projects/the_project"
 def project_folder()
-  "#{`eval echo ~$USER`.chop}/"
+  "#{Dir.pwd}/"
 end
 
 #link to the project

@@ -61,7 +61,7 @@ class SlackSmartBot
     end
     typem = :dont_treat
     if !dest.nil? and !data.text.nil? and !data.text.to_s.match?(/^\s*$/)
-      if data.text.match(/^<@#{config[:nick_id]}>\s(on\s)?<#(\w+)\|([^>]+)>\s*:?\s*(.*)/im)
+      if data.text.match(/^\s*<@#{config[:nick_id]}>\s+(on\s+)?<#(\w+)\|([^>]+)>\s*:?\s*(.*)/im)
         channel_rules = $2
         channel_rules_name = $3
         # to be treated only on the bot of the requested channel

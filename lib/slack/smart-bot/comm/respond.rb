@@ -4,6 +4,7 @@ class SlackSmartBot
       dest = Thread.current[:dest]
     end
     dest = @channels_id[dest] if @channels_id.key?(dest) #it is a name of channel
+    sleep 0.1 if !config.simulate and Time.now <= (@last_repond+0.1) #https://api.slack.com/docs/rate-limits
     if dest.nil?
       if config[:simulate]
         open("#{config.path}/buffer_complete.log", "a") { |f|
@@ -54,6 +55,7 @@ class SlackSmartBot
     else
       @logger.warn("method respond not treated correctly: msg:#{msg} dest:#{dest}")
     end
+    @last_respond = Time.now
   end
 
 end

@@ -120,12 +120,12 @@ class SlackSmartBot
               (obj.methods - Object.methods)
             end
             
-            file_input_repl = File.open(\"./repl/' + @channel_id + '/' + session_name + '.input\", \"r\")
+            file_input_repl = File.open(\"' + File.expand_path(config.path) + '/repl/' + @channel_id + '/' + session_name + '.input\", \"r\")
             ' + pre_execute + '
             while true do 
               sleep 0.2 
               code_to_run_repl = file_input_repl.read
-              if code_to_run_repl.to_s!=''
+              if code_to_run_repl.to_s!=\"\"
                 add_to_run_repl = true
                 if code_to_run_repl.to_s.match?(/^quit$/i) or 
                   code_to_run_repl.to_s.match?(/^exit$/i) or 
@@ -144,16 +144,16 @@ class SlackSmartBot
                   end
                   if resp_repl.to_s != \"\"
                     if code_to_run_repl.match?(/^\s*p\s+/i)
-                      open(\"./repl/' + @channel_id + '/' + session_name + '.output\", \"a+\") {|f|
+                      open(\"' + File.expand_path(config.path) + '/repl/' + @channel_id + '/' + session_name + '.output\", \"a+\") {|f|
                         f.puts \"\`\`\`\n#{resp_repl.inspect}\n\`\`\`\"
                       }
                     else
-                      open(\"./repl/' + @channel_id + '/' + session_name + '.output\", \"a+\") {|f|
+                      open(\"' + File.expand_path(config.path) + '/repl/' + @channel_id + '/' + session_name + '.output\", \"a+\") {|f|
                         f.puts \"\`\`\`\n#{resp_repl.ai}\n\`\`\`\"
                       }
                     end
                     unless error or !add_to_run_repl
-                      open(\"./repl/' + @channel_id + '/' + session_name + '.run\", \"a+\") {|f|
+                      open(\"' + File.expand_path(config.path) + '/repl/' + @channel_id + '/' + session_name + '.run\", \"a+\") {|f|
                         f.puts code_to_run_repl
                       }
                     end
@@ -162,7 +162,6 @@ class SlackSmartBot
               end
             end"
         '
-
         unless rules_file.empty? # to get the project_folder
           begin
             eval(File.new(config.path+rules_file).read) if File.exist?(config.path+rules_file)

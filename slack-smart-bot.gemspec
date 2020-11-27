@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name        = 'slack-smart-bot'
-  s.version     = '1.8.2'
+  s.version     = '1.9.0'
   s.summary     = "Create a Slack bot that is smart and so easy to expand, create new bots on demand, run ruby code on chat, create shortcuts..."
   s.description = "Create a Slack bot that is smart and so easy to expand, create new bots on demand, run ruby code on chat, create shortcuts... 
   The main scope of this gem is to be used internally in the company so teams can create team channels with their own bot to help them on their daily work, almost everything is suitable to be automated!! 
@@ -8,7 +8,7 @@ Gem::Specification.new do |s|
   You can access it just from your mobile phone if you want and run those tests you forgot to run, get the results, restart a server... no limits."
   s.authors     = ["Mario Ruiz"]
   s.email       = 'marioruizs@gmail.com'
-  s.files       = Dir["lib/slack/smart-bot/**/*.rb"] + ["lib/slack-smart-bot.rb","lib/slack-smart-bot_rules.rb", "lib/slack-smart-bot_general_rules.rb", "LICENSE","README.md",".yardopts"]
+  s.files       = Dir["lib/slack/smart-bot/**/*.rb"] + ["lib/slack-smart-bot.rb","lib/slack-smart-bot_rules.rb", "lib/slack-smart-bot_general_rules.rb", "LICENSE","README.md",".yardopts","lib/whats_new.txt"]
   s.extra_rdoc_files = ["LICENSE","README.md"]
   s.homepage    = 'https://github.com/MarioRuiz/slack-smart-bot'
   s.license       = 'MIT'

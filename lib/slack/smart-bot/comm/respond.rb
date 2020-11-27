@@ -4,7 +4,10 @@ class SlackSmartBot
       dest = Thread.current[:dest]
     end
     dest = @channels_id[dest] if @channels_id.key?(dest) #it is a name of channel
-    sleep 0.1 if !config.simulate and Time.now <= (@last_repond+0.1) #https://api.slack.com/docs/rate-limits
+    if !config.simulate #https://api.slack.com/docs/rate-limits
+      msg.to_s.size > 500 ? wait = 0.5 : wait = 0.1
+      sleep wait if Time.now <= (@last_respond+wait) 
+    end
     if dest.nil?
       if config[:simulate]
         open("#{config.path}/buffer_complete.log", "a") { |f|

@@ -104,7 +104,8 @@ class SlackSmartBot
     logfile = File.basename(config.rules_file.gsub("_rules_", "_logs_"), ".rb") + ".log"
     config.log_file = logfile
     @logger = Logger.new("#{config.path}/logs/#{logfile}")
-
+    @last_respond = Time.now
+    
     config_log = config.dup
     config_log.delete(:token)
     @logger.info "Initializing bot: #{config_log.inspect}"

@@ -11,6 +11,7 @@ class SlackSmartBot
         whats_new = File.read(whats_new_file)
         whats_new.split(/^\-\-\-\-\-\-+$/).each do |msg|
             respond msg
+            sleep 0.3
         end
       end
     end

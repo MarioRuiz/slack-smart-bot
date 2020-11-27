@@ -1,7 +1,7 @@
 class SlackSmartBot
   def get_help(rules_file, dest, from, only_rules = false)
     order = {
-      general: [:hi_bot, :bye_bot, :bot_help, :bot_status, :use_rules, :stop_using_rules],
+      general: [:whats_new, :hi_bot, :bye_bot, :bot_help, :bot_status, :use_rules, :stop_using_rules],
       on_bot: [:ruby_code, :repl, :get_repl, :run_repl, :delete_repl, :see_repls, :add_shortcut, :delete_shortcut, :see_shortcuts],
       on_bot_admin: [:extend_rules, :stop_using_rules_on, :start_bot, :pause_bot, :add_routine,
         :see_routines, :start_routine, :pause_routine, :remove_routine, :run_routine]

@@ -35,6 +35,8 @@ class SlackSmartBot
 
       when /^\s*(Hello|Hallo|Hi|Hola|What's\sup|Hey|Hæ)\s(#{@salutations.join("|")})\s*$/i
         hi_bot(user, dest, dchannel, from, display_name)
+      when /^\s*what's\s+new\s*$/i
+        whats_new(user, dest, dchannel, from, display_name)
       when /^\s*(Bye|Bæ|Good\sBye|Adiós|Ciao|Bless|Bless\sBless|Adeu)\s(#{@salutations.join("|")})\s*$/i
         bye_bot(dest, from, display_name)
       when /^\s*bot\s+(rules|help)\s*(.+)?$/i, /^bot,? what can I do/i

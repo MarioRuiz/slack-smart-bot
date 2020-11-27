@@ -1,3 +1,4 @@
+require_relative "commands/general/whats_new"
 require_relative "commands/general/hi_bot"
 require_relative "commands/general/bye_bot"
 require_relative "commands/general/bot_help"

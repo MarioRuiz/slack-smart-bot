@@ -12,7 +12,7 @@ class SlackSmartBot
     gems_remote = `gem list slack-smart-bot --remote`
     version_remote = gems_remote.to_s().scan(/slack-smart-bot \((\d+\.\d+\.\d+)/).join
     version_message = ""
-    if version_remote != VERSION
+    if Gem::Version.new(version_remote) > Gem::Version.new(VERSION)
       version_message = ". There is a new available version: #{version_remote}."
     end
     if (!config[:silent] or ENV['BOT_SILENT'].to_s == 'false') and !config.simulate

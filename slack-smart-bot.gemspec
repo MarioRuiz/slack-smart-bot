@@ -8,7 +8,7 @@ Gem::Specification.new do |s|
   You can access it just from your mobile phone if you want and run those tests you forgot to run, get the results, restart a server... no limits."
   s.authors     = ["Mario Ruiz"]
   s.email       = 'marioruizs@gmail.com'
-  s.files       = Dir["lib/slack/smart-bot/**/*.rb"] + ["lib/slack-smart-bot.rb","lib/slack-smart-bot_rules.rb", "lib/slack-smart-bot_general_rules.rb", "LICENSE","README.md",".yardopts","lib/whats_new.txt"]
+  s.files       = Dir["lib/slack/smart-bot/**/*.rb"] + ["lib/slack-smart-bot.rb","lib/slack-smart-bot_rules.rb", "lib/slack-smart-bot_general_rules.rb", "LICENSE","README.md",".yardopts","whats_new.txt"]
   s.extra_rdoc_files = ["LICENSE","README.md"]
   s.homepage    = 'https://github.com/MarioRuiz/slack-smart-bot'
   s.license       = 'MIT'

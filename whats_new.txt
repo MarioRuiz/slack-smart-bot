@@ -1,4 +1,4 @@
-*Version 1.9.0 RC 01* Released 27th Nov 2020
+*Version 1.9.0 RC 02* Released 27th Nov 2020
 
 *General user changes*
 - Added command `what's new` that will show this.
@@ -9,4 +9,4 @@
 - `Bot stats` now shows the top 10 users and attaches the full list of users and commands.
 - Now the routines are displayed as routine/USER
 - It is possible to exclude routines from results when using `bot stats`
-- When creating routines now it is possible to publish in a different channel: `add routine clean_db at 17:05 #thechannel !run api tests`
+- When creating routines now it is possible to publish in a different channel: `add routine run_tests at 17:05 #thechannel !run api tests`

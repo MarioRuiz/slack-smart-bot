@@ -250,6 +250,8 @@ For the examples use _ and for the rules `. This is a good example of a Help sup
 # help:     _execute smoke tests on db1_
 ```
 
+To see what's new just call `What's new`
+
 ### Bot Management
 To create a new bot on a channel, run on MASTER CHANNEL: **_`create bot on CHANNEL`_**. The admins of this new bot on that channel will be the MASTER ADMINS, the creator of the bot and the creator of that channel. It will create a new rules file linked to this new bot.
 

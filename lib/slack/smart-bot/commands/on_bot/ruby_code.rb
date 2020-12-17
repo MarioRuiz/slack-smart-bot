@@ -13,10 +13,12 @@ class SlackSmartBot
       (!user.key?(:enterprise_user) or ( user.key?(:enterprise_user) and !config[:allow_access][__method__].include?(user[:enterprise_user].id)))
       respond "You don't have access to use this command, please contact an Admin to be able to use it: <@#{config.admins.join(">, <@")}>"
     else
-      unless code.match?(/System/i) or code.match?(/Kernel/i) or code.include?("File") or
+      unless code.match?(/System/i) or code.match?(/Kernel/i) or code.include?("File.") or
             code.include?("`") or code.include?("exec") or code.include?("spawn") or code.include?("IO.") or
             code.match?(/open3/i) or code.match?(/bundle/i) or code.match?(/gemfile/i) or code.include?("%x") or
-            code.include?("ENV") or code.match?(/=\s*IO/)
+            code.include?("ENV") or code.match?(/=\s*IO/) or code.include?("Dir.") or code.match?(/=\s*IO/) or
+            code.match?(/=\s*File/) or code.match?(/=\s*Dir/) or code.match?(/<\s*File/) or code.match?(/<\s*Dir/) or
+            code.match?(/\w+:\s*File/) or code.match?(/\w+:\s*Dir/)
         unless rules_file.empty?
           begin
             eval(File.new(config.path+rules_file).read) if File.exist?(config.path+rules_file)

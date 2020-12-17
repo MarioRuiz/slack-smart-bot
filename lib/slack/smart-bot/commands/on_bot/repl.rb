@@ -208,10 +208,12 @@ class SlackSmartBot
         code.gsub!("\\r", "\r")
         # Disabled for the moment since it is deleting lines with '}'
         #code.gsub!(/^\W*$/, "") #to remove special chars from slack when copy/pasting.
-        if code.match?(/System/i) or code.match?(/Kernel/i) or code.include?("File") or
+        if code.match?(/System/i) or code.match?(/Kernel/i) or code.include?("File.") or
           code.include?("`") or code.include?("exec") or code.include?("spawn") or code.include?("IO.") or
           code.match?(/open3/i) or code.match?(/bundle/i) or code.match?(/gemfile/i) or code.include?("%x") or
-          code.include?("ENV") or code.match?(/=\s*IO/)
+          code.include?("ENV") or code.match?(/=\s*IO/) or code.include?("Dir.") or 
+          code.match?(/=\s*File/) or code.match?(/=\s*Dir/) or code.match?(/<\s*File/) or code.match?(/<\s*Dir/) or
+          code.match?(/\w+:\s*File/) or code.match?(/\w+:\s*Dir/)
           respond "Sorry I cannot run this due security reasons", dest
         else
           @repl_sessions[from][:input]<<code

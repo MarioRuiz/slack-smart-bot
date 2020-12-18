@@ -32,18 +32,38 @@ class SlackSmartBot
           ruby = "ruby -e \"#{code.gsub('"', '\"')}\""
           if defined?(project_folder) and project_folder.to_s != "" and Dir.exist?(project_folder)
             ruby = ("cd #{project_folder} &&" + ruby)
+            pid_plus_one = true # the first pid would be for the 'cd project_folder &&'
           else
             def project_folder() "" end
+            pid_plus_one = false
           end
-          stdout, stderr, status = Open3.capture3(ruby)
-          if stderr == ""
-            if stdout == ""
-              respond "Nothing returned. Remember you need to use p or puts to print", dest
+
+          stdin, stdout, stderr, wait_thr = Open3.popen3(ruby)
+          timeout = timeoutt = 20
+          procstart = Time.now
+          while (wait_thr.status == 'run' or wait_thr.status == 'sleep') and timeout > 0
+            timeout -= 0.1
+            sleep 0.1
+          end
+          if timeout > 0
+            stdout = stdout.read
+            stderr = stderr.read
+            if stderr == ""
+              if stdout == ""
+                respond "Nothing returned. Remember you need to use p or puts to print", dest
+              else
+                respond stdout, dest
+              end
             else
-              respond stdout, dest
+              respond "#{stderr}\n#{stdout}", dest
             end
           else
-            respond "#{stderr}\n#{stdout}", dest
+            respond "The process didn't finish in #{timeoutt} secs so it was aborted. Timeout!"
+            if pid_plus_one
+              res = Process.kill("KILL", (wait_thr.pid+1))
+            else
+              res = Process.kill("KILL", wait_thr.pid)
+            end
           end
         rescue Exception => exc
           respond exc, dest

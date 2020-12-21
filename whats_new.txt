@@ -1,11 +1,11 @@
-*Version 1.9.0 RC 02* Released 27th Nov 2020
+*Version 1.9.0 RC 05* Released 21 Dec 2020
 
-*General user changes*
+*For General users*
 - Added command `what's new` that will show this.
-- Added option to start a `repl` without pre-executing '.mart-bot-repl' source code in case exists. Just add `clean` before the `repl` command. For example: `clean repl Example`
-
+- Added option to start a `repl` without pre-executing '.smart-bot-repl' source code in case exists. Just add `clean` before the `repl` command. For example: `clean repl Example`
+- When using `Ruby` command in case the process doesn't finish in 20 seconds will be aborted. 
 ------------------------------
-*Admin user changes*
+*For Admin users*
 - `Bot stats` now shows the top 10 users and attaches the full list of users and commands.
 - Now the routines are displayed as routine/USER
 - It is possible to exclude routines from results when using `bot stats`

@@ -25,17 +25,15 @@ class SlackSmartBot
           end
         end
 
-        respond "Running", dest if code.size > 100
+        respond "Running", dest if code.size > 200
 
         begin
           code.gsub!(/^\W*$/, "") #to remove special chars from slack when copy/pasting
           ruby = "ruby -e \"#{code.gsub('"', '\"')}\""
           if defined?(project_folder) and project_folder.to_s != "" and Dir.exist?(project_folder)
             ruby = ("cd #{project_folder} &&" + ruby)
-            pid_plus_one = true # the first pid would be for the 'cd project_folder &&'
           else
             def project_folder() "" end
-            pid_plus_one = false
           end
 
           stdin, stdout, stderr, wait_thr = Open3.popen3(ruby)
@@ -59,10 +57,12 @@ class SlackSmartBot
             end
           else
             respond "The process didn't finish in #{timeoutt} secs so it was aborted. Timeout!"
-            if pid_plus_one
-              res = Process.kill("KILL", (wait_thr.pid+1))
-            else
-              res = Process.kill("KILL", wait_thr.pid)
+            pids = `pgrep -P #{wait_thr.pid}`.split("\n").map(&:to_i) #todo: it needs to be adapted for Windows
+            pids.each do |pid|
+              begin
+                Process.kill("KILL", pid)
+              rescue
+              end
             end
           end
         rescue Exception => exc

@@ -20,12 +20,12 @@ class SlackSmartBot
         elsif (@shortcuts.keys.include?(from) and @shortcuts[from].keys.include?(shortcut)) or
               (config.admins.include?(from) and @shortcuts[:all].include?(shortcut))
           #are you sure? to avoid deleting by mistake
-          unless @questions.keys.include?(from)
+          if answer.empty?
             ask("are you sure you want to delete it?", command, from, dest)
           else
-            case @questions[from]
+            case answer
             when /^(yes|yep)/i
-              @questions.delete(from)
+              answer_delete(from)
               respond "shortcut deleted!", dest
               respond("#{shortcut}: #{@shortcuts[from][shortcut]}", dest) if @shortcuts.key?(from) and @shortcuts[from].key?(shortcut)
               respond("#{shortcut}: #{@shortcuts[:all][shortcut]}", dest) if @shortcuts.key?(:all) and @shortcuts[:all].key?(shortcut)
@@ -33,7 +33,7 @@ class SlackSmartBot
               @shortcuts[:all].delete(shortcut) if @shortcuts.key?(:all) and @shortcuts[:all].key?(shortcut)
               update_shortcuts_file()
             when /^no/i
-              @questions.delete(from)
+              answer_delete(from)
               respond "ok, I won't delete it", dest
             else
               ask("I don't understand, are you sure you want to delete it? (yes or no)", command, from, dest)

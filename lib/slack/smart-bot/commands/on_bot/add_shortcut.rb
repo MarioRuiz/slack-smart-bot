@@ -47,19 +47,19 @@ class SlackSmartBot
           respond "shortcut added", dest
         else
           #are you sure? to avoid overwriting existing
-          unless @questions.keys.include?(from)
+          if answer.empty?
             ask("The shortcut already exists, are you sure you want to overwrite it?", command, from, dest)
           else
-            case @questions[from]
+            case answer
             when /^(yes|yep)/i
               @shortcuts[from][shortcut_name] = command_to_run
               @shortcuts[:all][shortcut_name] = command_to_run if for_all.to_s != ""
               update_shortcuts_file()
               respond "shortcut added", dest
-              @questions.delete(from)
+              answer_delete(from)
             when /^no/i
               respond "ok, I won't add it", dest
-              @questions.delete(from)
+              answer_delete(from)
             else
               ask "I don't understand, yes or no?", command, from, dest
             end

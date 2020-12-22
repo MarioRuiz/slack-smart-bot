@@ -218,6 +218,7 @@ class SlackSmartBot
 
     @status = config.status_init
     @questions = Hash.new()
+    @answer = Hash.new()
     @repl_sessions = Hash.new()
     @channels_id = Hash.new()
     @channels_name = Hash.new()

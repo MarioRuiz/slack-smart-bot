@@ -63,7 +63,7 @@ def rules(user, command, processed, dest, files = [], rules_file = "")
           respond "Thanks, I'm happy to be awake"
         else
           respond "I don't understand"
-          ask "are you sure do you want me to sleep? (yes or no)"
+          ask "are you sure you want me to sleep? (yes or no)"
         end
       end
 
@@ -100,7 +100,7 @@ def rules(user, command, processed, dest, files = [], rules_file = "")
             respond "Thanks, I'm happy to be awake"
           else
             respond "I don't understand"
-            ask "are you sure do you want me to sleep? (yes or no)"
+            ask "are you sure you want me to sleep? (yes or no)"
           end
         end
 

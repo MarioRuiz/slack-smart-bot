@@ -189,7 +189,7 @@ class SlackSmartBot
             on_demand = true
           end
           if @status == :on and
-             (@questions.key?(nick) or
+             (!answer.empty? or
              (@repl_sessions.key?(nick) and dest==@repl_sessions[nick][:dest] and 
                ((@repl_sessions[nick][:on_thread] and thread_ts == @repl_sessions[nick][:thread_ts]) or
                 (!@repl_sessions[nick][:on_thread] and !Thread.current[:on_thread] ))) or 

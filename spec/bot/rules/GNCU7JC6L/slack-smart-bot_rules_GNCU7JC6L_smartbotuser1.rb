@@ -91,7 +91,7 @@ def rules(user, command, processed, dest, files = [], rules_file = "")
             respond "Thanks, I'm happy to be awake", dest
           else
             respond "I don't understand", dest
-            ask("are you sure do you want me to sleep? (yes or no)", command, from, dest)
+            ask("are you sure you want me to sleep? (yes or no)", command, from, dest)
           end
         end
 

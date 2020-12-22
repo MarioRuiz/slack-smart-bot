@@ -1,7 +1,6 @@
 class SlackSmartBot
   def process(user, command, dest, dchannel, rules_file, typem, files, ts)
     from = user.name
-    
     if config.simulate
       display_name = user.profile.display_name
     else
@@ -33,11 +32,11 @@ class SlackSmartBot
     if typem == :on_master or typem == :on_bot or typem == :on_pg or typem == :on_dm
       case command
 
-      when /^\s*(Hello|Hallo|Hi|Hola|What's\sup|Hey|Hæ)\s(#{@salutations.join("|")})\s*$/i
+      when /^\s*(Hello|Hallo|Hi|Hola|What's\sup|Hey|Hæ)\s+(#{@salutations.join("|")})\s*$/i
         hi_bot(user, dest, dchannel, from, display_name)
       when /^\s*what's\s+new\s*$/i
         whats_new(user, dest, dchannel, from, display_name)
-      when /^\s*(Bye|Bæ|Good\sBye|Adiós|Ciao|Bless|Bless\sBless|Adeu)\s(#{@salutations.join("|")})\s*$/i
+      when /^\s*(Bye|Bæ|Good\s+Bye|Adiós|Ciao|Bless|Bless\sBless|Adeu)\s+(#{@salutations.join("|")})\s*$/i
         bye_bot(dest, from, display_name)
       when /^\s*bot\s+(rules|help)\s*(.+)?$/i, /^bot,? what can I do/i
         $1.to_s.match?(/rules/i) ? specific = true : specific = false
@@ -47,23 +46,23 @@ class SlackSmartBot
       when /^\s*use\s+(rules\s+)?(from\s+)?<#C\w+\|(.+)>\s*$/i, /^use\s+(rules\s+)?(from\s+)?([^\s]+\s*$)/i
         channel = $3
         use_rules(dest, channel, user, dchannel)
-      when /^\s*stop using rules (from\s+)<#\w+\|(.+)>/i, /^stop using rules (from\s+)(.+)/i
+      when /^\s*stop\s+using\s+rules\s+(from\s+)<#\w+\|(.+)>/i, /^stop\s+using\s+rules\s+(from\s+)(.+)/i
         channel = $2
         stop_using_rules(dest, channel, user, dchannel)
       when /^\s*extend\s+rules\s+(to\s+)<#C\w+\|(.+)>/i, /^extend\s+rules\s+(to\s+)(.+)/i,
            /^\s*use\s+rules\s+(on\s+)<#C\w+\|(.+)>/i, /^use\s+rules\s+(on\s+)(.+)/i
         channel = $2
         extend_rules(dest, user, from, channel, typem)
-      when /^\s*stop using rules (on\s+)<#\w+\|(.+)>/i, /^stop using rules (on\s+)(.+)/i
+      when /^\s*stop\s+using\s+rules\s+(on\s+)<#\w+\|(.+)>/i, /^stop\s+using\s+rules\s+(on\s+)(.+)/i
         channel = $2
         stop_using_rules_on(dest, user, from, channel, typem)
-      when /^\s*exit\sbot\s*$/i, /^quit\sbot\s*$/i, /^close\sbot\s*$/i
+      when /^\s*exit\s+bot\s*$/i, /^quit\s+bot\s*$/i, /^close\s+bot\s*$/i
         exit_bot(command, from, dest, display_name)
-      when /^\s*start\s(this\s)?bot$/i
+      when /^\s*start\s+(this\s+)?bot$/i
         start_bot(dest, from)
-      when /^\s*pause\s(this\s)?bot$/i
+      when /^\s*pause\s+(this\s+)?bot$/i
         pause_bot(dest, from)
-      when /^\s*bot\sstatus/i
+      when /^\s*bot\s+status/i
         bot_status(dest, user)
       when /\Anotify\s+<#(C\w+)\|.+>\s+(.+)\s*\z/im, /\Anotify\s+(all)?\s*(.+)\s*\z/im
         where = $1
@@ -73,7 +72,7 @@ class SlackSmartBot
         cloud = !$1.nil?
         channel = $2
         create_bot(dest, user, cloud, channel)
-      when /^\s*kill\sbot\son\s<#C\w+\|(.+)>\s*$/i, /^kill\sbot\son\s(.+)\s*$/i
+      when /^\s*kill\s+bot\s+on\s+<#C\w+\|(.+)>\s*$/i, /^kill\s+bot\s+on\s+(.+)\s*$/i
         channel = $1
         kill_bot_on_channel(dest, from, channel)
       when /^\s*(add|create)\s+(silent\s+)?routine\s+(\w+)\s+(every)\s+(\d+)\s*(days|hours|minutes|seconds|mins|min|secs|sec|d|h|m|s)\s*(\s<#(C\w+)\|.+>\s*)?(\s.+)?\s*$/i,
@@ -141,7 +140,7 @@ class SlackSmartBot
 
     # only when :on and (listening or on demand or direct message)
     if @status == :on and
-       (@questions.key?(from) or
+       (!answer.empty? or
        (@repl_sessions.key?(from) and dest==@repl_sessions[from][:dest] and 
         ((@repl_sessions[from][:on_thread] and Thread.current[:thread_ts] == @repl_sessions[from][:thread_ts]) or
          (!@repl_sessions[from][:on_thread] and !Thread.current[:on_thread]))) or 
@@ -157,7 +156,7 @@ class SlackSmartBot
       when /^bot\s+rules\s*(.+)?$/i
         help_command = $1
         bot_rules(dest, help_command, typem, rules_file, user)
-      when /^\s*(add\s)?shortcut\s(for\sall)?\s*([^:]+)\s*:\s*(.+)/i, /^(add\s)sc\s(for\sall)?\s*([^:]+)\s*:\s*(.+)/i
+      when /^\s*(add\s+)?shortcut\s+(for\sall)?\s*([^:]+)\s*:\s*(.+)/i, /^(add\s+)sc\s+(for\sall)?\s*([^:]+)\s*:\s*(.+)/i
         for_all = $2
         shortcut_name = $3.to_s.downcase
         command_to_run = $4
@@ -165,7 +164,7 @@ class SlackSmartBot
       when /^\s*(delete|remove)\s+shortcut\s+(.+)/i, /^(delete|remove)\s+sc\s+(.+)/i
         shortcut = $2.to_s.downcase
         delete_shortcut(dest, user, shortcut, typem, command)
-      when /^\s*see\sshortcuts/i, /^see\ssc/i
+      when /^\s*see\s+shortcuts/i, /^see\ssc/i
         see_shortcuts(dest, user, typem)
 
         #kept to be backwards compatible

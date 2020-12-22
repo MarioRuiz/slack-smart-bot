@@ -114,12 +114,12 @@ def rules(user, command, processed, dest)
     # help:   it will sleep the bot for 10 seconds
     # help:
     when /^go\sto\ssleep/i
-      unless @questions.keys.include?(from)
+      if answer.empty?
         ask "do you want me to take a siesta?"
       else
-        case @questions[from]
+        case answer
           when /yes/i, /yep/i, /sure/i
-            @questions.delete(from)
+            answer_delete
             respond "I'll be sleeping for 10 secs... just for you"
             respond "zZzzzzzZZZZZZzzzzzzz!"
             react :sleeping
@@ -127,11 +127,11 @@ def rules(user, command, processed, dest)
             unreact :sleeping
             react :sunny
           when /no/i, /nope/i, /cancel/i
-            @questions.delete(from)
+            answer_delete
             respond "Thanks, I'm happy to be awake"
           else
             respond "I don't understand"
-            ask "are you sure do you want me to sleep? (yes or no)"
+            ask "are you sure you want me to sleep? (yes or no)"
         end
       end
 

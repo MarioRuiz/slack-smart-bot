@@ -126,13 +126,19 @@ class SlackSmartBot
 
         #user_info.user.id = data.user #todo: remove this line when slack issue with Wxxxx Uxxxx fixed
         data.user = user_info.user.id  #todo: remove this line when slack issue with Wxxxx Uxxxx fixed
-        if @questions.key?(user_info.user.name)
+        if data.thread_ts.nil?
+          qdest = dest
+        else
+          qdest = data.thread_ts
+        end
+        if !answer(user_info.user.name, qdest).empty?
           if data.text.match?(/^\s*(Bye|Bæ|Good\sBye|Adiós|Ciao|Bless|Bless\sBless|Adeu)\s(#{@salutations.join("|")})\s*$/i)
-            @questions.delete(user_info.user.name)
+            answer_delete(user_info.user.name)
             command = data.text
           else
-            command = @questions[user_info.user.name]
-            @questions[user_info.user.name] = data.text
+            command = answer(user_info.user.name, qdest)
+            @answer[user_info.user.name][qdest] = data.text
+            @questions[user_info.user.name] = data.text # to be backwards compatible #todo remove it when 2.0
           end
         elsif @repl_sessions.key?(user_info.user.name) and data.channel==@repl_sessions[user_info.user.name][:dest] and 
           ((@repl_sessions[user_info.user.name][:on_thread] and data.thread_ts == @repl_sessions[user_info.user.name][:thread_ts]) or

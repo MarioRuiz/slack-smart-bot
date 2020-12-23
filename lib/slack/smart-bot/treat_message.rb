@@ -224,6 +224,22 @@ class SlackSmartBot
         when /removed the access to the rules of (.+) from (.+)\.$/i
           sleep 2
           get_bots_created()
+        when /global shortcut added/
+          sleep 2
+          if File.exist?("#{config.path}/shortcuts/shortcuts_global.rb")
+            file_sc = IO.readlines("#{config.path}/shortcuts/shortcuts_global.rb").join
+            unless file_sc.to_s() == ""
+              @shortcuts_global = eval(file_sc)
+            end
+          end
+        when /global shortcut deleted/
+          sleep 2
+          if File.exist?("#{config.path}/shortcuts/shortcuts_global.rb")
+            file_sc = IO.readlines("#{config.path}/shortcuts/shortcuts_global.rb").join
+            unless file_sc.to_s() == ""
+              @shortcuts_global = eval(file_sc)
+            end
+          end
         end
       end
     end

@@ -111,6 +111,10 @@ class SlackSmartBot
           command.gsub!("$#{sc}", @shortcuts[nick][sc])
         elsif @shortcuts.key?(:all) and @shortcuts[:all].keys.include?(sc)
           command.gsub!("$#{sc}", @shortcuts[:all][sc])
+        elsif @shortcuts_global.key?(nick) and @shortcuts_global[nick].keys.include?(sc)
+          command.gsub!("$#{sc}", @shortcuts_global[nick][sc])
+        elsif @shortcuts_global.key?(:all) and @shortcuts_global[:all].keys.include?(sc)
+          command.gsub!("$#{sc}", @shortcuts_global[:all][sc])
         end
       end
       command.scan(/\$([^\s]+)/i).flatten.each do |sc|
@@ -119,6 +123,10 @@ class SlackSmartBot
           command.gsub!("$#{sc}", @shortcuts[nick][sc])
         elsif @shortcuts.key?(:all) and @shortcuts[:all].keys.include?(sc)
           command.gsub!("$#{sc}", @shortcuts[:all][sc])
+        elsif @shortcuts_global.key?(nick) and @shortcuts_global[nick].keys.include?(sc)
+          command.gsub!("$#{sc}", @shortcuts_global[nick][sc])
+        elsif @shortcuts_global.key?(:all) and @shortcuts_global[:all].keys.include?(sc)
+          command.gsub!("$#{sc}", @shortcuts_global[:all][sc])
         end
       end
       text = command
@@ -127,12 +135,18 @@ class SlackSmartBot
     end
     if command.scan(/^(shortcut|sc)\s+([^:]+)\s*$/i).any? or
        (@shortcuts.keys.include?(:all) and @shortcuts[:all].keys.include?(command)) or
-       (@shortcuts.keys.include?(nick) and @shortcuts[nick].keys.include?(command))
+       (@shortcuts.keys.include?(nick) and @shortcuts[nick].keys.include?(command)) or
+       (@shortcuts_global.keys.include?(:all) and @shortcuts_global[:all].keys.include?(command)) or
+       (@shortcuts_global.keys.include?(nick) and @shortcuts_global[nick].keys.include?(command))
       command = $2.downcase unless $2.nil?
       if @shortcuts.keys.include?(nick) and @shortcuts[nick].keys.include?(command)
         text = @shortcuts[nick][command].dup
       elsif @shortcuts.keys.include?(:all) and @shortcuts[:all].keys.include?(command)
         text = @shortcuts[:all][command].dup
+      elsif @shortcuts_global.keys.include?(nick) and @shortcuts_global[nick].keys.include?(command)
+        text = @shortcuts_global[nick][command].dup
+      elsif @shortcuts_global.keys.include?(:all) and @shortcuts_global[:all].keys.include?(command)
+        text = @shortcuts_global[:all][command].dup
       else
         respond "Shortcut not found", dest unless dest[0] == "C" and dchannel != dest #on extended channel
         return :next #jal

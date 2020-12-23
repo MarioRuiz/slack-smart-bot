@@ -156,14 +156,19 @@ class SlackSmartBot
       when /^bot\s+rules\s*(.+)?$/i
         help_command = $1
         bot_rules(dest, help_command, typem, rules_file, user)
-      when /^\s*(add\s+)?shortcut\s+(for\sall)?\s*([^:]+)\s*:\s*(.+)/i, /^(add\s+)sc\s+(for\sall)?\s*([^:]+)\s*:\s*(.+)/i
-        for_all = $2
-        shortcut_name = $3.to_s.downcase
-        command_to_run = $4
-        add_shortcut(dest, user, typem, for_all, shortcut_name, command, command_to_run)
-      when /^\s*(delete|remove)\s+shortcut\s+(.+)/i, /^(delete|remove)\s+sc\s+(.+)/i
-        shortcut = $2.to_s.downcase
-        delete_shortcut(dest, user, shortcut, typem, command)
+      when /^\s*(add\s+)?(global\s+|generic\s+)?shortcut\s+(for\sall)?\s*([^:]+)\s*:\s*(.+)/i, 
+        /^(add\s+)(global\s+|generic\s+)?sc\s+(for\sall)?\s*([^:]+)\s*:\s*(.+)/i
+        for_all = $3
+        shortcut_name = $4.to_s.downcase
+        command_to_run = $5
+        global = $2.to_s != ''
+        add_shortcut(dest, user, typem, for_all, shortcut_name, command, command_to_run, global)
+      when /^\s*(delete|remove)\s+(global\s+|generic\s+)?shortcut\s+(.+)/i, 
+        /^(delete|remove)\s+(global\s+|generic\s+)?sc\s+(.+)/i
+        shortcut = $3.to_s.downcase
+        global = $2.to_s != ''
+
+        delete_shortcut(dest, user, shortcut, typem, command, global)
       when /^\s*see\s+shortcuts/i, /^see\ssc/i
         see_shortcuts(dest, user, typem)
 

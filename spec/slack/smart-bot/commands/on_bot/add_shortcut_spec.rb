@@ -133,6 +133,20 @@ RSpec.describe SlackSmartBot, "add_shortcut" do
       sleep 2
       expect(buffer(to: channel, from: :ubot)[-1]).to match(/^Text$/)
     end
+    it 'is not possible to add a global sc' do
+      send_message "!global shortcut example: Text", from: user, to: channel
+      sleep 2
+      expect(buffer(to: channel, from: :ubot).join).to match(/It is only possible to add global shortcuts from Master channel/i)
+    end
+    it 'is is possible to call a global sc' do
+      send_message "!global shortcut exampleaddglo: echo doom", from: user, to: :cmaster
+      sleep 2
+      expect(buffer(to: :cmaster, from: :ubot).join).to match(/global shortcut added/i)
+      send_message "!exampleaddglo", from: user, to: channel
+      sleep 2
+      expect(buffer(to: channel, from: :ubot).join).to match(/doom/i)
+    end
+
   end
 
   describe "on master channel" do
@@ -157,6 +171,25 @@ RSpec.describe SlackSmartBot, "add_shortcut" do
       sleep 2
       expect(buffer(to: channel, from: :ubot)[-1]).to match(/^Texto$/)
     end
+
+    it 'is not possible to add a global sc with same name' do
+      send_message "!global shortcut exampleglob: Text", from: user, to: channel
+      sleep 2
+      expect(buffer(to: channel, from: :ubot).join).to match(/global shortcut added/i)
+      send_message "!global shortcut exampleglob: Text", from: user, to: channel
+      sleep 2
+      expect(buffer(to: channel, from: :ubot).join).to match(/Global shortcut name already in use. Please use another shortcut name./i)
+    end
+
+    it "cannot add a global shortcut for all when other user uses the same name" do
+      send_message "!global shortcut exampleglobsame: echo Text", from: :uadmin, to: channel
+      send_message "!global shortcut for all exampleglobsame: echo Text2", from: user, to: channel
+      sleep 1
+      message = "You cannot create a global shortcut for all with the same name than other user is using"
+      expect(buffer(to: channel, from: :ubot)[-1]).to match(/#{message}/)
+    end
+
+
   end
 
   describe "on direct message" do

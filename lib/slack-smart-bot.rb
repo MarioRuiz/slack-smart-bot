@@ -150,6 +150,8 @@ class SlackSmartBot
     @bots_created = Hash.new()
     @shortcuts = Hash.new()
     @shortcuts[:all] = Hash.new()
+    @shortcuts_global = Hash.new()
+    @shortcuts_global[:all] = Hash.new()
     @rules_imported = Hash.new()
     @routines = Hash.new()
     @repls = Hash.new()
@@ -158,6 +160,12 @@ class SlackSmartBot
       file_sc = IO.readlines("#{config.path}/shortcuts/#{config.shortcuts_file}").join
       unless file_sc.to_s() == ""
         @shortcuts = eval(file_sc)
+      end
+    end
+    if File.exist?("#{config.path}/shortcuts/shortcuts_global.rb")
+      file_sc = IO.readlines("#{config.path}/shortcuts/shortcuts_global.rb").join
+      unless file_sc.to_s() == ""
+        @shortcuts_global = eval(file_sc)
       end
     end
 

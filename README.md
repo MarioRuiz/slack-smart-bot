@@ -201,7 +201,7 @@ Examples run a command on demand:
 >**_Peter>_** `^echo Example`  
 >. . . . . . . . .**_Smart-Bot>_** `Example`
 
-Also you can always call the Smart Bot from any channel, even from channels without a running Smart Bot. You can use the External Call on Demand: **_`@NAME_OF_BOT on #CHANNEL_NAME COMMAND`_**. In this case you will call the bot on #CHANNEL_NAME.
+Also you can always call the Smart Bot from any channel, even from channels without a running Smart Bot. You can use the External Call on Demand: **_`@NAME_OF_BOT on #CHANNEL_NAME COMMAND`_**. In this case you will call the bot on #CHANNEL_NAME. You can supply more than one channel then all the bots will respond.
 
 Example:
 >**_Peter>_** `@smart-bot on #the_channel ruby puts Time.now`  

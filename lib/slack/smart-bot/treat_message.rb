@@ -63,13 +63,21 @@ class SlackSmartBot
     end
     typem = :dont_treat
     if !dest.nil? and !data.text.nil? and !data.text.to_s.match?(/^\s*$/)
-      if data.text.match(/^\s*<@#{config[:nick_id]}>\s+(on\s+)?<#(\w+)\|([^>]+)>\s*:?\s*(.*)/im)
-        channel_rules = $2
-        channel_rules_name = $3
-        # to be treated only on the bot of the requested channel
-        if @channel_id == channel_rules
-          data.text = $4
-          typem = :on_call
+      #if data.text.match(/^\s*<@#{config[:nick_id]}>\s+(on\s+)?<#(\w+)\|([^>]+)>\s*:?\s*(.*)/im)
+      if data.text.match(/^\s*<@#{config[:nick_id]}>\s+(on\s+)?((<#\w+\|[^>]+>\s*)+)\s*:?\s*(.*)/im)
+        channels_rules = $2 #multiple channels @smart-bot on #channel1 #channel2 echo AAA
+        data_text = $4
+        channel_rules_name = ''
+        channel_rules = ''
+        # to be treated only on the bots of the requested channels
+        channels_rules.scan(/<#(\w+)\|([^>]+)>/).each do |tcid, tcname|
+          if @channel_id == tcid
+            data.text = data_text
+            typem = :on_call
+            channel_rules = tcid
+            channel_rules_name = tcname
+            break
+          end
         end
       elsif data.channel == @master_bot_id
         if config.on_master_bot #only to be treated on master bot channel

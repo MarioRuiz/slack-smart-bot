@@ -19,6 +19,7 @@ class SlackSmartBot
             code.include?("ENV") or code.match?(/=\s*IO/) or code.include?("Dir.") or code.match?(/=\s*IO/) or
             code.match?(/=\s*File/) or code.match?(/=\s*Dir/) or code.match?(/<\s*File/) or code.match?(/<\s*Dir/) or
             code.match?(/\w+:\s*File/) or code.match?(/\w+:\s*Dir/)
+        react :running
         unless rules_file.empty?
           begin
             eval(File.new(config.path+rules_file).read) if File.exist?(config.path+rules_file)
@@ -69,6 +70,7 @@ class SlackSmartBot
         rescue Exception => exc
           respond exc, dest
         end
+        unreact :running
       else
         respond "Sorry I cannot run this due security reasons", dest
       end

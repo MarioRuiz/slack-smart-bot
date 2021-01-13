@@ -7,10 +7,14 @@ class SlackSmartBot
     else
       ts = Thread.current[:ts]
     end
-    begin
-      client.web_client.reactions_add(channel: Thread.current[:dest], name: emoji, timestamp: ts) unless config.simulate
-    rescue Exception => stack
-      @logger.warn stack
+    if ts.nil?
+      @logger.warn 'react method no ts supplied'
+    else
+      begin
+        client.web_client.reactions_add(channel: Thread.current[:dest], name: emoji, timestamp: ts) unless config.simulate
+      rescue Exception => stack
+        @logger.warn stack
+      end
     end
   end
 end

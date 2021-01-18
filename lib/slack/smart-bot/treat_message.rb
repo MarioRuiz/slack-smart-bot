@@ -4,7 +4,6 @@ class SlackSmartBot
     begin
       unless data.text.to_s.match(/\A\s*\z/)
         #to remove italic, bold... from data.text since there is no method on slack api
-        #only works when no @user or #channel mentioned
         if remove_blocks and !data.blocks.nil? and data.blocks.size > 0
           data_text = ''
           data.blocks.each do |b|
@@ -12,22 +11,25 @@ class SlackSmartBot
               if b.elements.size > 0
                 b.elements.each do |e|
                   if e.type == 'rich_text_section' or e.type == 'rich_text_preformatted'
-                    if e.elements.size > 0 and (e.elements.type.uniq - ['link', 'text']) == []
+                    if e.elements.size > 0 and (e.elements.type.uniq - ['link', 'text', 'user', 'channel']) == []
                       data_text += '```' if e.type == 'rich_text_preformatted'
                       e.elements.each do |el|
                         if el.type == 'text'
                           data_text += el.text
+                        elsif el.type == 'user'
+                          data_text += "<@#{el.user_id}>"
+                        elsif el.type == 'channel'
+                          tch = data.text.scan(/(<##{el.channel_id}\|[^\>]+>)/).join
+                          data_text += tch
                         else
                           data_text += el.url
                         end
                       end
                       data_text += '```' if e.type == 'rich_text_preformatted'
                     end
-                    #break
                   end
                 end
               end
-              break
             end
           end
           data.text = data_text unless data_text == ''
@@ -39,8 +41,9 @@ class SlackSmartBot
       data.text.gsub!('’', "'")
       data.text.gsub!('“', '"') 
       data.text.gsub!('”', '"')
-    rescue
+    rescue Exception => exc
       @logger.warn "Impossible to unescape or clean format for data.text:#{data.text}"
+      @logger.warn exc.inspect
     end
     data.routine = false unless data.key?(:routine)
 

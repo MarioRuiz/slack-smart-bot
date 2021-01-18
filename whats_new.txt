@@ -1,4 +1,4 @@
-*Version 1.9.0 RC 06* Released 13 Jan 2021
+*Version 1.9.0 RC 07* Released 2021-Jan-18
 
 *For General users*
 - Added command `what's new` that will show this.

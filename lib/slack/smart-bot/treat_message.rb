@@ -6,28 +6,31 @@ class SlackSmartBot
         #to remove italic, bold... from data.text since there is no method on slack api
         #only works when no @user or #channel mentioned
         if remove_blocks and !data.blocks.nil? and data.blocks.size > 0
+          data_text = ''
           data.blocks.each do |b|
             if b.type == 'rich_text'
               if b.elements.size > 0
                 b.elements.each do |e|
-                  if e.type == 'rich_text_section'
+                  if e.type == 'rich_text_section' or e.type == 'rich_text_preformatted'
                     if e.elements.size > 0 and (e.elements.type.uniq - ['link', 'text']) == []
-                      data.text = ''
+                      data_text += '```' if e.type == 'rich_text_preformatted'
                       e.elements.each do |el|
                         if el.type == 'text'
-                          data.text += el.text
+                          data_text += el.text
                         else
-                          data.text += el.url
+                          data_text += el.url
                         end
                       end
+                      data_text += '```' if e.type == 'rich_text_preformatted'
                     end
-                    break
+                    #break
                   end
                 end
               end
               break
             end
           end
+          data.text = data_text unless data_text == ''
         end
         data.text = CGI.unescapeHTML(data.text)
         data.text.gsub!("\u00A0", " ") #to change &nbsp; (asc char 160) into blank space
@@ -62,7 +65,7 @@ class SlackSmartBot
       @pings << $1
     end
     typem = :dont_treat
-    if !dest.nil? and !data.text.nil? and !data.text.to_s.match?(/^\s*$/)
+    if !dest.nil? and !data.text.nil? and !data.text.to_s.match?(/\A\s*\z/)
       #if data.text.match(/^\s*<@#{config[:nick_id]}>\s+(on\s+)?<#(\w+)\|([^>]+)>\s*:?\s*(.*)/im)
       if data.text.match(/^\s*<@#{config[:nick_id]}>\s+(on\s+)?((<#\w+\|[^>]+>\s*)+)\s*:?\s*(.*)/im)
         channels_rules = $2 #multiple channels @smart-bot on #channel1 #channel2 echo AAA
@@ -163,7 +166,7 @@ class SlackSmartBot
         end
 
         #when added special characters on the message
-        if command.match(/^\s*```(.*)```\s*$/im)
+        if command.match(/\A\s*```(.*)```\s*\z/im)
           command = $1
         elsif command.size >= 2 and
            ((command[0] == "`" and command[-1] == "`") or (command[0] == "*" and command[-1] == "*") or (command[0] == "_" and command[-1] == "_"))

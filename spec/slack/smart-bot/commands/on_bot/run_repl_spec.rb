@@ -32,7 +32,7 @@ RSpec.describe SlackSmartBot, "run_repl" do
         clean_buffer()
         send_message "!run repl runreplexePrivate", from: user, to: channel
         expect(buffer(to: channel, from: :ubot).join).not_to match(/done/i)
-        sleep 0.5
+        sleep 1
         expect(buffer(to: channel, from: :ubot).join).to match(/The REPL with session name: runreplexePrivate is private/)
       end
 

@@ -3,7 +3,6 @@ class SlackSmartBot
   # help: `get repl SESSION_NAME`
   # help: `get irb SESSION_NAME`
   # help: `get live SESSION_NAME`
-  # help: 
   # help:     Will get the Ruby commands sent on that SESSION_NAME.
   # help:
   def get_repl(dest, user, session_name)

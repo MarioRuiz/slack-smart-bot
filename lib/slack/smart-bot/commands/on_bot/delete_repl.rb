@@ -3,7 +3,6 @@ class SlackSmartBot
   # help: `delete repl SESSION_NAME`
   # help: `delete irb SESSION_NAME`
   # help: `remove repl SESSION_NAME`
-  # help: 
   # help:     Will delete the specified REPL
   # help:     Only the creator of the REPL or an admin can delete REPLs
   # help:

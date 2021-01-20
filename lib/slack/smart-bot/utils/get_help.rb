@@ -1,5 +1,5 @@
 class SlackSmartBot
-  def get_help(rules_file, dest, from, only_rules = false)
+  def get_help(rules_file, dest, from, only_rules, expanded)
     order = {
       general: [:whats_new, :hi_bot, :bye_bot, :bot_help, :bot_status, :use_rules, :stop_using_rules],
       on_bot: [:ruby_code, :repl, :get_repl, :run_repl, :delete_repl, :see_repls, :add_shortcut, :delete_shortcut, :see_shortcuts],
@@ -25,11 +25,14 @@ class SlackSmartBot
       channel_type = :bot
     end
 
-    @help_messages ||= build_help("#{__dir__}/../commands")
+    @help_messages_expanded ||= build_help("#{__dir__}/../commands", true)
+    @help_messages_not_expanded ||= build_help("#{__dir__}/../commands", false)
     if only_rules
       help = {}
+    elsif expanded
+      help = @help_messages_expanded.deep_copy
     else
-      help = @help_messages.deep_copy
+      help = @help_messages_not_expanded.deep_copy
     end
     if rules_file != ""
       help[:rules_file] = ''
@@ -145,6 +148,41 @@ class SlackSmartBot
       if channel_type == :extended or channel_type == :direct
         @logger.info help.rules_file if config.testing
         help.rules_file = help.rules_file.gsub(/^\s*\*These are specific commands.+NAME_OF_BOT THE_COMMAND`\s*$/im, "")
+      end
+
+      unless expanded
+        resf = ''
+        help.rules_file.split(/^\s*\-+\s*$/).each do |rule|
+          command_done = false
+          explanation_done = false
+          example_done = false
+          if rule.match?(/These are specific commands for this/i)
+            resf += rule
+            resf += "-"*50
+            resf += "\n"
+          elsif rule.match?(/To run a command on demand and add the respond on a thread/i)
+            resf += rule
+            resf += "-"*50
+            resf += "\n"
+          else
+            rule.split("\n").each do |line|
+              if line.match?(/^\s*\-+\s*/i)
+                resf += line
+              elsif !command_done and line.match?(/^\s*`.+`\s*/i)
+                resf += "\n#{line}"
+                command_done = true
+              elsif !explanation_done and line.match?(/^\s+[^`].+\s*/i)
+                resf += "\n#{line}"
+                explanation_done = true
+              elsif !example_done and line.match?(/^\s*_.+_\s*/i)
+                resf += "\n     Example: #{line}"
+                example_done = true
+              end
+            end
+            resf += "\n\n"
+          end
+        end
+        help.rules_file = resf
       end
       txt += help.rules_file
     end

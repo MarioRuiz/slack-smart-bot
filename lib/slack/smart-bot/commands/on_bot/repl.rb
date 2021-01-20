@@ -10,7 +10,6 @@ class SlackSmartBot
   # help: `repl SESSION_NAME ENV_VAR=VALUE ENV_VAR='VALUE'`
   # help: `repl SESSION_NAME: "DESCRIPTION"`
   # help: `repl SESSION_NAME: "DESCRIPTION" ENV_VAR=VALUE ENV_VAR='VALUE'`
-  # help: 
   # help:     Will run all we write as a ruby command and will keep the session values. 
   # help:     SESSION_NAME only admits from a to Z, numbers, - and _
   # help:     If no SESSION_NAME supplied it will be treated as a temporary REPL

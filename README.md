@@ -221,9 +221,9 @@ Examples:
 >. . . . . . . . .**_Smart-Bot>_** `b`
 
 ### Bot Help
-To get a full list of all commands and rules for a specific Smart Bot: **_`bot help`_**. It will show only the specific available commands for the user requesting.
+To get a full list of all commands and rules for a specific Smart Bot: **_`bot help`_**. It will show only the specific available commands for the user requesting. By default it will display only a short version of the bot help, call **_`bot help expanded`_** to get a expanded version of all commands.
 
-If you want to search just for a specific command: **_`bot help COMMAND`_**
+If you want to search just for a specific command: **_`bot help COMMAND`_** It will display expanded explanations for the command.
 
 To show only the specific rules of the Smart Bot defined on the rules file: **_`bot rules`_** or **_`bot rules COMMAND`_**
 
@@ -239,6 +239,7 @@ Remember when you add code to your rules you need to specify the help that will 
 For the examples use _ and for the rules `. This is a good example of a Help supplied on rules source code:
 
 ```ruby
+# help: ----------------------------------------------
 # help: `run TYPE tests on LOCATION`
 # help: `execute TYPE tests on LOCATION`
 # help:     run the specified tests on the indicated location

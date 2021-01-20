@@ -90,6 +90,7 @@ def rules(user, command, processed, dest, files = [], rules_file = "")
         config.allow_access = {
         }
 
+      # help: ----------------------------------------------
       # help: `which rules`
       # help:  which rules for bot1cm
       # help:
@@ -106,6 +107,7 @@ def rules(user, command, processed, dest, files = [], rules_file = "")
         # help: ----------------------------------------------
         # help: `go to sleep`
         # help:   it will sleep the bot for 5 seconds
+        # help:   that's all
         # help:
       when /^go\sto\ssleep/i
         if answer.empty?

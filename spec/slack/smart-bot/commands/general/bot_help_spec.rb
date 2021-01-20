@@ -66,6 +66,26 @@ RSpec.describe SlackSmartBot, "bot_help" do
         expect(buffer(to: channel, from: :ubot).join).to match(@without_bot)
         expect(buffer(to: channel, from: :ubot).join).to match(@rules)
       end
+      it 'responds short version of the help by default' do
+        send_message "bot help", from: :uadmin, to: channel
+        expect(buffer(to: channel, from: :ubot).join).to match(/If you want to see the expanded version/) # message
+        expect(buffer(to: channel, from: :ubot).join).to match(/add shortcut NAME: COMMAND/) # first command
+        expect(buffer(to: channel, from: :ubot).join).not_to match(/add sc NAME: COMMAND/) # not first command
+        expect(buffer(to: channel, from: :ubot).join).to match(/It will show the routines of the channel/) # first description
+        expect(buffer(to: channel, from: :ubot).join).not_to match(/it will show all the routines from all channels/) # not first description
+        expect(buffer(to: channel, from: :ubot).join).to match(/add shortcut for all Spanish/) #first example
+        expect(buffer(to: channel, from: :ubot).join).not_to match(/shortcut Spanish Account/) # not first example
+      end
+      it 'responds expanded version of the help' do
+        send_message "bot help expanded", from: :uadmin, to: channel
+        expect(buffer(to: channel, from: :ubot).join).not_to match(/If you want to see the expanded version/) # message
+        expect(buffer(to: channel, from: :ubot).join).to match(/add shortcut NAME: COMMAND/) # first command
+        expect(buffer(to: channel, from: :ubot).join).to match(/add sc NAME: COMMAND/) # not first command
+        expect(buffer(to: channel, from: :ubot).join).to match(/It will show the routines of the channel/) # first description
+        expect(buffer(to: channel, from: :ubot).join).to match(/it will show all the routines from all channels/) # not first description
+        expect(buffer(to: channel, from: :ubot).join).to match(/add shortcut for all Spanish/) #first example
+        expect(buffer(to: channel, from: :ubot).join).to match(/shortcut Spanish Account/) # not first example
+      end
     end
 
     describe "direct message" do

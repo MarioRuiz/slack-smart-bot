@@ -4,7 +4,6 @@ class SlackSmartBot
   # help: `run repl SESSION_NAME ENV_VAR=VALUE ENV_VAR=VALUE`
   # help: `run live SESSION_NAME`
   # help: `run irb SESSION_NAME`
-  # help: 
   # help:     Will run the repl session specified and return the output. 
   # help:     You can supply the Environmental Variables you need for the Session
   # help:     It will return only the values that were print out on the repl with puts, print, p or pp

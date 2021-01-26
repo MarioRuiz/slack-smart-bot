@@ -1,18 +1,17 @@
 class SlackSmartBot
   def get_help(rules_file, dest, from, only_rules, expanded)
     order = {
-      general: [:whats_new, :hi_bot, :bye_bot, :bot_help, :bot_status, :use_rules, :stop_using_rules],
+      general: [:whats_new, :hi_bot, :bye_bot, :bot_help, :bot_status, :use_rules, :stop_using_rules, :bot_stats],
       on_bot: [:ruby_code, :repl, :get_repl, :run_repl, :delete_repl, :see_repls, :add_shortcut, :delete_shortcut, :see_shortcuts],
       on_bot_admin: [:extend_rules, :stop_using_rules_on, :start_bot, :pause_bot, :add_routine,
         :see_routines, :start_routine, :pause_routine, :remove_routine, :run_routine]
     }
-    # user_type: :admin, :user, :admin_master
     if config.masters.include?(from)
-      user_type = :admin_master
+      user_type = :master # master admin
     elsif config.admins.include?(from)
       user_type = :admin
     else
-      user_type = :user
+      user_type = :normal #normal user
     end
     # channel_type: :bot, :master_bot, :direct, :extended, :external
     if dest[0] == "D"
@@ -30,13 +29,14 @@ class SlackSmartBot
     if only_rules
       help = {}
     elsif expanded
-      help = @help_messages_expanded.deep_copy
+      help = @help_messages_expanded.deep_copy[user_type]
     else
-      help = @help_messages_not_expanded.deep_copy
+      help = @help_messages_not_expanded.deep_copy[user_type]
     end
+
     if rules_file != ""
-      help[:rules_file] = ''
-      help[:rules_file] += IO.readlines(config.path+rules_file).join.scan(/#\s*help\s*\w*:(.*)/i).join("\n") + "\n"
+      help[:rules_file] = build_help(config.path+rules_file, expanded)[user_type].values.join("\n") + "\n"
+     
       # to get all the help from other rules files added to the main rules file by using require or load. For example general_rules.rb
       res = IO.readlines(config.path+rules_file).join.scan(/$\s*(load|require)\s("|')(.+)("|')/)
       rules_help = []
@@ -51,17 +51,18 @@ class SlackSmartBot
         end
       end
       rules_help.each do |rh|
-        help[:rules_file] += IO.readlines(rh).join.scan(/#\s*help\s*\w*:(.*)/i).join("\n")
+        rhelp = build_help(rh, expanded)
+        help[:rules_file] += rhelp[user_type].values.join("\n") + "\n"
       end
     end
-    help = remove_hash_keys(help, :admin_master) unless user_type == :admin_master
-    help = remove_hash_keys(help, :admin) unless user_type == :admin or user_type == :admin_master
+    help = remove_hash_keys(help, :admin_master) unless user_type == :master
+    help = remove_hash_keys(help, :admin) unless user_type == :admin or user_type == :master
     help = remove_hash_keys(help, :on_master) unless channel_type == :master_bot
     help = remove_hash_keys(help, :on_extended) unless channel_type == :extended
     help = remove_hash_keys(help, :on_dm) unless channel_type == :direct
     txt = ""
 
-    if channel_type == :bot or channel_type == :master_bot
+    if (channel_type == :bot or channel_type == :master_bot) and expanded
       txt += "===================================
       For the Smart Bot start listening to you say *hi bot*
       To run a command on demand even when the Smart Bot is not listening to you:
@@ -72,11 +73,11 @@ class SlackSmartBot
             *^THE_COMMAND*
             *!!THE_COMMAND*\n"
     end
-    if channel_type == :direct
+    if channel_type == :direct and expanded
       txt += "===================================
       When on a private conversation with the Smart Bot, I'm always listening to you.\n"
     end
-    unless channel_type == :master_bot or channel_type == :extended
+    unless channel_type == :master_bot or channel_type == :extended or !expanded
       txt += "===================================
       *Commands from Channels without a bot:*
       ----------------------------------------------

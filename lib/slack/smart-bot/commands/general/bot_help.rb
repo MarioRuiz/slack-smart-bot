@@ -21,16 +21,15 @@ class SlackSmartBot
     else
       help_found = false
 
+      message = ""
       if help_command.to_s != ''
         help_command = '' if help_command.to_s.match?(/^\s*expanded\s*$/i) or help_command.to_s.match?(/^\s*extended\s*$/i)
         expanded = true
-        message = ""
         message_not_expanded = ''
       else
         expanded = false
         message_not_expanded = "*If you want to see the expanded version of `bot help` or `bot rules`, please call `bot help expanded` or `bot rules expanded`*\n"
         message_not_expanded += "*Also to get specific expanded help for a specific command or rule call `bot help COMMAND`*\n"
-        message = message_not_expanded
       end
 
       help_message = get_help(rules_file, dest, from, specific, expanded)

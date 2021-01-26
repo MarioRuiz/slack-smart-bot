@@ -276,7 +276,7 @@ class SlackSmartBot
               end
             else
               @logger.info "it is a direct message with no rules file selected so no rules file executed."
-              if command.match?(/^\s*bot\s+rules\s*$/i)
+              if command.match?(/^\s*bot\s+rules\s*(.*)$/i)
                 respond "No rules running. You can use the command `use rules from CHANNEL` to specify the rules you want to use on this private conversation.\n`bot help` to see available commands.", dest
               end
               unless processed

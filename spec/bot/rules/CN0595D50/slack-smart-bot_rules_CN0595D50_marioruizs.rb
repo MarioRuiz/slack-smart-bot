@@ -128,10 +128,10 @@ def rules(user, command, processed, dest, files = [], rules_file = "")
           end
         end
 
-        # help: ----------------------------------------------
-        # help: `run something`
-        # help:   It will run the process and report the results when done
-        # help:
+        # helpadmin: ----------------------------------------------
+        # helpadmin: `run something`
+        # helpadmin:   It will run the process and report the results when done
+        # helpadmin:
       when /^run something/i
         respond "Running"
 

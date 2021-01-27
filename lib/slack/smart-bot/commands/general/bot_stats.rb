@@ -1,33 +1,33 @@
 class SlackSmartBot
-    # helpadmin: ----------------------------------------------
-    # helpadmin: `bot stats`
+    # help: ----------------------------------------------
+    # help: `bot stats`
     # helpadmin: `bot stats USER_NAME`
-    # helpadmin: `bot stats exclude masters`
-    # helpadmin: `bot stats exclude routines`
-    # helpadmin: `bot stats from YYYY/MM/DD`
-    # helpadmin: `bot stats from YYYY/MM/DD to YYYY/MM/DD`
-    # helpadmin: `bot stats CHANNEL`
-    # helpadmin: `bot stats CHANNEL from YYYY/MM/DD`
-    # helpadmin: `bot stats CHANNEL from YYYY/MM/DD to YYYY/MM/DD`
+    # help: `bot stats exclude masters`
+    # help: `bot stats exclude routines`
+    # help: `bot stats from YYYY/MM/DD`
+    # help: `bot stats from YYYY/MM/DD to YYYY/MM/DD`
+    # help: `bot stats CHANNEL`
+    # help: `bot stats CHANNEL from YYYY/MM/DD`
+    # help: `bot stats CHANNEL from YYYY/MM/DD to YYYY/MM/DD`
     # helpadmin: `bot stats USER_NAME from YYYY/MM/DD to YYYY/MM/DD`
     # helpadmin: `bot stats CHANNEL USER_NAME from YYYY/MM/DD to YYYY/MM/DD`
-    # helpadmin: `bot stats CHANNEL exclude masters from YYYY/MM/DD to YYYY/MM/DD`
-    # helpadmin: `bot stats today`
-    # helpadmin: `bot stats exclude COMMAND_ID`
-    # helpadmin: `bot stats monthly`
-    # helpadmin: `bot stats alldata`
-    # helpadmin:    To see the bot stats
+    # help: `bot stats CHANNEL exclude masters from YYYY/MM/DD to YYYY/MM/DD`
+    # help: `bot stats today`
+    # help: `bot stats exclude COMMAND_ID`
+    # help: `bot stats monthly`
+    # help: `bot stats alldata`
+    # help:    To see the bot stats
     # helpadmin:    You can use this command only if you are a Master admin user and if you are in a private conversation with the bot
     # helpadmin:    You need to set stats to true to generate the stats when running the bot instance.
-    # helpadmin:    If alldata option supplied then it will be attached files including all data for users and commands and not only the top 10.
-    # helpadmin:    Examples:
-    # helpadmin:      _bot stats #sales_
+    # help:    If alldata option supplied then it will be attached files including all data and not only the top 10.
+    # help:    Examples:
+    # help:      _bot stats #sales_
     # helpadmin:      _bot stats @peter.wind_
-    # helpadmin:      _bot stats #sales from 2019/12/15 to 2019/12/31_
-    # helpadmin:      _bot stats #sales today_
-    # helpadmin:      _bot stats #sales from 2020-01-01 monthly_
-    # helpadmin:      _bot stats exclude routines masters from 2021/01/01 monthly_
-    # helpadmin:
+    # help:      _bot stats #sales from 2019/12/15 to 2019/12/31_
+    # help:      _bot stats #sales today_
+    # help:      _bot stats #sales from 2020-01-01 monthly_
+    # help:      _bot stats exclude routines masters from 2021/01/01 monthly_
+    # help:
     def bot_stats(dest, from_user, typem, channel_id, from, to, user, exclude_masters, exclude_routines, exclude_command, monthly, all_data)
         require 'csv'
         if config.stats
@@ -36,7 +36,12 @@ class SlackSmartBot
             message = ["You need to set stats to true to generate the stats when running the bot instance."]
         end
         save_stats(__method__)
-        if (config.masters.include?(from_user) or @master_admin_users_id.include?(from_user)) and typem==:on_dm #master admin user
+        if (from_user.id != user and (config.masters.include?(from_user.name) or @master_admin_users_id.include?(from_user.id)) and typem==:on_dm)
+            on_dm_master = true #master admin user
+        else
+            on_dm_master = false
+        end
+        if on_dm_master or (from_user.id == user) # normal user can only see own stats 
             if !File.exist?("#{config.stats_path}.#{Time.now.strftime("%Y-%m")}.log")
                 message<<'No stats'
             else
@@ -54,6 +59,7 @@ class SlackSmartBot
                 commands_month = {}
                 users_id_name = {}
                 users_name_id = {}
+                count_users = {}
     
                 # to translate global and enterprise users since sometimes was returning different names/ids
                 Dir["#{config.stats_path}.*.log"].sort.each do |file|
@@ -96,16 +102,19 @@ class SlackSmartBot
                     if file >= "#{config.stats_path}.#{from_file}.log" or file <= "#{config.stats_path}.#{to_file}.log"
                         CSV.foreach(file, headers: true, header_converters: :symbol, converters: :numeric) do |row|
                             row[:date] = row[:date].to_s
+                            row[:dest_channel] = 'DM' if row[:dest_channel_id].to_s[0]=='D'
                             row[:user_name] = users_id_name[row[:user_id]]
                             row[:user_id] = users_name_id[row[:user_name]]
                             if !exclude_masters or (exclude_masters and !master_admins.include?(row[:user_name]) and 
                                                     !master_admins.include?(row[:user_id]) and
                                                     !@master_admin_users_id.include?(row[:user_id]))
                                 if !exclude_routines or (exclude_routines and !row[:user_name].match?(/^routine\//) )
-                                    if user=='' or (user!='' and row[:user_name] == user_name) or (user!='' and row[:user_id] == user_id)
-                                        if exclude_command == '' or (exclude_command!='' and row[:command]!=exclude_command)
-                                            if row[:bot_channel_id] == channel_id or channel_id == ''
-                                                if row[:date] >= from and row[:date] <= to
+                                    if exclude_command == '' or (exclude_command!='' and row[:command]!=exclude_command)
+                                        if row[:bot_channel_id] == channel_id or channel_id == ''
+                                            if row[:date] >= from and row[:date] <= to
+                                                count_users[row[:user_id]] = 0 unless count_users.key?(row[:user_id])
+                                                count_users[row[:user_id]] += 1
+                                                if user=='' or (user!='' and row[:user_name] == user_name) or (user!='' and row[:user_id] == user_id)
                                                     rows << row.to_h
                                                     if monthly
                                                         rows_month[row[:date][0..6]] = 0 unless rows_month.key?(row[:date][0..6])
@@ -135,16 +144,29 @@ class SlackSmartBot
                     message << "Excluding command #{exclude_command}"
                 end
                 if user!=''
-                    message << "Showing only user <@#{user}>"
+                    if user==from_user.id
+                        message << "Bot stats for <@#{user}>"
+                    else
+                        message << "Showing only user <@#{user}>"
+                    end
                 end
                 if channel_id == ''
                     message << "*Total calls*: #{total} from #{from_short} to #{to_short}"
                 else
                     message << "*Total calls <##{channel_id}>*: #{total} from #{from_short} to #{to_short}"
                 end
+                unless on_dm_master or count_users.size == 0 or total == 0
+                    my_place = (count_users.sort_by(&:last).reverse.to_h.keys.index(user_id)+1)
+                    message <<"\tYou are the *\# #{my_place}* of *#{count_users.size}* users"
+                end
                 if total > 0
                     if monthly 
-                        message << '*Totals by month / commands / users (%new)*'
+                        if on_dm_master
+                            message << '*Totals by month / commands / users (%new)*'
+                        else
+                            message << '*Totals by month / commands*'
+                        end
+
                         all_users = []
                         new_users = []
                         rows_month.each do |k,v|
@@ -155,18 +177,29 @@ class SlackSmartBot
                                 message_new_users = "(#{new_users.size*100/users_month[k].uniq.size}%)"
                             end
                             all_users += users_month[k]
-                            message << "\t#{k}: #{v} (#{(v.to_f*100/total).round(2)}%) / #{commands_month[k].uniq.size} / #{users_month[k].uniq.size} #{message_new_users}"
+                            if on_dm_master
+                                message << "\t#{k}: #{v} (#{(v.to_f*100/total).round(2)}%) / #{commands_month[k].uniq.size} / #{users_month[k].uniq.size} #{message_new_users}"
+                            else
+                                message << "\t#{k}: #{v} (#{(v.to_f*100/total).round(2)}%) / #{commands_month[k].uniq.size}"
+                            end
                         end
                     end
     
                     if channel_id == ''
-                        message << "*Channels*"
+                        message << "*SmartBots*"
                         channels = rows.bot_channel.uniq.sort
                         channels.each do |channel|
                             count = rows.count {|h| h.bot_channel==channel}
                             message << "\t#{channel}: #{count} (#{(count.to_f*100/total).round(2)}%)"
                         end
                     end
+                    message << "*From Channel*"
+                    channels = rows.dest_channel.uniq.sort
+                    channels.each do |channel|
+                        count = rows.count {|h| h.dest_channel==channel}
+                        message << "\t#{channel}: #{count} (#{(count.to_f*100/total).round(2)}%)"
+                    end
+
                     users_attachment = []
                     if user==''
                         users = rows.user_id.uniq.sort
@@ -223,7 +256,10 @@ class SlackSmartBot
                         count = rows.count {|h| h.type_message==type}
                         message << "\t#{type}: #{count} (#{(count.to_f*100/total).round(2)}%)"
                     end
-                    message << "*Last activity*: #{rows[-1].date} #{rows[-1].bot_channel} #{rows[-1].type_message} #{rows[-1].user_name} #{rows[-1].command}"
+
+                    if on_dm_master
+                        message << "*Last activity*: #{rows[-1].date} #{rows[-1].bot_channel} #{rows[-1].type_message} #{rows[-1].user_name} #{rows[-1].command}"
+                    end
                     if users_attachment.size>0
                         send_file(dest, "", 'users.txt', "", 'text/plain', "text", content: users_attachment.join("\n"))
                     end
@@ -233,7 +269,7 @@ class SlackSmartBot
                 end
             end
         else
-            message<<"Only Master admin users on a private conversation with the bot can see the bot stats."
+            message<<"Only Master admin users on a private conversation with the bot can see this kind of bot stats."
         end
         respond "#{message.join("\n")}", dest
     end

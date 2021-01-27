@@ -60,6 +60,7 @@ class SlackSmartBot
                 users_id_name = {}
                 users_name_id = {}
                 count_users = {}
+                count_channels_dest = {}
     
                 # to translate global and enterprise users since sometimes was returning different names/ids
                 Dir["#{config.stats_path}.*.log"].sort.each do |file|
@@ -116,10 +117,12 @@ class SlackSmartBot
                                     if exclude_command == '' or (exclude_command!='' and row[:command]!=exclude_command)
                                         if row[:bot_channel_id] == channel_id or channel_id == ''
                                             if row[:date] >= from and row[:date] <= to
-                                                count_users[row[:user_id]] = 0 unless count_users.key?(row[:user_id])
+                                                count_users[row[:user_id]] ||= 0
                                                 count_users[row[:user_id]] += 1
                                                 if user=='' or (user!='' and row[:user_name] == user_name) or (user!='' and row[:user_id] == user_id)
                                                     rows << row.to_h
+                                                    count_channels_dest[row[:dest_channel]] ||= 0
+                                                    count_channels_dest[row[:dest_channel]] += 1
                                                     if monthly
                                                         rows_month[row[:date][0..6]] = 0 unless rows_month.key?(row[:date][0..6])
                                                         users_month[row[:date][0..6]] = [] unless users_month.key?(row[:date][0..6])
@@ -197,12 +200,23 @@ class SlackSmartBot
                             message << "\t#{channel}: #{count} (#{(count.to_f*100/total).round(2)}%)"
                         end
                     end
-                    message << "*From Channel*"
-                    channels = rows.dest_channel.uniq.sort
-                    channels.each do |channel|
-                        count = rows.count {|h| h.dest_channel==channel}
-                        message << "\t#{channel}: #{count} (#{(count.to_f*100/total).round(2)}%)"
+                    channels_dest_attachment = []
+                    count_channels_dest = count_channels_dest.sort_by(&:last).reverse.to_h
+                    if count_channels_dest.size > 10
+                        message << "*From Channel* - #{count_channels_dest.size} (Top 10)"
+                    else
+                        message << "*From Channel* - #{count_channels_dest.size}"
                     end
+
+                    count_channels_dest.keys[0..9].each do |ch|
+                        message << "\t#{ch}: #{count_channels_dest[ch]} (#{(count_channels_dest[ch].to_f*100/total).round(2)}%)"
+                    end
+                    if count_channels_dest.size > 10 and all_data
+                        count_channels_dest.each do |ch, value|
+                            channels_dest_attachment << "\t#{ch}: #{value} (#{(value.to_f*100/total).round(2)}%)"
+                        end
+                    end
+
 
                     users_attachment = []
                     if user==''
@@ -269,6 +283,9 @@ class SlackSmartBot
                     end
                     if commands_attachment.size>0
                         send_file(dest, "", 'commands.txt', "", 'text/plain', "text", content: commands_attachment.join("\n"))
+                    end
+                    if channels_dest_attachment.size>0
+                        send_file(dest, "", 'channels_dest.txt', "", 'text/plain', "text", content: channels_dest_attachment.join("\n"))
                     end
                 end
             end

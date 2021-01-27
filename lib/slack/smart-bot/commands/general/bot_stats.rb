@@ -1,7 +1,7 @@
 class SlackSmartBot
     # help: ----------------------------------------------
     # help: `bot stats`
-    # helpadmin: `bot stats USER_NAME`
+    # helpmaster: `bot stats USER_NAME`
     # help: `bot stats exclude masters`
     # help: `bot stats exclude routines`
     # help: `bot stats from YYYY/MM/DD`
@@ -9,20 +9,20 @@ class SlackSmartBot
     # help: `bot stats CHANNEL`
     # help: `bot stats CHANNEL from YYYY/MM/DD`
     # help: `bot stats CHANNEL from YYYY/MM/DD to YYYY/MM/DD`
-    # helpadmin: `bot stats USER_NAME from YYYY/MM/DD to YYYY/MM/DD`
-    # helpadmin: `bot stats CHANNEL USER_NAME from YYYY/MM/DD to YYYY/MM/DD`
+    # helpmaster: `bot stats USER_NAME from YYYY/MM/DD to YYYY/MM/DD`
+    # helpmaster: `bot stats CHANNEL USER_NAME from YYYY/MM/DD to YYYY/MM/DD`
     # help: `bot stats CHANNEL exclude masters from YYYY/MM/DD to YYYY/MM/DD`
     # help: `bot stats today`
     # help: `bot stats exclude COMMAND_ID`
     # help: `bot stats monthly`
     # help: `bot stats alldata`
     # help:    To see the bot stats
-    # helpadmin:    You can use this command only if you are a Master admin user and if you are in a private conversation with the bot
-    # helpadmin:    You need to set stats to true to generate the stats when running the bot instance.
+    # helpmaster:    You can use this command only if you are a Master admin user and if you are in a private conversation with the bot
+    # helpmaster:    You need to set stats to true to generate the stats when running the bot instance.
     # help:    If alldata option supplied then it will be attached files including all data and not only the top 10.
     # help:    Examples:
     # help:      _bot stats #sales_
-    # helpadmin:      _bot stats @peter.wind_
+    # helpmaster:      _bot stats @peter.wind_
     # help:      _bot stats #sales from 2019/12/15 to 2019/12/31_
     # help:      _bot stats #sales today_
     # help:      _bot stats #sales from 2020-01-01 monthly_

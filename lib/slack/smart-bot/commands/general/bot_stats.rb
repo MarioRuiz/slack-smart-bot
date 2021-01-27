@@ -102,7 +102,11 @@ class SlackSmartBot
                     if file >= "#{config.stats_path}.#{from_file}.log" or file <= "#{config.stats_path}.#{to_file}.log"
                         CSV.foreach(file, headers: true, header_converters: :symbol, converters: :numeric) do |row|
                             row[:date] = row[:date].to_s
-                            row[:dest_channel] = 'DM' if row[:dest_channel_id].to_s[0]=='D'
+                            if row[:dest_channel_id].to_s[0]=='D'
+                                row[:dest_channel] = 'DM'
+                            elsif row[:dest_channel].to_s == ''
+                                row[:dest_channel] = row[:dest_channel_id]
+                            end
                             row[:user_name] = users_id_name[row[:user_id]]
                             row[:user_id] = users_name_id[row[:user_name]]
                             if !exclude_masters or (exclude_masters and !master_admins.include?(row[:user_name]) and 

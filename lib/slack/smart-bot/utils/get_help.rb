@@ -183,6 +183,16 @@ class SlackSmartBot
             resf += "\n\n"
           end
         end
+        unless resf.match?(/These are specific commands for this bot on this Channel/i)
+          if resf.match?(/\A\s*[=\-]+$/)
+            pre = ''
+            post = ''
+          else
+            pre = ('='*50) + "\n"
+            post = ('-'*50) + "\n"
+          end
+          resf = "#{pre}*These are specific commands for this bot on this Channel:*\n#{post}" + resf
+        end
         help.rules_file = resf
       end
       txt += help.rules_file

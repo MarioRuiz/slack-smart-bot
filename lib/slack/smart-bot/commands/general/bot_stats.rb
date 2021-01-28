@@ -9,6 +9,7 @@ class SlackSmartBot
     # help: `bot stats CHANNEL`
     # help: `bot stats CHANNEL from YYYY/MM/DD`
     # help: `bot stats CHANNEL from YYYY/MM/DD to YYYY/MM/DD`
+    # help: `bot stats command COMMAND`
     # helpmaster: `bot stats USER_NAME from YYYY/MM/DD to YYYY/MM/DD`
     # helpmaster: `bot stats CHANNEL USER_NAME from YYYY/MM/DD to YYYY/MM/DD`
     # help: `bot stats CHANNEL exclude masters from YYYY/MM/DD to YYYY/MM/DD`
@@ -28,7 +29,7 @@ class SlackSmartBot
     # help:      _bot stats #sales from 2020-01-01 monthly_
     # help:      _bot stats exclude routines masters from 2021/01/01 monthly_
     # help:
-    def bot_stats(dest, from_user, typem, channel_id, from, to, user, exclude_masters, exclude_routines, exclude_command, monthly, all_data)
+    def bot_stats(dest, from_user, typem, channel_id, from, to, user, st_command, exclude_masters, exclude_routines, exclude_command, monthly, all_data)
         require 'csv'
         if config.stats
             message = []
@@ -63,16 +64,18 @@ class SlackSmartBot
                 count_channels_dest = {}
     
                 # to translate global and enterprise users since sometimes was returning different names/ids
-                Dir["#{config.stats_path}.*.log"].sort.each do |file|
-                    if file >= "#{config.stats_path}.#{from_file}.log" or file <= "#{config.stats_path}.#{to_file}.log"
-                        CSV.foreach(file, headers: true, header_converters: :symbol, converters: :numeric) do |row|
-                            unless users_id_name.key?(row[:user_id])
-                                users_id_name[row[:user_id]] = row[:user_name]
+                if from[0..3]=='2020' # this was an issue only on that period
+                    Dir["#{config.stats_path}.*.log"].sort.each do |file|
+                        if file >= "#{config.stats_path}.#{from_file}.log" or file <= "#{config.stats_path}.#{to_file}.log"
+                            CSV.foreach(file, headers: true, header_converters: :symbol, converters: :numeric) do |row|
+                                unless users_id_name.key?(row[:user_id])
+                                    users_id_name[row[:user_id]] = row[:user_name]
+                                end
+                                unless users_name_id.key?(row[:user_name])
+                                    users_name_id[row[:user_name]] = row[:user_id]
+                                end
+        
                             end
-                            unless users_name_id.key?(row[:user_name])
-                                users_name_id[row[:user_name]] = row[:user_id]
-                            end
-    
                         end
                     end
                 end
@@ -91,11 +94,13 @@ class SlackSmartBot
                     end
                 end
                 master_admins = config.masters.dup
-                config.masters.each do |u|
-                    if users_id_name.key?(u)
-                        master_admins << users_id_name[u]
-                    elsif users_name_id.key?(u)
-                        master_admins << users_name_id[u]
+                if users_id_name.size > 0
+                    config.masters.each do |u|
+                        if users_id_name.key?(u)
+                            master_admins << users_id_name[u]
+                        elsif users_name_id.key?(u)
+                            master_admins << users_name_id[u]
+                        end
                     end
                 end
     
@@ -108,28 +113,34 @@ class SlackSmartBot
                             elsif row[:dest_channel].to_s == ''
                                 row[:dest_channel] = row[:dest_channel_id]
                             end
-                            row[:user_name] = users_id_name[row[:user_id]]
-                            row[:user_id] = users_name_id[row[:user_name]]
+                            if users_name_id.size > 0
+                                row[:user_name] = users_id_name[row[:user_id]]
+                                row[:user_id] = users_name_id[row[:user_name]]
+                            else
+                                users_id_name[row[:user_id]] ||= row[:user_name]
+                            end
                             if !exclude_masters or (exclude_masters and !master_admins.include?(row[:user_name]) and 
                                                     !master_admins.include?(row[:user_id]) and
                                                     !@master_admin_users_id.include?(row[:user_id]))
                                 if !exclude_routines or (exclude_routines and !row[:user_name].match?(/^routine\//) )
                                     if exclude_command == '' or (exclude_command!='' and row[:command]!=exclude_command)
-                                        if row[:bot_channel_id] == channel_id or channel_id == ''
-                                            if row[:date] >= from and row[:date] <= to
-                                                count_users[row[:user_id]] ||= 0
-                                                count_users[row[:user_id]] += 1
-                                                if user=='' or (user!='' and row[:user_name] == user_name) or (user!='' and row[:user_id] == user_id)
-                                                    rows << row.to_h
-                                                    count_channels_dest[row[:dest_channel]] ||= 0
-                                                    count_channels_dest[row[:dest_channel]] += 1
-                                                    if monthly
-                                                        rows_month[row[:date][0..6]] = 0 unless rows_month.key?(row[:date][0..6])
-                                                        users_month[row[:date][0..6]] = [] unless users_month.key?(row[:date][0..6])
-                                                        commands_month[row[:date][0..6]] = [] unless commands_month.key?(row[:date][0..6])
-                                                        rows_month[row[:date][0..6]] += 1
-                                                        users_month[row[:date][0..6]] << row[:user_id]
-                                                        commands_month[row[:date][0..6]] << row[:command]
+                                        if st_command == '' or (st_command != '' and row[:command] == st_command)
+                                            if row[:bot_channel_id] == channel_id or channel_id == ''
+                                                if row[:date] >= from and row[:date] <= to
+                                                    count_users[row[:user_id]] ||= 0
+                                                    count_users[row[:user_id]] += 1
+                                                    if user=='' or (user!='' and row[:user_name] == user_name) or (user!='' and row[:user_id] == user_id)
+                                                        rows << row.to_h
+                                                        count_channels_dest[row[:dest_channel]] ||= 0
+                                                        count_channels_dest[row[:dest_channel]] += 1
+                                                        if monthly
+                                                            rows_month[row[:date][0..6]] = 0 unless rows_month.key?(row[:date][0..6])
+                                                            users_month[row[:date][0..6]] = [] unless users_month.key?(row[:date][0..6])
+                                                            commands_month[row[:date][0..6]] = [] unless commands_month.key?(row[:date][0..6])
+                                                            rows_month[row[:date][0..6]] += 1
+                                                            users_month[row[:date][0..6]] << row[:user_id]
+                                                            commands_month[row[:date][0..6]] << row[:command]
+                                                        end
                                                     end
                                                 end
                                             end
@@ -150,6 +161,9 @@ class SlackSmartBot
                 if exclude_command != ''
                     message << "Excluding command #{exclude_command}"
                 end
+                if st_command != ''
+                    message << "Including only command #{st_command}"
+                end
                 if user!=''
                     if user==from_user.id
                         message << "Bot stats for <@#{user}>"
@@ -162,7 +176,7 @@ class SlackSmartBot
                 else
                     message << "*Total calls <##{channel_id}>*: #{total} from #{from_short} to #{to_short}"
                 end
-                unless on_dm_master or count_users.size == 0 or total == 0
+                unless count_users.size == 0 or total == 0 or user == ''
                     my_place = (count_users.sort_by(&:last).reverse.to_h.keys.index(user_id)+1)
                     message <<"\tYou are the *\# #{my_place}* of *#{count_users.size}* users"
                 end
@@ -244,27 +258,29 @@ class SlackSmartBot
                     end
                     commands_attachment = []
 
-                    commands = rows.command.uniq.sort
-                    count_command = {}
-                    commands.each do |command|
-                        count = rows.count {|h| h.command==command}
-                        count_command[command] = count
-                    end
-
-                    if commands.size > 10
-                        message << "*Commands* - #{commands.size} (Top 10)"
-                    else
-                        message << "*Commands* - #{commands.size}"
-                    end
-
-                    i = 0
-                    count_command.sort_by {|k,v| -v}.each do |command, count|
-                        i+=1
-                        if i <= 10
-                            message << "\t#{command}: #{count} (#{(count.to_f*100/total).round(2)}%)"
+                    if st_command == ''
+                        commands = rows.command.uniq.sort
+                        count_command = {}
+                        commands.each do |command|
+                            count = rows.count {|h| h.command==command}
+                            count_command[command] = count
                         end
-                        if commands.size > 10 and all_data
-                            commands_attachment << "\t#{command}: #{count} (#{(count.to_f*100/total).round(2)}%)"
+
+                        if commands.size > 10
+                            message << "*Commands* - #{commands.size} (Top 10)"
+                        else
+                            message << "*Commands* - #{commands.size}"
+                        end
+
+                        i = 0
+                        count_command.sort_by {|k,v| -v}.each do |command, count|
+                            i+=1
+                            if i <= 10
+                                message << "\t#{command}: #{count} (#{(count.to_f*100/total).round(2)}%)"
+                            end
+                            if commands.size > 10 and all_data
+                                commands_attachment << "\t#{command}: #{count} (#{(count.to_f*100/total).round(2)}%)"
+                            end
                         end
                     end
     

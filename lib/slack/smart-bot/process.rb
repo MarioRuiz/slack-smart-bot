@@ -113,6 +113,8 @@ class SlackSmartBot
         st_to = opts.scan(/to\s+(\d\d\d\d[\/\-\.]\d\d[\/\-\.]\d\d)/).join
         st_to = st_to.gsub('.','-').gsub('/','-')
         st_user = opts.scan(/<@([^>]+)>/).join
+        st_command = opts.scan(/\s+command\s+(\w+)/i).join.downcase
+        st_command = opts.scan(/^command\s+(\w+)/i).join.downcase if st_command == ''
         exclude_masters = all_opts.include?('exclude') && all_opts.include?('masters')
         exclude_routines = all_opts.include?('exclude') && all_opts.include?('routines')
         if exclude_masters
@@ -136,7 +138,7 @@ class SlackSmartBot
         if typem == :on_master or typem == :on_bot
           st_channel = dchannel
         end
-        bot_stats(dest, user, typem, st_channel, st_from, st_to, st_user, exclude_masters, exclude_routines, exclude_command, monthly, all_data)
+        bot_stats(dest, user, typem, st_channel, st_from, st_to, st_user, st_command, exclude_masters, exclude_routines, exclude_command, monthly, all_data)
       else
         processed = false
       end

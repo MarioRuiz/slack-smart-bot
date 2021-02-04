@@ -135,7 +135,7 @@ class SlackSmartBot
         unless @master_admin_users_id.include?(user.id)
           st_user = user.id
         end
-        if typem == :on_master or typem == :on_bot
+        if (typem == :on_master or typem == :on_bot) and dest[0]!='D' #routine bot stats to be published on DM
           st_channel = dchannel
         end
         bot_stats(dest, user, typem, st_channel, st_from, st_to, st_user, st_command, exclude_masters, exclude_routines, exclude_command, monthly, all_data)

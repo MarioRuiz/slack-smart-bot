@@ -37,7 +37,7 @@ class SlackSmartBot
             message = ["You need to set stats to true to generate the stats when running the bot instance."]
         end
         save_stats(__method__)
-        if (from_user.id != user and (config.masters.include?(from_user.name) or @master_admin_users_id.include?(from_user.id)) and typem==:on_dm)
+        if (from_user.id != user and (config.masters.include?(from_user.name) or @master_admin_users_id.include?(from_user.id)) and (typem==:on_dm or dest[0]=='D'))
             on_dm_master = true #master admin user
         else
             on_dm_master = false

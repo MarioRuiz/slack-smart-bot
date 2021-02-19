@@ -31,7 +31,7 @@ RSpec.describe SlackSmartBot, "bot_help" do
         expect(buffer(to: channel, from: :ubot).join).not_to match(@master_admin)
         expect(buffer(to: channel, from: :ubot).join).not_to match(@direct)
         expect(buffer(to: channel, from: :ubot).join).not_to match(@without_bot)
-        expect(buffer(to: channel, from: :ubot).join).not_to match(@rules) #not expanded
+        expect(buffer(to: channel, from: :ubot).join).to match(@rules)
       end
     end
     describe "bot channel" do
@@ -138,7 +138,7 @@ RSpec.describe SlackSmartBot, "bot_help" do
         expect(buffer(to: channel, from: :ubot).join).not_to match(@master_admin)
         expect(buffer(to: channel, from: :ubot).join).not_to match(@direct)
         expect(buffer(to: channel, from: :ubot).join).not_to match(@without_bot)
-        expect(buffer(to: channel, from: :ubot).join).not_to match(@rules) #not expanded
+        expect(buffer(to: channel, from: :ubot).join).to match(@rules)
       end
       it "responds to normal user in master channel" do
         send_message "bot rules expanded", from: :user2, to: channel

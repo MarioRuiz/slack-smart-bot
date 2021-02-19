@@ -23,6 +23,7 @@ RSpec.describe SlackSmartBot, "delete_shortcut" do
 
     after(:each) do
       send_message "bye bot", from: user, to: channel
+      sleep 1
     end
 
     it "works: delete shortcut on demand" do
@@ -115,7 +116,7 @@ RSpec.describe SlackSmartBot, "delete_shortcut" do
       sleep 1
       expect(buffer(to: channel, from: :ubot).join).to match(/global shortcut deleted!/i)
       send_message "!exampleglobaldel", from: user, to: channel
-      sleep 1
+      sleep 4
       expect(buffer(to: channel, from: :ubot).join).to match(/I don't understand/i)
       send_message "!exampleglobaldel", from: user, to: :cbot1cm
       sleep 1

@@ -86,7 +86,9 @@ RSpec.describe SlackSmartBot, "add_shortcut" do
     end
     it "can modify a shortcut added by yourself" do
       send_message "!shortcut example: echo Text", from: user, to: channel
+      sleep 1
       send_message "!shortcut example: echo Text2", from: user, to: channel
+      sleep 1
       message = "The shortcut already exists, are you sure you want to overwrite it?"
       expect(bufferc(to: channel, from: :ubot)[-1]).to match(/#{message}/)
       send_message "yes", from: user, to: channel
@@ -99,7 +101,7 @@ RSpec.describe SlackSmartBot, "add_shortcut" do
     it "cannot modify a shortcut for all added by other" do
       send_message "!shortcut for all example: echo Text", from: :uadmin, to: channel
       send_message "!shortcut for all example: echo Text2", from: user, to: channel
-      sleep 1
+      sleep 2
       message = "Only the creator of the shortcut can modify it"
       expect(buffer(to: channel, from: :ubot)[-1]).to match(/#{message}/)
     end
@@ -113,7 +115,7 @@ RSpec.describe SlackSmartBot, "add_shortcut" do
     it "calls shortcut on inline command" do
       send_message "!shortcut example: This is a text to display", from: user, to: channel
       send_message "!echo $example", from: user, to: channel
-      sleep 2
+      sleep 3
       expect(buffer(to: channel, from: :ubot)[-1]).to match(/^This is a text to display$/)
     end
     it "calls two shortcuts on inline command" do

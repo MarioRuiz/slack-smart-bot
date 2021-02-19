@@ -14,6 +14,7 @@ RSpec.describe SlackSmartBot, "see_repls" do
         send_message "bye", from: :user2, to: channel
         send_message "!repl seerepl5 ", from: :user2, to: channel
         send_message "bye", from: :user2, to: channel
+        sleep 2
       end
       after(:all) do
         send_message "bye bot", from: user, to: channel
@@ -21,6 +22,7 @@ RSpec.describe SlackSmartBot, "see_repls" do
 
       it 'list all public repls' do
         send_message "!see repls", from: user, to: channel
+        sleep 2
         expect(buffer(to: channel, from: :ubot).join).to match(/\(public\) \*seerepl1\*/i)
         expect(buffer(to: channel, from: :ubot).join).to match(/\(public_clean\) \*seerepl2\*/i)
         expect(buffer(to: channel, from: :ubot).join).to match(/\(public\) \*seerepl5\*/i)

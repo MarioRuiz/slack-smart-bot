@@ -13,6 +13,7 @@ RSpec.describe SlackSmartBot, "run_repl" do
         send_message "bye", from: user, to: channel
         clean_buffer()
         send_message "!run repl runreplexe", from: user, to: channel
+        sleep 2
         expect(buffer(to: channel, from: :ubot).join).to match(/done/i)
       end
 
@@ -22,6 +23,7 @@ RSpec.describe SlackSmartBot, "run_repl" do
         send_message "bye", from: user, to: channel
         clean_buffer()
         send_message "!run repl runreplexe2 PARAM='xxxx'", from: user, to: channel
+        sleep 2
         expect(buffer(to: channel, from: :ubot).join).to match(/xxxx/i)
       end
 
@@ -31,8 +33,8 @@ RSpec.describe SlackSmartBot, "run_repl" do
         send_message "bye", from: :user2, to: channel
         clean_buffer()
         send_message "!run repl runreplexePrivate", from: user, to: channel
+        sleep 3
         expect(buffer(to: channel, from: :ubot).join).not_to match(/done/i)
-        sleep 1
         expect(buffer(to: channel, from: :ubot).join).to match(/The REPL with session name: runreplexePrivate is private/)
       end
 

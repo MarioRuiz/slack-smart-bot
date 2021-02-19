@@ -80,6 +80,11 @@ class SlackSmartBot
           update_repls()        
         end
         react :running
+        if Thread.current[:ts].to_s == ''
+          @ts_react = Thread.current[:thread_ts]
+        else
+          @ts_react = Thread.current[:ts]
+        end        
 
         message = "Session name: *#{session_name}*
         From now on I will execute all you write as a Ruby command and I will keep the session open until you send `quit` or `bye` or `exit`. 
@@ -182,7 +187,7 @@ class SlackSmartBot
                   f.puts 'quit'
                 }
                 respond "REPL session finished: #{@repl_sessions[from][:name]}", dest
-                unreact :running
+                unreact :running, @ts_react
                 pids = `pgrep -P #{@repl_sessions[from][:pid]}`.split("\n").map(&:to_i) #todo: it needs to be adapted for Windows
                 pids.each do |pid|
                   begin
@@ -231,7 +236,7 @@ class SlackSmartBot
               f.puts code
             }
             respond "REPL session finished: #{@repl_sessions[from][:name]}", dest
-            unreact :running
+            unreact :running, @ts_react
             pids = `pgrep -P #{@repl_sessions[from][:pid]}`.split("\n").map(&:to_i) #todo: it needs to be adapted for Windows
             pids.each do |pid|
               begin

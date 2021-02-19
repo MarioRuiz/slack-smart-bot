@@ -41,6 +41,8 @@ class SlackSmartBot
     config[:simulate] = false unless config.key?(:simulate)
     config[:stats] = false unless config.key?(:stats)
     config[:allow_access] = Hash.new unless config.key?(:allow_access)
+    config[:on_maintenance] = false unless config.key?(:on_maintenance)
+    config[:on_maintenance_message] = "Sorry I'm on maintenance so I cannot attend your request." unless config.key?(:on_maintenance_message)
 
     if config.path.to_s!='' and config.file.to_s==''
       config.file = File.basename($0)

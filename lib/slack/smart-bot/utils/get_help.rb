@@ -138,7 +138,7 @@ class SlackSmartBot
 
     if help.key?(:on_master) and help.on_master.key?(:admin_master) and help.on_master.admin_master.size > 0
       txt += "===================================
-      *Master Admin commands:*\n"
+      *Master Admin commands:*\n" unless txt.include?('*Master Admin commands*')
       help.on_master.admin_master.each do |k, v|
         txt += v if v.is_a?(String)
       end

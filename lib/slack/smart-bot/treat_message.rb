@@ -156,7 +156,7 @@ class SlackSmartBot
           end
         elsif @repl_sessions.key?(user_info.user.name) and data.channel==@repl_sessions[user_info.user.name][:dest] and 
           ((@repl_sessions[user_info.user.name][:on_thread] and data.thread_ts == @repl_sessions[user_info.user.name][:thread_ts]) or
-           (!@repl_sessions[user_info.user.name][:on_thread] and data.thread_ts.to_s == '' ))
+          (!@repl_sessions[user_info.user.name][:on_thread] and data.thread_ts.to_s == '' ))
           
           if data.text.match(/^\s*```(.*)```\s*$/im)
               @repl_sessions[user_info.user.name][:command] = $1
@@ -172,13 +172,13 @@ class SlackSmartBot
         if command.match(/\A\s*```(.*)```\s*\z/im)
           command = $1
         elsif command.size >= 2 and
-           ((command[0] == "`" and command[-1] == "`") or (command[0] == "*" and command[-1] == "*") or (command[0] == "_" and command[-1] == "_"))
+          ((command[0] == "`" and command[-1] == "`") or (command[0] == "*" and command[-1] == "*") or (command[0] == "_" and command[-1] == "_"))
           command = command[1..-2]
         end
 
         #ruby file attached
         if !data.files.nil? and data.files.size == 1 and
-           (command.match?(/^(ruby|code)\s*$/) or (command.match?(/^\s*$/) and data.files[0].filetype == "ruby") or
+          (command.match?(/^(ruby|code)\s*$/) or (command.match?(/^\s*$/) and data.files[0].filetype == "ruby") or
             (typem == :on_call and data.files[0].filetype == "ruby"))
           res = Faraday.new("https://files.slack.com", headers: { "Authorization" => "Bearer #{config[:token]}" }).get(data.files[0].url_private)
           command += " ruby" if command != "ruby"
@@ -226,6 +226,29 @@ class SlackSmartBot
       elsif !config.on_master_bot and !dest.nil? and data.user == config[:nick_id] and dest == @master_bot_id
         # to treat on other bots the status messages populated on master bot
         case data.text
+        when /From now on I'll be on maintenance status/i
+          sleep 2
+          if File.exist?("#{config.path}/config_tmp.status")
+            file_cts = IO.readlines("#{config.path}/config_tmp.status").join
+            unless file_cts.to_s() == ""
+              file_cts = eval(file_cts)
+              if file_cts.is_a?(Hash) and file_cts.key?(:on_maintenance)
+                config.on_maintenance = file_cts.on_maintenance
+              end
+            end
+          end
+        when /From now on I won't be on maintenance/i
+          sleep 2
+          if File.exist?("#{config.path}/config_tmp.status")
+            file_cts = IO.readlines("#{config.path}/config_tmp.status").join
+            unless file_cts.to_s() == ""
+              file_cts = eval(file_cts)
+              if file_cts.is_a?(Hash) and file_cts.key?(:on_maintenance)
+                config.on_maintenance = file_cts.on_maintenance
+              end
+            end
+          end
+          
         when /^Bot has been (closed|killed) by/i
           sleep 2
           get_bots_created()

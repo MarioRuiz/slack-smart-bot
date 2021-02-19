@@ -1,11 +1,20 @@
 class SlackSmartBot
   # list of available emojis: https://www.webfx.com/tools/emoji-cheat-sheet/
   # react(:thumbsup)
-  def react(emoji, parent=false)
-    if parent or Thread.current[:ts].to_s == ''
-      ts = Thread.current[:thread_ts]
+  # ts: can be true, false or a specific ts
+  def react(emoji, ts=false)
+    if ts.is_a?(TrueClass) or ts.is_a?(FalseClass)
+      parent = ts
+      ts = nil
     else
-      ts = Thread.current[:ts]
+      parent = false
+    end
+    if ts.nil?
+      if parent or Thread.current[:ts].to_s == ''
+        ts = Thread.current[:thread_ts]
+      else
+        ts = Thread.current[:ts]
+      end
     end
     if ts.nil?
       @logger.warn 'react method no ts supplied'

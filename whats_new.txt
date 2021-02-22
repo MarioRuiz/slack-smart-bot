@@ -1,4 +1,4 @@
-*Version 1.9.0 DEV 12* Released 2021-Jan-28
+*Version 1.9.0 DEV 13* Released 2021-Feb-22
 
 *For General users*
 - Added command `what's new` that will show this.
@@ -15,3 +15,4 @@
 - `Bot stats` now shows the top 10 users and attaches the full list of users and commands.
 - Bot Stats. Now the routines are displayed as routine/USER
 - When creating routines now it is possible to publish in a different channel: `add routine run_tests at 17:05 #thechannel !run api tests`
+- `Turn maintenance on/off` command available

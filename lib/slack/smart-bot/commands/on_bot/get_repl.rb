@@ -20,17 +20,18 @@ class SlackSmartBot
           !config.admins.include?(user.name)
           respond "The REPL with session name: #{session_name} is private", dest
         else
+          content = "require 'nice_http'\n"
           if @repls.key?(session_name)
             @repls[session_name][:accessed] = Time.now.to_s
             @repls[session_name][:gets] += 1
             update_repls()
           end
-
-          content = "require 'nice_http'\n"
-          if File.exist?("#{project_folder}/.smart-bot-repl") and @repls[session_name][:type] != :private_clean and @repls[session_name][:type] != :public_clean
+          if !@repls.key?(session_name) or 
+            (File.exist?("#{project_folder}/.smart-bot-repl") and @repls[session_name][:type] != :private_clean and @repls[session_name][:type] != :public_clean)
             content += File.read("#{project_folder}/.smart-bot-repl")
             content += "\n"
           end
+
           content += File.read("#{config.path}/repl/#{@channel_id}/#{session_name}.run").gsub(/^(quit|exit|bye)$/i,'') #todo: remove this gsub it will never contain it
           File.write("#{config.path}/repl/#{@channel_id}/#{session_name}.rb", content, mode: "w+")
           send_file(dest, "REPL #{session_name} on #{config.channel}", "#{config.path}/repl/#{@channel_id}/#{session_name}.rb", " REPL #{session_name} on #{config.channel}", 'text/plain', "ruby")

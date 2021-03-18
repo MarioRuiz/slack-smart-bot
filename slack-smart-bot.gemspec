@@ -12,11 +12,11 @@ Gem::Specification.new do |s|
   s.extra_rdoc_files = ["LICENSE","README.md"]
   s.homepage    = 'https://github.com/MarioRuiz/slack-smart-bot'
   s.license       = 'MIT'
-  s.add_runtime_dependency 'slack-ruby-client', '~> 0.15', '>= 0.15.1'
+  s.add_runtime_dependency 'slack-ruby-client', '~> 0.17', '>= 0.17.0'
   s.add_runtime_dependency 'nice_http', '~> 1.8'
   s.add_runtime_dependency 'nice_hash', '~> 1'
   s.add_runtime_dependency 'async-websocket', '~> 0.8.0'
-  s.add_runtime_dependency 'amazing_print', '~> 1', '>= 1.2.1'
+  s.add_runtime_dependency 'amazing_print', '~> 1', '>= 1.3.0'
   s.add_development_dependency 'rspec', '~> 3.9'
   s.required_ruby_version = '>= 2.5'
   s.post_install_message = "Thanks for installing! Visit us on https://github.com/MarioRuiz/slack-smart-bot"

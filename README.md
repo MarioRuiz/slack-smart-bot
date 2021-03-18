@@ -10,6 +10,8 @@ The main scope of this ruby gem is to be used internally in your company so team
 
 slack-smart-bot can create bots on demand, create shortcuts, run ruby code... just on a chat channel, you can access it just from your mobile phone if you want and run those tests you forgot to run, get the results, restart a server... no limits.
 
+![](slack.png)
+
 # Table of Contents
 
 - [Installation and configuration](#installation-and-configuration)

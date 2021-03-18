@@ -1,4 +1,4 @@
-*Version 1.9.0 DEV 13* Released 2021-Feb-22
+*Version 1.9.0* Released 2021-Mar-18
 
 *For General users*
 - Added command `what's new` that will show this.

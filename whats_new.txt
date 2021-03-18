@@ -1,0 +1,18 @@
+*Version 1.9.0* Released 2021-Mar-18
+
+*For General users*
+- Added command `what's new` that will show this.
+- `bot stats` will return detailed statistics using the SmartBot. If you call it from a DM with the SmartBot you will see all stats for all Bot channels.
+- Possible to create 'global' shortcuts that will be available on any SmartBot Channel.
+- Added option to start a `repl` without pre-executing '.smart-bot-repl' source code in case exists. Just add `clean` before the `repl` command. For example: `clean repl Example`
+- When using `Ruby` command in case the process doesn't finish in 20 seconds will be aborted.
+- When creating rules/commands and asking a question now you can use 'answer' instead of '@questions'. Take a look at README.md for an example.
+- Using external calls, it is possible to send to more than one bot channel the same rule: `@smart-bot on #channel1 #channel2 #channel3 echo Lala`
+- `bot help` and `bot rules` return by default a short version of the commands. Call `bot help expanded` or `bot rules expanded` to get a full desciption of the commands.
+- It is possible to exclude routines from results when using `bot stats`
+------------------------------
+*For Admin users*
+- `Bot stats` now shows the top 10 users and attaches the full list of users and commands.
+- Bot Stats. Now the routines are displayed as routine/USER
+- When creating routines now it is possible to publish in a different channel: `add routine run_tests at 17:05 #thechannel !run api tests`
+- `Turn maintenance on/off` command available

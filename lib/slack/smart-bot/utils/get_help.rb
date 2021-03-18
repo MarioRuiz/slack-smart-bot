@@ -1,18 +1,17 @@
 class SlackSmartBot
-  def get_help(rules_file, dest, from, only_rules = false)
+  def get_help(rules_file, dest, from, only_rules, expanded)
     order = {
-      general: [:hi_bot, :bye_bot, :bot_help, :bot_status, :use_rules, :stop_using_rules],
+      general: [:whats_new, :hi_bot, :bye_bot, :bot_help, :bot_status, :use_rules, :stop_using_rules, :bot_stats],
       on_bot: [:ruby_code, :repl, :get_repl, :run_repl, :delete_repl, :see_repls, :add_shortcut, :delete_shortcut, :see_shortcuts],
       on_bot_admin: [:extend_rules, :stop_using_rules_on, :start_bot, :pause_bot, :add_routine,
         :see_routines, :start_routine, :pause_routine, :remove_routine, :run_routine]
     }
-    # user_type: :admin, :user, :admin_master
     if config.masters.include?(from)
-      user_type = :admin_master
+      user_type = :master # master admin
     elsif config.admins.include?(from)
       user_type = :admin
     else
-      user_type = :user
+      user_type = :normal #normal user
     end
     # channel_type: :bot, :master_bot, :direct, :extended, :external
     if dest[0] == "D"
@@ -25,27 +24,45 @@ class SlackSmartBot
       channel_type = :bot
     end
 
-    @help_messages ||= build_help("#{__dir__}/../commands")
+    @help_messages_expanded ||= build_help("#{__dir__}/../commands", true)
+    @help_messages_not_expanded ||= build_help("#{__dir__}/../commands", false)
     if only_rules
       help = {}
+    elsif expanded
+      help = @help_messages_expanded.deep_copy[user_type]
     else
-      help = @help_messages.deep_copy
+      help = @help_messages_not_expanded.deep_copy[user_type]
     end
+
     if rules_file != ""
-      help[:rules_file] = ''
-      help[:rules_file] += IO.readlines(config.path+rules_file).join.scan(/#\s*help\s*\w*:(.*)/i).join("\n") + "\n"
-      if File.exist?(config.path+'/rules/general_rules.rb')
-        help[:rules_file] += IO.readlines(config.path+'/rules/general_rules.rb').join.scan(/#\s*help\s*\w*:(.*)/i).join("\n")
+      help[:rules_file] = build_help(config.path+rules_file, expanded)[user_type].values.join("\n") + "\n"
+     
+      # to get all the help from other rules files added to the main rules file by using require or load. For example general_rules.rb
+      res = IO.readlines(config.path+rules_file).join.scan(/$\s*(load|require)\s("|')(.+)("|')/)
+      rules_help = []
+      txt = ''
+      if res.size>0
+        res.each do |r|
+          begin
+            eval("txt = \"#{r[2]}\"")
+            rules_help << txt if File.exist?(txt)
+          rescue
+          end
+        end
+      end
+      rules_help.each do |rh|
+        rhelp = build_help(rh, expanded)
+        help[:rules_file] += rhelp[user_type].values.join("\n") + "\n"
       end
     end
-    help = remove_hash_keys(help, :admin_master) unless user_type == :admin_master
-    help = remove_hash_keys(help, :admin) unless user_type == :admin or user_type == :admin_master
+    help = remove_hash_keys(help, :admin_master) unless user_type == :master
+    help = remove_hash_keys(help, :admin) unless user_type == :admin or user_type == :master
     help = remove_hash_keys(help, :on_master) unless channel_type == :master_bot
     help = remove_hash_keys(help, :on_extended) unless channel_type == :extended
     help = remove_hash_keys(help, :on_dm) unless channel_type == :direct
     txt = ""
 
-    if channel_type == :bot or channel_type == :master_bot
+    if (channel_type == :bot or channel_type == :master_bot) and expanded
       txt += "===================================
       For the Smart Bot start listening to you say *hi bot*
       To run a command on demand even when the Smart Bot is not listening to you:
@@ -56,11 +73,11 @@ class SlackSmartBot
             *^THE_COMMAND*
             *!!THE_COMMAND*\n"
     end
-    if channel_type == :direct
+    if channel_type == :direct and expanded
       txt += "===================================
       When on a private conversation with the Smart Bot, I'm always listening to you.\n"
     end
-    unless channel_type == :master_bot or channel_type == :extended
+    unless channel_type == :master_bot or channel_type == :extended or !expanded
       txt += "===================================
       *Commands from Channels without a bot:*
       ----------------------------------------------
@@ -121,7 +138,7 @@ class SlackSmartBot
 
     if help.key?(:on_master) and help.on_master.key?(:admin_master) and help.on_master.admin_master.size > 0
       txt += "===================================
-      *Master Admin commands:*\n"
+      *Master Admin commands:*\n" unless txt.include?('*Master Admin commands*')
       help.on_master.admin_master.each do |k, v|
         txt += v if v.is_a?(String)
       end
@@ -132,6 +149,51 @@ class SlackSmartBot
       if channel_type == :extended or channel_type == :direct
         @logger.info help.rules_file if config.testing
         help.rules_file = help.rules_file.gsub(/^\s*\*These are specific commands.+NAME_OF_BOT THE_COMMAND`\s*$/im, "")
+      end
+
+      unless expanded
+        resf = ''
+        help.rules_file.split(/^\s*\-+\s*$/).each do |rule|
+          command_done = false
+          explanation_done = false
+          example_done = false
+          if rule.match?(/These are specific commands for this/i)
+            resf += rule
+            resf += "-"*50
+            resf += "\n"
+          elsif rule.match?(/To run a command on demand and add the respond on a thread/i)
+            resf += rule
+            resf += "-"*50
+            resf += "\n"
+          else
+            rule.split("\n").each do |line|
+              if line.match?(/^\s*\-+\s*/i)
+                resf += line
+              elsif !command_done and line.match?(/^\s*`.+`\s*/i)
+                resf += "\n#{line}"
+                command_done = true
+              elsif !explanation_done and line.match?(/^\s+[^`].+\s*/i)
+                resf += "\n#{line}"
+                explanation_done = true
+              elsif !example_done and line.match?(/^\s*_.+_\s*/i)
+                resf += "\n     Example: #{line}"
+                example_done = true
+              end
+            end
+            resf += "\n\n"
+          end
+        end
+        unless resf.match?(/These are specific commands for this bot on this Channel/i)
+          if resf.match?(/\A\s*[=\-]+$/)
+            pre = ''
+            post = ''
+          else
+            pre = ('='*50) + "\n"
+            post = ('-'*50) + "\n"
+          end
+          resf = "#{pre}*These are specific commands for this bot on this Channel:*\n#{post}" + resf
+        end
+        help.rules_file = resf
       end
       txt += help.rules_file
     end

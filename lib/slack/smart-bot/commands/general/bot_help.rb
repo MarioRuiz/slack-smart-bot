@@ -5,9 +5,12 @@ class SlackSmartBot
   # help: `bot help COMMAND`
   # help: `bot rules`
   # help: `bot rules COMMAND`
+  # help: `bot help expanded`
+  # help: `bot rules expanded`
   # help: `bot what can I do?`
-  # help:    it will display this help
+  # help:    it will display this help. For a more detailed help call `bot help expanded` or `bot rules expanded`.
   # help:    if COMMAND supplied just help for that command
+  # help:    you can use the option 'expanded' or the alias 'extended'
   # help:    `bot rules` will show only the specific rules for this channel.
   # help:
   def bot_help(user, from, dest, dchannel, specific, help_command, rules_file)
@@ -19,8 +22,17 @@ class SlackSmartBot
       help_found = false
 
       message = ""
+      if help_command.to_s != ''
+        help_command = '' if help_command.to_s.match?(/^\s*expanded\s*$/i) or help_command.to_s.match?(/^\s*extended\s*$/i)
+        expanded = true
+        message_not_expanded = ''
+      else
+        expanded = false
+        message_not_expanded = "*If you want to see the expanded version of `bot help` or `bot rules`, please call `bot help expanded` or `bot rules expanded`*\n"
+        message_not_expanded += "*Also to get specific expanded help for a specific command or rule call `bot help COMMAND`*\n"
+      end
 
-      help_message = get_help(rules_file, dest, from, specific)
+      help_message = get_help(rules_file, dest, from, specific, expanded)
 
       if help_command.to_s != ""
         help_message.gsub(/====+/,'-'*30).split(/^\s*-------*$/).each do |h|
@@ -31,7 +43,7 @@ class SlackSmartBot
         end
       else
         if Thread.current[:using_channel]!=''
-          message = "*You are using rules from another channel: <##{Thread.current[:using_channel]}>. These are the specific commands for that channel:*"
+          message += "*You are using rules from another channel: <##{Thread.current[:using_channel]}>. These are the specific commands for that channel:*"
         end
         respond message, dest
       end
@@ -70,6 +82,7 @@ class SlackSmartBot
       elsif help_command.to_s == ""
         respond "Slack Smart Bot Github project: https://github.com/MarioRuiz/slack-smart-bot", dest
       end
+      respond message_not_expanded unless expanded
     end
   end
 end

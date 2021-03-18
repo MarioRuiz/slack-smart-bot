@@ -24,27 +24,32 @@ RSpec.describe SlackSmartBot, "add_shortcut" do
     it "works: add shortcut when listening" do
       send_message "Hi bot", from: user, to: channel
       send_message "add shortcut example: echo Text", from: user, to: channel
+      sleep 0.5 if SIMULATE
       expect(buffer(to: channel, from: :ubot).join).to match(/shortcut added/)
     end
 
     it "works: add sc" do
       send_message "!add sc example: echo Text", from: user, to: channel
-      expect(buffer(to: channel, from: :ubot).join).to match(/^shortcut added$/)
+      sleep 0.5 if SIMULATE
+      expect(buffer(to: channel, from: :ubot).join).to match(/shortcut added$/)
     end
 
     it "works: add shortcut for all" do
       send_message "!add shortcut for all example: echo Text", from: user, to: channel
-      expect(buffer(to: channel, from: :ubot).join).to match(/^shortcut added$/)
+      sleep 0.5 if SIMULATE
+      expect(buffer(to: channel, from: :ubot).join).to match(/shortcut added$/)
     end
 
     it "works: shortcut" do
       send_message "!shortcut example: echo Text", from: user, to: channel
-      expect(buffer(to: channel, from: :ubot).join).to match(/^shortcut added$/)
+      sleep 0.5 if SIMULATE
+      expect(buffer(to: channel, from: :ubot).join).to match(/shortcut added$/)
     end
 
     it "works: shortcut for all" do
       send_message "!shortcut for all example: echo Text", from: user, to: channel
-      expect(buffer(to: channel, from: :ubot).join).to match(/^shortcut added$/)
+      sleep 0.5 if SIMULATE
+      expect(buffer(to: channel, from: :ubot).join).to match(/shortcut added$/)
     end
 
     it "calls shortcut using: shortcut NAME" do
@@ -56,6 +61,8 @@ RSpec.describe SlackSmartBot, "add_shortcut" do
     it "calls shortcut using: sc NAME" do
       send_message "!shortcut example: echo Text", from: user, to: channel
       send_message "!sc example", from: user, to: channel
+      sleep 0.5 if SIMULATE
+
       expect(buffer(to: channel, from: :ubot)[-1]).to match(/^Text$/)
     end
     it "calls shortcut using: NAME" do
@@ -79,7 +86,9 @@ RSpec.describe SlackSmartBot, "add_shortcut" do
     end
     it "can modify a shortcut added by yourself" do
       send_message "!shortcut example: echo Text", from: user, to: channel
+      sleep 1
       send_message "!shortcut example: echo Text2", from: user, to: channel
+      sleep 1
       message = "The shortcut already exists, are you sure you want to overwrite it?"
       expect(bufferc(to: channel, from: :ubot)[-1]).to match(/#{message}/)
       send_message "yes", from: user, to: channel
@@ -92,7 +101,7 @@ RSpec.describe SlackSmartBot, "add_shortcut" do
     it "cannot modify a shortcut for all added by other" do
       send_message "!shortcut for all example: echo Text", from: :uadmin, to: channel
       send_message "!shortcut for all example: echo Text2", from: user, to: channel
-      sleep 1
+      sleep 2
       message = "Only the creator of the shortcut can modify it"
       expect(buffer(to: channel, from: :ubot)[-1]).to match(/#{message}/)
     end
@@ -106,7 +115,7 @@ RSpec.describe SlackSmartBot, "add_shortcut" do
     it "calls shortcut on inline command" do
       send_message "!shortcut example: This is a text to display", from: user, to: channel
       send_message "!echo $example", from: user, to: channel
-      sleep 2
+      sleep 3
       expect(buffer(to: channel, from: :ubot)[-1]).to match(/^This is a text to display$/)
     end
     it "calls two shortcuts on inline command" do
@@ -126,6 +135,20 @@ RSpec.describe SlackSmartBot, "add_shortcut" do
       sleep 2
       expect(buffer(to: channel, from: :ubot)[-1]).to match(/^Text$/)
     end
+    it 'is not possible to add a global sc' do
+      send_message "!global shortcut example: Text", from: user, to: channel
+      sleep 2
+      expect(buffer(to: channel, from: :ubot).join).to match(/It is only possible to add global shortcuts from Master channel/i)
+    end
+    it 'is is possible to call a global sc' do
+      send_message "!global shortcut exampleaddglo: echo doom", from: user, to: :cmaster
+      sleep 2
+      expect(buffer(to: :cmaster, from: :ubot).join).to match(/global shortcut added/i)
+      send_message "!exampleaddglo", from: user, to: channel
+      sleep 2
+      expect(buffer(to: channel, from: :ubot).join).to match(/doom/i)
+    end
+
   end
 
   describe "on master channel" do
@@ -150,6 +173,25 @@ RSpec.describe SlackSmartBot, "add_shortcut" do
       sleep 2
       expect(buffer(to: channel, from: :ubot)[-1]).to match(/^Texto$/)
     end
+
+    it 'is not possible to add a global sc with same name' do
+      send_message "!global shortcut exampleglob: Text", from: user, to: channel
+      sleep 2
+      expect(buffer(to: channel, from: :ubot).join).to match(/global shortcut added/i)
+      send_message "!global shortcut exampleglob: Text", from: user, to: channel
+      sleep 2
+      expect(buffer(to: channel, from: :ubot).join).to match(/Global shortcut name already in use. Please use another shortcut name./i)
+    end
+
+    it "cannot add a global shortcut for all when other user uses the same name" do
+      send_message "!global shortcut exampleglobsame: echo Text", from: :uadmin, to: channel
+      send_message "!global shortcut for all exampleglobsame: echo Text2", from: user, to: channel
+      sleep 1
+      message = "You cannot create a global shortcut for all with the same name than other user is using"
+      expect(buffer(to: channel, from: :ubot)[-1]).to match(/#{message}/)
+    end
+
+
   end
 
   describe "on direct message" do
@@ -166,7 +208,7 @@ RSpec.describe SlackSmartBot, "add_shortcut" do
     it "calls shortcut using: shortcut NAME" do
       send_message "shortcut example: ruby puts 'Text'", from: user, to: channel
       send_message "shortcut example", from: user, to: channel
-      sleep 2
+      sleep 3
       expect(buffer(to: channel, from: :ubot)[-1]).to match(/^Text$/)
     end
   end

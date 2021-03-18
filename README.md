@@ -10,6 +10,8 @@ The main scope of this ruby gem is to be used internally in your company so team
 
 slack-smart-bot can create bots on demand, create shortcuts, run ruby code... just on a chat channel, you can access it just from your mobile phone if you want and run those tests you forgot to run, get the results, restart a server... no limits.
 
+![](slack.png)
+
 # Table of Contents
 
 - [Installation and configuration](#installation-and-configuration)
@@ -114,12 +116,12 @@ def rules(user, command, processed, dest)
     # help:   it will sleep the bot for 10 seconds
     # help:
     when /^go\sto\ssleep/i
-      unless @questions.keys.include?(from)
+      if answer.empty?
         ask "do you want me to take a siesta?"
       else
-        case @questions[from]
+        case answer
           when /yes/i, /yep/i, /sure/i
-            @questions.delete(from)
+            answer_delete
             respond "I'll be sleeping for 10 secs... just for you"
             respond "zZzzzzzZZZZZZzzzzzzz!"
             react :sleeping
@@ -127,11 +129,11 @@ def rules(user, command, processed, dest)
             unreact :sleeping
             react :sunny
           when /no/i, /nope/i, /cancel/i
-            @questions.delete(from)
+            answer_delete
             respond "Thanks, I'm happy to be awake"
           else
             respond "I don't understand"
-            ask "are you sure do you want me to sleep? (yes or no)"
+            ask "are you sure you want me to sleep? (yes or no)"
         end
       end
 
@@ -201,7 +203,7 @@ Examples run a command on demand:
 >**_Peter>_** `^echo Example`  
 >. . . . . . . . .**_Smart-Bot>_** `Example`
 
-Also you can always call the Smart Bot from any channel, even from channels without a running Smart Bot. You can use the External Call on Demand: **_`@NAME_OF_BOT on #CHANNEL_NAME COMMAND`_**. In this case you will call the bot on #CHANNEL_NAME.
+Also you can always call the Smart Bot from any channel, even from channels without a running Smart Bot. You can use the External Call on Demand: **_`@NAME_OF_BOT on #CHANNEL_NAME COMMAND`_**. In this case you will call the bot on #CHANNEL_NAME. You can supply more than one channel then all the bots will respond.
 
 Example:
 >**_Peter>_** `@smart-bot on #the_channel ruby puts Time.now`  
@@ -221,9 +223,9 @@ Examples:
 >. . . . . . . . .**_Smart-Bot>_** `b`
 
 ### Bot Help
-To get a full list of all commands and rules for a specific Smart Bot: **_`bot help`_**. It will show only the specific available commands for the user requesting.
+To get a full list of all commands and rules for a specific Smart Bot: **_`bot help`_**. It will show only the specific available commands for the user requesting. By default it will display only a short version of the bot help, call **_`bot help expanded`_** to get a expanded version of all commands.
 
-If you want to search just for a specific command: **_`bot help COMMAND`_**
+If you want to search just for a specific command: **_`bot help COMMAND`_** It will display expanded explanations for the command.
 
 To show only the specific rules of the Smart Bot defined on the rules file: **_`bot rules`_** or **_`bot rules COMMAND`_**
 
@@ -239,6 +241,7 @@ Remember when you add code to your rules you need to specify the help that will 
 For the examples use _ and for the rules `. This is a good example of a Help supplied on rules source code:
 
 ```ruby
+# help: ----------------------------------------------
 # help: `run TYPE tests on LOCATION`
 # help: `execute TYPE tests on LOCATION`
 # help:     run the specified tests on the indicated location
@@ -250,6 +253,8 @@ For the examples use _ and for the rules `. This is a good example of a Help sup
 # help:     _execute smoke tests on db1_
 ```
 
+To see what's new just call `What's new`
+
 ### Bot Management
 To create a new bot on a channel, run on MASTER CHANNEL: **_`create bot on CHANNEL`_**. The admins of this new bot on that channel will be the MASTER ADMINS, the creator of the bot and the creator of that channel. It will create a new rules file linked to this new bot.
 
@@ -259,9 +264,11 @@ If you want to pause a bot, from the channel of the bot: **_`pause bot`_**. To s
 
 To see the status of the bots, on the MASTER CHANNEL: **_`bot status`_**
 
+If you need it you can set the SmartBot on maintenance mode by running: **_`set maintenance on`_**. A message to be displayed can be added if not the default message will be used. Run **_`set maintenance off`_** when you want the SmartBot to be running in normal conditions again.
+
 To close the Master Bot, run on MASTER CHANNEL: **_`exit bot`_**
 
-If you are a Master Admin on a Direct Message with the Smart Bot you can call the **_`bot stats`_** and get use stats of the users. You need to set to `true` the `stats` settings when initializing the Smart Bot. Take a look at `bot help bot stats` for more info.
+If you are a Master Admin on a Direct Message with the Smart Bot you can call the **_`bot stats`_** and get use stats of the users. You need to set to `true` the `stats` settings when initializing the Smart Bot. As a normal user you will get your own stats when calling **_`bot stats`_**. Take a look at `bot help bot stats` for more info.
 
 You can also get the bot logs of the bot channel you are using by calling `get bot logs`. You need to be a Master Admin user on a DM with the Smart Bot.
 
@@ -309,7 +316,7 @@ If you declare on your rules file a method called `project_folder` returning the
 
 By default it will be automatically loaded the gems: `string_pattern`, `nice_hash` and `nice_http`
 
-To pre-execute some ruby when starting the session add the code to `.smart-bot-repl` file on the project root folder defined on `project_folder`
+To pre-execute some ruby when starting the session add the code to `.smart-bot-repl` file on the project root folder defined on `project_folder`. Then that file will be always executed before the REPL started or created. In that case if we want to avoid to run that file before the REPL we can do it adding the word 'clean' before the command `clean repl`.
 
 If you want to see the methods of a class or module you created use `ls TheModuleOrClass`
 
@@ -367,7 +374,7 @@ That shortcut will be available for you, in case you want to make it available f
 Example:
 >**_Peter>_** `!add shortcut for all spanish bank account: ruby require 'iso/iban'; 3.times {puts ISO::IBAN.random('ES')}`  
 >**_Smart-Bot>_** `shortcut added`  
->**_Peter>_** `!spanish bank account`  
+>**_John>_** `!spanish bank account`  
 >**_Smart-Bot>_** `ES4664553191352006861448`  
 `ES4799209592433480943244`  
 `ES8888795057132445752702`  

@@ -2,7 +2,7 @@
 #path to the project folder
 # for example "#{`eval echo ~$USER`.chop}/projects/the_project"
 def project_folder()
-  "#{`eval echo ~$USER`.chop}/"
+  "#{Dir.pwd}/"
 end
 
 #link to the project
@@ -37,10 +37,10 @@ end
 def rules(user, command, processed, dest, files = [], rules_file = "")
   from = user.name
   display_name = user.profile.display_name
+
   load "#{config.path}/rules/general_rules.rb"
   
   unless general_rules(user, command, processed, dest, files, rules_file)
-
     begin
       case command
 
@@ -49,21 +49,25 @@ def rules(user, command, processed, dest, files = [], rules_file = "")
         # help:   it will sleep the bot for 5 seconds
         # help:
       when /^go\sto\ssleep/i
-        unless @questions.keys.include?(from)
+        save_stats :go_to_sleep
+        if answer.empty?
           ask "do you want me to take a siesta?"
         else
-          case @questions[from]
+          case answer
           when /yes/i, /yep/i, /sure/i
-            @questions.delete(from)
+            answer_delete
             respond "I'll be sleeping for 5 secs... just for you"
             respond "zZzzzzzZZZZZZzzzzzzz!"
+            react :sleeping
             sleep 5
+            unreact :sleeping
+            react :sunny
           when /no/i, /nope/i, /cancel/i
-            @questions.delete(from)
+            answer_delete
             respond "Thanks, I'm happy to be awake"
           else
             respond "I don't understand"
-            ask "are you sure do you want me to sleep? (yes or no)"
+            ask "are you sure you want me to sleep? (yes or no)"
           end
         end
 
@@ -72,11 +76,13 @@ def rules(user, command, processed, dest, files = [], rules_file = "")
         # help:   It will run the process and report the results when done
         # help:
       when /^run something/i
-        respond "Running"
+        save_stats :run_something
+        react :runner
 
         process_to_run = "ruby -v"
         process_to_run = ("cd #{project_folder} &&" + process_to_run) if defined?(project_folder)
         stdout, stderr, status = Open3.capture3(process_to_run)
+        unreact :runner
         if stderr == ""
           if stdout == ""
             respond "#{display_name}: Nothing returned."
@@ -86,7 +92,9 @@ def rules(user, command, processed, dest, files = [], rules_file = "")
         else
           respond "#{display_name}: #{stdout} #{stderr}"
         end
-
+        
+        # Emoticons you can use with `react` command https://www.webfx.com/tools/emoji-cheat-sheet/
+        
         # Examples for respond and respond_direct
         #   # send 'the message' to the channel or direct message where the command was written
         #   respond "the message"

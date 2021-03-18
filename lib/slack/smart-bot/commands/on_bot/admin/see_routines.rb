@@ -38,8 +38,14 @@ class SlackSmartBot
           respond "Routines on channel *#{rout_ch.get_values(:channel_name).values.flatten.uniq[0]}*", dest
           rout_ch.each do |k, v|
             msg = []
-            ch != v[:dest] ? directm = " (*DM to #{v[:creator]}*)" : directm = ""
-            msg << "*`#{k}`*#{directm}"
+            if v[:dest][0] == 'D'
+              extram = " (*DM to #{v[:creator]}*)"
+            elsif v[:dest] != ch
+              extram = " (*publish on <##{v[:dest]}>*)"
+            else
+              extram = ''
+            end
+            msg << "*`#{k}`*#{extram}"
             msg << "\tCreator: #{v[:creator]}"
             msg << "\tStatus: #{v[:status]}"
             msg << "\tEvery: #{v[:every]}" unless v[:every] == ""

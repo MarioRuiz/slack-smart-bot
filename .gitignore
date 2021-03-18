@@ -18,8 +18,10 @@
 *.log
 tmp.sh
 /spec/bot/shortcuts/
+/spec/bot/tmp/
 tmp.rb
-
+/spec/examples.txt
+config_tmp.status
 # Used by dotenv library to load environment variables.
 # .env
 

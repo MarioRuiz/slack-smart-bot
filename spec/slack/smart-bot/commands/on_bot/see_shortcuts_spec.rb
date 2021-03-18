@@ -28,6 +28,7 @@ RSpec.describe SlackSmartBot, "see_shortcuts" do
       send_message "!add shortcut for all example2: echo Text", from: user, to: channel
       send_message "!add shortcut example3: echo Text3", from: :uadmin, to: channel
       send_message "!see shortcuts", from: user, to: channel
+      sleep 0.5 if SIMULATE
       expect(buffer(to: channel, from: :ubot).join).to match(/Available shortcuts for smartbotuser1/)
       expect(buffer(to: channel, from: :ubot).join).to match(/example: echo Text/)
       expect(buffer(to: channel, from: :ubot).join).to match(/example2: echo Text/)
@@ -35,15 +36,25 @@ RSpec.describe SlackSmartBot, "see_shortcuts" do
       expect(buffer(to: channel, from: :ubot).join).not_to match(/example3: echo Text3/)
     end
 
+    it 'displays global shortcuts' do
+      send_message "!add global sc exampleglobalsee: echo Text", from: user, to: :cmaster
+      sleep 1
+      send_message "!see shortcuts", from: user, to: channel
+      sleep 2
+      expect(buffer(to: channel, from: :ubot).join).to match(/exampleglobalsee \(global\): echo Text/)      
+    end
+
     it "responds when listening" do
       send_message "Hi bot", from: user, to: channel
       send_message "see shortcuts", from: user, to: channel
+      sleep 0.5 if SIMULATE
       expect(buffer(to: channel, from: :ubot).join).to match(/(No shortcuts found|Available shortcuts)/)
     end
 
     it "responds to see sc" do
       send_message "Hi bot", from: user, to: channel
       send_message "see sc", from: user, to: channel
+      sleep 0.5 if SIMULATE
       expect(buffer(to: channel, from: :ubot).join).to match(/(No shortcuts found|Available shortcuts)/)
     end
   end

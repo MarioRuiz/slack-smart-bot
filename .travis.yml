@@ -1,6 +1,7 @@
 language: ruby
 rvm:
   - 2.6
+  - ruby-head
 branches:
   except:
     - "readme-edits"

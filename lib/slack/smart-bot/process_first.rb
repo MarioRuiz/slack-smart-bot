@@ -1,5 +1,5 @@
 class SlackSmartBot
-  def process_first(user, text, dest, dchannel, typem, files, ts, thread_ts)
+  def process_first(user, text, dest, dchannel, typem, files, ts, thread_ts, routine)
     nick = user.name
     rules_file = ""
     text.gsub!(/^!!/,'^') # to treat it just as ^
@@ -80,21 +80,21 @@ class SlackSmartBot
       text.match(/^()\^\s*(.+)\s*/im) or
       text.match(/^()!\s*(.+)\s*/im) or
       text.match(/^()<@#{config[:nick_id]}>\s+(.+)\s*/im)
-       command2 = $2
-       if text.match?(/^()\^\s*(.+)/im)
-         add_double_excl = true
-         addexcl = false
-         if command2.match?(/^![^!]/) or command2.match?(/^\^/)
+      command2 = $2
+      if text.match?(/^()\^\s*(.+)/im)
+        add_double_excl = true
+        addexcl = false
+        if command2.match?(/^![^!]/) or command2.match?(/^\^/)
           command2[0]=''
-         elsif command2.match?(/^!!/)
+        elsif command2.match?(/^!!/)
           command2[0]=''
           command2[1]=''
-         end
-       else
+        end
+      else
         add_double_excl = false
         addexcl = true
-       end
-       command = command2
+      end
+      command = command2
     else
       addexcl = false
       if text.include?('$') #for shortcuts inside commands
@@ -111,6 +111,10 @@ class SlackSmartBot
           command.gsub!("$#{sc}", @shortcuts[nick][sc])
         elsif @shortcuts.key?(:all) and @shortcuts[:all].keys.include?(sc)
           command.gsub!("$#{sc}", @shortcuts[:all][sc])
+        elsif @shortcuts_global.key?(nick) and @shortcuts_global[nick].keys.include?(sc)
+          command.gsub!("$#{sc}", @shortcuts_global[nick][sc])
+        elsif @shortcuts_global.key?(:all) and @shortcuts_global[:all].keys.include?(sc)
+          command.gsub!("$#{sc}", @shortcuts_global[:all][sc])
         end
       end
       command.scan(/\$([^\s]+)/i).flatten.each do |sc|
@@ -119,6 +123,10 @@ class SlackSmartBot
           command.gsub!("$#{sc}", @shortcuts[nick][sc])
         elsif @shortcuts.key?(:all) and @shortcuts[:all].keys.include?(sc)
           command.gsub!("$#{sc}", @shortcuts[:all][sc])
+        elsif @shortcuts_global.key?(nick) and @shortcuts_global[nick].keys.include?(sc)
+          command.gsub!("$#{sc}", @shortcuts_global[nick][sc])
+        elsif @shortcuts_global.key?(:all) and @shortcuts_global[:all].keys.include?(sc)
+          command.gsub!("$#{sc}", @shortcuts_global[:all][sc])
         end
       end
       text = command
@@ -126,13 +134,19 @@ class SlackSmartBot
       text = "^" + text if add_double_excl
     end
     if command.scan(/^(shortcut|sc)\s+([^:]+)\s*$/i).any? or
-       (@shortcuts.keys.include?(:all) and @shortcuts[:all].keys.include?(command)) or
-       (@shortcuts.keys.include?(nick) and @shortcuts[nick].keys.include?(command))
+      (@shortcuts.keys.include?(:all) and @shortcuts[:all].keys.include?(command)) or
+      (@shortcuts.keys.include?(nick) and @shortcuts[nick].keys.include?(command)) or
+      (@shortcuts_global.keys.include?(:all) and @shortcuts_global[:all].keys.include?(command)) or
+      (@shortcuts_global.keys.include?(nick) and @shortcuts_global[nick].keys.include?(command))
       command = $2.downcase unless $2.nil?
       if @shortcuts.keys.include?(nick) and @shortcuts[nick].keys.include?(command)
         text = @shortcuts[nick][command].dup
       elsif @shortcuts.keys.include?(:all) and @shortcuts[:all].keys.include?(command)
         text = @shortcuts[:all][command].dup
+      elsif @shortcuts_global.keys.include?(nick) and @shortcuts_global[nick].keys.include?(command)
+        text = @shortcuts_global[nick][command].dup
+      elsif @shortcuts_global.keys.include?(:all) and @shortcuts_global[:all].keys.include?(command)
+        text = @shortcuts_global[:all][command].dup
       else
         respond "Shortcut not found", dest unless dest[0] == "C" and dchannel != dest #on extended channel
         return :next #jal
@@ -154,6 +168,7 @@ class SlackSmartBot
           Thread.current[:files?] = !files.nil? && files.size>0
           Thread.current[:ts] = ts
           Thread.current[:thread_ts] = thread_ts
+          Thread.current[:routine] = routine
           if thread_ts.to_s == ''
             Thread.current[:on_thread] = false
             Thread.current[:thread_ts] = Thread.current[:ts] # to create the thread if necessary
@@ -187,96 +202,98 @@ class SlackSmartBot
             command = command2
             on_demand = true
           end
-          if @status == :on and
-             (@questions.key?(nick) or
-             (@repl_sessions.key?(nick) and dest==@repl_sessions[nick][:dest] and 
-               ((@repl_sessions[nick][:on_thread] and thread_ts == @repl_sessions[nick][:thread_ts]) or
-                (!@repl_sessions[nick][:on_thread] and !Thread.current[:on_thread] ))) or 
-             (@listening.key?(nick) and typem != :on_extended and 
-               ((@listening[nick].key?(dest) and !Thread.current[:on_thread]) or 
-                (@listening[nick].key?(thread_ts) and Thread.current[:on_thread] ) )) or
-              dest[0] == "D" or on_demand)
-            @logger.info "command: #{nick}> #{command}" unless processed
-            #todo: verify this
+          unless config.on_maintenance and processed
+            if @status == :on and
+              (!answer.empty? or
+              (@repl_sessions.key?(nick) and dest==@repl_sessions[nick][:dest] and 
+                ((@repl_sessions[nick][:on_thread] and thread_ts == @repl_sessions[nick][:thread_ts]) or
+                  (!@repl_sessions[nick][:on_thread] and !Thread.current[:on_thread] ))) or 
+              (@listening.key?(nick) and typem != :on_extended and 
+                ((@listening[nick].key?(dest) and !Thread.current[:on_thread]) or 
+                  (@listening[nick].key?(thread_ts) and Thread.current[:on_thread] ) )) or
+                dest[0] == "D" or on_demand)
+              @logger.info "command: #{nick}> #{command}" unless processed
+              #todo: verify this
 
-            if dest[0] == "C" or dest[0] == "G" or (dest[0] == "D" and typem == :on_call)
-              if typem != :on_call and @rules_imported.key?(user.id) and @rules_imported[user.id].key?(dchannel)
-                if @bots_created.key?(@rules_imported[user.id][dchannel])
-                  if @bots_created[@rules_imported[user.id][dchannel]][:status] != :on
-                    respond "The bot on that channel is not :on", dest
+              if dest[0] == "C" or dest[0] == "G" or (dest[0] == "D" and typem == :on_call)
+                if typem != :on_call and @rules_imported.key?(user.id) and @rules_imported[user.id].key?(dchannel)
+                  if @bots_created.key?(@rules_imported[user.id][dchannel])
+                    if @bots_created[@rules_imported[user.id][dchannel]][:status] != :on
+                      respond "The bot on that channel is not :on", dest
+                      rules_file = ""
+                    end
+                  end
+                end
+                unless rules_file.empty?
+                  begin
+                    eval(File.new(config.path+rules_file).read) if File.exist?(config.path+rules_file)
+                  rescue Exception => stack
+                    @logger.fatal "ERROR ON RULES FILE: #{rules_file}"
+                    @logger.fatal stack
+                  end
+                  if defined?(rules)
+                    command[0] = "" if command[0] == "!"
+                    command.gsub!(/^@\w+:*\s*/, "")
+                    if method(:rules).parameters.size == 4
+                      rules(user, command, processed, dest)
+                    elsif method(:rules).parameters.size == 5
+                      rules(user, command, processed, dest, files)
+                    else
+                      rules(user, command, processed, dest, files, rules_file)
+                    end
+                  else
+                    @logger.warn "It seems like rules method is not defined"
+                  end
+                end
+              elsif @rules_imported.key?(user.id) and @rules_imported[user.id].key?(user.id)
+                if @bots_created.key?(@rules_imported[user.id][user.id])
+                  if @bots_created[@rules_imported[user.id][user.id]][:status] == :on
+                    begin
+                      eval(File.new(config.path+rules_file).read) if File.exist?(config.path+rules_file) and !['.','..'].include?(config.path + rules_file)
+                    rescue Exception => stack
+                      @logger.fatal "ERROR ON imported RULES FILE: #{rules_file}"
+                      @logger.fatal stack
+                    end
+                  else
+                    respond "The bot on <##{@rules_imported[user.id][user.id]}|#{@bots_created[@rules_imported[user.id][user.id]][:channel_name]}> is not :on", dest
                     rules_file = ""
                   end
                 end
-              end
-              unless rules_file.empty?
-                begin
-                  eval(File.new(config.path+rules_file).read) if File.exist?(config.path+rules_file)
-                rescue Exception => stack
-                  @logger.fatal "ERROR ON RULES FILE: #{rules_file}"
-                  @logger.fatal stack
-                end
-                if defined?(rules)
-                  command[0] = "" if command[0] == "!"
-                  command.gsub!(/^@\w+:*\s*/, "")
-                  if method(:rules).parameters.size == 4
-                    rules(user, command, processed, dest)
-                  elsif method(:rules).parameters.size == 5
-                    rules(user, command, processed, dest, files)
+
+                unless rules_file.empty?
+                  if defined?(rules)
+                    command[0] = "" if command[0] == "!"
+                    command.gsub!(/^@\w+:*\s*/, "")
+                    if method(:rules).parameters.size == 4
+                      rules(user, command, processed, dest)
+                    elsif method(:rules).parameters.size == 5
+                      rules(user, command, processed, dest, files)
+                    else
+                      rules(user, command, processed, dest, files, rules_file)
+                    end
                   else
-                    rules(user, command, processed, dest, files, rules_file)
+                    @logger.warn "It seems like rules method is not defined"
                   end
-                else
-                  @logger.warn "It seems like rules method is not defined"
                 end
-              end
-            elsif @rules_imported.key?(user.id) and @rules_imported[user.id].key?(user.id)
-              if @bots_created.key?(@rules_imported[user.id][user.id])
-                if @bots_created[@rules_imported[user.id][user.id]][:status] == :on
-                  begin
-                    eval(File.new(config.path+rules_file).read) if File.exist?(config.path+rules_file) and !['.','..'].include?(config.path + rules_file)
-                  rescue Exception => stack
-                    @logger.fatal "ERROR ON imported RULES FILE: #{rules_file}"
-                    @logger.fatal stack
-                  end
-                else
-                  respond "The bot on <##{@rules_imported[user.id][user.id]}|#{@bots_created[@rules_imported[user.id][user.id]][:channel_name]}> is not :on", dest
-                  rules_file = ""
+              else
+                @logger.info "it is a direct message with no rules file selected so no rules file executed."
+                if command.match?(/^\s*bot\s+rules\s*(.*)$/i)
+                  respond "No rules running. You can use the command `use rules from CHANNEL` to specify the rules you want to use on this private conversation.\n`bot help` to see available commands.", dest
+                end
+                unless processed
+                  dont_understand('')
                 end
               end
 
-              unless rules_file.empty?
-                if defined?(rules)
-                  command[0] = "" if command[0] == "!"
-                  command.gsub!(/^@\w+:*\s*/, "")
-                  if method(:rules).parameters.size == 4
-                    rules(user, command, processed, dest)
-                  elsif method(:rules).parameters.size == 5
-                    rules(user, command, processed, dest, files)
-                  else
-                    rules(user, command, processed, dest, files, rules_file)
-                  end
-                else
-                  @logger.warn "It seems like rules method is not defined"
+              if processed and @listening.key?(nick)
+                if Thread.current[:on_thread] and @listening[nick].key?(Thread.current[:thread_ts])
+                  @listening[nick][Thread.current[:thread_ts]] = Time.now
+                elsif !Thread.current[:on_thread] and @listening[nick].key?(dest)
+                  @listening[nick][dest] = Time.now
                 end
               end
-            else
-              @logger.info "it is a direct message with no rules file selected so no rules file executed."
-              if command.match?(/^\s*bot\s+rules\s*$/i)
-                respond "No rules running. You can use the command `use rules from CHANNEL` to specify the rules you want to use on this private conversation.\n`bot help` to see available commands.", dest
-              end
-              unless processed
-                dont_understand('')
-              end
+
             end
-
-            if processed and @listening.key?(nick)
-              if Thread.current[:on_thread] and @listening[nick].key?(Thread.current[:thread_ts])
-                @listening[nick][Thread.current[:thread_ts]] = Time.now
-              elsif !Thread.current[:on_thread] and @listening[nick].key?(dest)
-                @listening[nick][dest] = Time.now
-              end
-            end
-
           end
         rescue Exception => stack
           @logger.fatal stack

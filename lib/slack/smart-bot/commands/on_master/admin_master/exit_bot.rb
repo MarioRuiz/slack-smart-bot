@@ -11,10 +11,10 @@ class SlackSmartBot
     save_stats(__method__)
     if config.on_master_bot
       if config.admins.include?(from) #admin user
-        unless @questions.keys.include?(from)
+        if answer.empty?
           ask("are you sure?", command, from, dest)
         else
-          case @questions[from]
+          case answer
           when /yes/i, /yep/i, /sure/i
             respond "Game over!", dest
             respond "Ciao #{display_name}!", dest
@@ -33,7 +33,7 @@ class SlackSmartBot
               exit!
             end
           when /no/i, /nope/i, /cancel/i
-            @questions.delete(from)
+            answer_delete(from)
             respond "Thanks, I'm happy to be alive", dest
           else
             ask("I don't understand, are you sure do you want me to close? (yes or no)", command, from, dest)

@@ -55,6 +55,7 @@ RSpec.describe SlackSmartBot, "ruby_code" do
     it "works: ruby puts 'Example' when listening" do
       send_message "Hi bot", from: user, to: channel
       send_message "ruby puts 'Example'", from: user, to: channel
+      sleep 0.5 if SIMULATE
       expect(buffer(to: channel, from: :ubot).join).to match(/Example/)
     end
   end

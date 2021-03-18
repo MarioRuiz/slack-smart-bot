@@ -28,21 +28,27 @@ RSpec.configure do |config|
       FileUtils.rm_rf(Dir["./spec/bot/routines/**/*"])
       FileUtils.rm_rf(Dir["./spec/bot/shortcuts/*"])
       FileUtils.rm_rf(Dir["./spec/bot/stats/*"])
+      FileUtils.rm_rf(Dir["./spec/bot/repl/**/*"])
       File.delete("./spec/bot/rules/rules_imported.rb") if File.exists?("./spec/bot/rules/rules_imported.rb")
 
       @settings = {
         nick: "example", # the smart bot name
         token: ENV["SSB_TOKEN"], # the API Slack token
         testing: true,
-        simulate: true,
+        simulate: ENV['SIMULATE']=='true',
         masters: ['marioruizs'],
         master_channel: 'master_channel',
         path: './spec/bot/',
         file: 'smart-bot-example.rb',
         start_bots: false,
         stats: true,
-        nick_id: 'UMSRCRTAR'
+        nick_id: 'UMSRCRTAR',
       }
+      if @settings.simulate
+        require_relative 'bot/client.rb'
+        @settings.client = csettings.client
+      end
+      
       Thread.new do
         sb = SlackSmartBot.new(@settings)
         while sb.config.simulate do
@@ -140,6 +146,8 @@ RSpec.configure do |config|
     # `true` in RSpec 4.
     mocks.verify_partial_doubles = true
   end
+  
+  config.example_status_persistence_file_path = "spec/examples.txt"
 
   # This option will default to `:apply_to_host_groups` in RSpec 4 (and will
   # have no way to turn it off -- the option exists only for backwards

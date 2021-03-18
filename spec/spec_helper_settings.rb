@@ -19,4 +19,8 @@ UADMIN_NAME = "marioruizs"
 USER1 = "UNDE229T9" #user1
 USER2 = "UMYQS8E7L" #user2
 
-DIRECT = {}
+DIRECT = {
+    :uadmin=>{:ubot=>"DMV17MUTG"},
+    :user1=>{:ubot=>"DNB4GTK2Q"},
+    :user2=>{:ubot=>"DNDQBA4NA"}
+}

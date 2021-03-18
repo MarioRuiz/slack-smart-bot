@@ -7,7 +7,15 @@ class SlackSmartBot
       respond "You don't have access to use this command, please contact an Admin to be able to use it: <@#{config.admins.join(">, <@")}>"
     else
       if typem == :on_extended or typem == :on_call #for the other cases above.
-        help_filtered = get_help(rules_file, dest, from, true)
+
+        if help_command.to_s != ''
+          help_command = '' if help_command.to_s.match?(/^\s*expanded\s*$/i) or help_command.to_s.match?(/^\s*extended\s*$/i)
+          expanded = true
+        else
+          expanded = false
+        end 
+  
+        help_filtered = get_help(rules_file, dest, from, true, expanded)
 
         if help_command.to_s != ""
           help_found = false
@@ -37,6 +45,11 @@ class SlackSmartBot
         else
           def git_project() "" end
           def project_folder() "" end
+        end
+        unless expanded
+          message_not_expanded = "*If you want to see the expanded version of `bot rules`, please call `bot rules expanded`*\n"
+          message_not_expanded += "*Also to get specific expanded help for a specific command or rule call `bot rules COMMAND`*\n"
+          respond message_not_expanded
         end
       end
     end

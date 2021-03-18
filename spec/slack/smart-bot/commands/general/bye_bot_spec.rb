@@ -29,7 +29,7 @@ RSpec.describe SlackSmartBot, "bye_bot" do
     expect(buffer(to: :cprivext, from: :ubot)[0]).not_to match(@bye_regexp)
   end
 
-  it "resets @questions" do
+  it "resets @answer" do
     send_message "!go to sleep", from: :user1, to: :cbot1cm
     send_message @bye_bot, from: :user1, to: :cbot1cm
     expect(buffer(to: :cbot1cm, from: :ubot)[-1]).to match(@bye_regexp)

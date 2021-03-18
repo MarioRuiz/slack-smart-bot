@@ -4,7 +4,6 @@ class SlackSmartBot
   # help: `run repl SESSION_NAME ENV_VAR=VALUE ENV_VAR=VALUE`
   # help: `run live SESSION_NAME`
   # help: `run irb SESSION_NAME`
-  # help: 
   # help:     Will run the repl session specified and return the output. 
   # help:     You can supply the Environmental Variables you need for the Session
   # help:     It will return only the values that were print out on the repl with puts, print, p or pp
@@ -22,7 +21,7 @@ class SlackSmartBot
       Dir.mkdir("#{config.path}/repl") unless Dir.exist?("#{config.path}/repl")
       Dir.mkdir("#{config.path}/repl/#{@channel_id}") unless Dir.exist?("#{config.path}/repl/#{@channel_id}")
       if File.exist?("#{config.path}/repl/#{@channel_id}/#{session_name}.run")
-        if @repls.key?(session_name) and @repls[session_name][:type] == :private and 
+        if @repls.key?(session_name) and (@repls[session_name][:type] == :private or @repls[session_name][:type] == :private_clean) and 
           @repls[session_name][:creator_name]!=user.name and 
           !config.admins.include?(user.name)
           respond "The REPL with session name: #{session_name} is private", dest
@@ -44,7 +43,7 @@ class SlackSmartBot
               eval(File.new(config.path+rules_file).read) if File.exist?(config.path+rules_file)
             end
           end
-          if File.exist?("#{project_folder}/.smart-bot-repl")
+          if File.exist?("#{project_folder}/.smart-bot-repl") and @repls[session_name][:type] != :private_clean and @repls[session_name][:type] != :public_clean
             content += File.read("#{project_folder}/.smart-bot-repl")
             content += "\n"
           end

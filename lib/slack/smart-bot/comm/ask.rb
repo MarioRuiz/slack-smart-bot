@@ -16,7 +16,7 @@ class SlackSmartBot
     if dest.nil?
       if config[:simulate]
         open("#{config.path}/buffer_complete.log", "a") { |f|
-          f.puts "|#{@channel_id}|#{config[:nick_id]}|#{message}~~~"
+          f.puts "|#{@channel_id}|#{config[:nick_id]}|#{config[:nick]}|#{message}~~~"
         }
       else  
         if Thread.current[:on_thread]
@@ -27,13 +27,13 @@ class SlackSmartBot
       end
       if config[:testing] and config.on_master_bot
         open("#{config.path}/buffer.log", "a") { |f|
-          f.puts "|#{@channel_id}|#{config[:nick_id]}|#{message}"
+          f.puts "|#{@channel_id}|#{config[:nick_id]}|#{config[:nick]}|#{message}"
         }
       end
     elsif dest[0] == "C" or dest[0] == "G" # channel
       if config[:simulate]
         open("#{config.path}/buffer_complete.log", "a") { |f|
-          f.puts "|#{dest}|#{config[:nick_id]}|#{message}~~~"
+          f.puts "|#{dest}|#{config[:nick_id]}|#{config[:nick]}|#{message}~~~"
         }
       else  
         if Thread.current[:on_thread]
@@ -44,13 +44,20 @@ class SlackSmartBot
       end
       if config[:testing] and config.on_master_bot
         open("#{config.path}/buffer.log", "a") { |f|
-          f.puts "|#{dest}|#{config[:nick_id]}|#{message}"
+          f.puts "|#{dest}|#{config[:nick_id]}|#{config[:nick]}|#{message}"
         }
       end
     elsif dest[0] == "D" #private message
       send_msg_user(dest, message)
     end
-    @questions[to] = context
+    if Thread.current[:on_thread]
+      qdest = Thread.current[:thread_ts]
+    else
+      qdest = dest
+    end
+    @answer[to] = {} unless @answer.key?(to)
+    @answer[to][qdest] = context
+    @questions[to] = context # to be backwards compatible #todo remove it when 2.0
   end
 
 end

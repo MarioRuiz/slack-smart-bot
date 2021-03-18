@@ -14,7 +14,7 @@ RSpec.describe SlackSmartBot, "bot_help" do
     describe "master channel" do
       channel = :cmaster
       it "responds to admin user in master channel" do
-        send_message "bot help", from: :uadmin, to: channel
+        send_message "bot help expanded", from: :uadmin, to: channel
         expect(buffer(to: channel, from: :ubot).join).to match(@general_nlist)
         expect(buffer(to: channel, from: :ubot).join).to match(@general_list)
         expect(buffer(to: channel, from: :ubot).join).to match(@admin)
@@ -37,7 +37,7 @@ RSpec.describe SlackSmartBot, "bot_help" do
     describe "bot channel" do
       channel = :cbot2cu
       it "responds to master admin user in bot channel" do
-        send_message "bot help", from: :uadmin, to: channel
+        send_message "bot help expanded", from: :uadmin, to: channel
         expect(buffer(to: channel, from: :ubot).join).to match(@general_nlist)
         expect(buffer(to: channel, from: :ubot).join).to match(@general_list)
         expect(buffer(to: channel, from: :ubot).join).to match(@admin)
@@ -47,7 +47,7 @@ RSpec.describe SlackSmartBot, "bot_help" do
         expect(buffer(to: channel, from: :ubot).join).to match(@rules)
       end
       it "responds to admin user in bot channel" do
-        send_message "bot help", from: :user1, to: channel
+        send_message "bot help expanded", from: :user1, to: channel
         expect(buffer(to: channel, from: :ubot).join).to match(@general_nlist)
         expect(buffer(to: channel, from: :ubot).join).to match(@general_list)
         expect(buffer(to: channel, from: :ubot).join).to match(@admin)
@@ -57,7 +57,7 @@ RSpec.describe SlackSmartBot, "bot_help" do
         expect(buffer(to: channel, from: :ubot).join).to match(@rules)
       end
       it "responds to normal user in bot channel" do
-        send_message "bot help", from: :user2, to: channel
+        send_message "bot help expanded", from: :user2, to: channel
         expect(buffer(to: channel, from: :ubot).join).to match(@general_nlist)
         expect(buffer(to: channel, from: :ubot).join).to match(@general_list)
         expect(buffer(to: channel, from: :ubot).join).not_to match(@admin)
@@ -66,13 +66,33 @@ RSpec.describe SlackSmartBot, "bot_help" do
         expect(buffer(to: channel, from: :ubot).join).to match(@without_bot)
         expect(buffer(to: channel, from: :ubot).join).to match(@rules)
       end
+      it 'responds short version of the help by default' do
+        send_message "bot help", from: :uadmin, to: channel
+        expect(buffer(to: channel, from: :ubot).join).to match(/If you want to see the expanded version/) # message
+        expect(buffer(to: channel, from: :ubot).join).to match(/add shortcut NAME: COMMAND/) # first command
+        expect(buffer(to: channel, from: :ubot).join).not_to match(/add sc NAME: COMMAND/) # not first command
+        expect(buffer(to: channel, from: :ubot).join).to match(/It will show the routines of the channel/) # first description
+        expect(buffer(to: channel, from: :ubot).join).not_to match(/it will show all the routines from all channels/) # not first description
+        expect(buffer(to: channel, from: :ubot).join).to match(/add shortcut for all Spanish/) #first example
+        expect(buffer(to: channel, from: :ubot).join).not_to match(/shortcut Spanish Account/) # not first example
+      end
+      it 'responds expanded version of the help' do
+        send_message "bot help expanded", from: :uadmin, to: channel
+        expect(buffer(to: channel, from: :ubot).join).not_to match(/If you want to see the expanded version/) # message
+        expect(buffer(to: channel, from: :ubot).join).to match(/add shortcut NAME: COMMAND/) # first command
+        expect(buffer(to: channel, from: :ubot).join).to match(/add sc NAME: COMMAND/) # not first command
+        expect(buffer(to: channel, from: :ubot).join).to match(/It will show the routines of the channel/) # first description
+        expect(buffer(to: channel, from: :ubot).join).to match(/it will show all the routines from all channels/) # not first description
+        expect(buffer(to: channel, from: :ubot).join).to match(/add shortcut for all Spanish/) #first example
+        expect(buffer(to: channel, from: :ubot).join).to match(/shortcut Spanish Account/) # not first example
+      end
     end
 
     describe "direct message" do
       it "responds to normal user in direct message when not using rules" do
         send_message "stop using rules from bot1cm", from: :user1, to: :ubot
         sleep 2
-        send_message "bot help", from: :user1, to: :ubot
+        send_message "bot help expanded", from: :user1, to: :ubot
         sleep 2
         expect(buffer(to: DIRECT.user1.ubot, from: :ubot).join).to match(@direct)
         expect(buffer(to: DIRECT.user1.ubot, from: :ubot).join).to match(/ruby RUBY_CODE/i)
@@ -83,7 +103,7 @@ RSpec.describe SlackSmartBot, "bot_help" do
         sleep 2
         send_message "bot help", from: :user1, to: :ubot
         sleep 2
-        expect(buffer(to: DIRECT.user1.ubot, from: :ubot).join).to match(@direct)
+        expect(buffer(to: DIRECT.user1.ubot, from: :ubot).join).not_to match(@direct) #not expanded
         expect(buffer(to: DIRECT.user1.ubot, from: :ubot).join).to match(/ruby RUBY_CODE/i)
         expect(buffer(to: DIRECT.user1.ubot, from: :ubot).join).to match(/These are the specific commands for that channel/)
       end
@@ -121,7 +141,7 @@ RSpec.describe SlackSmartBot, "bot_help" do
         expect(buffer(to: channel, from: :ubot).join).to match(@rules)
       end
       it "responds to normal user in master channel" do
-        send_message "bot rules", from: :user2, to: channel
+        send_message "bot rules expanded", from: :user2, to: channel
         sleep 2
         expect(buffer(to: channel, from: :ubot).join).not_to match(@general_nlist)
         expect(buffer(to: channel, from: :ubot).join).not_to match(@general_list)
@@ -135,11 +155,18 @@ RSpec.describe SlackSmartBot, "bot_help" do
         send_message "bot rules SSSSSSS", from: :user2, to: channel
         expect(buffer(to: channel, from: :ubot).join).to match(/I didn't find any rule starting by `SSSSSSS`/)
       end
+      it "includes help from external loaded or required rules" do
+        #for example from general_rules.rb
+        send_message "bot rules echo", from: :user2, to: channel
+        expect(buffer(to: channel, from: :ubot).join).not_to match(/I didn't find any rule starting by `echo`/)
+        expect(buffer(to: channel, from: :ubot).join).to match(/echo SOMETHING/)
+      end
+
     end
     describe "bot channel" do
       channel = :cbot2cu
       it "responds to master admin user in bot channel" do
-        send_message "bot rules", from: :uadmin, to: channel
+        send_message "bot rules expanded", from: :uadmin, to: channel
         sleep 2
         expect(buffer(to: channel, from: :ubot).join).not_to match(@general_nlist)
         expect(buffer(to: channel, from: :ubot).join).not_to match(@general_list)
@@ -150,7 +177,7 @@ RSpec.describe SlackSmartBot, "bot_help" do
         expect(buffer(to: channel, from: :ubot).join).to match(@rules)
       end
       it "responds to admin user in bot channel" do
-        send_message "bot rules", from: :user1, to: channel
+        send_message "bot rules expanded", from: :user1, to: channel
         sleep 2
         expect(buffer(to: channel, from: :ubot).join).not_to match(@general_nlist)
         expect(buffer(to: channel, from: :ubot).join).not_to match(@general_list)
@@ -161,7 +188,7 @@ RSpec.describe SlackSmartBot, "bot_help" do
         expect(buffer(to: channel, from: :ubot).join).to match(@rules)
       end
       it "responds to normal user in bot channel" do
-        send_message "bot rules", from: :user2, to: channel
+        send_message "bot rules expanded", from: :user2, to: channel
         sleep 2
         expect(buffer(to: channel, from: :ubot).join).not_to match(@general_nlist)
         expect(buffer(to: channel, from: :ubot).join).not_to match(@general_list)
@@ -177,7 +204,7 @@ RSpec.describe SlackSmartBot, "bot_help" do
       it "responds to normal user in direct message when not using rules" do
         send_message "stop using rules from bot1cm", from: :user1, to: :ubot
         sleep 2
-        send_message "bot rules", from: :user1, to: :ubot
+        send_message "bot rules expanded", from: :user1, to: :ubot
         sleep 2
         expect(buffer(to: DIRECT.user1.ubot, from: :ubot).join).to match(@direct)
         expect(buffer(to: DIRECT.user1.ubot, from: :ubot).join).not_to match(/ruby RUBY_CODE/i)
@@ -189,7 +216,7 @@ RSpec.describe SlackSmartBot, "bot_help" do
         sleep 2
         send_message "bot rules", from: :user1, to: :ubot
         sleep 2
-        expect(buffer(to: DIRECT.user1.ubot, from: :ubot).join).to match(@direct)
+        expect(buffer(to: DIRECT.user1.ubot, from: :ubot).join).not_to match(@direct) #not expanded
         expect(buffer(to: DIRECT.user1.ubot, from: :ubot).join).not_to match(/ruby RUBY_CODE/i)
         expect(buffer(to: DIRECT.user1.ubot, from: :ubot).join).to match(/These are the specific commands for that channel/)
         expect(buffer(to: DIRECT.user1.ubot, from: :ubot).join).not_to match(/No rules running. You can use the command `use rules from CHANNEL/)

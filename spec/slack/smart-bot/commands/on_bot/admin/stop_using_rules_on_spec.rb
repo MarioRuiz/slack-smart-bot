@@ -14,16 +14,19 @@ RSpec.describe SlackSmartBot, "stop_using_rules_on" do
 
     it "cannot stop using rules when not admin" do
       send_message "stop using rules on external_channel", from: :user1, to: channel
+      sleep 2
       expect(buffer(to: channel, from: :ubot).join).to match(/Only admins can extend or stop using the rules/)
     end
 
     it "responds to stop using rules on CHANNEL_NAME command" do
       send_message "stop using rules on external_channel", from: :user1, to: channel
+      sleep 1
       expect(buffer(to: channel, from: :ubot).join).to match(/Only admins can extend or stop using the rules/)
     end
 
     it "responds on demand" do
       send_message "!stop using rules on external_channel", from: :user1, to: channel
+      sleep 1
       expect(buffer(to: channel, from: :ubot).join).to match(/Only admins can extend or stop using the rules/)
     end
     it "responds when using CHANNEL_ID" do

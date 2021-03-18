@@ -18,7 +18,7 @@ class SlackSmartBot
           end
           respond "Bot channels have been notified", dest
         elsif where == "all" #all
-          myconv = client.web_client.users_conversations(exclude_archived: true, limit: 100, types: "im, public_channel,private_channel").channels
+          myconv = get_channels(bot_is_in: true)
           myconv.each do |c|
             respond message, c.id unless c.name == config.master_channel
           end

@@ -14,15 +14,11 @@ class SlackSmartBot
         respond "Only admins can extend the rules. Admins on this channel: #{config.admins}", dest
       else
         #todo: add pagination for case more than 1000 channels on the workspace
-        channels = client.web_client.conversations_list(
-          types: "private_channel,public_channel",
-          limit: "1000",
-          exclude_archived: "true",
-        ).channels
+        channels = get_channels()
 
         channel_found = channels.detect { |c| c.name == channel }
         get_channels_name_and_id()
-        members = client.web_client.conversations_members(channel: @channels_id[channel]).members unless channel_found.nil?
+        members = get_channel_members(@channels_id[channel]) unless channel_found.nil?
         get_bots_created()
         channels_in_use = []
         @bots_created.each do |k, v|
@@ -39,7 +35,7 @@ class SlackSmartBot
         elsif !members.include?(user.id)
           respond "You need to join that channel first", dest
         elsif !members.include?(config[:nick_id])
-          respond "You need to add first to the channel the smart bot user: #{config[:nick]}", dest
+          respond "You need to add first to the channel the smart bot user: <@#{config[:nick_id]}>", dest
         else
           channels_in_use.each do |channel_in_use|
             respond "The rules from channel <##{@channels_id[channel_in_use]}> are already in use on that channel", dest

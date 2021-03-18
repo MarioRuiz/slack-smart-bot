@@ -2,7 +2,7 @@
 #path to the project folder
 # for example "#{`eval echo ~$USER`.chop}/projects/the_project"
 def project_folder()
-  "#{`eval echo ~$USER`.chop}/"
+  "#{config.path}"
 end
 
 #link to the project
@@ -90,6 +90,7 @@ def rules(user, command, processed, dest, files = [], rules_file = "")
         config.allow_access = {
         }
 
+      # help: ----------------------------------------------
       # help: `which rules`
       # help:  which rules for bot1cm
       # help:
@@ -106,30 +107,31 @@ def rules(user, command, processed, dest, files = [], rules_file = "")
         # help: ----------------------------------------------
         # help: `go to sleep`
         # help:   it will sleep the bot for 5 seconds
+        # help:   that's all
         # help:
       when /^go\sto\ssleep/i
-        unless @questions.keys.include?(from)
+        if answer.empty?
           ask "do you want me to take a siesta?"
         else
-          case @questions[from]
+          case answer
           when /yes/i, /yep/i, /sure/i
-            @questions.delete(from)
+            answer_delete
             respond "I'll be sleeping for 5 secs... just for you"
             respond "zZzzzzzZZZZZZzzzzzzz!"
             sleep 5
           when /no/i, /nope/i, /cancel/i
-            @questions.delete(from)
+            answer_delete
             respond "Thanks, I'm happy to be awake"
           else
             respond "I don't understand"
-            ask "are you sure do you want me to sleep? (yes or no)"
+            ask "are you sure you want me to sleep? (yes or no)"
           end
         end
 
-        # help: ----------------------------------------------
-        # help: `run something`
-        # help:   It will run the process and report the results when done
-        # help:
+        # helpadmin: ----------------------------------------------
+        # helpadmin: `run something`
+        # helpadmin:   It will run the process and report the results when done
+        # helpadmin:
       when /^run something/i
         respond "Running"
 

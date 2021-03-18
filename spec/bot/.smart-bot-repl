@@ -1,0 +1,2 @@
+LOLO = 'beautiful'
+param = ENV['PARAM']

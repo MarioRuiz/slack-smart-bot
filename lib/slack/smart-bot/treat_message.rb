@@ -4,42 +4,52 @@ class SlackSmartBot
     begin
       unless data.text.to_s.match(/\A\s*\z/)
         #to remove italic, bold... from data.text since there is no method on slack api
-        #only works when no @user or #channel mentioned
         if remove_blocks and !data.blocks.nil? and data.blocks.size > 0
+          data_text = ''
           data.blocks.each do |b|
             if b.type == 'rich_text'
               if b.elements.size > 0
                 b.elements.each do |e|
-                  if e.type == 'rich_text_section'
-                    if e.elements.size > 0 and (e.elements.type.uniq - ['link', 'text']) == []
-                      data.text = ''
+                  if e.type == 'rich_text_section' or e.type == 'rich_text_preformatted'
+                    if e.elements.size > 0 and (e.elements.type.uniq - ['link', 'text', 'user', 'channel']) == []
+                      data_text += '```' if e.type == 'rich_text_preformatted'
                       e.elements.each do |el|
                         if el.type == 'text'
-                          data.text += el.text
+                          data_text += el.text
+                        elsif el.type == 'user'
+                          data_text += "<@#{el.user_id}>"
+                        elsif el.type == 'channel'
+                          tch = data.text.scan(/(<##{el.channel_id}\|[^\>]+>)/).join
+                          data_text += tch
                         else
-                          data.text += el.url
+                          data_text += el.url
                         end
                       end
+                      data_text += '```' if e.type == 'rich_text_preformatted'
                     end
-                    break
                   end
                 end
               end
-              break
             end
           end
+          data.text = data_text unless data_text == ''
         end
         data.text = CGI.unescapeHTML(data.text)
         data.text.gsub!("\u00A0", " ") #to change &nbsp; (asc char 160) into blank space
       end
+      data.text.gsub!('‘', "'")
       data.text.gsub!('’', "'")
-      data.text.gsub!('“', '"')
-    rescue
+      data.text.gsub!('“', '"') 
+      data.text.gsub!('”', '"')
+    rescue Exception => exc
       @logger.warn "Impossible to unescape or clean format for data.text:#{data.text}"
+      @logger.warn exc.inspect
     end
+    data.routine = false unless data.key?(:routine)
+
     if config[:testing] and config.on_master_bot
       open("#{config.path}/buffer.log", "a") { |f|
-        f.puts "|#{data.channel}|#{data.user}|#{data.text}"
+        f.puts "|#{data.channel}|#{data.user}|#{data.user_name}|#{data.text}"
       }
     end
     if data.key?(:dest) and data.dest.to_s!='' # for run routines and publish on different channels
@@ -58,14 +68,22 @@ class SlackSmartBot
       @pings << $1
     end
     typem = :dont_treat
-    if !dest.nil? and !data.text.nil? and !data.text.to_s.match?(/^\s*$/)
-      if data.text.match(/^<@#{config[:nick_id]}>\s(on\s)?<#(\w+)\|([^>]+)>\s*:?\s*(.*)/im)
-        channel_rules = $2
-        channel_rules_name = $3
-        # to be treated only on the bot of the requested channel
-        if @channel_id == channel_rules
-          data.text = $4
-          typem = :on_call
+    if !dest.nil? and !data.text.nil? and !data.text.to_s.match?(/\A\s*\z/)
+      #if data.text.match(/^\s*<@#{config[:nick_id]}>\s+(on\s+)?<#(\w+)\|([^>]+)>\s*:?\s*(.*)/im)
+      if data.text.match(/^\s*<@#{config[:nick_id]}>\s+(on\s+)?((<#\w+\|[^>]+>\s*)+)\s*:?\s*(.*)/im)
+        channels_rules = $2 #multiple channels @smart-bot on #channel1 #channel2 echo AAA
+        data_text = $4
+        channel_rules_name = ''
+        channel_rules = ''
+        # to be treated only on the bots of the requested channels
+        channels_rules.scan(/<#(\w+)\|([^>]+)>/).each do |tcid, tcname|
+          if @channel_id == tcid
+            data.text = data_text
+            typem = :on_call
+            channel_rules = tcid
+            channel_rules_name = tcname
+            break
+          end
         end
       elsif data.channel == @master_bot_id
         if config.on_master_bot #only to be treated on master bot channel
@@ -118,20 +136,27 @@ class SlackSmartBot
       end
       begin
         #todo: when changed @questions user_id then move user_info inside the ifs to avoid calling it when not necessary
-        user_info = client.web_client.users_info(user: data.user)
+        user_info = get_user_info(data.user)
+
         #user_info.user.id = data.user #todo: remove this line when slack issue with Wxxxx Uxxxx fixed
         data.user = user_info.user.id  #todo: remove this line when slack issue with Wxxxx Uxxxx fixed
-        if @questions.key?(user_info.user.name)
+        if data.thread_ts.nil?
+          qdest = dest
+        else
+          qdest = data.thread_ts
+        end
+        if !answer(user_info.user.name, qdest).empty?
           if data.text.match?(/^\s*(Bye|Bæ|Good\sBye|Adiós|Ciao|Bless|Bless\sBless|Adeu)\s(#{@salutations.join("|")})\s*$/i)
-            @questions.delete(user_info.user.name)
+            answer_delete(user_info.user.name, qdest)
             command = data.text
           else
-            command = @questions[user_info.user.name]
-            @questions[user_info.user.name] = data.text
+            command = answer(user_info.user.name, qdest)
+            @answer[user_info.user.name][qdest] = data.text
+            @questions[user_info.user.name] = data.text # to be backwards compatible #todo remove it when 2.0
           end
         elsif @repl_sessions.key?(user_info.user.name) and data.channel==@repl_sessions[user_info.user.name][:dest] and 
           ((@repl_sessions[user_info.user.name][:on_thread] and data.thread_ts == @repl_sessions[user_info.user.name][:thread_ts]) or
-           (!@repl_sessions[user_info.user.name][:on_thread] and data.thread_ts.to_s == '' ))
+          (!@repl_sessions[user_info.user.name][:on_thread] and data.thread_ts.to_s == '' ))
           
           if data.text.match(/^\s*```(.*)```\s*$/im)
               @repl_sessions[user_info.user.name][:command] = $1
@@ -144,16 +169,16 @@ class SlackSmartBot
         end
 
         #when added special characters on the message
-        if command.match(/^\s*```(.*)```\s*$/im)
+        if command.match(/\A\s*```(.*)```\s*\z/im)
           command = $1
         elsif command.size >= 2 and
-           ((command[0] == "`" and command[-1] == "`") or (command[0] == "*" and command[-1] == "*") or (command[0] == "_" and command[-1] == "_"))
+          ((command[0] == "`" and command[-1] == "`") or (command[0] == "*" and command[-1] == "*") or (command[0] == "_" and command[-1] == "_"))
           command = command[1..-2]
         end
 
         #ruby file attached
         if !data.files.nil? and data.files.size == 1 and
-           (command.match?(/^(ruby|code)\s*$/) or (command.match?(/^\s*$/) and data.files[0].filetype == "ruby") or
+          (command.match?(/^(ruby|code)\s*$/) or (command.match?(/^\s*$/) and data.files[0].filetype == "ruby") or
             (typem == :on_call and data.files[0].filetype == "ruby"))
           res = Faraday.new("https://files.slack.com", headers: { "Authorization" => "Bearer #{config[:token]}" }).get(data.files[0].url_private)
           command += " ruby" if command != "ruby"
@@ -164,13 +189,9 @@ class SlackSmartBot
           command = "!" + command unless command[0] == "!" or command.match?(/^\s*$/) or command[0] == "^"
 
           #todo: add pagination for case more than 1000 channels on the workspace
-          channels = client.web_client.conversations_list(
-            types: "private_channel,public_channel",
-            limit: "1000",
-            exclude_archived: "true",
-          ).channels
+          channels = get_channels()
           channel_found = channels.detect { |c| c.name == channel_rules_name }
-          members = client.web_client.conversations_members(channel: @channels_id[channel_rules_name]).members unless channel_found.nil?
+          members = get_channel_members(@channels_id[channel_rules_name]) unless channel_found.nil?
           if channel_found.nil?
             @logger.fatal "Not possible to find the channel #{channel_rules_name}"
           elsif channel_found.name == config.master_channel
@@ -178,21 +199,21 @@ class SlackSmartBot
           elsif @status != :on
             respond "The bot in that channel is not :on", data.channel
           elsif data.user == channel_found.creator or members.include?(data.user)
-            process_first(user_info.user, command, dest, channel_rules, typem, data.files, data.ts, data.thread_ts)
+            process_first(user_info.user, command, dest, channel_rules, typem, data.files, data.ts, data.thread_ts, data.routine)
           else
             respond "You need to join the channel <##{channel_found.id}> to be able to use the rules.", data.channel
           end
         elsif config.on_master_bot and typem == :on_extended and
               command.size > 0 and command[0] != "-"
           # to run ruby only from the master bot for the case more than one extended
-          process_first(user_info.user, command, dest, @channel_id, typem, data.files, data.ts, data.thread_ts)
+          process_first(user_info.user, command, dest, @channel_id, typem, data.files, data.ts, data.thread_ts, data.routine)
         elsif !config.on_master_bot and @bots_created[@channel_id].key?(:extended) and
               @bots_created[@channel_id][:extended].include?(@channels_name[data.channel]) and
               command.size > 0 and command[0] != "-"
-          process_first(user_info.user, command, dest, @channel_id, typem, data.files, data.ts, data.thread_ts)
+          process_first(user_info.user, command, dest, @channel_id, typem, data.files, data.ts, data.thread_ts, data.routine)
         elsif (dest[0] == "D" or @channel_id == data.channel or data.user == config[:nick_id]) and
               command.size > 0 and command[0] != "-"
-          process_first(user_info.user, command, dest, data.channel, typem, data.files, data.ts, data.thread_ts)
+          process_first(user_info.user, command, dest, data.channel, typem, data.files, data.ts, data.thread_ts, data.routine)
           # if @botname on #channel_rules: do something
         end
       rescue Exception => stack
@@ -205,6 +226,29 @@ class SlackSmartBot
       elsif !config.on_master_bot and !dest.nil? and data.user == config[:nick_id] and dest == @master_bot_id
         # to treat on other bots the status messages populated on master bot
         case data.text
+        when /From now on I'll be on maintenance status/i
+          sleep 2
+          if File.exist?("#{config.path}/config_tmp.status")
+            file_cts = IO.readlines("#{config.path}/config_tmp.status").join
+            unless file_cts.to_s() == ""
+              file_cts = eval(file_cts)
+              if file_cts.is_a?(Hash) and file_cts.key?(:on_maintenance)
+                config.on_maintenance = file_cts.on_maintenance
+              end
+            end
+          end
+        when /From now on I won't be on maintenance/i
+          sleep 2
+          if File.exist?("#{config.path}/config_tmp.status")
+            file_cts = IO.readlines("#{config.path}/config_tmp.status").join
+            unless file_cts.to_s() == ""
+              file_cts = eval(file_cts)
+              if file_cts.is_a?(Hash) and file_cts.key?(:on_maintenance)
+                config.on_maintenance = file_cts.on_maintenance
+              end
+            end
+          end
+          
         when /^Bot has been (closed|killed) by/i
           sleep 2
           get_bots_created()
@@ -217,6 +261,22 @@ class SlackSmartBot
         when /removed the access to the rules of (.+) from (.+)\.$/i
           sleep 2
           get_bots_created()
+        when /global shortcut added/
+          sleep 2
+          if File.exist?("#{config.path}/shortcuts/shortcuts_global.rb")
+            file_sc = IO.readlines("#{config.path}/shortcuts/shortcuts_global.rb").join
+            unless file_sc.to_s() == ""
+              @shortcuts_global = eval(file_sc)
+            end
+          end
+        when /global shortcut deleted/
+          sleep 2
+          if File.exist?("#{config.path}/shortcuts/shortcuts_global.rb")
+            file_sc = IO.readlines("#{config.path}/shortcuts/shortcuts_global.rb").join
+            unless file_sc.to_s() == ""
+              @shortcuts_global = eval(file_sc)
+            end
+          end
         end
       end
     end

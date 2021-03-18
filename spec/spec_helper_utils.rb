@@ -45,26 +45,26 @@ def build_DIRECT()
   end
 end
 
-build_DIRECT()
+build_DIRECT() unless SIMULATE
 
 def buffer(to:, from:, tries: 20)
-  sleep 0.5
+  SIMULATE ? sleep(0.2) : sleep(0.5)
   to = get_key(to)
   from = get_key(from)
   found = false
-  tries = 0
+  num = 0
   result = [""]
-  while result == [""] and tries < 20
-    sleep 0.2
+  while result == [""] and num <= tries
+    SIMULATE ? sleep(0.1) : sleep(0.2)
     b = File.read("./spec/bot/buffer.log")
-    result = b.scan(/^|#{to}\|#{from}\|([^\|]+)$/).flatten
+    result = b.scan(/^|#{to}\|#{from}\|.*\|([^\|]+)$/).flatten
     result.delete(nil)
     result.each do |r|
       r.gsub!(/\s*\z/m, "")
     end
     result = [""] if result.to_s == "" or result.empty?
     result = [result] if result.is_a?(String)
-    tries += 1
+    num += 1
   end
   return result
 end
@@ -84,39 +84,54 @@ def clean_buffer()
 end
 
 def send_message(message, from: :ubot, to:, file_ruby: "")
-  require "nice_http"
-  case from
-  when :ubot
-    token = ENV["SSB_TOKEN"]
-  when :ubot2
-    token = ENV["SSB_UBOT2"]
-  when :user1
-    token = ENV["SSB_USER1"]
-  when :user2
-    token = ENV["SSB_USER2"]
-  when :uadmin
-    token = ENV["SSB_UADMIN"]
-  end
   to_key = get_key(to)
-
-  http = NiceHttp.new(host: "https://slack.com", headers: { "Authorization" => "Bearer #{token}" }, log_headers: :partial)
-
-  if to_key[0] == "U" or to_key[0] == "W" #message from user to user (Direct Message)
-    unless DIRECT.key?(from)
-      DIRECT[from] = {}
+  if SIMULATE
+    if to_key[0] == "U" or to_key[0] == "W" #message from user to user (Direct Message)
+      to_key = DIRECT[from][to]
+    end
+  else
+    require "nice_http"
+    case from
+    when :ubot
+      token = ENV["SSB_TOKEN"]
+    when :ubot2
+      token = ENV["SSB_UBOT2"]
+    when :user1
+      token = ENV["SSB_USER1"]
+    when :user2
+      token = ENV["SSB_USER2"]
+    when :uadmin
+      token = ENV["SSB_UADMIN"]
     end
 
-    unless DIRECT[from].key?(to)
-      resp = http.post(path: "/api/im.open", data: { user: to_key })
-      DIRECT[from][to] = resp.data.json(:id)
+    http = NiceHttp.new(host: "https://slack.com", headers: { "Authorization" => "Bearer #{token}" }, log_headers: :partial)
+
+    if to_key[0] == "U" or to_key[0] == "W" #message from user to user (Direct Message)
+      unless DIRECT.key?(from)
+        DIRECT[from] = {}
+      end
+
+      unless DIRECT[from].key?(to)
+        resp = http.post(path: "/api/im.open", data: { user: to_key })
+        DIRECT[from][to] = resp.data.json(:id)
+      end
+      to_key = DIRECT[from][to]
     end
-    to_key = DIRECT[from][to]
   end
 
   if file_ruby.to_s == ""
     if SIMULATE
+      if from.to_s == 'uadmin'
+        from_name = 'marioruizs'
+      elsif from.to_s == 'user1'
+        from_name = 'smartbotuser1'
+      elsif from.to_s == 'user2'
+        from_name = 'smartbotuser2'
+      else
+        from_name = from.to_s
+      end
       open("./spec/bot/buffer_complete.log", "a") { |f|
-        f.puts "|#{to_key}|#{get_key(from)}|#{message}~~~"
+        f.puts "|#{to_key}|#{get_key(from)}|#{from_name}|#{message}~~~"
       }
     else
       http.post(path: "/api/chat.postMessage", data: {
@@ -127,20 +142,22 @@ def send_message(message, from: :ubot, to:, file_ruby: "")
       sleep 1
     end
   else
-    request = {
-      headers: { "Content-Type" => "application/x-www-form-urlencoded" },
-      path: "/api/files.upload",
-      data: {
-        channels: to_key,
-        as_user: true,
-        content: file_ruby,
-        filename: "example_up.rb",
-        initial_comment: message,
-      },
-    }
-    http.post(request)
+    unless SIMULATE
+      request = {
+        headers: { "Content-Type" => "application/x-www-form-urlencoded" },
+        path: "/api/files.upload",
+        data: {
+          channels: to_key,
+          as_user: true,
+          content: file_ruby,
+          filename: "example_up.rb",
+          initial_comment: message,
+        },
+      }
+      http.post(request)
+    end
   end
-  http.close
+  http.close unless SIMULATE
 
   sleep ENV["SLEEP_AFTER_SEND"].to_f
 end

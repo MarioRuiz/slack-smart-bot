@@ -69,14 +69,24 @@ class SlackSmartBot
     end
     typem = :dont_treat
     if !dest.nil? and !data.text.nil? and !data.text.to_s.match?(/\A\s*\z/)
-      #if data.text.match(/^\s*<@#{config[:nick_id]}>\s+(on\s+)?<#(\w+)\|([^>]+)>\s*:?\s*(.*)/im)
-      if data.text.match(/^\s*<@#{config[:nick_id]}>\s+(on\s+)?((<#\w+\|[^>]+>\s*)+)\s*:?\s*(.*)/im)
+      #todo: we need to add mixed channels: @smart-bot on private1 #bot1cm <#CXDDFRDDF|bot2cu>: echo A
+      if data.text.match(/^\s*<@#{config[:nick_id]}>\s+(on\s+)?((<#\w+\|[^>]+>\s*)+)\s*:?\s*(.*)/im) or 
+        data.text.match(/^\s*<@#{config[:nick_id]}>\s+(on\s+)?((#[a-zA-Z0-9]+\s*)+)\s*:?\s*(.*)/im) or
+        data.text.match(/^\s*<@#{config[:nick_id]}>\s+(on\s+)?(([a-zA-Z0-9]+\s*)+)\s*:\s*(.*)/im)
         channels_rules = $2 #multiple channels @smart-bot on #channel1 #channel2 echo AAA
         data_text = $4
         channel_rules_name = ''
         channel_rules = ''
+        channels_arr = channels_rules.scan(/<#(\w+)\|([^>]+)>/)
+        if channels_arr.size == 0
+          channels_arr = []
+          channels_rules.scan(/([^\s]+)/).each do |cn|
+            cna = cn.join.gsub('#','')
+            channels_arr << [@channels_id[cna], cna]
+          end
+        end
         # to be treated only on the bots of the requested channels
-        channels_rules.scan(/<#(\w+)\|([^>]+)>/).each do |tcid, tcname|
+        channels_arr.each do |tcid, tcname|
           if @channel_id == tcid
             data.text = data_text
             typem = :on_call

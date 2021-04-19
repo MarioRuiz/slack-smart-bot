@@ -16,12 +16,13 @@ class SlackSmartBot
     else
       #todo: add pagination for case more than 1000 channels on the workspace
       channels = get_channels()
-
+      channel.gsub!('#','') # for the case the channel name is in plain text including #
       channel_found = channels.detect { |c| c.name == channel }
-      members = get_channel_members(@channels_id[channel]) unless channel_found.nil?
+      get_channels_name_and_id() unless @channels_id.key?(channel)
+      members = get_channel_members(@channels_id[channel]) unless channel_found.nil? or !@channels_id.key?(channel)
 
-      if channel_found.nil?
-        respond "The channel you are trying to use doesn't exist", dest
+      if channel_found.nil? or !@channels_id.key?(channel)
+        respond "The channel you are trying to use doesn't exist or cannot be found.", dest
       elsif channel_found.name == config.master_channel
         respond "You cannot use the rules from Master Channel on any other channel.", dest
       elsif !@bots_created.key?(@channels_id[channel])

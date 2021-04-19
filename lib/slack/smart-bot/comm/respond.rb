@@ -6,8 +6,11 @@ class SlackSmartBot
     dest = @channels_id[dest] if @channels_id.key?(dest) #it is a name of channel
     if !config.simulate #https://api.slack.com/docs/rate-limits
       msg.to_s.size > 500 ? wait = 0.5 : wait = 0.1
-      sleep wait if Time.now <= (@last_respond+wait) 
+      sleep wait if Time.now <= (@last_respond+wait)
+    else
+      wait = 0
     end
+    msgs = msg.chars.each_slice(4000).map(&:join) # max of 4000 characters per message
     if dest.nil?
       if config[:simulate]
         open("#{config.path}/buffer_complete.log", "a") { |f|
@@ -15,9 +18,15 @@ class SlackSmartBot
         }
       else  
         if Thread.current[:on_thread]
-          client.message(channel: @channel_id, text: msg, as_user: true, thread_ts: Thread.current[:thread_ts])
+          msgs.each do |msg|
+            client.message(channel: @channel_id, text: msg, as_user: true, thread_ts: Thread.current[:thread_ts])
+            sleep wait
+          end
         else
-          client.message(channel: @channel_id, text: msg, as_user: true)
+          msgs.each do |msg|
+            client.message(channel: @channel_id, text: msg, as_user: true)
+            sleep wait
+          end
         end
       end
       if config[:testing] and config.on_master_bot
@@ -32,9 +41,15 @@ class SlackSmartBot
       }
       else  
         if Thread.current[:on_thread]
-          client.message(channel: dest, text: msg, as_user: true, thread_ts: Thread.current[:thread_ts])
+          msgs.each do |msg|
+            client.message(channel: dest, text: msg, as_user: true, thread_ts: Thread.current[:thread_ts])
+            sleep wait
+          end
         else
-          client.message(channel: dest, text: msg, as_user: true)
+          msgs.each do |msg|
+            client.message(channel: dest, text: msg, as_user: true)
+            sleep wait
+          end
         end
       end
       if config[:testing] and config.on_master_bot
@@ -43,11 +58,17 @@ class SlackSmartBot
         }
       end
     elsif dest[0] == "D" or dest[0] == "U"  or dest[0] == "W" # Direct message
-      send_msg_user(dest, msg)
+      msgs.each do |msg|
+        send_msg_user(dest, msg)
+        sleep wait
+      end
     elsif dest[0] == "@"
       begin
         user_info = get_user_info(dest)
-        send_msg_user(user_info.user.id, msg)
+        msgs.each do |msg|
+          send_msg_user(user_info.user.id, msg)
+          sleep wait
+        end
       rescue Exception => stack
         @logger.warn("user #{dest} not found.")
         @logger.warn stack

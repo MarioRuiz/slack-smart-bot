@@ -27,7 +27,7 @@ class SlackSmartBot
         command = command2
         on_demand = true
     end
-    if (on_demand or 
+    if (on_demand or typem == :on_dm or
       (@listening.key?(from) and (@listening[from].key?(dest) or @listening[from].key?(Thread.current[:thread_ts])) )) and 
       config.on_maintenance and !command.match?(/\A(set|turn)\s+maintenance\s+off\s*\z/)
       respond config.on_maintenance_message, dest

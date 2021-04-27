@@ -1,3 +1,9 @@
+*Version 1.9.2* Released 2021-Apr-27
+
+- Bugfixing and small improvements
+
+------------------------------
+
 *Version 1.9.0* Released 2021-Mar-18
 
 *For General users*

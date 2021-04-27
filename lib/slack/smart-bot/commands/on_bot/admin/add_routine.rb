@@ -99,12 +99,21 @@ class SlackSmartBot
               http.get(files[0].url_private_download, save_data: file_path)
               system("chmod +x #{file_path}")
             end
-            channel = dest if channel.to_s == ''
+            get_channels_name_and_id() unless @channels_name.keys.include?(channel) or @channels_id.keys.include?(channel)
+            channel_id = nil
+            if @channels_name.key?(channel) #it is an id
+              channel_id = channel
+              channel = @channels_name[channel_id]
+            elsif @channels_id.key?(channel) #it is a channel name
+              channel_id = @channels_id[channel]
+            end
+    
+            channel_id = dest if channel_id.to_s == ''
             @routines[@channel_id] = {} unless @routines.key?(@channel_id)
             @routines[@channel_id][name] = { channel_name: config.channel, creator: from, creator_id: user.id, status: :on,
                                              every: every, every_in_seconds: every_in_seconds, at: at, dayweek: dayweek, file_path: file_path, 
                                              command: command_to_run.to_s.strip, silent: silent,
-                                             next_run: next_run.to_s, dest: channel, last_run: "", last_elapsed: "", 
+                                             next_run: next_run.to_s, dest: channel_id, last_run: "", last_elapsed: "", 
                                              running: false }
             update_routines
             respond "Added routine *`#{name}`* to the channel", dest

@@ -61,6 +61,7 @@ class SlackSmartBot
     Dir.mkdir("#{config.path}/logs") unless Dir.exist?("#{config.path}/logs")
     Dir.mkdir("#{config.path}/shortcuts") unless Dir.exist?("#{config.path}/shortcuts")
     Dir.mkdir("#{config.path}/routines") unless Dir.exist?("#{config.path}/routines")
+    File.delete("#{config.path}/config_tmp.status") if File.exist?("#{config.path}/config_tmp.status")
 
     config.masters = MASTER_USERS if config.masters.to_s=='' and defined?(MASTER_USERS)
     config.master_channel = MASTER_CHANNEL if config.master_channel.to_s=='' and defined?(MASTER_CHANNEL)

@@ -244,6 +244,7 @@ class SlackSmartBot
               file_cts = eval(file_cts)
               if file_cts.is_a?(Hash) and file_cts.key?(:on_maintenance)
                 config.on_maintenance = file_cts.on_maintenance
+                config.on_maintenance_message = file_cts.on_maintenance_message
               end
             end
           end
@@ -255,6 +256,7 @@ class SlackSmartBot
               file_cts = eval(file_cts)
               if file_cts.is_a?(Hash) and file_cts.key?(:on_maintenance)
                 config.on_maintenance = file_cts.on_maintenance
+                config.on_maintenance_message = file_cts.on_maintenance_message
               end
             end
           end

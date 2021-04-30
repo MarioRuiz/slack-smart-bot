@@ -10,7 +10,19 @@ class SlackSmartBot
     else
       wait = 0
     end
-    msgs = msg.chars.each_slice(4000).map(&:join) # max of 4000 characters per message
+
+    msgs = [] # max of 4000 characters per message
+    txt = ''
+    msg.split("\n").each do |m|
+      if (m+txt).size > 4000
+        msgs << txt.chars.each_slice(4000).map(&:join) unless txt == ''
+        txt = ''
+      end
+      txt+=m
+    end
+    msgs << txt
+    msgs.flatten!
+    
     if dest.nil?
       if config[:simulate]
         open("#{config.path}/buffer_complete.log", "a") { |f|

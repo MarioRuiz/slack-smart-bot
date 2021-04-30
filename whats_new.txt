@@ -1,3 +1,10 @@
+*Version 1.9.3* Released 
+
+*For General users*
+- When on a private conversation with the SmartBot (DM) and not using any channels rule on the conversation, the general_rules will be available.
+
+------------------------------
+
 *Version 1.9.2* Released 2021-Apr-27
 
 - Bugfixing and small improvements

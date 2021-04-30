@@ -23,6 +23,10 @@ class SlackSmartBot
       if @bots_created.key?(@rules_imported[user.id][user.id])
         rules_file = @bots_created[@rules_imported[user.id][user.id]][:rules_file]
       end
+    elsif dest[0] == 'D' and (!@rules_imported.key?(user.id) or ( @rules_imported.key?(user.id) and !@rules_imported[user.id].key?(user.id)))
+      if File.exist?("#{config.path}/rules/general_rules.rb")
+        rules_file = "/rules/general_rules.rb"
+      end
     end
 
     if nick == config[:nick] #if message is coming from the bot
@@ -275,6 +279,31 @@ class SlackSmartBot
                     @logger.warn "It seems like rules method is not defined"
                   end
                 end
+              elsif dest[0] == 'D' and 
+                (!@rules_imported.key?(user.id) or ( @rules_imported.key?(user.id) and !@rules_imported[user.id].key?(user.id))) and 
+                rules_file.include?('general_rules.rb')
+                @logger.info "b"*333
+                begin
+                  eval(File.new(config.path+rules_file).read) if File.exist?(config.path+rules_file) and !['.','..'].include?(config.path + rules_file)
+                rescue Exception => stack
+                  @logger.fatal "ERROR ON imported RULES FILE: #{rules_file}"
+                  @logger.fatal stack
+                end
+
+                if defined?(general_rules)
+                  command[0] = "" if command[0] == "!"
+                  command.gsub!(/^@\w+:*\s*/, "")
+                  if method(:general_rules).parameters.size == 4
+                    general_rules(user, command, processed, dest)
+                  elsif method(:general_rules).parameters.size == 5
+                    general_rules(user, command, processed, dest, files)
+                  else
+                    general_rules(user, command, processed, dest, files, rules_file)
+                  end
+                else
+                  @logger.warn "It seems like general_rules method is not defined"
+                end
+
               else
                 @logger.info "it is a direct message with no rules file selected so no rules file executed."
                 if command.match?(/^\s*bot\s+rules\s*(.*)$/i)

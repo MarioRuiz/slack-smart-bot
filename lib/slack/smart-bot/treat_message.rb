@@ -69,6 +69,10 @@ class SlackSmartBot
     end
     typem = :dont_treat
     if !dest.nil? and !data.text.nil? and !data.text.to_s.match?(/\A\s*\z/)
+      if data.channel[0] == "D" and !data.text.match?(/^\s*<@#{config[:nick_id]}>\s+/)
+        data.text = "<@#{config[:nick_id]}> " + data.text
+      end
+
       #todo: we need to add mixed channels: @smart-bot on private1 #bot1cm <#CXDDFRDDF|bot2cu>: echo A
       if data.text.match(/^\s*<@#{config[:nick_id]}>\s+(on\s+)?((<#\w+\|[^>]+>\s*)+)\s*:?\s*(.*)/im) or 
         data.text.match(/^\s*<@#{config[:nick_id]}>\s+(on\s+)?((#[a-zA-Z0-9]+\s*)+)\s*:?\s*(.*)/im) or

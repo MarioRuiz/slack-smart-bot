@@ -1,11 +1,12 @@
 class SlackSmartBot
   def respond(msg, dest = nil)
+    msg = msg.to_s
     if dest.nil? and Thread.current.key?(:dest)
       dest = Thread.current[:dest]
     end
     dest = @channels_id[dest] if @channels_id.key?(dest) #it is a name of channel
     if !config.simulate #https://api.slack.com/docs/rate-limits
-      msg.to_s.size > 500 ? wait = 0.5 : wait = 0.1
+      msg.size > 500 ? wait = 0.5 : wait = 0.1
       sleep wait if Time.now <= (@last_respond+wait)
     else
       wait = 0
@@ -18,7 +19,7 @@ class SlackSmartBot
         msgs << txt.chars.each_slice(4000).map(&:join) unless txt == ''
         txt = ''
       end
-      txt+=m
+      txt+=(m+"\n")
     end
     msgs << txt
     msgs.flatten!

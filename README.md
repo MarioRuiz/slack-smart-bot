@@ -184,7 +184,7 @@ To run a command on demand:
   **_`!THE_COMMAND`_**  
   **_`@NAME_OF_BOT THE_COMMAND`_**  
   **_`NAME_OF_BOT THE_COMMAND`_**  
-To run a command on demand and add the respond on a thread:  
+To run a command on demand and add the response on a thread:  
   **_`^THE_COMMAND`_**  
   **_`!!THE_COMMAND`_**
 
@@ -203,13 +203,17 @@ Examples run a command on demand:
 >**_Peter>_** `^echo Example`  
 >. . . . . . . . .**_Smart-Bot>_** `Example`
 
-Also you can always call the Smart Bot from any channel, even from channels without a running Smart Bot. You can use the External Call on Demand: **_`@NAME_OF_BOT on #CHANNEL_NAME COMMAND`_**. In this case you will call the bot on #CHANNEL_NAME. You can supply more than one channel then all the bots will respond.
+Also you can always call the Smart Bot from any channel, even from channels without a running Smart Bot. You can use the External Call on Demand: **_`@NAME_OF_BOT on #CHANNEL_NAME COMMAND`_**. In this case you will call the bot on #CHANNEL_NAME. You can supply more than one channel then all the bots will respond. In case you are in a private conversation with the Smart Bot (DM) then you can use directly:  **_`#CHANNEL_NAME COMMAND`_** or **_`on #CHANNEL_NAME COMMAND`_**
 
-Example:
+Examples:
 >**_Peter>_** `@smart-bot on #the_channel ruby puts Time.now`  
 >**_Smart-Bot>_** `2019-10-23 12:43:42 +0000`  
 >**_Peter>_** `@smart-bot on #the_channel ^ruby puts Time.now`  
 >. . . . . . . . .**_Smart-Bot>_** `2019-10-23 12:43:42 +0000`
+
+Examples on DM:
+>**_Peter>_** `#sales show report from India`
+>**_Peter>_** `on #sales notify clients`
 
 If you want the Smart Bot just listen to part of the message you send, add the commands you want using '`' and start the line with '-!', '-!!' or '-^'
 

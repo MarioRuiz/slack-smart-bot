@@ -1,7 +1,8 @@
-*Version 1.9.3* Released 
+*Version 1.9.3DEV04* Released 2021-May-05
 
 *For General users*
 - When on a private conversation with the SmartBot (DM) and not using any channels rule on the conversation, the general_rules will be available.
+- On DM with the SmartBot if you want to use a rule from a specific channel you can use also: `#CHANNEL RULE` or `on #CHANNEL RULE`. For example: `#sales get report for India` 
 
 ------------------------------
 

@@ -282,7 +282,6 @@ class SlackSmartBot
               elsif dest[0] == 'D' and 
                 (!@rules_imported.key?(user.id) or ( @rules_imported.key?(user.id) and !@rules_imported[user.id].key?(user.id))) and 
                 rules_file.include?('general_rules.rb')
-                @logger.info "b"*333
                 begin
                   eval(File.new(config.path+rules_file).read) if File.exist?(config.path+rules_file) and !['.','..'].include?(config.path + rules_file)
                 rescue Exception => stack

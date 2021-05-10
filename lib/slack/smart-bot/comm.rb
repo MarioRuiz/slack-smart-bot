@@ -1,5 +1,6 @@
 require_relative 'comm/ask'
 require_relative 'comm/dont_understand'
+require_relative 'comm/respond_thread'
 require_relative 'comm/respond_direct'
 require_relative 'comm/respond'
 require_relative 'comm/send_file'

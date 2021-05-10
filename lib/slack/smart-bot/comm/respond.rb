@@ -2,9 +2,16 @@ class SlackSmartBot
   def respond(msg, dest = nil)
     begin
       msg = msg.to_s
+      on_thread = Thread.current[:on_thread]
       if dest.nil? and Thread.current.key?(:dest)
         dest = Thread.current[:dest]
+      elsif dest.is_a?(Symbol) and dest == :on_thread
+        on_thread = true
+        dest = nil
+      elsif dest.is_a?(Symbol) and dest == :direct
+        dest = Thread.current[:user].id
       end
+
       dest = @channels_id[dest] if @channels_id.key?(dest) #it is a name of channel
       if !config.simulate #https://api.slack.com/docs/rate-limits
         msg.size > 500 ? wait = 0.5 : wait = 0.1
@@ -31,7 +38,7 @@ class SlackSmartBot
             f.puts "|#{@channel_id}|#{config[:nick_id]}|#{config[:nick]}|#{msg}~~~"
           }
         else  
-          if Thread.current[:on_thread]
+          if on_thread
             msgs.each do |msg|
               client.message(channel: @channel_id, text: msg, as_user: true, thread_ts: Thread.current[:thread_ts])
               sleep wait
@@ -54,7 +61,7 @@ class SlackSmartBot
           f.puts "|#{dest}|#{config[:nick_id]}|#{config[:nick]}|#{msg}~~~"
         }
         else  
-          if Thread.current[:on_thread]
+          if on_thread
             msgs.each do |msg|
               client.message(channel: dest, text: msg, as_user: true, thread_ts: Thread.current[:thread_ts])
               sleep wait

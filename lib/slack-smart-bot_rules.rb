@@ -95,11 +95,17 @@ def rules(user, command, processed, dest, files = [], rules_file = "")
         
         # Emoticons you can use with `react` command https://www.webfx.com/tools/emoji-cheat-sheet/
         
-        # Examples for respond and respond_direct
+        # Examples for respond, respond_thread and respond_direct
         #   # send 'the message' to the channel or direct message where the command was written
         #   respond "the message"
         #   # send 'the message' privately as a direct message to the user that sent the command
         #   respond_direct "the message"
+        #   # same thing can be done:
+        #   respond "the message", :direct
+        #   # send 'the message' opening a thread
+        #   respond_thread "the message"
+        #   # same thing can be done:
+        #   respond 'the message', :on_thread
         #   # send 'the message' to a specific channel name
         #   respond "the message", 'my_channel'
         #   # send 'the message' to a specific channel id

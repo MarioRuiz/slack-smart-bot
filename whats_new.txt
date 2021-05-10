@@ -1,11 +1,12 @@
-*Version 1.9.3DEV05* Released 2021-May-10
+*Version 1.9.3DEV06* Released 2021-May-10
 
 *For General users*
 - When on a private conversation with the SmartBot (DM) and not using any channels rule on the conversation, the general_rules will be available.
 - On DM with the SmartBot if you want to use a rule from a specific channel you can use also: `#CHANNEL RULE` or `on #CHANNEL RULE`. For example: `#sales get report for India` 
 
 *For admin users*
-- respond_thread method will send the respond creating a thread if necessary
+- respond_thread method will send the respond creating a thread if necessary. It can be used also `respond 'msg', :on_thread`
+- `respond 'msg', :direct` will send a direct message to the person that is executing the rule.
 
 ------------------------------
 

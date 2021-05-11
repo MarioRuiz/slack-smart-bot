@@ -76,11 +76,13 @@ class SlackSmartBot
           where = $1
           message = $2
           notify_message(dest, from, where, message)
-        when /^\s*create\s+(cloud\s+)?bot\s+on\s+<#C\w+\|(.+)>\s*/i, /^create\s+(cloud\s+)?bot\s+on\s+(.+)\s*/i
-          cloud = !$1.nil?
+        when /^\s*create\s+(cloud\s+|silent\s+)?bot\s+on\s+<#C\w+\|(.+)>\s*/i, 
+          /^create\s+(cloud\s+|silent\s+)?bot\s+on\s+#(.+)\s*/i, 
+          /^create\s+(cloud\s+|silent\s+)?bot\s+on\s+(.+)\s*/i
+          type = $1.to_s.downcase
           channel = $2
-          create_bot(dest, user, cloud, channel)
-        when /^\s*kill\s+bot\s+on\s+<#C\w+\|(.+)>\s*$/i, /^kill\s+bot\s+on\s+(.+)\s*$/i
+          create_bot(dest, user, type, channel)
+        when /^\s*kill\s+bot\s+on\s+<#C\w+\|(.+)>\s*$/i, /^kill\s+bot\s+on\s+#(.+)\s*$/i, /^kill\s+bot\s+on\s+(.+)\s*$/i
           channel = $1
           kill_bot_on_channel(dest, from, channel)
         when /^\s*(add|create)\s+(silent\s+)?routine\s+(\w+)\s+(every)\s+(\d+)\s*(days|hours|minutes|seconds|mins|min|secs|sec|d|h|m|s)\s*(\s#(\w+)\s*)(\s.+)?\s*$/i,

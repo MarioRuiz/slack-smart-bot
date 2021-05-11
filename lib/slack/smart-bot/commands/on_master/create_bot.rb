@@ -7,7 +7,9 @@ class SlackSmartBot
   # helpmaster:    the admins will be the master admins, the creator of the bot and the creator of the channel
   # helpmaster:    follow the instructions in case creating cloud bots
   # helpmaster:
-  def create_bot(dest, user, cloud, channel)
+  def create_bot(dest, user, type, channel)
+    cloud = type.include?('cloud')
+    silent = type.include?('silent')
     save_stats(__method__)
     from = user.name
     if config[:allow_access].key?(__method__) and !config[:allow_access][__method__].include?(user.name) and !config[:allow_access][__method__].include?(user.id) and 
@@ -59,13 +61,13 @@ class SlackSmartBot
               creator_info = get_user_info(channel_found.creator)
               admin_users = [from, creator_info.user.name] + config.masters
               admin_users.uniq!
-              @logger.info "ruby #{config.file_path} \"#{channel}\" \"#{admin_users.join(",")}\" \"#{rules_file}\" on"
+              @logger.info "BOT_SILENT=#{silent} ruby #{config.file_path} \"#{channel}\" \"#{admin_users.join(",")}\" \"#{rules_file}\" on"
           
               if cloud
                 respond "Copy the bot folder to your cloud location and run `ruby #{config.file} \"#{channel}\" \"#{admin_users.join(",")}\" \"#{rules_file}\" on&`", dest
               else
                 t = Thread.new do
-                  `BOT_SILENT=false ruby #{config.file_path} \"#{channel}\" \"#{admin_users.join(",")}\" \"#{rules_file}\" on`
+                  `BOT_SILENT=#{silent} ruby #{config.file_path} \"#{channel}\" \"#{admin_users.join(",")}\" \"#{rules_file}\" on`
                 end
               end
               @bots_created[channel_id] = {

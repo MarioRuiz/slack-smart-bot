@@ -180,10 +180,15 @@ class SlackSmartBot
       if @bots_created.kind_of?(Hash) and config.start_bots
         @bots_created.each { |key, value|
           if !value.key?(:cloud) or (value.key?(:cloud) and value[:cloud] == false)
-            @logger.info "ruby #{config.file_path} \"#{value[:channel_name]}\" \"#{value[:admins]}\" \"#{value[:rules_file]}\" #{value[:status].to_sym}"
+            if value.key?(:silent) and value.silent!=config.silent
+              silent = value.silent
+            else
+              silent = config.silent
+            end
+            @logger.info "BOT_SILENT=#{silent} ruby #{config.file_path} \"#{value[:channel_name]}\" \"#{value[:admins]}\" \"#{value[:rules_file]}\" #{value[:status].to_sym}"
             puts "Starting #{value[:channel_name]} Smart Bot"
             t = Thread.new do
-              `ruby #{config.file_path} \"#{value[:channel_name]}\" \"#{value[:admins]}\" \"#{value[:rules_file]}\" #{value[:status].to_sym}`
+              `BOT_SILENT=#{silent} ruby #{config.file_path} \"#{value[:channel_name]}\" \"#{value[:admins]}\" \"#{value[:rules_file]}\" #{value[:status].to_sym}`
             end
             value[:thread] = t
             sleep value[:admins].size

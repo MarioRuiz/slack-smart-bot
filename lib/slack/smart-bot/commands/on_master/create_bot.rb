@@ -2,10 +2,12 @@ class SlackSmartBot
   # helpmaster: ----------------------------------------------
   # helpmaster: `create bot on CHANNEL_NAME`
   # helpmaster: `create cloud bot on CHANNEL_NAME`
+  # helpmaster: `create silent bot on CHANNEL_NAME`
   # helpmaster:    creates a new bot on the channel specified
   # helpmaster:    it will work only if you are on Master channel
   # helpmaster:    the admins will be the master admins, the creator of the bot and the creator of the channel
   # helpmaster:    follow the instructions in case creating cloud bots
+  # helpmaster:    in case 'silent' won't display the Bot initialization message on the CHANNEL_NAME
   # helpmaster:
   def create_bot(dest, user, type, channel)
     cloud = type.include?('cloud')
@@ -82,6 +84,8 @@ class SlackSmartBot
                 cloud: cloud,
                 thread: t,
               }
+              @bots_created[channel_id].silent = true if silent
+
               respond "The bot has been created on channel: #{channel}. Rules file: #{File.basename rules_file}. Admins: #{admin_users.join(", ")}", dest
               update_bots_file()
             rescue Exception => stack

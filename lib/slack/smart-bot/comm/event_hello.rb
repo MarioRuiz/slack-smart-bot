@@ -7,7 +7,7 @@ class SlackSmartBot
       config.nick = client.self.name
       config.nick_id = client.self.id
     end
-    @salutations = [config[:nick], "<@#{config[:nick_id]}>", "bot", "smart"]
+    @salutations = [config[:nick], "<@#{config[:nick_id]}>", "@#{config[:nick]}", "bot", "smart", "smartbot", "smart-bot", "smart bot"]
 
     gems_remote = `gem list slack-smart-bot --remote`
     version_remote = gems_remote.to_s().scan(/slack-smart-bot \((\d+\.\d+\.\d+)/).join

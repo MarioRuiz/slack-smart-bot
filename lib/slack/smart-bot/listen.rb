@@ -1,6 +1,6 @@
 class SlackSmartBot
   def listen_simulate
-    @salutations = [config[:nick], "<@#{config[:nick_id]}>", "bot", "smart"]
+    @salutations = [config[:nick], "<@#{config[:nick_id]}>", "bot", "smart", "smartbot", "smart-bot", "smart bot"]
     @pings = []
     @last_activity_check = Time.now
     get_bots_created()

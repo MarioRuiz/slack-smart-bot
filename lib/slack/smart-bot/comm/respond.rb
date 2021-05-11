@@ -7,7 +7,7 @@ class SlackSmartBot
         dest = Thread.current[:dest]
       elsif dest.is_a?(Symbol) and dest == :on_thread
         on_thread = true
-        dest = nil
+        dest = Thread.current[:dest]
       elsif dest.is_a?(Symbol) and dest == :direct
         dest = Thread.current[:user].id
       end
@@ -80,14 +80,14 @@ class SlackSmartBot
         end
       elsif dest[0] == "D" or dest[0] == "U"  or dest[0] == "W" # Direct message
         msgs.each do |msg|
-          send_msg_user(dest, msg)
+          send_msg_user(dest, msg, on_thread)
           sleep wait
         end
       elsif dest[0] == "@"
         begin
           user_info = get_user_info(dest)
           msgs.each do |msg|
-            send_msg_user(user_info.user.id, msg)
+            send_msg_user(user_info.user.id, msg, on_thread)
             sleep wait
           end
         rescue Exception => stack

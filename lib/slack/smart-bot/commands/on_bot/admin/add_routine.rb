@@ -23,9 +23,9 @@ class SlackSmartBot
   # helpadmin:    #CHANNEL: the destination channel where the results will be published. If not supplied then the bot channel by default or a DM if the command is run from a DM.
   # helpadmin:    COMMAND: any valid smart bot command or rule
   # helpadmin:    Examples:
-  # helpadmin:      _add routine example every 30s ruby puts 'a'_
-  # helpadmin:      _add routine example every 3 days ruby puts 'a'_
-  # helpadmin:      _add routine example at 17:05 ruby puts 'a'_
+  # helpadmin:      _add routine example every 30s !ruby puts 'a'_
+  # helpadmin:      _add routine example every 3 days !ruby puts 'a'_
+  # helpadmin:      _add routine example at 17:05 !ruby puts 'a'_
   # helpadmin:      _create silent routine Example every 12 hours !Run customer tests_
   # helpadmin:      _add routine example on Mondays at 05:00 !run customer tests_
   # helpadmin:      _add routine example on Tuesdays at 09:00 #SREChannel !run db cleanup_

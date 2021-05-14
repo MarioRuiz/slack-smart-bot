@@ -43,7 +43,7 @@ class SlackSmartBot
               eval(File.new(config.path+rules_file).read) if File.exist?(config.path+rules_file)
             end
           end
-          if File.exist?("#{project_folder}/.smart-bot-repl") and @repls[session_name][:type] != :private_clean and @repls[session_name][:type] != :public_clean
+          if File.exist?("#{project_folder}/.smart-bot-repl") and @repls.key?(session_name) and @repls[session_name][:type] != :private_clean and @repls[session_name][:type] != :public_clean
             content += File.read("#{project_folder}/.smart-bot-repl")
             content += "\n"
           end

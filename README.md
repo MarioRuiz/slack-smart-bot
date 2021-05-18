@@ -168,6 +168,7 @@ end
 
 Also you can add general rules that will be available on all Smart Bot channels to `./rules/general_rules.rb`
 
+If you have commands that want to make them available everywhere the Smart Bot is invited then add those commands to `./rules/general_commands.rb`. 
 
 ### How to access the Smart Bot
 You can access the bot directly on the MASTER CHANNEL, on a secondary channel where the bot is running and directly by opening a private chat with the bot, in this case the conversation will be just between you and the bot.
@@ -225,6 +226,13 @@ Examples:
 >**_Peter>_** ``-^This text won't be treated but this one yes `ruby puts 'a'` and also this one `ruby puts 'b'` ``  
 >. . . . . . . . .**_Smart-Bot>_** `a`  
 >. . . . . . . . .**_Smart-Bot>_** `b`
+
+
+All the commands specified on `./rules/general_commands.rb` will be accessible from any channel where the Smart Bot is present, without the necessity to call it with !, !!, ^ or on demand.
+
+Examples:
+>**_Peter>_** `Thanks smartbot`  
+>**_Smart-Bot>_** `You're very welcome`  
 
 ### Bot Help
 To get a full list of all commands and rules for a specific Smart Bot: **_`bot help`_**. It will show only the specific available commands for the user requesting. By default it will display only a short version of the bot help, call **_`bot help expanded`_** to get a expanded version of all commands.

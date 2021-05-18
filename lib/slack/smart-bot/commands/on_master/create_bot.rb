@@ -44,23 +44,27 @@ class SlackSmartBot
           if channel_id != config[:channel]
             begin
               rules_file = "slack-smart-bot_rules_#{channel_id}_#{from.gsub(" ", "_")}.rb"
-              if defined?(RULES_FOLDER)
+              if defined?(RULES_FOLDER) # consider removing RULES_FOLDER since we are not using it anywhere else
                 rules_file = RULES_FOLDER + rules_file
                 general_rules_file = RULES_FOLDER + 'general_rules.rb'
+                general_commands_file = RULES_FOLDER + 'general_commands.rb'
               else
                 Dir.mkdir("#{config.path}/rules") unless Dir.exist?("#{config.path}/rules")
                 Dir.mkdir("#{config.path}/rules/#{channel_id}") unless Dir.exist?("#{config.path}/rules/#{channel_id}")
                 rules_file = "/rules/#{channel_id}/" + rules_file
                 general_rules_file = "/rules/general_rules.rb"
+                general_commands_file = "/rules/general_commands.rb"
               end
               default_rules = (__FILE__).gsub(/slack\/smart-bot\/commands\/on_master\/create_bot\.rb$/, "slack-smart-bot_rules.rb")
               default_general_rules = (__FILE__).gsub(/slack\/smart-bot\/commands\/on_master\/create_bot\.rb$/, "slack-smart-bot_general_rules.rb")
+              default_general_commands = (__FILE__).gsub(/slack\/smart-bot\/commands\/on_master\/create_bot\.rb$/, "slack-smart-bot_general_commands.rb")
               
               File.delete(config.path + rules_file) if File.exist?(config.path + rules_file)
               FileUtils.copy_file(default_rules, config.path + rules_file) unless File.exist?(config.path + rules_file)
               FileUtils.copy_file(default_general_rules, config.path + general_rules_file) unless File.exist?(config.path + general_rules_file)
+              FileUtils.copy_file(default_general_commands, config.path + general_commands_file) unless File.exist?(config.path + general_commands_file)
               admin_users = Array.new()
-              creator_info = get_user_info(channel_found.creator)
+              creator_info = @users.select{|u| u.id == channel_found.creator}[-1]
               admin_users = [from, creator_info.user.name] + config.masters
               admin_users.uniq!
               @logger.info "BOT_SILENT=#{silent} ruby #{config.file_path} \"#{channel}\" \"#{admin_users.join(",")}\" \"#{rules_file}\" on"

@@ -55,6 +55,10 @@ class SlackSmartBot
         help[:rules_file] += rhelp[user_type].values.join("\n") + "\n"
       end
     end
+
+    if File.exists?(config.path + '/rules/general_commands.rb')
+      help[:general_commands_file] = build_help(config.path+'/rules/general_commands.rb', expanded)[user_type].values.join("\n") + "\n"
+    end
     help = remove_hash_keys(help, :admin_master) unless user_type == :master
     help = remove_hash_keys(help, :admin) unless user_type == :admin or user_type == :master
     help = remove_hash_keys(help, :on_master) unless channel_type == :master_bot
@@ -105,6 +109,12 @@ class SlackSmartBot
       end
     end
 
+    if help.key?(:general_commands_file)
+        txt += "===================================
+        *General commands on any channel where the Smart Bot is a member:*\n"
+    txt += help.general_commands_file
+    end
+
     if help.key?(:on_bot)
       unless channel_type == :direct
         txt += "===================================
@@ -130,7 +140,7 @@ class SlackSmartBot
 
     if help.key?(:on_bot) and help.on_bot.key?(:admin_master) and help.on_bot.admin_master.size > 0
       txt += "===================================
-      *Master Admin commands:*\n"
+        *Master Admin commands:*\n"
       help.on_bot.admin_master.each do |k, v|
         txt += v if v.is_a?(String)
       end
@@ -138,7 +148,7 @@ class SlackSmartBot
 
     if help.key?(:on_master) and help.on_master.key?(:admin_master) and help.on_master.admin_master.size > 0
       txt += "===================================
-      *Master Admin commands:*\n" unless txt.include?('*Master Admin commands*')
+        *Master Admin commands:*\n" unless txt.include?('*Master Admin commands*')
       help.on_master.admin_master.each do |k, v|
         txt += v if v.is_a?(String)
       end

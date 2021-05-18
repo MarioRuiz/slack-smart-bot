@@ -81,7 +81,7 @@ class SlackSmartBot
                 end
     
                 if user!=''
-                    user_info = get_user_info(user)
+                    user_info = @users.select{|u| u.id == user}[-1]
                     if users_id_name.key?(user_info.user.id)
                         user_name = users_id_name[user_info.user.id]
                     else

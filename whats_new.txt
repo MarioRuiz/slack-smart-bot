@@ -1,12 +1,14 @@
-*Version 1.9.3DEV06* Released 2021-May-10
+*Version 1.10.0DEV07* Released 2021-May-18
 
 *For General users*
 - When on a private conversation with the SmartBot (DM) and not using any channels rule on the conversation, the general_rules will be available.
 - On DM with the SmartBot if you want to use a rule from a specific channel you can use also: `#CHANNEL RULE` or `on #CHANNEL RULE`. For example: `#sales get report for India` 
+- Now when using general commands, the SmartBot will be responding on any channel where is a member, even though is not listening to you. For example: `clear screen`
 
 *For admin users*
 - respond_thread method will send the respond creating a thread if necessary. It can be used also `respond 'msg', :on_thread`
 - `respond 'msg', :direct` will send a direct message to the person that is executing the rule.
+- You can add general commands that will be responding on any channel where the Smart Bot is a member even though is not 'listening to you'. Add them to '/rules/general_commands.rb
 
 ------------------------------
 

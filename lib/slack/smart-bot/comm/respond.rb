@@ -85,7 +85,7 @@ class SlackSmartBot
         end
       elsif dest[0] == "@"
         begin
-          user_info = get_user_info(dest)
+          user_info = @users.select{|u| u.id == dest[1..-1]}[-1]
           msgs.each do |msg|
             send_msg_user(user_info.user.id, msg, on_thread)
             sleep wait

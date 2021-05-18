@@ -70,7 +70,7 @@ class SlackSmartBot
       typem = :dont_treat
       if !dest.nil? and !data.text.nil? and !data.text.to_s.match?(/\A\s*\z/)
         if data.channel[0] == "D" and !data.text.to_s.match?(/^\s*<@#{config[:nick_id]}>\s+/) and 
-          (data.text.to_s.match?(/^\s*(on)?\s*<#\w+\|[^>]+>/i) or data.text.to_s.match?(/^\s*(on)?\s*#\w+/i))#jal
+          (data.text.to_s.match?(/^\s*(on)?\s*<#\w+\|[^>]+>/i) or data.text.to_s.match?(/^\s*(on)?\s*#\w+/i))
           data.text = "<@#{config[:nick_id]}> " + data.text.to_s
         end
 
@@ -136,9 +136,18 @@ class SlackSmartBot
           end
           if data.channel[0] == "G" and config.on_master_bot and typem != :on_extended #private group
             typem = :on_pg
+          elsif data.channel[0] == 'C' and config.on_master_bot and typem != :on_extended #public group
+            typem = :on_pub
           end
         end
       end
+      #todo: when changed @questions user_id then move user_info inside the ifs to avoid calling it when not necessary
+      user_info = @users.select{|u| u.id == data.user}[-1]
+      if user_info.nil? or user_info.empty?
+        @users = get_users() 
+        user_info = @users.select{|u| u.id == data.user}[-1]
+      end
+      load "#{config.path}/rules/general_commands.rb" if File.exists?("#{config.path}/rules/general_commands.rb") and @datetime_general_commands != File.mtime("#{config.path}/rules/general_commands.rb")
       unless typem == :dont_treat
         if (Time.now - @last_activity_check) > 60 * 30 #every 30 minutes
           @last_activity_check = Time.now
@@ -150,33 +159,30 @@ class SlackSmartBot
           end
         end
         begin
-          #todo: when changed @questions user_id then move user_info inside the ifs to avoid calling it when not necessary
-          user_info = get_user_info(data.user)
-
-          #user_info.user.id = data.user #todo: remove this line when slack issue with Wxxxx Uxxxx fixed
-          data.user = user_info.user.id  #todo: remove this line when slack issue with Wxxxx Uxxxx fixed
+          #user_info.id = data.user #todo: remove this line when slack issue with Wxxxx Uxxxx fixed
+          data.user = user_info.id  #todo: remove this line when slack issue with Wxxxx Uxxxx fixed
           if data.thread_ts.nil?
             qdest = dest
           else
             qdest = data.thread_ts
           end
-          if !answer(user_info.user.name, qdest).empty?
+          if !answer(user_info.name, qdest).empty?
             if data.text.match?(/^\s*(Bye|Bæ|Good\sBye|Adiós|Ciao|Bless|Bless\sBless|Adeu)\s(#{@salutations.join("|")})\s*$/i)
-              answer_delete(user_info.user.name, qdest)
+              answer_delete(user_info.name, qdest)
               command = data.text
             else
-              command = answer(user_info.user.name, qdest)
-              @answer[user_info.user.name][qdest] = data.text
-              @questions[user_info.user.name] = data.text # to be backwards compatible #todo remove it when 2.0
+              command = answer(user_info.name, qdest)
+              @answer[user_info.name][qdest] = data.text
+              @questions[user_info.name] = data.text # to be backwards compatible #todo remove it when 2.0
             end
-          elsif @repl_sessions.key?(user_info.user.name) and data.channel==@repl_sessions[user_info.user.name][:dest] and 
-            ((@repl_sessions[user_info.user.name][:on_thread] and data.thread_ts == @repl_sessions[user_info.user.name][:thread_ts]) or
-            (!@repl_sessions[user_info.user.name][:on_thread] and data.thread_ts.to_s == '' ))
+          elsif @repl_sessions.key?(user_info.name) and data.channel==@repl_sessions[user_info.name][:dest] and 
+            ((@repl_sessions[user_info.name][:on_thread] and data.thread_ts == @repl_sessions[user_info.name][:thread_ts]) or
+            (!@repl_sessions[user_info.name][:on_thread] and data.thread_ts.to_s == '' ))
             
             if data.text.match(/^\s*```(.*)```\s*$/im)
-                @repl_sessions[user_info.user.name][:command] = $1
+                @repl_sessions[user_info.name][:command] = $1
             else   
-              @repl_sessions[user_info.user.name][:command] = data.text
+              @repl_sessions[user_info.name][:command] = data.text
             end
             command = 'repl'
           else
@@ -214,22 +220,24 @@ class SlackSmartBot
             elsif @status != :on
               respond "The bot in that channel is not :on", data.channel
             elsif data.user == channel_found.creator or members.include?(data.user)
-              process_first(user_info.user, command, dest, channel_rules, typem, data.files, data.ts, data.thread_ts, data.routine)
+              process_first(user_info, command, dest, channel_rules, typem, data.files, data.ts, data.thread_ts, data.routine)
             else
               respond "You need to join the channel <##{channel_found.id}> to be able to use the rules.", data.channel
             end
           elsif config.on_master_bot and typem == :on_extended and
                 command.size > 0 and command[0] != "-"
             # to run ruby only from the master bot for the case more than one extended
-            process_first(user_info.user, command, dest, @channel_id, typem, data.files, data.ts, data.thread_ts, data.routine)
+            process_first(user_info, command, dest, @channel_id, typem, data.files, data.ts, data.thread_ts, data.routine)
           elsif !config.on_master_bot and @bots_created[@channel_id].key?(:extended) and
                 @bots_created[@channel_id][:extended].include?(@channels_name[data.channel]) and
                 command.size > 0 and command[0] != "-"
-            process_first(user_info.user, command, dest, @channel_id, typem, data.files, data.ts, data.thread_ts, data.routine)
+            process_first(user_info, command, dest, @channel_id, typem, data.files, data.ts, data.thread_ts, data.routine)
           elsif (dest[0] == "D" or @channel_id == data.channel or data.user == config[:nick_id]) and
                 command.size > 0 and command[0] != "-"
-            process_first(user_info.user, command, dest, data.channel, typem, data.files, data.ts, data.thread_ts, data.routine)
+            process_first(user_info, command, dest, data.channel, typem, data.files, data.ts, data.thread_ts, data.routine)
             # if @botname on #channel_rules: do something
+          elsif typem == :on_pub or typem == :on_pg
+            process_first(user_info, command, dest, channel_rules, typem, data.files, data.ts, data.thread_ts, data.routine)
           end
         rescue Exception => stack
           @logger.fatal stack

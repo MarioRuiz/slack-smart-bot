@@ -188,8 +188,11 @@ class SlackSmartBot
           else
               Thread.current[:using_channel] = ''
           end
-
-          processed = process(user, command, dest, dchannel, rules_file, typem, files, Thread.current[:thread_ts])
+          if typem == :on_pub or typem == :on_pg
+            processed = false
+          else
+            processed = process(user, command, dest, dchannel, rules_file, typem, files, Thread.current[:thread_ts])
+          end
           @logger.info "command: #{nick}> #{command}" if processed
           on_demand = false
           if command.match(/^@?(#{config[:nick]}):*\s+(.+)/im) or
@@ -206,7 +209,8 @@ class SlackSmartBot
             command = command2
             on_demand = true
           end
-          unless config.on_maintenance and processed
+          processed = (processed || general_commands(user, command, dest, files) ) if defined?(general_commands)
+          if !config.on_maintenance and !processed and typem != :on_pub and typem != :on_pg
             if @status == :on and
               (!answer.empty? or
               (@repl_sessions.key?(nick) and dest==@repl_sessions[nick][:dest] and 
@@ -293,16 +297,18 @@ class SlackSmartBot
                   command[0] = "" if command[0] == "!"
                   command.gsub!(/^@\w+:*\s*/, "")
                   if method(:general_rules).parameters.size == 4
-                    general_rules(user, command, processed, dest)
+                    processed = general_rules(user, command, processed, dest)
                   elsif method(:general_rules).parameters.size == 5
-                    general_rules(user, command, processed, dest, files)
+                    processed = general_rules(user, command, processed, dest, files)
                   else
-                    general_rules(user, command, processed, dest, files, rules_file)
+                    processed = general_rules(user, command, processed, dest, files, rules_file)
                   end
                 else
                   @logger.warn "It seems like general_rules method is not defined"
                 end
-
+                unless processed
+                  dont_understand('')
+                end
               else
                 @logger.info "it is a direct message with no rules file selected so no rules file executed."
                 if command.match?(/^\s*bot\s+rules\s*(.*)$/i)

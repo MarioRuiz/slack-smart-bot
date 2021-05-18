@@ -158,6 +158,7 @@ class SlackSmartBot
     @rules_imported = Hash.new()
     @routines = Hash.new()
     @repls = Hash.new()
+    @users = Hash.new()
 
     if File.exist?("#{config.path}/shortcuts/#{config.shortcuts_file}")
       file_sc = IO.readlines("#{config.path}/shortcuts/#{config.shortcuts_file}").join
@@ -196,6 +197,12 @@ class SlackSmartBot
         }
       end
     end
+    general_rules_file = "/rules/general_rules.rb"
+    general_commands_file = "/rules/general_commands.rb"
+    default_general_rules = (__FILE__).gsub(/\/slack-smart-bot\.rb$/, "/slack-smart-bot_general_rules.rb")
+    default_general_commands = (__FILE__).gsub(/\/slack-smart-bot\.rb$/, "/slack-smart-bot_general_commands.rb")
+    FileUtils.copy_file(default_general_rules, config.path + general_rules_file) unless File.exist?(config.path + general_rules_file)
+    FileUtils.copy_file(default_general_commands, config.path + general_commands_file) unless File.exist?(config.path + general_commands_file)
 
     get_rules_imported()
 
@@ -236,6 +243,7 @@ class SlackSmartBot
     @questions = Hash.new()
     @answer = Hash.new()
     @repl_sessions = Hash.new()
+    @datetime_general_commands = 0
     @channels_id = Hash.new()
     @channels_name = Hash.new()
     get_channels_name_and_id()

@@ -94,10 +94,11 @@ class SlackSmartBot
         It will run the supplied command using the rules on the channel supplied.
         You need to join the specified channel to be able to use those rules.
         Also you can use this command to call another bot from a channel with a running bot.
-
+      \n"
+      txt +="
       The commands you will be able to use from a channel without a bot: 
       *bot rules*, *ruby CODE*, *add shortcut NAME: COMMAND*, *delete shortcut NAME*, *see shortcuts*, *shortcut NAME*
-      *And all the specific rules of the Channel*\n"
+      *And all the specific rules of the Channel*\n" if channel_type == :extended
     end
 
     if help.key?(:general) and channel_type != :external and channel_type != :extended
@@ -210,6 +211,12 @@ class SlackSmartBot
         help.rules_file = resf
       end
       txt += help.rules_file
+    end
+    if channel_type == :external
+      if @bots_created.size>0
+        txt += "\nThese are the *SmartBots* running on this Slack workspace: *<##{@bots_created.keys.join('>, <#')}>*\n"
+        txt += "Join one channel and call *`bot rules`* to see specific commands for that channel or *`bot help`* to see all commands for that channel.\n"
+      end
     end
 
     return txt

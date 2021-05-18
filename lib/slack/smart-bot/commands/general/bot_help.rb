@@ -28,8 +28,8 @@ class SlackSmartBot
         message_not_expanded = ''
       else
         expanded = false
-        message_not_expanded = "*If you want to see the expanded version of `bot help` or `bot rules`, please call `bot help expanded` or `bot rules expanded`*\n"
-        message_not_expanded += "*Also to get specific expanded help for a specific command or rule call `bot help COMMAND`*\n"
+        message_not_expanded = "If you want to see the *expanded* version of *`bot help`* or *`bot rules`*, please call *`bot help expanded`* or *`bot rules expanded`*\n"
+        message_not_expanded += "Also to get specific *expanded* help for a specific command or rule call *`bot help COMMAND`*\n"
       end
 
       help_message = get_help(rules_file, dest, from, specific, expanded)

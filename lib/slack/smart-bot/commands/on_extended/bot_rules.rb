@@ -47,8 +47,8 @@ class SlackSmartBot
           def project_folder() "" end
         end
         unless expanded
-          message_not_expanded = "*If you want to see the expanded version of `bot rules`, please call `bot rules expanded`*\n"
-          message_not_expanded += "*Also to get specific expanded help for a specific command or rule call `bot rules COMMAND`*\n"
+          message_not_expanded = "If you want to see the *expanded* version of *`bot rules`*, please call  *`bot rules expanded`*\n"
+          message_not_expanded += "Also to get specific *expanded* help for a specific command or rule call *`bot rules COMMAND`*\n"
           respond message_not_expanded
         end
       end

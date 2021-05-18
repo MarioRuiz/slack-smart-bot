@@ -209,7 +209,22 @@ class SlackSmartBot
             command = command2
             on_demand = true
           end
-          processed = (processed || general_commands(user, command, dest, files) ) if defined?(general_commands)
+          unless config.on_maintenance or @status != :on
+            if (typem == :on_pub or typem == :on_pg) or typem == :on_extended
+              if command.match(/^\s*(#{@salutations.join("|")})\s+(rules|help)\s*(.+)?$/i) or command.match(/^(#{@salutations.join("|")}),? what can I do/i)
+                $2.to_s.match?(/rules/i) ? specific = true : specific = false
+                help_command = $3
+                if typem == :on_extended and specific
+                  bot_rules(dest, help_command, typem, rules_file, user)
+                else
+                  bot_help(user, user.name, dest, dchannel, specific, help_command, rules_file)
+                end
+                processed = true
+              end    
+            end
+            processed = (processed || general_commands(user, command, dest, files) ) if defined?(general_commands)
+          end
+
           if !config.on_maintenance and !processed and typem != :on_pub and typem != :on_pg
             if @status == :on and
               (!answer.empty? or

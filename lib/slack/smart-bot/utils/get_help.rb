@@ -24,6 +24,10 @@ class SlackSmartBot
       channel_type = :bot
     end
 
+    if Thread.current[:typem] == :on_pg or Thread.current[:typem] == :on_pub
+      channel_type = :external
+    end
+
     @help_messages_expanded ||= build_help("#{__dir__}/../commands", true)
     @help_messages_not_expanded ||= build_help("#{__dir__}/../commands", false)
     if only_rules
@@ -96,7 +100,7 @@ class SlackSmartBot
       *And all the specific rules of the Channel*\n"
     end
 
-    if help.key?(:general)
+    if help.key?(:general) and channel_type != :external and channel_type != :extended
       unless channel_type == :direct
         txt += "===================================
         *General commands even when the Smart Bot is not listening to you:*\n"
@@ -110,12 +114,12 @@ class SlackSmartBot
     end
 
     if help.key?(:general_commands_file)
-        txt += "===================================
+      txt += "===================================
         *General commands on any channel where the Smart Bot is a member:*\n"
-    txt += help.general_commands_file
+      txt += help.general_commands_file
     end
 
-    if help.key?(:on_bot)
+    if help.key?(:on_bot) and channel_type != :external and channel_type != :extended
       unless channel_type == :direct
         txt += "===================================
         *General commands only when the Smart Bot is listening to you or on demand:*\n"
@@ -124,7 +128,7 @@ class SlackSmartBot
         txt += help.on_bot[o]
       end
     end
-    if help.key?(:on_bot) and help.on_bot.key?(:admin)
+    if help.key?(:on_bot) and help.on_bot.key?(:admin) and channel_type != :external and channel_type != :extended
       txt += "===================================
         *Admin commands:*\n"
       txt += "\n\n"
@@ -138,7 +142,7 @@ class SlackSmartBot
       end
     end
 
-    if help.key?(:on_bot) and help.on_bot.key?(:admin_master) and help.on_bot.admin_master.size > 0
+    if help.key?(:on_bot) and help.on_bot.key?(:admin_master) and help.on_bot.admin_master.size > 0 and channel_type != :external and channel_type != :extended
       txt += "===================================
         *Master Admin commands:*\n"
       help.on_bot.admin_master.each do |k, v|
@@ -146,7 +150,7 @@ class SlackSmartBot
       end
     end
 
-    if help.key?(:on_master) and help.on_master.key?(:admin_master) and help.on_master.admin_master.size > 0
+    if help.key?(:on_master) and help.on_master.key?(:admin_master) and help.on_master.admin_master.size > 0 and channel_type != :external and channel_type != :extended
       txt += "===================================
         *Master Admin commands:*\n" unless txt.include?('*Master Admin commands*')
       help.on_master.admin_master.each do |k, v|
@@ -154,7 +158,7 @@ class SlackSmartBot
       end
     end
 
-    if help.key?(:rules_file)
+    if help.key?(:rules_file) and channel_type != :external
       @logger.info channel_type if config.testing
       if channel_type == :extended or channel_type == :direct
         @logger.info help.rules_file if config.testing

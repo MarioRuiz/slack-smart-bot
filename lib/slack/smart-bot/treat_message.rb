@@ -134,9 +134,16 @@ class SlackSmartBot
               end
             end
           end
-          if data.channel[0] == "G" and config.on_master_bot and typem != :on_extended #private group
+          extended = false
+          @bots_created.each do |k, v|
+            if v.key?(:extended) and v[:extended].include?(@channels_name[data.channel])
+              extended = true
+              break
+            end
+          end
+          if data.channel[0] == "G" and config.on_master_bot and !extended #private group
             typem = :on_pg
-          elsif data.channel[0] == 'C' and config.on_master_bot and typem != :on_extended #public group
+          elsif data.channel[0] == 'C' and config.on_master_bot and !extended #public group
             typem = :on_pub
           end
         end
@@ -244,7 +251,7 @@ class SlackSmartBot
         end
       else
         if !config.on_master_bot and !dest.nil? and (data.channel == @master_bot_id or dest[0] == "D") and
-          data.text.match?(/^\s*bot\s+status\s*$/i) and @admin_users_id.include?(data.user)
+          data.text.match?(/^\s*(!|!!|\^)?\s*bot\s+status\s*$/i) and @admin_users_id.include?(data.user)
           respond "ping from #{config.channel}", dest
         elsif !config.on_master_bot and !dest.nil? and data.user == config[:nick_id] and dest == @master_bot_id
           # to treat on other bots the status messages populated on master bot

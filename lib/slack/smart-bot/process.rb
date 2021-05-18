@@ -46,10 +46,9 @@ class SlackSmartBot
           whats_new(user, dest, dchannel, from, display_name)
         when /^\s*(Bye|Bæ|Good\s+Bye|Adiós|Ciao|Bless|Bless\sBless|Adeu)\s+(#{@salutations.join("|")})\s*$/i
           bye_bot(dest, from, display_name)
-        when /^\s*bot\s+(rules|help)\s*(.+)?$/i, /^bot,? what can I do/i
-          $1.to_s.match?(/rules/i) ? specific = true : specific = false
-          help_command = $2
-
+        when /^\s*(#{@salutations.join("|")})\s+(rules|help)\s*(.+)?$/i, /^(#{@salutations.join("|")}),? what can I do/i
+          $2.to_s.match?(/rules/i) ? specific = true : specific = false
+          help_command = $3
           bot_help(user, from, dest, dchannel, specific, help_command, rules_file)
         when /^\s*use\s+(rules\s+)?(from\s+)?<#C\w+\|(.+)>\s*$/i, /^use\s+(rules\s+)?(from\s+)?([^\s]+\s*$)/i
           channel = $3
@@ -177,10 +176,6 @@ class SlackSmartBot
     
         case command
 
-        # bot rules for extended channels
-        when /^bot\s+rules\s*(.+)?$/i
-          help_command = $1
-          bot_rules(dest, help_command, typem, rules_file, user)
         when /^\s*(add\s+)?(global\s+|generic\s+)?shortcut\s+(for\sall)?\s*([^:]+)\s*:\s*(.+)/i, 
           /^(add\s+)(global\s+|generic\s+)?sc\s+(for\sall)?\s*([^:]+)\s*:\s*(.+)/i
           for_all = $3

@@ -102,7 +102,10 @@ class SlackSmartBot
     end
 
     if help.key?(:general) and channel_type != :external and channel_type != :extended
-      unless channel_type == :direct
+      if channel_type == :direct
+        txt += "===================================
+        *General commands:*\n"
+      else
         txt += "===================================
         *General commands even when the Smart Bot is not listening to you:*\n"
       end

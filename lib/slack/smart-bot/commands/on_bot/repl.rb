@@ -147,7 +147,7 @@ class SlackSmartBot
                   rescue Exception => resp_repl
                     error = true
                   end
-                  if resp_repl.to_s != \"\"
+                  unless error
                     if code_to_run_repl.match?(/^\s*p\s+/i)
                       open(\"' + File.expand_path(config.path) + '/repl/' + @channel_id + '/' + session_name + '.output\", \"a+\") {|f|
                         f.puts \"\`\`\`\n#{resp_repl.inspect}\n\`\`\`\"
@@ -157,7 +157,7 @@ class SlackSmartBot
                         f.puts \"\`\`\`\n#{resp_repl.ai}\n\`\`\`\"
                       }
                     end
-                    unless error or !add_to_run_repl
+                    unless !add_to_run_repl
                       open(\"' + File.expand_path(config.path) + '/repl/' + @channel_id + '/' + session_name + '.run\", \"a+\") {|f|
                         f.puts code_to_run_repl
                       }

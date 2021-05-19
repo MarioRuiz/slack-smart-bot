@@ -98,7 +98,7 @@ class SlackSmartBot
       txt +="
       The commands you will be able to use from a channel without a bot: 
       *bot rules*, *ruby CODE*, *add shortcut NAME: COMMAND*, *delete shortcut NAME*, *see shortcuts*, *shortcut NAME*
-      *And all the specific rules of the Channel*\n" if channel_type == :extended
+      *And all the specific rules of the Channel*\n"
     end
 
     if help.key?(:general) and channel_type != :external and channel_type != :extended
@@ -214,7 +214,7 @@ class SlackSmartBot
     end
     if channel_type == :external
       if @bots_created.size>0
-        txt += "\nThese are the *SmartBots* running on this Slack workspace: *<##{@bots_created.keys.join('>, <#')}>*\n"
+        txt += "\nThese are the *SmartBots* running on this Slack workspace: *<##{@master_bot_id}>, <##{@bots_created.keys.join('>, <#')}>*\n"
         txt += "Join one channel and call *`bot rules`* to see specific commands for that channel or *`bot help`* to see all commands for that channel.\n"
       end
     end

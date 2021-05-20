@@ -223,6 +223,7 @@ class SlackSmartBot
               end    
             end
             processed = (processed || general_commands(user, command, dest, files) ) if defined?(general_commands)
+            @logger.info "command: #{nick}> #{command}" if processed
           end
 
           if !config.on_maintenance and !processed and typem != :on_pub and typem != :on_pg

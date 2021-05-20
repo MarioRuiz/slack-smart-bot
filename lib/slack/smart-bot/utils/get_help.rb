@@ -124,7 +124,10 @@ class SlackSmartBot
     end
 
     if help.key?(:on_bot) and channel_type != :external and channel_type != :extended
-      unless channel_type == :direct
+      if channel_type == :direct
+        txt += "===================================
+        *General commands on bot, DM or on external call on demand:*\n"
+      else
         txt += "===================================
         *General commands only when the Smart Bot is listening to you or on demand:*\n"
       end
@@ -135,7 +138,7 @@ class SlackSmartBot
     if help.key?(:on_bot) and help.on_bot.key?(:admin) and channel_type != :external and channel_type != :extended
       txt += "===================================
         *Admin commands:*\n"
-      txt += "\n\n"
+      txt += "\n"
       order.on_bot_admin.each do |o|
         txt += help.on_bot.admin[o]
       end
@@ -215,13 +218,6 @@ class SlackSmartBot
       end
       txt += help.rules_file
     end
-    if channel_type == :external
-      if @bots_created.size>0
-        txt += "\nThese are the *SmartBots* running on this Slack workspace: *<##{@master_bot_id}>, <##{@bots_created.keys.join('>, <#')}>*\n"
-        txt += "Join one channel and call *`bot rules`* to see specific commands for that channel or *`bot help`* to see all commands for that channel.\n"
-      end
-    end
-
     return txt
   end
 end

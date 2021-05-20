@@ -52,6 +52,13 @@ class SlackSmartBot
         help_message.split(/^\s*=========*$/).each do |h|
           respond("#{"=" * 35}\n#{h}", dest) unless h.match?(/\A\s*\z/)
         end
+        if Thread.current[:typem] == :on_pg or Thread.current[:typem] == :on_pub
+          if @bots_created.size>0
+            txt = "\nThese are the *SmartBots* running on this Slack workspace: *<##{@master_bot_id}>, <##{@bots_created.keys.join('>, <#')}>*\n"
+            txt += "Join one channel and call *`bot rules`* to see specific commands for that channel or *`bot help`* to see all commands for that channel.\n"
+            respond txt
+          end
+        end
       else
         unless help_found
           if specific

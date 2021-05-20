@@ -50,6 +50,9 @@ class SlackSmartBot
           $2.to_s.match?(/rules/i) ? specific = true : specific = false
           help_command = $3
           bot_help(user, from, dest, dchannel, specific, help_command, rules_file)
+        when /\A\s*(suggest|random)\s+(command|rule)\s*\z/i, /\A\s*(command|rule)\s+suggestion\s*\z/i
+          $2.to_s.match?(/rule/i) || $1.to_s.match?(/rule/i) ? specific = true : specific = false
+          suggest_command(from, dest, dchannel, specific, rules_file)
         when /^\s*use\s+(rules\s+)?(from\s+)?<#C\w+\|(.+)>\s*$/i, /^use\s+(rules\s+)?(from\s+)?([^\s]+\s*$)/i
           channel = $3
           use_rules(dest, channel, user, dchannel)

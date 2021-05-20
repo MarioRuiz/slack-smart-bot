@@ -210,7 +210,7 @@ class SlackSmartBot
             on_demand = true
           end
           unless config.on_maintenance or @status != :on
-            if (typem == :on_pub or typem == :on_pg) or typem == :on_extended
+            if typem == :on_pub or typem == :on_pg or typem == :on_extended
               if command.match(/^\s*(#{@salutations.join("|")})\s+(rules|help)\s*(.+)?$/i) or command.match(/^(#{@salutations.join("|")}),? what can I do/i)
                 $2.to_s.match?(/rules/i) ? specific = true : specific = false
                 help_command = $3

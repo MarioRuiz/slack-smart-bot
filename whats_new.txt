@@ -1,38 +1,16 @@
-*Version 1.10.0DEV07* Released 2021-May-18
+*Version 1.10.0DEV08* Released 2021-May-20
 
 *For General users*
 - When on a private conversation with the SmartBot (DM) and not using any channels rule on the conversation, the general_rules will be available.
 - On DM with the SmartBot if you want to use a rule from a specific channel you can use also: `#CHANNEL RULE` or `on #CHANNEL RULE`. For example: `#sales get report for India` 
 - Now when using general commands, the SmartBot will be responding on any channel where is a member, even though is not listening to you. For example: `clear screen`
+- Added command `suggest command` that will return the help content for a random command.
 
-*For admin users*
+*For Admin users*
 - respond_thread method will send the respond creating a thread if necessary. It can be used also `respond 'msg', :on_thread`
 - `respond 'msg', :direct` will send a direct message to the person that is executing the rule.
 - You can add general commands that will be responding on any channel where the Smart Bot is a member even though is not 'listening to you'. Add them to '/rules/general_commands.rb
 
 ------------------------------
 
-*Version 1.9.2* Released 2021-Apr-27
-
-- Bugfixing and small improvements
-
-------------------------------
-
-*Version 1.9.0* Released 2021-Mar-18
-
-*For General users*
-- Added command `what's new` that will show this.
-- `bot stats` will return detailed statistics using the SmartBot. If you call it from a DM with the SmartBot you will see all stats for all Bot channels.
-- Possible to create 'global' shortcuts that will be available on any SmartBot Channel.
-- Added option to start a `repl` without pre-executing '.smart-bot-repl' source code in case exists. Just add `clean` before the `repl` command. For example: `clean repl Example`
-- When using `Ruby` command in case the process doesn't finish in 20 seconds will be aborted.
-- When creating rules/commands and asking a question now you can use 'answer' instead of '@questions'. Take a look at README.md for an example.
-- Using external calls, it is possible to send to more than one bot channel the same rule: `@smart-bot on #channel1 #channel2 #channel3 echo Lala`
-- `bot help` and `bot rules` return by default a short version of the commands. Call `bot help expanded` or `bot rules expanded` to get a full desciption of the commands.
-- It is possible to exclude routines from results when using `bot stats`
-------------------------------
-*For Admin users*
-- `Bot stats` now shows the top 10 users and attaches the full list of users and commands.
-- Bot Stats. Now the routines are displayed as routine/USER
-- When creating routines now it is possible to publish in a different channel: `add routine run_tests at 17:05 #thechannel !run api tests`
-- `Turn maintenance on/off` command available
+*Previous*: <https://github.com/MarioRuiz/slack-smart-bot/blob/dd23939f93ee95aca3c04d33cd1ce197d6efbd37/whats_new.txt|1.9.0>

@@ -241,6 +241,8 @@ If you want to search just for a specific command: **_`bot help COMMAND`_** It w
 
 To show only the specific rules of the Smart Bot defined on the rules file: **_`bot rules`_** or **_`bot rules COMMAND`_**
 
+Also you can call `suggest command` or `random command` and SmartBot will return the help content for a random command.
+
 Example:
 >**_Peter>_** `bot help echo`  
 >**_Smart-Bot>_** `echo SOMETHING`  

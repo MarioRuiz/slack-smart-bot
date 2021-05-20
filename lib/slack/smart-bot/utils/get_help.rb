@@ -1,7 +1,7 @@
 class SlackSmartBot
-  def get_help(rules_file, dest, from, only_rules, expanded)
+  def get_help(rules_file, dest, from, only_rules, expanded, descriptions: true, only_normal_user: false)
     order = {
-      general: [:whats_new, :hi_bot, :bye_bot, :bot_help, :bot_status, :use_rules, :stop_using_rules, :bot_stats],
+      general: [:whats_new, :hi_bot, :bye_bot, :bot_help, :suggest_command, :bot_status, :use_rules, :stop_using_rules, :bot_stats],
       on_bot: [:ruby_code, :repl, :get_repl, :run_repl, :delete_repl, :see_repls, :add_shortcut, :delete_shortcut, :see_shortcuts],
       on_bot_admin: [:extend_rules, :stop_using_rules_on, :start_bot, :pause_bot, :add_routine,
         :see_routines, :start_routine, :pause_routine, :remove_routine, :run_routine]
@@ -13,6 +13,7 @@ class SlackSmartBot
     else
       user_type = :normal #normal user
     end
+    
     # channel_type: :bot, :master_bot, :direct, :extended, :external
     if dest[0] == "D"
       channel_type = :direct
@@ -26,6 +27,11 @@ class SlackSmartBot
 
     if Thread.current[:typem] == :on_pg or Thread.current[:typem] == :on_pub
       channel_type = :external
+    end
+
+    if only_normal_user
+      user_type = :normal 
+      channel_type = :bot
     end
 
     @help_messages_expanded ||= build_help("#{__dir__}/../commands", true)
@@ -70,7 +76,7 @@ class SlackSmartBot
     help = remove_hash_keys(help, :on_dm) unless channel_type == :direct
     txt = ""
 
-    if (channel_type == :bot or channel_type == :master_bot) and expanded
+    if (channel_type == :bot or channel_type == :master_bot) and expanded and descriptions
       txt += "===================================
       For the Smart Bot start listening to you say *hi bot*
       To run a command on demand even when the Smart Bot is not listening to you:
@@ -81,11 +87,11 @@ class SlackSmartBot
             *^THE_COMMAND*
             *!!THE_COMMAND*\n"
     end
-    if channel_type == :direct and expanded
+    if channel_type == :direct and expanded and descriptions
       txt += "===================================
       When on a private conversation with the Smart Bot, I'm always listening to you.\n"
     end
-    unless channel_type == :master_bot or channel_type == :extended or !expanded
+    unless channel_type == :master_bot or channel_type == :extended or !expanded or !descriptions
       txt += "===================================
       *Commands from Channels without a bot:*
       ----------------------------------------------
@@ -102,12 +108,14 @@ class SlackSmartBot
     end
 
     if help.key?(:general) and channel_type != :external and channel_type != :extended
-      if channel_type == :direct
-        txt += "===================================
-        *General commands:*\n"
-      else
-        txt += "===================================
-        *General commands even when the Smart Bot is not listening to you:*\n"
+      if descriptions
+        if channel_type == :direct
+          txt += "===================================
+          *General commands:*\n"
+        else
+          txt += "===================================
+          *General commands even when the Smart Bot is not listening to you:*\n"
+        end
       end
       order.general.each do |o|
         txt += help.general[o]
@@ -119,17 +127,19 @@ class SlackSmartBot
 
     if help.key?(:general_commands_file)
       txt += "===================================
-        *General commands on any channel where the Smart Bot is a member:*\n"
+        *General commands on any channel where the Smart Bot is a member:*\n" if descriptions
       txt += help.general_commands_file
     end
 
     if help.key?(:on_bot) and channel_type != :external and channel_type != :extended
-      if channel_type == :direct
-        txt += "===================================
-        *General commands on bot, DM or on external call on demand:*\n"
-      else
-        txt += "===================================
-        *General commands only when the Smart Bot is listening to you or on demand:*\n"
+      if descriptions
+        if channel_type == :direct
+          txt += "===================================
+          *General commands on bot, DM or on external call on demand:*\n"
+        else
+          txt += "===================================
+          *General commands only when the Smart Bot is listening to you or on demand:*\n"
+        end
       end
       order.on_bot.each do |o|
         txt += help.on_bot[o]
@@ -137,8 +147,7 @@ class SlackSmartBot
     end
     if help.key?(:on_bot) and help.on_bot.key?(:admin) and channel_type != :external and channel_type != :extended
       txt += "===================================
-        *Admin commands:*\n"
-      txt += "\n"
+        *Admin commands:*\n\n" if descriptions
       order.on_bot_admin.each do |o|
         txt += help.on_bot.admin[o]
       end
@@ -151,7 +160,7 @@ class SlackSmartBot
 
     if help.key?(:on_bot) and help.on_bot.key?(:admin_master) and help.on_bot.admin_master.size > 0 and channel_type != :external and channel_type != :extended
       txt += "===================================
-        *Master Admin commands:*\n"
+        *Master Admin commands:*\n" if descriptions
       help.on_bot.admin_master.each do |k, v|
         txt += v if v.is_a?(String)
       end
@@ -159,7 +168,7 @@ class SlackSmartBot
 
     if help.key?(:on_master) and help.on_master.key?(:admin_master) and help.on_master.admin_master.size > 0 and channel_type != :external and channel_type != :extended
       txt += "===================================
-        *Master Admin commands:*\n" unless txt.include?('*Master Admin commands*')
+        *Master Admin commands:*\n" unless txt.include?('*Master Admin commands*') or !descriptions
       help.on_master.admin_master.each do |k, v|
         txt += v if v.is_a?(String)
       end
@@ -212,7 +221,7 @@ class SlackSmartBot
             pre = ('='*50) + "\n"
             post = ('-'*50) + "\n"
           end
-          resf = "#{pre}*These are specific commands for this bot on this Channel:*\n#{post}" + resf
+          resf = ("#{pre}*These are specific commands for this bot on this Channel:*\n#{post}" + resf) if descriptions
         end
         help.rules_file = resf
       end

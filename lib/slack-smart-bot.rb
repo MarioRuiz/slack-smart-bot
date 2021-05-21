@@ -43,6 +43,7 @@ class SlackSmartBot
     config[:allow_access] = Hash.new unless config.key?(:allow_access)
     config[:on_maintenance] = false unless config.key?(:on_maintenance)
     config[:on_maintenance_message] = "Sorry I'm on maintenance so I cannot attend your request." unless config.key?(:on_maintenance_message)
+    config[:logrtm] = false unless config.key?(:logrtm)
 
     if config.path.to_s!='' and config.file.to_s==''
       config.file = File.basename($0)
@@ -131,7 +132,14 @@ class SlackSmartBot
         if config.simulate and config.key?(:client)
           self.client = config.client
         else
-          self.client = Slack::RealTime::Client.new(start_method: :rtm_connect)
+          if config.logrtm
+            logrtmname = "#{config.path}/logs/rtm_#{config.channel}.log"
+            File.delete(logrtmname) if File.exists?(logrtmname)
+            @logrtm = Logger.new(logrtmname) #jal
+            self.client = Slack::RealTime::Client.new(start_method: :rtm_connect, logger: @logrtm)
+          else
+            self.client = Slack::RealTime::Client.new(start_method: :rtm_connect)
+          end
         end
         created = true
       rescue Exception => e

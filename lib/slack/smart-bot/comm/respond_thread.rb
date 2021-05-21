@@ -1,5 +1,5 @@
 class SlackSmartBot
-  def respond_thread(msg)
-    respond(msg, :on_thread)
+  def respond_thread(msg, unfurl_links: true, unfurl_media: true)
+    respond(msg, :on_thread, unfurl_links: unfurl_links, unfurl_media: unfurl_media)
   end
 end

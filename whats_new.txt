@@ -10,6 +10,7 @@
 - respond_thread method will send the respond creating a thread if necessary. It can be used also `respond 'msg', :on_thread`
 - `respond 'msg', :direct` will send a direct message to the person that is executing the rule.
 - You can add general commands that will be responding on any channel where the Smart Bot is a member even though is not 'listening to you'. Add them to '/rules/general_commands.rb
+- when using `respond` you can supply two options: unfurl_links and unfurl_media. By default is a boolean: true
 
 ------------------------------
 

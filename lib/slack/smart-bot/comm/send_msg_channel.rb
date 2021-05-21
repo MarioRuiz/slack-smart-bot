@@ -2,7 +2,7 @@ class SlackSmartBot
 
   # to: (String) Channel name or id
   # msg: (String) message to send
-  def send_msg_channel(to, msg)
+  def send_msg_channel(to, msg, unfurl_links: true, unfurl_media: true)
     unless msg == ""
       begin
         get_channels_name_and_id() unless @channels_name.key?(to) or @channels_id.key?(to)
@@ -19,9 +19,9 @@ class SlackSmartBot
           }
         else  
           if Thread.current[:on_thread]
-            client.message(channel: channel_id, text: msg, as_user: true, thread_ts: Thread.current[:thread_ts])
+            client.message(channel: channel_id, text: msg, as_user: true, thread_ts: Thread.current[:thread_ts], unfurl_links: unfurl_links, unfurl_media: unfurl_media)
           else
-            client.message(channel: channel_id, text: msg, as_user: true)
+            client.message(channel: channel_id, text: msg, as_user: true, unfurl_links: unfurl_links, unfurl_media: unfurl_media)
           end
         end
         if config[:testing] and config.on_master_bot

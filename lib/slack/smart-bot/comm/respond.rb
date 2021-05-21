@@ -1,5 +1,5 @@
 class SlackSmartBot
-  def respond(msg, dest = nil)
+  def respond(msg, dest = nil, unfurl_links: true, unfurl_media: true)
     begin
       msg = msg.to_s
       on_thread = Thread.current[:on_thread]
@@ -40,12 +40,12 @@ class SlackSmartBot
         else  
           if on_thread
             msgs.each do |msg|
-              client.message(channel: @channel_id, text: msg, as_user: true, thread_ts: Thread.current[:thread_ts])
+              client.message(channel: @channel_id, text: msg, as_user: true, thread_ts: Thread.current[:thread_ts], unfurl_links: unfurl_links, unfurl_media: unfurl_media)
               sleep wait
             end
           else
             msgs.each do |msg|
-              client.message(channel: @channel_id, text: msg, as_user: true)
+              client.message(channel: @channel_id, text: msg, as_user: true, unfurl_links: unfurl_links, unfurl_media: unfurl_media)
               sleep wait
             end
           end
@@ -63,12 +63,12 @@ class SlackSmartBot
         else  
           if on_thread
             msgs.each do |msg|
-              client.message(channel: dest, text: msg, as_user: true, thread_ts: Thread.current[:thread_ts])
+              client.message(channel: dest, text: msg, as_user: true, thread_ts: Thread.current[:thread_ts], unfurl_links: unfurl_links, unfurl_media: unfurl_media)
               sleep wait
             end
           else
             msgs.each do |msg|
-              client.message(channel: dest, text: msg, as_user: true)
+              client.message(channel: dest, text: msg, as_user: true, unfurl_links: unfurl_links, unfurl_media: unfurl_media)
               sleep wait
             end
           end
@@ -80,14 +80,14 @@ class SlackSmartBot
         end
       elsif dest[0] == "D" or dest[0] == "U"  or dest[0] == "W" # Direct message
         msgs.each do |msg|
-          send_msg_user(dest, msg, on_thread)
+          send_msg_user(dest, msg, on_thread, unfurl_links: unfurl_links, unfurl_media: unfurl_media)
           sleep wait
         end
       elsif dest[0] == "@"
         begin
           user_info = @users.select{|u| u.id == dest[1..-1]}[-1]
           msgs.each do |msg|
-            send_msg_user(user_info.user.id, msg, on_thread)
+            send_msg_user(user_info.user.id, msg, on_thread, unfurl_links: unfurl_links, unfurl_media: unfurl_media)
             sleep wait
           end
         rescue Exception => stack

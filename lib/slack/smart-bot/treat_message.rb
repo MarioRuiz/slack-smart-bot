@@ -148,14 +148,19 @@ class SlackSmartBot
           end
         end
       end
-      #todo: when changed @questions user_id then move user_info inside the ifs to avoid calling it when not necessary
-      user_info = @users.select{|u| u.id == data.user}[-1]
-      if user_info.nil? or user_info.empty?
-        @users = get_users() 
+      if data.nil? or data.user.nil? or data.user.to_s==''
+        user_info = nil
+        @users = get_users() if @users.empty?
+      else
+        #todo: when changed @questions user_id then move user_info inside the ifs to avoid calling it when not necessary
         user_info = @users.select{|u| u.id == data.user}[-1]
+        if user_info.nil? or user_info.empty?
+          @users = get_users() 
+          user_info = @users.select{|u| u.id == data.user}[-1]
+        end
       end
       load "#{config.path}/rules/general_commands.rb" if File.exists?("#{config.path}/rules/general_commands.rb") and @datetime_general_commands != File.mtime("#{config.path}/rules/general_commands.rb")
-      unless typem == :dont_treat
+      unless typem == :dont_treat or user_info.nil?
         if (Time.now - @last_activity_check) > 60 * 30 #every 30 minutes
           @last_activity_check = Time.now
           @listening.each do |k,v|
@@ -250,6 +255,7 @@ class SlackSmartBot
           @logger.fatal stack
         end
       else
+        @logger.warn "Pay attention there is no user on users with id #{data.user}" if user_info.nil?
         if !config.on_master_bot and !dest.nil? and (data.channel == @master_bot_id or dest[0] == "D") and
           data.text.match?(/^\s*(!|!!|\^)?\s*bot\s+status\s*$/i) and @admin_users_id.include?(data.user)
           respond "ping from #{config.channel}", dest

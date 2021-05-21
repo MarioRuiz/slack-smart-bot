@@ -89,13 +89,13 @@ class SlackSmartBot
           kill_bot_on_channel(dest, from, channel)
         when /^\s*(add|create)\s+(silent\s+)?routine\s+(\w+)\s+(every)\s+(\d+)\s*(days|hours|minutes|seconds|mins|min|secs|sec|d|h|m|s)\s*(\s#(\w+)\s*)(\s.+)?\s*$/i,
           /^\s*(add|create)\s+(silent\s+)?routine\s+(\w+)\s+(every)\s+(\d+)\s*(days|hours|minutes|seconds|mins|min|secs|sec|d|h|m|s)\s*(\s<#(C\w+)\|.+>\s*)?(\s.+)?\s*$/i,
-          /^\s*(add|create)\s+(silent\s+)?routine\s+(\w+)\s+on\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday)s?\s+at\s+(\d+:\d+:?\d+?)\s*()(\s#(\w+)\s*)(\s.+)?\s*$/i,
-          /^\s*(add|create)\s+(silent\s+)?routine\s+(\w+)\s+on\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday)s?\s+at\s+(\d+:\d+:?\d+?)\s*()(\s<#(C\w+)\|.+>\s*)?(\s.+)?\s*$/i,
+          /^\s*(add|create)\s+(silent\s+)?routine\s+(\w+)\s+on\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday|weekend|weekday)s?\s+at\s+(\d+:\d+:?\d+?)\s*()(\s#(\w+)\s*)(\s.+)?\s*$/i,
+          /^\s*(add|create)\s+(silent\s+)?routine\s+(\w+)\s+on\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday|weekend|weekday)s?\s+at\s+(\d+:\d+:?\d+?)\s*()(\s<#(C\w+)\|.+>\s*)?(\s.+)?\s*$/i,
           /^\s*(add|create)\s+(silent\s+)?routine\s+(\w+)\s+(at)\s+(\d+:\d+:?\d+?)\s*()(\s#(\w+)\s*)(\s.+)?\s*$/i,
           /^\s*(add|create)\s+(silent\s+)?routine\s+(\w+)\s+(at)\s+(\d+:\d+:?\d+?)\s*()(\s<#(C\w+)\|.+>\s*)?(\s.+)?\s*$/i
           silent = $2.to_s!=''
           name = $3.downcase
-          type = $4
+          type = $4.to_s.downcase
           number_time = $5
           period = $6
           channel = $8

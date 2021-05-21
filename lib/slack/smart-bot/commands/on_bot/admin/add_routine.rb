@@ -19,7 +19,7 @@ class SlackSmartBot
   # helpadmin:    NUMBER: Integer
   # helpadmin:    PERIOD: days, d, hours, h, minutes, mins, min, m, seconds, secs, sec, s
   # helpadmin:    TIME: time at format HH:MM:SS
-  # helpadmin:    DAYWEEK: Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday. And their plurals.
+  # helpadmin:    DAYWEEK: Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday. And their plurals. Also possible to be used 'weekdays' and 'weekends'
   # helpadmin:    #CHANNEL: the destination channel where the results will be published. If not supplied then the bot channel by default or a DM if the command is run from a DM.
   # helpadmin:    COMMAND: any valid smart bot command or rule
   # helpadmin:    Examples:
@@ -29,6 +29,7 @@ class SlackSmartBot
   # helpadmin:      _create silent routine Example every 12 hours !Run customer tests_
   # helpadmin:      _add routine example on Mondays at 05:00 !run customer tests_
   # helpadmin:      _add routine example on Tuesdays at 09:00 #SREChannel !run db cleanup_
+  # helpadmin:      _add routine example on weekdays at 22:00 suggest command_
   # helpadmin:    <https://github.com/MarioRuiz/slack-smart-bot#routines|more info>
   # helpadmin:
   def add_routine(dest, from, user, name, type, number_time, period, command_to_run, files, silent, channel)
@@ -62,8 +63,9 @@ class SlackSmartBot
               every = "#{number_time} seconds"
               every_in_seconds = number_time.to_i
             else # time
-              if type != 'at'
+              if type != 'at' and type!='weekday' and type!='weekend'
                 dayweek = type.downcase
+
                 days = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday']
                 incr = days.index(dayweek) - Time.now.wday
                 if incr < 0 
@@ -73,6 +75,14 @@ class SlackSmartBot
                 end
                 days = incr/(24*60*60)
                 every_in_seconds = 7 * 24 * 60 * 60 # one week
+              elsif type=='weekend'
+                dayweek = type.downcase
+                days = 0
+                every_in_seconds = 24 * 60 * 60 # one day
+              elsif type=='weekday'
+                dayweek = type.downcase
+                days = 0
+                every_in_seconds = 24 * 60 * 60 # one day
               else
                 days = 0
                 every_in_seconds = 24 * 60 * 60 # one day
@@ -115,7 +125,7 @@ class SlackSmartBot
                                              every: every, every_in_seconds: every_in_seconds, at: at, dayweek: dayweek, file_path: file_path, 
                                              command: command_to_run.to_s.strip, silent: silent,
                                              next_run: next_run.to_s, dest: channel_id, last_run: "", last_elapsed: "", 
-                                             running: false }
+                                             running: false}
             update_routines
             respond "Added routine *`#{name}`* to the channel", dest
             create_routine_thread(name)

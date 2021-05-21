@@ -135,7 +135,7 @@ class SlackSmartBot
           if config.logrtm
             logrtmname = "#{config.path}/logs/rtm_#{config.channel}.log"
             File.delete(logrtmname) if File.exists?(logrtmname)
-            @logrtm = Logger.new(logrtmname) #jal
+            @logrtm = Logger.new(logrtmname)
             self.client = Slack::RealTime::Client.new(start_method: :rtm_connect, logger: @logrtm)
           else
             self.client = Slack::RealTime::Client.new(start_method: :rtm_connect)

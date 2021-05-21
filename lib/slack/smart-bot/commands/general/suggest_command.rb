@@ -22,7 +22,7 @@ class SlackSmartBot
     end until @last_suggested_command != command or commands.size == 1
     @last_suggested_command = command
     message = "*Command suggestion*:\n#{command}"
-    respond message, dest
+    respond message, dest, unfurl_links: false, unfurl_media: false
   end
 
 end

@@ -92,7 +92,7 @@ class SlackSmartBot
       elsif help_command.to_s == ""
         respond "Slack Smart Bot Github project: https://github.com/MarioRuiz/slack-smart-bot", dest, unfurl_links: false, unfurl_media: false
       end
-      respond message_not_expanded unless expanded
+      respond(message_not_expanded, unfurl_media: false, unfurl_links: false) unless expanded
     end
   end
 end

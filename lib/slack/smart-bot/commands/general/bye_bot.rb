@@ -6,6 +6,7 @@ class SlackSmartBot
   # help: `Bye NAME_OF_THE_BOT`
   # help:    Bot stops listening to you
   # help:    Also apart of Bye you can use _Bæ, Good Bye, Adiós, Ciao, Bless, Bless Bless, Adeu_
+  # help:    <https://github.com/MarioRuiz/slack-smart-bot#how-to-access-the-smart-bot|more info>
   # help:
   def bye_bot(dest, from, display_name)
     if @status == :on

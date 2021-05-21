@@ -7,6 +7,7 @@ class SlackSmartBot
   # helpadmin:    NAME: one word to identify the routine
   # helpadmin:    Examples:
   # helpadmin:      _start routine example_
+  # helpadmin:    <https://github.com/MarioRuiz/slack-smart-bot#routines|more info>
   # helpadmin:
 
   def start_routine(dest, from, name)

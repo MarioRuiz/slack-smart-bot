@@ -8,6 +8,7 @@ class SlackSmartBot
   # helpmaster:    the admins will be the master admins, the creator of the bot and the creator of the channel
   # helpmaster:    follow the instructions in case creating cloud bots
   # helpmaster:    in case 'silent' won't display the Bot initialization message on the CHANNEL_NAME
+  # helpmaster:    <https://github.com/MarioRuiz/slack-smart-bot#bot-management|more info>
   # helpmaster:
   def create_bot(dest, user, type, channel)
     cloud = type.include?('cloud')

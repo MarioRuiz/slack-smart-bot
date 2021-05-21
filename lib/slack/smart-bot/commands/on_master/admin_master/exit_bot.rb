@@ -6,6 +6,7 @@ class SlackSmartBot
   # helpadmin: `close bot`
   # helpadmin:    The bot stops running and also stops all the bots created from this master channel
   # helpadmin:    You can use this command only if you are an admin user and you are on the master channel
+  # helpadmin:    <https://github.com/MarioRuiz/slack-smart-bot#bot-management|more info>
   # helpadmin:
   def exit_bot(command, from, dest, display_name)
     save_stats(__method__)

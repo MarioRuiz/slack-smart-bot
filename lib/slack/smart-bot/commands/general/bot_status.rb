@@ -3,6 +3,7 @@ class SlackSmartBot
   # helpadmin: `bot status`
   # helpadmin:    Displays the status of the bot
   # helpadmin:    If on master channel and admin user also it will display info about bots created
+  # helpadmin:    <https://github.com/MarioRuiz/slack-smart-bot#bot-management|more info>
   # helpadmin:
   def bot_status(dest, user)
     save_stats(__method__)

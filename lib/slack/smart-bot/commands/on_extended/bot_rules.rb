@@ -21,18 +21,21 @@ class SlackSmartBot
           help_found = false
           help_filtered.split(/^\s*-------*$/).each do |h|
             if h.match?(/[`_]#{help_command}/i)
-              respond "*#{config.channel}*:#{h}", dest
+              respond "*#{config.channel}*:#{h}", dest, unfurl_links: false, unfurl_media: false
               help_found = true
             end
           end
-          respond("*#{config.channel}*: I didn't find any command starting by `#{help_command}`", dest) unless help_found
+          unless help_found
+            respond "*#{config.channel}*: I didn't find any command starting by `#{help_command}`", dest, unfurl_links: false, unfurl_media: false
+          end
+
         else
           message = "-\n\n\n===================================\n*Rules from channel #{config.channel}*\n"
           if typem == :on_extended
             message += "To run the commands on this extended channel, add `!`, `!!` or `^` before the command.\n"
           end
           message += help_filtered
-          respond message, dest
+          respond message, dest, unfurl_links: false, unfurl_media: false
         end
 
         unless rules_file.empty?
@@ -41,7 +44,7 @@ class SlackSmartBot
           end
         end
         if defined?(git_project) and git_project.to_s != "" and help_command.to_s == ""
-          respond "Git project: #{git_project}", dest
+          respond "Git project: #{git_project}", dest, unfurl_links: false, unfurl_media: false
         else
           def git_project() "" end
           def project_folder() "" end
@@ -49,7 +52,7 @@ class SlackSmartBot
         unless expanded
           message_not_expanded = "If you want to see the *expanded* version of *`bot rules`*, please call  *`bot rules expanded`*\n"
           message_not_expanded += "Also to get specific *expanded* help for a specific command or rule call *`bot rules COMMAND`*\n"
-          respond message_not_expanded
+          respond message_not_expanded, unfurl_links: false, unfurl_media: false
         end
       end
     end

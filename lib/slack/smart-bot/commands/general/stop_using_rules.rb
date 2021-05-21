@@ -2,6 +2,7 @@ class SlackSmartBot
   # help: ----------------------------------------------
   # help: `stop using rules from CHANNEL`
   # help:    it will stop using the rules from the specified channel.
+  # help:    <https://github.com/MarioRuiz/slack-smart-bot#using-rules-from-other-channels|more info>
   # help:
   def stop_using_rules(dest, channel, user, dchannel)
     save_stats(__method__)

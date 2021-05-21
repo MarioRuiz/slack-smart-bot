@@ -5,6 +5,7 @@ class SlackSmartBot
   # helpadmin: `start this bot`
   # helpadmin:    the bot will start to listen
   # helpadmin:    You can use this command only if you are an admin user
+  # helpadmin:    <https://github.com/MarioRuiz/slack-smart-bot#bot-management|more info>
   # helpadmin:
   def start_bot(dest, from)
     save_stats(__method__)

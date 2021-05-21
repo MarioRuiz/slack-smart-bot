@@ -6,6 +6,7 @@ class SlackSmartBot
   # help: `use CHANNEL`
   # help:    it will use the rules from the specified channel.
   # help:    you need to be part of that channel to be able to use the rules.
+  # help:    <https://github.com/MarioRuiz/slack-smart-bot#using-rules-from-other-channels|more info>
   # help:
   def use_rules(dest, channel, user, dchannel)
     save_stats(__method__)

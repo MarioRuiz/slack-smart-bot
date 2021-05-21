@@ -4,6 +4,7 @@ class SlackSmartBot
   # helpadmin: `extend rules to CHANNEL_NAME`
   # helpadmin: `use rules on CHANNEL_NAME`
   # helpadmin:    It will allow to use the specific rules from this channel on the CHANNEL_NAME
+  # helpadmin:    <https://github.com/MarioRuiz/slack-smart-bot#extending-rules-to-other-channels|more info>
   # helpadmin:
   def extend_rules(dest, user, from, channel, typem)
     save_stats(__method__)

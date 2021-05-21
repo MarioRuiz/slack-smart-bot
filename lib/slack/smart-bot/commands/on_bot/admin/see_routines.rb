@@ -5,6 +5,7 @@ class SlackSmartBot
   # helpadmin:    It will show the routines of the channel
   # helpadmin:    In case of `all` and on the master channel, it will show all the routines from all channels
   # helpadmin:    You can use this command only if you are an admin user
+  # helpadmin:    <https://github.com/MarioRuiz/slack-smart-bot#routines|more info>
   # helpadmin:
   def see_routines(dest, from, user, all)
     save_stats(__method__)

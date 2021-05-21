@@ -12,6 +12,7 @@ class SlackSmartBot
   # help:    if COMMAND supplied just help for that command
   # help:    you can use the option 'expanded' or the alias 'extended'
   # help:    `bot rules` will show only the specific rules for this channel.
+  # help:    <https://github.com/MarioRuiz/slack-smart-bot#bot-help|more info>
   # help:
   def bot_help(user, from, dest, dchannel, specific, help_command, rules_file)
     save_stats(__method__)
@@ -37,7 +38,7 @@ class SlackSmartBot
       if help_command.to_s != ""
         help_message.gsub(/====+/,'-'*30).split(/^\s*-------*$/).each do |h|
           if h.match?(/[`_]#{help_command}/i)
-            respond h, dest
+            respond h, dest, unfurl_links: false, unfurl_media: false
             help_found = true
           end
         end
@@ -45,18 +46,20 @@ class SlackSmartBot
         if Thread.current[:using_channel]!=''
           message += "*You are using rules from another channel: <##{Thread.current[:using_channel]}>. These are the specific commands for that channel:*"
         end
-        respond message, dest
+        respond message, dest, unfurl_links: false, unfurl_media: false
       end
 
       if (help_command.to_s == "")
         help_message.split(/^\s*=========*$/).each do |h|
-          respond("#{"=" * 35}\n#{h}", dest) unless h.match?(/\A\s*\z/)
+          unless h.match?(/\A\s*\z/)
+            respond "#{"=" * 35}\n#{h}", dest, unfurl_links: false, unfurl_media: false
+          end
         end
         if Thread.current[:typem] == :on_pg or Thread.current[:typem] == :on_pub
           if @bots_created.size>0
             txt = "\nThese are the *SmartBots* running on this Slack workspace: *<##{@master_bot_id}>, <##{@bots_created.keys.join('>, <#')}>*\n"
             txt += "Join one channel and call *`bot rules`* to see specific commands for that channel or *`bot help`* to see all commands for that channel.\n"
-            respond txt
+            respond txt, unfurl_links: false, unfurl_media: false
           end
         end
       else
@@ -76,7 +79,7 @@ class SlackSmartBot
           end
         end
         if defined?(git_project) && (git_project.to_s != "") && (help_command.to_s == "")
-          respond "Git project: #{git_project}", dest
+          respond "Git project: #{git_project}", dest, unfurl_links: false, unfurl_media: false
         else
           def git_project
             ""
@@ -87,7 +90,7 @@ class SlackSmartBot
           end
         end
       elsif help_command.to_s == ""
-        respond "Slack Smart Bot Github project: https://github.com/MarioRuiz/slack-smart-bot", dest
+        respond "Slack Smart Bot Github project: https://github.com/MarioRuiz/slack-smart-bot", dest, unfurl_links: false, unfurl_media: false
       end
       respond message_not_expanded unless expanded
     end

@@ -3,6 +3,7 @@ class SlackSmartBot
   # help: `see shortcuts`
   # help: `see sc`
   # help:    It will display the shortcuts stored for the user and for :all
+  # help:    <https://github.com/MarioRuiz/slack-smart-bot#shortcuts|more info>
   # help:
   def see_shortcuts(dest, user, typem)
     save_stats(__method__)

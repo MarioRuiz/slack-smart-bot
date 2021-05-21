@@ -9,6 +9,7 @@ class SlackSmartBot
   # help:     It will return only the values that were print out on the repl with puts, print, p or pp
   # help:     Example:
   # help:       _run repl CreateCustomer LOCATION=spain HOST='https://10.30.40.50:8887'_
+  # help:     <https://github.com/MarioRuiz/slack-smart-bot#repl|more info>
   # help:
   def run_repl(dest, user, session_name, env_vars, rules_file)
     #todo: add tests

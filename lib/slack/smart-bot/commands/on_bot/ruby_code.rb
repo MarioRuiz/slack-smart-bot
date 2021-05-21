@@ -5,6 +5,7 @@ class SlackSmartBot
   # help:     runs the code supplied and returns the output. Also you can send a Ruby file instead. Examples:
   # help:       _code puts (34344/99)*(34+14)_
   # help:       _ruby require 'json'; res=[]; 20.times {res<<rand(100)}; my_json={result: res}; puts my_json.to_json_
+  # help:     <https://github.com/MarioRuiz/slack-smart-bot#running-ruby-code-on-a-conversation|more info>
   # help:
 
   def ruby_code(dest, user, code, rules_file)

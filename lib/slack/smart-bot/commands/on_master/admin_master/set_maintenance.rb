@@ -8,6 +8,7 @@ class SlackSmartBot
   # helpmaster: `turn maintenance off`
   # helpmaster:    The SmartBot will be on maintenance and responding with a generic message
   # helpmaster:    Only works if you are on Master channel and you are a master admin user
+  # helpmaster:    <https://github.com/MarioRuiz/slack-smart-bot#bot-management|more info>
   # helpmaster:
   def set_maintenance(from, status, message)
     save_stats(__method__)

@@ -2,7 +2,8 @@ class SlackSmartBot
   # help: ----------------------------------------------
   # help: `see repls`
   # help: `see irbs`
-  # help:    It will display the repls
+  # help:     It will display the repls
+  # help:     <https://github.com/MarioRuiz/slack-smart-bot#repl|more info>
   # help:
   def see_repls(dest, user, typem)
     #todo: add tests

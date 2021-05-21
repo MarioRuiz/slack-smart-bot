@@ -28,6 +28,7 @@ class SlackSmartBot
     # help:      _bot stats #sales today_
     # help:      _bot stats #sales from 2020-01-01 monthly_
     # help:      _bot stats exclude routines masters from 2021/01/01 monthly_
+    # help:    <https://github.com/MarioRuiz/slack-smart-bot#bot-management|more info>
     # help:
     def bot_stats(dest, from_user, typem, channel_id, from, to, user, st_command, exclude_masters, exclude_routines, exclude_command, monthly, all_data)
         require 'csv'

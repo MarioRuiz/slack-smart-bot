@@ -5,6 +5,7 @@ class SlackSmartBot
   # help: `remove repl SESSION_NAME`
   # help:     Will delete the specified REPL
   # help:     Only the creator of the REPL or an admin can delete REPLs
+  # help:     <https://github.com/MarioRuiz/slack-smart-bot#repl|more info>
   # help:
   def delete_repl(dest, user, session_name)
     #todo: add tests

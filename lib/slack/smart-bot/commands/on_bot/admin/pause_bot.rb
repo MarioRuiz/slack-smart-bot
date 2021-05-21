@@ -5,6 +5,7 @@ class SlackSmartBot
   # helpadmin: `pause this bot`
   # helpadmin:    the bot will pause so it will listen only to admin commands
   # helpadmin:    You can use this command only if you are an admin user
+  # helpadmin:    <https://github.com/MarioRuiz/slack-smart-bot#bot-management|more info>
   # helpadmin:
   def pause_bot(dest, from)
     save_stats(__method__)

@@ -29,6 +29,7 @@ class SlackSmartBot
   # helpadmin:      _create silent routine Example every 12 hours !Run customer tests_
   # helpadmin:      _add routine example on Mondays at 05:00 !run customer tests_
   # helpadmin:      _add routine example on Tuesdays at 09:00 #SREChannel !run db cleanup_
+  # helpadmin:    <https://github.com/MarioRuiz/slack-smart-bot#routines|more info>
   # helpadmin:
   def add_routine(dest, from, user, name, type, number_time, period, command_to_run, files, silent, channel)
     save_stats(__method__)

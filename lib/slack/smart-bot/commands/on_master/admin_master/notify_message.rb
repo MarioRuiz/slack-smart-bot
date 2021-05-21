@@ -7,6 +7,7 @@ class SlackSmartBot
   # helpmaster:    It will send a notification message to all channels the bot joined and private conversations with the bot
   # helpmaster:    It will send a notification message to the specified channel and to its extended channels
   # helpmaster:    Only works if you are on Master channel and you are a master admin user
+  # helpmaster:    <https://github.com/MarioRuiz/slack-smart-bot#sending-notifications|more info>
   # helpmaster:
   def notify_message(dest, from, where, message)
     save_stats(__method__)

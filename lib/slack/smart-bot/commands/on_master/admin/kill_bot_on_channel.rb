@@ -3,6 +3,7 @@ class SlackSmartBot
   # helpmaster: `kill bot on CHANNEL_NAME`
   # helpmaster:    kills the bot on the specified channel
   # helpmaster:    Only works if you are on Master channel and you created that bot or you are an admin user
+  # helpmaster:    <https://github.com/MarioRuiz/slack-smart-bot#bot-management|more info>
   # helpmaster:
   def kill_bot_on_channel(dest, from, channel)
     save_stats(__method__)

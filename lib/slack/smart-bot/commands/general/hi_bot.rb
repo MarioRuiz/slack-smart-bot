@@ -8,6 +8,7 @@ class SlackSmartBot
   # help:    Bot starts listening to you
   # help:    After that if you want to avoid a single message to be treated by the smart bot, start the message by -
   # help:    Also apart of Hello you can use _Hallo, Hi, Hola, What's up, Hey, Hæ_
+  # help:    <https://github.com/MarioRuiz/slack-smart-bot#how-to-access-the-smart-bot|more info>
   # help:
   def hi_bot(user, dest, dchannel, from, display_name)
     if @status == :on

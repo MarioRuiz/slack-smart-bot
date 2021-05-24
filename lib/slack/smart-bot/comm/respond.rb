@@ -1,5 +1,7 @@
 class SlackSmartBot
   def respond(msg, dest = nil, unfurl_links: true, unfurl_media: true)
+    (!unfurl_links or !unfurl_media) ? web_client = true : web_client = false
+
     begin
       msg = msg.to_s
       on_thread = Thread.current[:on_thread]
@@ -40,12 +42,20 @@ class SlackSmartBot
         else  
           if on_thread
             msgs.each do |msg|
-              client.message(channel: @channel_id, text: msg, as_user: true, thread_ts: Thread.current[:thread_ts], unfurl_links: unfurl_links, unfurl_media: unfurl_media)
+              if web_client
+                client.web_client.chat_postMessage(channel: @channel_id, text: msg, as_user: true, unfurl_links: unfurl_links, unfurl_media: unfurl_media, thread_ts: Thread.current[:thread_ts])
+              else
+                client.message(channel: @channel_id, text: msg, as_user: true, thread_ts: Thread.current[:thread_ts], unfurl_links: unfurl_links, unfurl_media: unfurl_media)
+              end
               sleep wait
             end
           else
             msgs.each do |msg|
-              client.message(channel: @channel_id, text: msg, as_user: true, unfurl_links: unfurl_links, unfurl_media: unfurl_media)
+              if web_client
+                client.web_client.chat_postMessage(channel: @channel_id, text: msg, as_user: true, unfurl_links: unfurl_links, unfurl_media: unfurl_media)
+              else
+                client.message(channel: @channel_id, text: msg, as_user: true, unfurl_links: unfurl_links, unfurl_media: unfurl_media)
+              end
               sleep wait
             end
           end
@@ -63,12 +73,20 @@ class SlackSmartBot
         else  
           if on_thread
             msgs.each do |msg|
-              client.message(channel: dest, text: msg, as_user: true, thread_ts: Thread.current[:thread_ts], unfurl_links: unfurl_links, unfurl_media: unfurl_media)
+              if web_client
+                client.web_client.chat_postMessage(channel: dest, text: msg, as_user: true, unfurl_links: unfurl_links, unfurl_media: unfurl_media, thread_ts: Thread.current[:thread_ts])
+              else
+                client.message(channel: dest, text: msg, as_user: true, thread_ts: Thread.current[:thread_ts], unfurl_links: unfurl_links, unfurl_media: unfurl_media)
+              end
               sleep wait
             end
           else
             msgs.each do |msg|
-              client.message(channel: dest, text: msg, as_user: true, unfurl_links: unfurl_links, unfurl_media: unfurl_media)
+              if web_client
+                client.web_client.chat_postMessage(channel: dest, text: msg, as_user: true, unfurl_links: unfurl_links, unfurl_media: unfurl_media)
+              else
+                client.message(channel: dest, text: msg, as_user: true, unfurl_links: unfurl_links, unfurl_media: unfurl_media)
+              end
               sleep wait
             end
           end

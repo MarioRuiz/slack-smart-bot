@@ -83,15 +83,15 @@ class SlackSmartBot
     
                 if user!=''
                     user_info = @users.select{|u| u.id == user}[-1]
-                    if users_id_name.key?(user_info.user.id)
-                        user_name = users_id_name[user_info.user.id]
+                    if users_id_name.key?(user_info.id)
+                        user_name = users_id_name[user_info.id]
                     else
-                        user_name = user_info.user.name
+                        user_name = user_info.name
                     end
-                    if users_name_id.key?(user_info.user.name)
-                        user_id = users_name_id[user_info.user.name]
+                    if users_name_id.key?(user_info.name)
+                        user_id = users_name_id[user_info.name]
                     else
-                        user_id = user_info.user.id
+                        user_id = user_info.id
                     end
                 end
                 master_admins = config.masters.dup

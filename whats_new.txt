@@ -12,6 +12,7 @@
 - You can add general commands that will be responding on any channel where the Smart Bot is a member even though is not 'listening to you'. Add them to '/rules/general_commands.rb
 - when using `respond` you can supply two options: unfurl_links and unfurl_media. By default is a boolean: true
 - added option 'weekdays' and 'weekends' for `create routine` command, for example: `add silent routine suggestions on weekdays at 09:00 suggest command`
+- Added a new config for the SmartBot to log all RTM communication, admits `true` or `false`, by default `false`: `logrtm`
 ------------------------------
 
 *Previous*: <https://github.com/MarioRuiz/slack-smart-bot/blob/dd23939f93ee95aca3c04d33cd1ce197d6efbd37/whats_new.txt|1.9.0>

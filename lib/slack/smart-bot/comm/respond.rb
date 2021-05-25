@@ -105,7 +105,7 @@ class SlackSmartBot
         begin
           user_info = @users.select{|u| u.id == dest[1..-1]}[-1]
           msgs.each do |msg|
-            send_msg_user(user_info.user.id, msg, on_thread, unfurl_links: unfurl_links, unfurl_media: unfurl_media)
+            send_msg_user(user_info.id, msg, on_thread, unfurl_links: unfurl_links, unfurl_media: unfurl_media)
             sleep wait
           end
         rescue Exception => stack

@@ -116,18 +116,7 @@ class SlackSmartBot
             total = rows.size
 
             if total > 0
-                channels_dest_attachment = []
-                count_channels_dest = count_channels_dest.sort_by(&:last).reverse.to_h
-                
-                count_channels_dest.keys[0..0].each do |ch|
-                    if ch=='DM'
-                        message << "\t :star: Most used channel: *DM* (#{(count_channels_dest[ch].to_f*100/total).round(2)}%)"
-                    else
-                        message << "\t :star: Most used channel: *<##{@channels_id[ch]}>* (#{(count_channels_dest[ch].to_f*100/total).round(2)}%)"
-                    end
-                end
 
-                users_attachment = []
                 users = rows.user_id.uniq.sort
                 count_user = {}
                 users.each do |user|
@@ -138,7 +127,7 @@ class SlackSmartBot
                 mtu = []
                 i = 0
                 count_user.sort_by {|k,v| -v}.each do |user, count|
-                    if mtc.nil? or mtc == count or i <= 3
+                    if mtc.nil? or mtc == count or i < 3
                         mtu << "<@#{users_id_name[user]}> (#{count})"
                         mtc = count
                     else 
@@ -146,13 +135,13 @@ class SlackSmartBot
                     end
                     i+=1
                 end
-                message << "\t :boom: Users that called more commands: *#{mtu.join(', ')}*"
+                message << "\t :boom: Users that called more commands: \n\t\t\t\t*#{mtu.join("*\n\t\t\t\t*")}*"
 
                 mtc = nil
                 mtu = []
                 i = 0
                 count_commands_uniq_user.sort_by {|k,v| -v.size}.each do |user, cmds|
-                    if mtc.nil? or mtc == cmds.size or i<= 3
+                    if mtc.nil? or mtc == cmds.size or i < 3
                         mtu << "<@#{users_id_name[user]}> (#{cmds.size})"
                         mtc = cmds.size
                     else 
@@ -160,7 +149,7 @@ class SlackSmartBot
                     end
                     i+=1
                 end
-                message << "\t :stethoscope: Users that called more different commands: *#{mtu.join(', ')}*"
+                message << "\t :stethoscope: Users that called more different commands: \n\t\t\t\t*#{mtu.join("*\n\t\t\t\t*")}*"
                 
                 commands_attachment = []
 
@@ -172,10 +161,19 @@ class SlackSmartBot
                 end
                 
                 mtu = []
-                count_command.sort_by {|k,v| -v}[0..3].each do |command, count|
+                count_command.sort_by {|k,v| -v}[0..2].each do |command, count|
                     mtu << "*`#{command.gsub('_',' ')}`* (#{count})"
                 end
-                message << "\t :four_leaf_clover: Most used commands: #{mtu.join(', ')}"
+                message << "\t :four_leaf_clover: Most used commands: \n\t\t\t\t#{mtu.join("\n\t\t\t\t")}"
+
+                count_channels_dest = count_channels_dest.sort_by(&:last).reverse.to_h
+                count_channels_dest.keys[0..0].each do |ch|
+                    if ch=='DM'
+                        message << "\t :star: Most used channel: *DM* (#{(count_channels_dest[ch].to_f*100/total).round(2)}%)"
+                    else
+                        message << "\t :star: Most used channel: *<##{@channels_id[ch]}>* (#{(count_channels_dest[ch].to_f*100/total).round(2)}%)"
+                    end
+                end
                 
                 types = rows.type_message.uniq.sort
                 count_type = {}

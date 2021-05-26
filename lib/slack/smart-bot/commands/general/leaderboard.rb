@@ -136,23 +136,31 @@ class SlackSmartBot
                 end
                 mtc = nil
                 mtu = []
+                i = 0
                 count_user.sort_by {|k,v| -v}.each do |user, count|
-                    if mtc.nil? or mtc == count
-                        mtu << users_id_name[user]
+                    if mtc.nil? or mtc == count or i <= 3
+                        mtu << "<@#{users_id_name[user]}> (#{count})"
                         mtc = count
+                    else 
+                        break
                     end
+                    i+=1
                 end
-                message << "\t :boom: User that called more commands: *<@#{mtu.join('>, <@')}>* (#{mtc} calls)"
+                message << "\t :boom: Users that called more commands: *#{mtu.join(', ')}*"
 
                 mtc = nil
                 mtu = []
+                i = 0
                 count_commands_uniq_user.sort_by {|k,v| -v.size}.each do |user, cmds|
-                    if mtc.nil? or mtc == cmds.size
-                        mtu << users_id_name[user]
+                    if mtc.nil? or mtc == cmds.size or i<= 3
+                        mtu << "<@#{users_id_name[user]}> (#{cmds.size})"
                         mtc = cmds.size
+                    else 
+                        break
                     end
+                    i+=1
                 end
-                message << "\t :stethoscope: User that called more different commands: *<@#{mtu.join('>, <@')}>* (#{mtc} different commands)"
+                message << "\t :stethoscope: Users that called more different commands: *#{mtu.join(', ')}*"
                 
                 commands_attachment = []
 
@@ -163,10 +171,12 @@ class SlackSmartBot
                     count_command[command] = count
                 end
                 
-                count_command.sort_by {|k,v| -v}[0..0].each do |command, count|
-                    message << "\t :four_leaf_clover: Most used command: *`#{command.gsub('_',' ')}`* (#{count} calls)"
+                mtu = []
+                count_command.sort_by {|k,v| -v}[0..3].each do |command, count|
+                    mtu << "*`#{command.gsub('_',' ')}`* (#{count})"
                 end
-
+                message << "\t :four_leaf_clover: Most used commands: #{mtu.join(', ')}"
+                
                 types = rows.type_message.uniq.sort
                 count_type = {}
                 types.each do |type|

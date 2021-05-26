@@ -282,7 +282,7 @@ If you need it you can set the SmartBot on maintenance mode by running: **_`set 
 
 To close the Master Bot, run on MASTER CHANNEL: **_`exit bot`_**
 
-If you are a Master Admin on a Direct Message with the Smart Bot you can call the **_`bot stats`_** and get use stats of the users. You need to set to `true` the `stats` settings when initializing the Smart Bot. As a normal user you will get your own stats when calling **_`bot stats`_**. Take a look at `bot help bot stats` for more info.
+If you are a Master Admin on a Direct Message with the Smart Bot you can call the **_`bot stats`_** and get use stats of the users. You need to set to `true` the `stats` settings when initializing the Smart Bot. As a normal user you will get your own stats when calling **_`bot stats`_**. Take a look at `bot help bot stats` for more info. Also you can call **_`leaderboard`_** to get some useful information about the use of the SmartBot.
 
 You can also get the bot logs of the bot channel you are using by calling `get bot logs`. You need to be a Master Admin user on a DM with the Smart Bot.
 

@@ -118,6 +118,67 @@ class SlackSmartBot
           see_routines(dest, from, user, all)
         when /^\s*get\s+bot\s+logs?\s*$/i
           get_bot_logs(dest, from, typem)
+        when /^\s*(leader\s+board|leaderboard|ranking|podium)()()\s*$/i,
+          /^\s*(leader\s+board|leaderboard|ranking|podium)\s+(from\s+(\d\d\d\d[\/\-\.]\d\d[\/\-\.]\d\d))()\s*$/i,
+          /^\s*(leader\s+board|leaderboard|ranking|podium)\s+(from\s+(\d\d\d\d[\/\-\.]\d\d[\/\-\.]\d\d))\s+(to\s+(\d\d\d\d[\/\-\.]\d\d[\/\-\.]\d\d))\s*$/i,
+          /^\s*(leader\s+board|leaderboard|ranking|podium)\s+(today|yesterday|last\s+week|this\s+week|last\s+month|this\s+month|last\s+year|this year)()\s*$/i
+          require 'date'
+          opt1 = $2.to_s
+          to = $3.to_s
+          if opt1.match?(/\d/)
+            from = opt1
+            period = ''
+            from = from.gsub('.','-').gsub('/','-')
+            to = to.gsub('.','-').gsub('/','-') unless to.empty?
+          elsif opt1.to_s==''
+            period = 'last week'
+            date = Date.today
+            wday = date.wday
+            wday = 7 if wday==0
+            wday-=1
+            from = "#{(date-wday-7).strftime("%Y-%m-%d")}"
+            to = "#{(date-wday-1).strftime("%Y-%m-%d")}"
+          else
+            from = ''
+            period = opt1.downcase
+            case period
+            when 'today'
+              from = to = "#{Date.today.strftime("%Y-%m-%d")}"
+            when 'yesterday'
+              from = to ="#{(Date.today-1).strftime("%Y-%m-%d")}"
+            when /this\s+month/
+              from = "#{Date.today.strftime("%Y-%m-01")}"
+              to = "#{Date.today.strftime("%Y-%m-%d")}"
+            when /last\s+month/
+              date = Date.today<<1
+              from = "#{date.strftime("%Y-%m-01")}"
+              to = "#{(Date.new(date.year, date.month, -1)).strftime("%Y-%m-%d")}"
+            when /this\s+year/
+              from = "#{Date.today.strftime("%Y-01-01")}"
+              to = "#{Date.today.strftime("%Y-%m-%d")}"
+            when /last\s+year/
+              date = Date.today.prev_year
+              from = "#{date.strftime("%Y-01-01")}"
+              to = "#{(Date.new(date.year, 12, 31)).strftime("%Y-%m-%d")}"
+            when /this\s+week/
+              date = Date.today
+              wday = date.wday
+              wday = 7 if wday==0
+              wday-=1
+              from = "#{(date-wday).strftime("%Y-%m-%d")}"
+              to = "#{date.strftime("%Y-%m-%d")}"
+            when /last\s+week/
+              date = Date.today
+              wday = date.wday
+              wday = 7 if wday==0
+              wday-=1
+              from = "#{(date-wday-7).strftime("%Y-%m-%d")}"
+              to = "#{(date-wday-1).strftime("%Y-%m-%d")}"
+            end
+          end
+
+          leaderboard(from, to, period)
+
         when /^\s*bot\s+stats\s*(.*)\s*$/i
           opts = $1.to_s
           all_opts = opts.downcase.split(' ')

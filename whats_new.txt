@@ -1,10 +1,11 @@
-*Version 1.10.0DEV08* Released 2021-May-20
+*Version 1.10.0DEV09* Released 2021-May-26
 
 *For General users*
 - When on a private conversation with the SmartBot (DM) and not using any channels rule on the conversation, the general_rules will be available.
 - On DM with the SmartBot if you want to use a rule from a specific channel you can use also: `#CHANNEL RULE` or `on #CHANNEL RULE`. For example: `#sales get report for India` 
 - Now when using general commands, the SmartBot will be responding on any channel where is a member, even though is not listening to you. For example: `clear screen`
 - Added command `suggest command` that will return the help content for a random command.
+- New command `leaderboard` returns useful information about the use of the SmartBot.
 
 *For Admin users*
 - respond_thread method will send the respond creating a thread if necessary. It can be used also `respond 'msg', :on_thread`

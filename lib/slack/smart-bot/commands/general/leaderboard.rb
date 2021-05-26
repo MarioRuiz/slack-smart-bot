@@ -127,7 +127,7 @@ class SlackSmartBot
                 mtu = []
                 i = 0
                 count_user.sort_by {|k,v| -v}.each do |user, count|
-                    if mtc.nil? or mtc == count or i < 3
+                    if (mtc.nil? or mtc == count) and i < 3
                         mtu << "<@#{users_id_name[user]}> (#{count})"
                         mtc = count
                     else 
@@ -141,7 +141,7 @@ class SlackSmartBot
                 mtu = []
                 i = 0
                 count_commands_uniq_user.sort_by {|k,v| -v.size}.each do |user, cmds|
-                    if mtc.nil? or mtc == cmds.size or i < 3
+                    if (mtc.nil? or mtc == cmds.size) and i < 3
                         mtu << "<@#{users_id_name[user]}> (#{cmds.size})"
                         mtc = cmds.size
                     else 

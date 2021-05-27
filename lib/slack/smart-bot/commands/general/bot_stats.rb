@@ -106,7 +106,7 @@ class SlackSmartBot
                 end
     
                 Dir["#{config.stats_path}.*.log"].sort.each do |file|
-                    if file >= "#{config.stats_path}.#{from_file}.log" or file <= "#{config.stats_path}.#{to_file}.log"
+                    if file >= "#{config.stats_path}.#{from_file}.log" and file <= "#{config.stats_path}.#{to_file}.log"
                         CSV.foreach(file, headers: true, header_converters: :symbol, converters: :numeric) do |row|
                             row[:date] = row[:date].to_s
                             if row[:dest_channel_id].to_s[0]=='D'

@@ -79,7 +79,7 @@ class SlackSmartBot
             end
 
             Dir["#{config.stats_path}.*.log"].sort.each do |file|
-                if file >= "#{config.stats_path}.#{from_file}.log" or file <= "#{config.stats_path}.#{to_file}.log"
+                if file >= "#{config.stats_path}.#{from_file}.log" and file <= "#{config.stats_path}.#{to_file}.log"
                     CSV.foreach(file, headers: true, header_converters: :symbol, converters: :numeric) do |row|
                         row[:date] = row[:date].to_s
                         if row[:dest_channel_id].to_s[0]=='D'
@@ -113,6 +113,7 @@ class SlackSmartBot
                     end
                 end
             end
+
             total = rows.size
 
             if total > 0
@@ -189,9 +190,11 @@ class SlackSmartBot
                 count_type.sort_by {|k,v| -v}[0..0].each do |type, count|
                     message << "\t :house_with_garden: Most calls came from *#{type}* (#{(count.to_f*100/total).round(2)}%)"
                 end
-
+            else
+                message << 'No data yet'
             end
         end
         respond "#{message.join("\n")}"
+
     end
 end

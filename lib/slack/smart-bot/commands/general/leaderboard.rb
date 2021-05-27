@@ -130,14 +130,14 @@ class SlackSmartBot
                     if i >= 3
                         break
                     elsif mtc.nil? or mtc == count or i < 3
-                        mtu << "<@#{users_id_name[user]}> (#{count})"
+                        mtu << "*<@#{users_id_name[user]}>* (#{count})"
                         mtc = count
                     else 
                         break
                     end
                     i+=1
                 end
-                message << "\t :boom: Users that called more commands: \n\t\t\t\t*#{mtu.join("*\n\t\t\t\t*")}*"
+                message << "\t :boom: Users that called more commands: \n\t\t\t\t#{mtu.join("\n\t\t\t\t")}"
 
                 mtc = nil
                 mtu = []
@@ -146,14 +146,14 @@ class SlackSmartBot
                     if i >= 3
                         break
                     elsif mtc.nil? or mtc == cmds.size or i < 3
-                        mtu << "<@#{users_id_name[user]}> (#{cmds.size})"
+                        mtu << "*<@#{users_id_name[user]}>* (#{cmds.size})"
                         mtc = cmds.size
                     else 
                         break
                     end
                     i+=1
                 end
-                message << "\t :stethoscope: Users that called more different commands: \n\t\t\t\t*#{mtu.join("*\n\t\t\t\t*")}*"
+                message << "\t :stethoscope: Users that called more different commands: \n\t\t\t\t#{mtu.join("\n\t\t\t\t")}"
                 
                 commands_attachment = []
 

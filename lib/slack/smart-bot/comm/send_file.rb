@@ -10,7 +10,7 @@ class SlackSmartBot
       begin
         file = 'myfile' if file.to_s == '' and content!=''
         if to[0] == "U" or to[0] == "W" #user
-          im = client.web_client.im_open(user: to)
+          im = client.web_client.conversations_open(users: id_user)
           channel = im["channel"]["id"]
         else
           channel = to

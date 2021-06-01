@@ -32,7 +32,7 @@ class SlackSmartBot
             }
           end
         else
-          im = client.web_client.im_open(user: id_user)
+          im = client.web_client.conversations_open(users: id_user)
           if config[:simulate]
             open("#{config.path}/buffer_complete.log", "a") { |f|
               f.puts "|#{im["channel"]["id"]}|#{config[:nick_id]}|#{config[:nick]}|#{msg}~~~"

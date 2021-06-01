@@ -118,6 +118,37 @@ class SlackSmartBot
           see_routines(dest, from, user, all)
         when /^\s*get\s+bot\s+logs?\s*$/i
           get_bot_logs(dest, from, typem)
+        when /^\s*send\s+message\s+(on|to|in)\s*([^\s]+)\s+([^\s]+)\s*:\s*(.+)\s*$/i,
+          /^\s*send\s+message\s+(on|to|in)\s*([^\s]+)\s*():\s*(.+)\s*$/i
+          to = $2
+          thread_ts = $3.to_s
+          message = $4
+          to_channel = to.scan(/<#(\w+)\|.+>/).join
+          to_channel = to.scan(/#(\w+)/).join if to_channel == ''
+          if to_channel == ''
+            to_user = to.scan(/<@(\w+)>/).join
+            if to_user == ''
+              # message_id
+            else
+              to = to_user
+            end
+          else
+            to = to_channel
+          end
+          send_message(dest, from, typem, to, thread_ts, message)
+        when /^\s*react\s+(on|to|in)\s*([^\s]+)\s+([^\s]+)\s+(.+)\s*$/i
+          to = $2
+          thread_ts = $3.to_s
+          emojis = $4
+          to_channel = to.scan(/<#(\w+)\|.+>/).join
+          to_channel = to.scan(/#(\w+)/).join if to_channel == ''
+          if to_channel == ''
+            respond "The channel specified doesn't exist or is in a incorrect format"
+          else
+            to = to_channel
+            react_to(dest, from, typem, to, thread_ts, emojis)
+          end
+
         when /^\s*(leader\s+board|leaderboard|ranking|podium)()()\s*$/i,
           /^\s*(leader\s+board|leaderboard|ranking|podium)\s+(from\s+(\d\d\d\d[\/\-\.]\d\d[\/\-\.]\d\d))()\s*$/i,
           /^\s*(leader\s+board|leaderboard|ranking|podium)\s+(from\s+(\d\d\d\d[\/\-\.]\d\d[\/\-\.]\d\d))\s+(to\s+(\d\d\d\d[\/\-\.]\d\d[\/\-\.]\d\d))\s*$/i,

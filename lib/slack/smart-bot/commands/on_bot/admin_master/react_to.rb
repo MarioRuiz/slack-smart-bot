@@ -17,7 +17,7 @@ class SlackSmartBot
         end
         react :heavy_check_mark
       else
-        respond "Only master admin users on a private conversation with the SmartBot can send reactions as SmartBot.", dest
+        respond "Only master admin users on a `pr`ivate conversation with the SmartBot can send reactions as SmartBot.", dest
       end
     end
 end

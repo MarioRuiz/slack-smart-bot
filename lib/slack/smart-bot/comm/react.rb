@@ -31,7 +31,7 @@ class SlackSmartBot
     if ts.nil?
       @logger.warn 'react method no ts supplied'
     else
-      emoji.gsub!(':','')
+      emoji.gsub!(':','') if emoji.is_a?(String)
       begin
         client.web_client.reactions_add(channel: channel, name: emoji.to_sym, timestamp: ts) unless config.simulate
       rescue Exception => stack

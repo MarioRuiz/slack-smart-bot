@@ -16,11 +16,13 @@ class SlackSmartBot
     help_message = get_help(rules_file, dest, from, specific, true, descriptions: false, only_normal_user: true)
     commands = help_message.gsub(/====+/,'-'*30).split(/^\s*-------*$/).flatten
     commands.reject!{|c| c.match?(/These are specific commands for this bot on this/i) || c.match?(/\A\s*\z/)}
-    @last_suggested_command ||= ''
+    @last_suggested_commands ||= []
+    @last_suggested_commands.shift if @last_suggested_commands.size >=5
+    command = ''
     begin 
       command = commands.sample
-    end until @last_suggested_command != command or commands.size == 1
-    @last_suggested_command = command
+    end until !@last_suggested_commands.include?(command) or commands.size <= 5
+    @last_suggested_commands << command
     message = "*Command suggestion*:\n#{command}"
     respond message, dest, unfurl_links: false, unfurl_media: false
   end

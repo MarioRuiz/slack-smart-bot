@@ -141,7 +141,10 @@ class SlackSmartBot
           thread_ts = $3.to_s
           emojis = $4
           to_channel = to.scan(/<#(\w+)\|.+>/).join
-          to_channel = to.scan(/#(\w+)/).join if to_channel == ''
+          if to_channel == ''
+            to_channel = to.scan(/#(\w+)/).join 
+            to_channel = @channels_id[to_channel].to_s
+          end
           if to_channel == ''
             respond "The channel specified doesn't exist or is in a incorrect format"
           else

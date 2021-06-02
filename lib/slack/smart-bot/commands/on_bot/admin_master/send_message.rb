@@ -10,8 +10,12 @@ class SlackSmartBot
     def send_message(dest, from, typem, to, thread_ts, message)
       save_stats(__method__)
       if config.masters.include?(from) and typem==:on_dm #master admin user
-        respond message, to, thread_ts: thread_ts
-        react :heavy_check_mark
+        succ = (respond message, to, thread_ts: thread_ts, web_client: true)
+        if succ
+          react :heavy_check_mark
+        else
+          react :x
+        end
       else
         respond "Only master admin users on a private conversation with the SmartBot can send messages as SmartBot.", dest
       end

@@ -1,8 +1,12 @@
 class SlackSmartBot
-  def respond(msg, dest = nil, unfurl_links: true, unfurl_media: true, thread_ts: '')
+  def respond(msg, dest = nil, unfurl_links: true, unfurl_media: true, thread_ts: '', web_client: '')
 
-    (!unfurl_links or !unfurl_media) ? web_client = true : web_client = false
+    if !web_client.is_a?(TrueClass) and !web_client.is_a?(FalseClass)
+      (!unfurl_links or !unfurl_media) ? web_client = true : web_client = false
+    end
 
+    result = true
+    
     begin
       msg = msg.to_s
       on_thread = Thread.current[:on_thread]
@@ -126,14 +130,18 @@ class SlackSmartBot
           if Thread.current.key?(:dest)
             respond("User #{dest} not found.")
           end
+          result = false
         end
       else
         @logger.warn("method respond not treated correctly: msg:#{msg} dest:#{dest}")
+        result = false
       end
       @last_respond = Time.now
     rescue Exception => stack
       @logger.warn stack
+      result = false
     end
+    return result
   end
 
 end

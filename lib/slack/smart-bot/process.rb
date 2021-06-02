@@ -123,8 +123,8 @@ class SlackSmartBot
           to = $2
           thread_ts = $3.to_s
           message = $4
-          to_channel = to.scan(/<#(\w+)\|.+>/).join
-          to_channel = to.scan(/#(\w+)/).join if to_channel == ''
+          to_channel = to.scan(/<#([^>]+)\|.+>/).join
+          to_channel = to.scan(/#([^\s]+)/).join if to_channel == ''
           if to_channel == ''
             to_user = to.scan(/<@(\w+)>/).join
             if to_user == ''
@@ -140,9 +140,9 @@ class SlackSmartBot
           to = $2
           thread_ts = $3.to_s
           emojis = $4
-          to_channel = to.scan(/<#(\w+)\|.+>/).join
+          to_channel = to.scan(/<#([^>]+)\|.+>/).join
           if to_channel == ''
-            to_channel = to.scan(/#(\w+)/).join 
+            to_channel = to.scan(/#([^\s]+)/).join
             to_channel = @channels_id[to_channel].to_s
           end
           if to_channel == ''

@@ -12,10 +12,18 @@ class SlackSmartBot
     def react_to(dest, from, typem, to, thread_ts, emojis)
       save_stats(__method__)
       if config.masters.include?(from) and typem==:on_dm #master admin user
+        succs = []
         emojis.split(' ').each do |emoji|
-          react emoji, thread_ts, to
+          succs << (react emoji, thread_ts, to)
         end
-        react :heavy_check_mark
+        succs.uniq!
+        if succs.size == 1 and succs[0] == true
+          react :heavy_check_mark
+        elsif succs.size == 2
+          react :exclamation
+        else
+          react :x
+        end
       else
         respond "Only master admin users on a `pr`ivate conversation with the SmartBot can send reactions as SmartBot.", dest
       end

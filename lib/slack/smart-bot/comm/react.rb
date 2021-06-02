@@ -3,6 +3,7 @@ class SlackSmartBot
   # react(:thumbsup)
   # ts: can be true, false or a specific ts
   def react(emoji, ts=false, channel='')
+    result = true
     channel = Thread.current[:dest] if channel == ''
     if ts.is_a?(TrueClass) or ts.is_a?(FalseClass)
       parent = ts
@@ -30,13 +31,16 @@ class SlackSmartBot
     end
     if ts.nil?
       @logger.warn 'react method no ts supplied'
+      result = false
     else
       emoji.gsub!(':','') if emoji.is_a?(String)
       begin
         client.web_client.reactions_add(channel: channel, name: emoji.to_sym, timestamp: ts) unless config.simulate
       rescue Exception => stack
         @logger.warn stack
+        result = false
       end
     end
+    return result
   end
 end

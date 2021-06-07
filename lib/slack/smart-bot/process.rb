@@ -13,11 +13,11 @@ class SlackSmartBot
     processed = true
 
     on_demand = false
-    if command.match(/^@?(#{config[:nick]}):*\s+(.+)/im) or
-       command.match(/^()!!(.+)/im) or
-       command.match(/^()\^(.+)/im) or
-       command.match(/^()!(.+)/im) or
-       command.match(/^()<@#{config[:nick_id]}>\s+(.+)/im)
+    if command.match(/\A@?(#{config[:nick]}):*\s+(.+)/im) or
+       command.match(/\A()!!(.+)/im) or
+       command.match(/\A()\^(.+)/im) or
+       command.match(/\A()!(.+)/im) or
+       command.match(/\A()<@#{config[:nick_id]}>\s+(.+)/im)
         command2 = $2
         Thread.current[:command] = command2
         if command2.match?(/^()!!(.+)/im) or
@@ -40,59 +40,59 @@ class SlackSmartBot
     
         case command
 
-        when /^\s*(Hello|Hallo|Hi|Hola|What's\sup|Hey|Hæ)\s+(#{@salutations.join("|")})\s*$/i
+        when /\A\s*(Hello|Hallo|Hi|Hola|What's\sup|Hey|Hæ)\s+(#{@salutations.join("|")})\s*$/i
           hi_bot(user, dest, dchannel, from, display_name)
-        when /^\s*what's\s+new\s*$/i
+        when /\A\s*what's\s+new\s*$/i
           whats_new(user, dest, dchannel, from, display_name)
-        when /^\s*(Bye|Bæ|Good\s+Bye|Adiós|Ciao|Bless|Bless\sBless|Adeu)\s+(#{@salutations.join("|")})\s*$/i
+        when /\A\s*(Bye|Bæ|Good\s+Bye|Adiós|Ciao|Bless|Bless\sBless|Adeu)\s+(#{@salutations.join("|")})\s*$/i
           bye_bot(dest, from, display_name)
-        when /^\s*(#{@salutations.join("|")})\s+(rules|help)\s*(.+)?$/i, /^(#{@salutations.join("|")}),? what can I do/i
+        when /\A\s*(#{@salutations.join("|")})\s+(rules|help)\s*(.+)?$/i, /\A(#{@salutations.join("|")}),? what can I do/i
           $2.to_s.match?(/rules/i) ? specific = true : specific = false
           help_command = $3
           bot_help(user, from, dest, dchannel, specific, help_command, rules_file)
         when /\A\s*(suggest|random)\s+(command|rule)\s*\z/i, /\A\s*(command|rule)\s+suggestion\s*\z/i
           $2.to_s.match?(/rule/i) || $1.to_s.match?(/rule/i) ? specific = true : specific = false
           suggest_command(from, dest, dchannel, specific, rules_file)
-        when /^\s*use\s+(rules\s+)?(from\s+)?<#C\w+\|(.+)>\s*$/i, /^use\s+(rules\s+)?(from\s+)?([^\s]+\s*$)/i
+        when /\A\s*use\s+(rules\s+)?(from\s+)?<#C\w+\|(.+)>\s*$/i, /\Ause\s+(rules\s+)?(from\s+)?([^\s]+\s*$)/i
           channel = $3
           use_rules(dest, channel, user, dchannel)
-        when /^\s*stop\s+using\s+rules\s+(from\s+)<#\w+\|(.+)>/i, /^stop\s+using\s+rules\s+(from\s+)(.+)/i
+        when /\A\s*stop\s+using\s+rules\s+(from\s+)<#\w+\|(.+)>/i, /\A\s*stop\s+using\s+rules\s+(from\s+)(.+)/i
           channel = $2
           stop_using_rules(dest, channel, user, dchannel)
-        when /^\s*extend\s+rules\s+(to\s+)<#C\w+\|(.+)>/i, /^extend\s+rules\s+(to\s+)(.+)/i,
-            /^\s*use\s+rules\s+(on\s+)<#C\w+\|(.+)>/i, /^use\s+rules\s+(on\s+)(.+)/i
+        when /\A\s*extend\s+rules\s+(to\s+)<#C\w+\|(.+)>/i, /\A\s*extend\s+rules\s+(to\s+)(.+)/i,
+            /\A\s*use\s+rules\s+(on\s+)<#C\w+\|(.+)>/i, /\A\s*use\s+rules\s+(on\s+)(.+)/i
           channel = $2
           extend_rules(dest, user, from, channel, typem)
-        when /^\s*stop\s+using\s+rules\s+(on\s+)<#\w+\|(.+)>/i, /^stop\s+using\s+rules\s+(on\s+)(.+)/i
+        when /\A\s*stop\s+using\s+rules\s+(on\s+)<#\w+\|(.+)>/i, /\A\s*stop\s+using\s+rules\s+(on\s+)(.+)/i
           channel = $2
           stop_using_rules_on(dest, user, from, channel, typem)
-        when /^\s*exit\s+bot\s*$/i, /^quit\s+bot\s*$/i, /^close\s+bot\s*$/i
+        when /\A\s*exit\s+bot\s*$/i, /\A\s*quit\s+bot\s*$/i, /\A\s*close\s+bot\s*$/i
           exit_bot(command, from, dest, display_name)
-        when /^\s*start\s+(this\s+)?bot$/i
+        when /\A\s*start\s+(this\s+)?bot$/i
           start_bot(dest, from)
-        when /^\s*pause\s+(this\s+)?bot$/i
+        when /\A\s*pause\s+(this\s+)?bot$/i
           pause_bot(dest, from)
-        when /^\s*bot\s+status/i
+        when /\A\s*bot\s+status/i
           bot_status(dest, user)
         when /\Anotify\s+<#(C\w+)\|.+>\s+(.+)\s*\z/im, /\Anotify\s+(all)?\s*(.+)\s*\z/im
           where = $1
           message = $2
           notify_message(dest, from, where, message)
-        when /^\s*create\s+(cloud\s+|silent\s+)?bot\s+on\s+<#C\w+\|(.+)>\s*/i, 
-          /^create\s+(cloud\s+|silent\s+)?bot\s+on\s+#(.+)\s*/i, 
-          /^create\s+(cloud\s+|silent\s+)?bot\s+on\s+(.+)\s*/i
+        when /\A\s*create\s+(cloud\s+|silent\s+)?bot\s+on\s+<#C\w+\|(.+)>\s*/i, 
+          /\Acreate\s+(cloud\s+|silent\s+)?bot\s+on\s+#(.+)\s*/i, 
+          /\Acreate\s+(cloud\s+|silent\s+)?bot\s+on\s+(.+)\s*/i
           type = $1.to_s.downcase
           channel = $2
           create_bot(dest, user, type, channel)
-        when /^\s*kill\s+bot\s+on\s+<#C\w+\|(.+)>\s*$/i, /^kill\s+bot\s+on\s+#(.+)\s*$/i, /^kill\s+bot\s+on\s+(.+)\s*$/i
+        when /\A\s*kill\s+bot\s+on\s+<#C\w+\|(.+)>\s*$/i, /\Akill\s+bot\s+on\s+#(.+)\s*$/i, /\Akill\s+bot\s+on\s+(.+)\s*$/i
           channel = $1
           kill_bot_on_channel(dest, from, channel)
-        when /^\s*(add|create)\s+(silent\s+)?routine\s+(\w+)\s+(every)\s+(\d+)\s*(days|hours|minutes|seconds|mins|min|secs|sec|d|h|m|s)\s*(\s#(\w+)\s*)(\s.+)?\s*$/i,
-          /^\s*(add|create)\s+(silent\s+)?routine\s+(\w+)\s+(every)\s+(\d+)\s*(days|hours|minutes|seconds|mins|min|secs|sec|d|h|m|s)\s*(\s<#(C\w+)\|.+>\s*)?(\s.+)?\s*$/i,
-          /^\s*(add|create)\s+(silent\s+)?routine\s+(\w+)\s+on\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday|weekend|weekday)s?\s+at\s+(\d+:\d+:?\d+?)\s*()(\s#(\w+)\s*)(\s.+)?\s*$/i,
-          /^\s*(add|create)\s+(silent\s+)?routine\s+(\w+)\s+on\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday|weekend|weekday)s?\s+at\s+(\d+:\d+:?\d+?)\s*()(\s<#(C\w+)\|.+>\s*)?(\s.+)?\s*$/i,
-          /^\s*(add|create)\s+(silent\s+)?routine\s+(\w+)\s+(at)\s+(\d+:\d+:?\d+?)\s*()(\s#(\w+)\s*)(\s.+)?\s*$/i,
-          /^\s*(add|create)\s+(silent\s+)?routine\s+(\w+)\s+(at)\s+(\d+:\d+:?\d+?)\s*()(\s<#(C\w+)\|.+>\s*)?(\s.+)?\s*$/i
+        when /\A\s*(add|create)\s+(silent\s+)?routine\s+(\w+)\s+(every)\s+(\d+)\s*(days|hours|minutes|seconds|mins|min|secs|sec|d|h|m|s)\s*(\s#(\w+)\s*)(\s.+)?\s*$/i,
+          /\A\s*(add|create)\s+(silent\s+)?routine\s+(\w+)\s+(every)\s+(\d+)\s*(days|hours|minutes|seconds|mins|min|secs|sec|d|h|m|s)\s*(\s<#(C\w+)\|.+>\s*)?(\s.+)?\s*$/i,
+          /\A\s*(add|create)\s+(silent\s+)?routine\s+(\w+)\s+on\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday|weekend|weekday)s?\s+at\s+(\d+:\d+:?\d+?)\s*()(\s#(\w+)\s*)(\s.+)?\s*$/i,
+          /\A\s*(add|create)\s+(silent\s+)?routine\s+(\w+)\s+on\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday|weekend|weekday)s?\s+at\s+(\d+:\d+:?\d+?)\s*()(\s<#(C\w+)\|.+>\s*)?(\s.+)?\s*$/i,
+          /\A\s*(add|create)\s+(silent\s+)?routine\s+(\w+)\s+(at)\s+(\d+:\d+:?\d+?)\s*()(\s#(\w+)\s*)(\s.+)?\s*$/i,
+          /\A\s*(add|create)\s+(silent\s+)?routine\s+(\w+)\s+(at)\s+(\d+:\d+:?\d+?)\s*()(\s<#(C\w+)\|.+>\s*)?(\s.+)?\s*$/i
           silent = $2.to_s!=''
           name = $3.downcase
           type = $4.to_s.downcase
@@ -101,25 +101,25 @@ class SlackSmartBot
           channel = $8
           command_to_run = $9
           add_routine(dest, from, user, name, type, number_time, period, command_to_run, files, silent, channel)
-        when /^\s*(kill|delete|remove)\s+routine\s+(\w+)\s*$/i
+        when /\A\s*(kill|delete|remove)\s+routine\s+(\w+)\s*$/i
           name = $2.downcase
           remove_routine(dest, from, name)
-        when /^\s*(run|execute)\s+routine\s+(\w+)\s*$/i
+        when /\A\s*(run|execute)\s+routine\s+(\w+)\s*$/i
           name = $2.downcase
           run_routine(dest, from, name)
-        when /^\s*pause\s+routine\s+(\w+)\s*$/i
+        when /\A\s*pause\s+routine\s+(\w+)\s*$/i
           name = $1.downcase
           pause_routine(dest, from, name)
-        when /^\s*start\s+routine\s+(\w+)\s*$/i
+        when /\A\s*start\s+routine\s+(\w+)\s*$/i
           name = $1.downcase
           start_routine(dest, from, name)
-        when /^\s*see\s+(all\s+)?routines\s*$/i
+        when /\A\s*see\s+(all\s+)?routines\s*$/i
           all = $1.to_s != ""
           see_routines(dest, from, user, all)
-        when /^\s*get\s+bot\s+logs?\s*$/i
+        when /\A\s*get\s+bot\s+logs?\s*$/i
           get_bot_logs(dest, from, typem)
-        when /^\s*send\s+message\s+(on|to|in)\s*([^\s]+)\s+([^\s]+)\s*:\s*(.+)\s*$/i,
-          /^\s*send\s+message\s+(on|to|in)\s*([^\s]+)\s*():\s*(.+)\s*$/i
+        when /\A\s*send\s+message\s+(on|to|in)\s*([^\s]+)\s+([^\s]+)\s*:\s*(.+)\s*$/i,
+          /\A\s*send\s+message\s+(on|to|in)\s*([^\s]+)\s*():\s*(.+)\s*$/i
           to = $2
           thread_ts = $3.to_s
           message = $4
@@ -136,7 +136,7 @@ class SlackSmartBot
             to = to_channel
           end
           send_message(dest, from, typem, to, thread_ts, message)
-        when /^\s*react\s+(on|to|in)\s*([^\s]+)\s+([^\s]+)\s+(.+)\s*$/i
+        when /\A\s*react\s+(on|to|in)\s*([^\s]+)\s+([^\s]+)\s+(.+)\s*$/i
           to = $2
           thread_ts = $3.to_s
           emojis = $4
@@ -152,10 +152,10 @@ class SlackSmartBot
             react_to(dest, from, typem, to, thread_ts, emojis)
           end
 
-        when /^\s*(leader\s+board|leaderboard|ranking|podium)()()\s*$/i,
-          /^\s*(leader\s+board|leaderboard|ranking|podium)\s+(from\s+(\d\d\d\d[\/\-\.]\d\d[\/\-\.]\d\d))()\s*$/i,
-          /^\s*(leader\s+board|leaderboard|ranking|podium)\s+(from\s+(\d\d\d\d[\/\-\.]\d\d[\/\-\.]\d\d))\s+(to\s+(\d\d\d\d[\/\-\.]\d\d[\/\-\.]\d\d))\s*$/i,
-          /^\s*(leader\s+board|leaderboard|ranking|podium)\s+(today|yesterday|last\s+week|this\s+week|last\s+month|this\s+month|last\s+year|this year)()\s*$/i
+        when /\A\s*(leader\s+board|leaderboard|ranking|podium)()()\s*$/i,
+          /\A\s*(leader\s+board|leaderboard|ranking|podium)\s+(from\s+(\d\d\d\d[\/\-\.]\d\d[\/\-\.]\d\d))()\s*$/i,
+          /\A\s*(leader\s+board|leaderboard|ranking|podium)\s+(from\s+(\d\d\d\d[\/\-\.]\d\d[\/\-\.]\d\d))\s+(to\s+(\d\d\d\d[\/\-\.]\d\d[\/\-\.]\d\d))\s*$/i,
+          /\A\s*(leader\s+board|leaderboard|ranking|podium)\s+(today|yesterday|last\s+week|this\s+week|last\s+month|this\s+month|last\s+year|this year)()\s*$/i
           require 'date'
           opt1 = $2.to_s
           to = $3.to_s
@@ -213,7 +213,7 @@ class SlackSmartBot
 
           leaderboard(from, to, period)
 
-        when /^\s*bot\s+stats\s*(.*)\s*$/i
+        when /\A\s*bot\s+stats\s*(.*)\s*$/i
           opts = $1.to_s
           all_opts = opts.downcase.split(' ')
           all_data = all_opts.include?('alldata')
@@ -274,24 +274,24 @@ class SlackSmartBot
     
         case command
 
-        when /^\s*(add\s+)?(global\s+|generic\s+)?shortcut\s+(for\sall)?\s*([^:]+)\s*:\s*(.+)/i, 
-          /^(add\s+)(global\s+|generic\s+)?sc\s+(for\sall)?\s*([^:]+)\s*:\s*(.+)/i
+        when /\A\s*(add\s+)?(global\s+|generic\s+)?shortcut\s+(for\sall)?\s*([^:]+)\s*:\s*(.+)/i, 
+          /\A(add\s+)(global\s+|generic\s+)?sc\s+(for\sall)?\s*([^:]+)\s*:\s*(.+)/i
           for_all = $3
           shortcut_name = $4.to_s.downcase
           command_to_run = $5
           global = $2.to_s != ''
           add_shortcut(dest, user, typem, for_all, shortcut_name, command, command_to_run, global)
-        when /^\s*(delete|remove)\s+(global\s+|generic\s+)?shortcut\s+(.+)/i, 
-          /^(delete|remove)\s+(global\s+|generic\s+)?sc\s+(.+)/i
+        when /\A\s*(delete|remove)\s+(global\s+|generic\s+)?shortcut\s+(.+)/i, 
+          /\A(delete|remove)\s+(global\s+|generic\s+)?sc\s+(.+)/i
           shortcut = $3.to_s.downcase
           global = $2.to_s != ''
 
           delete_shortcut(dest, user, shortcut, typem, command, global)
-        when /^\s*see\s+shortcuts/i, /^see\ssc/i
+        when /\A\s*see\s+shortcuts/i, /^see\ssc/i
           see_shortcuts(dest, user, typem)
 
           #kept to be backwards compatible
-        when /^\s*id\schannel\s<#C\w+\|(.+)>\s*/i, /^id channel (.+)/
+        when /\A\s*id\schannel\s<#C\w+\|(.+)>\s*/i, /^id channel (.+)/
           unless typem == :on_extended
             channel_name = $1
             get_channels_name_and_id()
@@ -301,18 +301,18 @@ class SlackSmartBot
               respond "channel: #{channel_name} not found", dest
             end
           end
-        when /^\s*ruby\s(.+)/im, /^\s*code\s(.+)/im
+        when /\A\s*ruby\s(.+)/im, /\A\s*code\s(.+)/im
           code = $1
           code.gsub!("\\n", "\n")
           code.gsub!("\\r", "\r")
           @logger.info code
           ruby_code(dest, user, code, rules_file)
-        when /^\s*(private\s+|clean\s+|clean\s+private\s+|private\s+clean\s+)?(repl|irb|live)\s*()()()$/i, 
-          /^\s*(private\s+|clean\s+|clean\s+private\s+|private\s+clean\s+)?(repl|irb|live)\s+([\w\-]+)()()\s*$/i,
-          /^\s*(private\s+|clean\s+|clean\s+private\s+|private\s+clean\s+)?(repl|irb|live)\s+([\w\-]+)\s*:\s+"([^"]+)"()\s*$/i,
-          /^\s*(private\s+|clean\s+|clean\s+private\s+|private\s+clean\s+)?(repl|irb|live)\s+([\w\-]+)\s*:\s+"([^"]+)"\s+(.+)\s*$/i,
-          /^\s*(private\s+|clean\s+|clean\s+private\s+|private\s+clean\s+)?(repl|irb|live)\s+([\w\-]+)()\s+(.+)\s*$/i,
-          /^\s*(private\s+|clean\s+|clean\s+private\s+|private\s+clean\s+)?(repl|irb|live)()\s+()(.+)\s*$/i
+        when /\A\s*(private\s+|clean\s+|clean\s+private\s+|private\s+clean\s+)?(repl|irb|live)\s*()()()\z/i, 
+          /\A\s*(private\s+|clean\s+|clean\s+private\s+|private\s+clean\s+)?(repl|irb|live)\s+([\w\-]+)()()\s*\z/i,
+          /\A\s*(private\s+|clean\s+|clean\s+private\s+|private\s+clean\s+)?(repl|irb|live)\s+([\w\-]+)\s*:\s+"([^"]+)"()\s*\z/i,
+          /\A\s*(private\s+|clean\s+|clean\s+private\s+|private\s+clean\s+)?(repl|irb|live)\s+([\w\-]+)\s*:\s+"([^"]+)"\s+(.+)\s*\z/i,
+          /\A\s*(private\s+|clean\s+|clean\s+private\s+|private\s+clean\s+)?(repl|irb|live)\s+([\w\-]+)()\s+(.+)\s*\z/i,
+          /\A\s*(private\s+|clean\s+|clean\s+private\s+|private\s+clean\s+)?(repl|irb|live)()\s+()(.+)\s*\z/i
           opts_type = $1.to_s.downcase.split(' ')
           opts_type.include?('private') ? type = :private : type = :public
           type = "#{type}_clean".to_sym if opts_type.include?('clean')
@@ -330,10 +330,10 @@ class SlackSmartBot
               env_vars[idx] = "ENV['#{ev}"
           end
           repl(dest, user, session_name, env_vars.flatten, rules_file, command, description, type)
-        when /^\s*get\s+(repl|irb|live)\s+([\w\-]+)\s*/i
+        when /\A\s*get\s+(repl|irb|live)\s+([\w\-]+)\s*/i
           session_name = $2
           get_repl(dest, user, session_name)      
-        when /^\s*run\s+(repl|irb|live)\s+([\w\-]+)()\s*$/i,
+        when /\A\s*run\s+(repl|irb|live)\s+([\w\-]+)()\s*$/i,
           /^\s*run\s+(repl|irb|live)\s+([\w\-]+)\s+(.+)\s*$/i
           session_name = $2
           opts = " #{$3}"
@@ -347,10 +347,10 @@ class SlackSmartBot
               env_vars[idx] = "ENV['#{ev}"
           end
           run_repl(dest, user, session_name, env_vars.flatten, rules_file)      
-        when /^\s*(delete|remove)\s+(repl|irb|live)\s+([\w\-]+)\s*$/i
+        when /\A\s*(delete|remove)\s+(repl|irb|live)\s+([\w\-]+)\s*$/i
           repl_name = $3
           delete_repl(dest, user, repl_name)
-        when /^\s*see\s+(repls|repl|irb|irbs)\s*$/i
+        when /\A\s*see\s+(repls|repl|irb|irbs)\s*$/i
           see_repls(dest, user, typem)
         else
           processed2 = false

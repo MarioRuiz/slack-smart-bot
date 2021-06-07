@@ -179,7 +179,7 @@ class SlackSmartBot
             qdest = data.thread_ts
           end
           if !answer(user_info.name, qdest).empty?
-            if data.text.match?(/^\s*(Bye|Bæ|Good\sBye|Adiós|Ciao|Bless|Bless\sBless|Adeu)\s(#{@salutations.join("|")})\s*$/i)
+            if data.text.match?(/\A\s*(Bye|Bæ|Good\sBye|Adiós|Ciao|Bless|Bless\sBless|Adeu)\s(#{@salutations.join("|")})\s*$/i)
               answer_delete(user_info.name, qdest)
               command = data.text
             else

@@ -48,7 +48,7 @@ def rules(user, command, processed, dest, files = [], rules_file = "")
         # help: `go to sleep`
         # help:   it will sleep the bot for 5 seconds
         # help:
-      when /^go\sto\ssleep/i
+      when /\A\s*go\sto\ssleep/i
         save_stats :go_to_sleep
         if answer.empty?
           ask "do you want me to take a siesta?"
@@ -75,7 +75,7 @@ def rules(user, command, processed, dest, files = [], rules_file = "")
         # help: `run something`
         # help:   It will run the process and report the results when done
         # help:
-      when /^run something/i
+      when /\Arun something/i
         save_stats :run_something
         react :runner
 

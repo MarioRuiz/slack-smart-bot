@@ -12,7 +12,7 @@ def general_commands(user, command, dest, files = [])
         # help:     It will send a big empty message.
         # help:        NUMBER (optional): number of lines. Default 100. Max 200.
         # help: 
-      when /^(\d*)\s*(clear|cls|clear\s+screen)\s*/i
+      when /\A\s*(\d*)\s*(clear|cls|clear\s+screen)\s*/i
       save_stats :cls
       $1.to_s == '' ? lines = 100 : lines = $1.to_i
       lines = 200 if lines > 200
@@ -20,7 +20,7 @@ def general_commands(user, command, dest, files = [])
 
 
       # this is a hidden command that it is not listed when calling bot help
-    when /^\s*(that's\s+)?(thanks|thank\s+you|I\s+love\s+you|nice|cool)\s+(#{@salutations.join("|")})\s*!*\s*$/i
+    when /\A\s*(that's\s+)?(thanks|thank\s+you|I\s+love\s+you|nice|cool)\s+(#{@salutations.join("|")})\s*!*\s*$/i
       save_stats :thanks
       reactions = [:heart, :heart_eyes, :blush, :relaxed, :simple_smile, :smiley, :two_hearts, :heartbeat, :green_heart ]
       reactions.sample(rand(3)+1).each {|rt| react rt }

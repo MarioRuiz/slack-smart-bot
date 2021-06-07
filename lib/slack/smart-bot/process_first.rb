@@ -195,11 +195,11 @@ class SlackSmartBot
           end
           @logger.info "command: #{nick}> #{command}" if processed
           on_demand = false
-          if command.match(/^@?(#{config[:nick]}):*\s+(.+)/im) or
-            command.match(/^()!!(.+)/im) or
-            command.match(/^()\^(.+)/im) or
-            command.match(/^()!(.+)/im) or
-            command.match(/^()<@#{config[:nick_id]}>\s+(.+)/im)
+          if command.match(/\A@?(#{config[:nick]}):*\s+(.+)/im) or
+            command.match(/\A()!!(.+)/im) or
+            command.match(/\A()\^(.+)/im) or
+            command.match(/\A()!(.+)/im) or
+            command.match(/\A()<@#{config[:nick_id]}>\s+(.+)/im)
             command2 = $2
             Thread.current[:command] = command2
             if command2.match?(/^()!!(.+)/im) or
@@ -211,7 +211,7 @@ class SlackSmartBot
           end
           unless config.on_maintenance or @status != :on
             if typem == :on_pub or typem == :on_pg or typem == :on_extended
-              if command.match(/^\s*(#{@salutations.join("|")})\s+(rules|help)\s*(.+)?$/i) or command.match(/^(#{@salutations.join("|")}),? what can I do/i)
+              if command.match(/\A\s*(#{@salutations.join("|")})\s+(rules|help)\s*(.+)?$/i) or command.match(/\A(#{@salutations.join("|")}),? what can I do/i)
                 $2.to_s.match?(/rules/i) ? specific = true : specific = false
                 help_command = $3
                 if typem == :on_extended and specific

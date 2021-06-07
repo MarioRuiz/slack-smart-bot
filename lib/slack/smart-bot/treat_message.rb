@@ -153,10 +153,10 @@ class SlackSmartBot
         @users = get_users() if @users.empty?
       else
         #todo: when changed @questions user_id then move user_info inside the ifs to avoid calling it when not necessary
-        user_info = @users.select{|u| u.id == data.user}[-1]
+        user_info = @users.select{|u| u.id == data.user or (u.key?(:enterprise_user) and u.enterprise_user.id == data.user)}[-1]
         if user_info.nil? or user_info.empty?
           @users = get_users() 
-          user_info = @users.select{|u| u.id == data.user}[-1]
+          user_info = @users.select{|u| u.id == data.user or (u.key?(:enterprise_user) and u.enterprise_user.id == data.user)}[-1]
         end
       end
       load "#{config.path}/rules/general_commands.rb" if File.exists?("#{config.path}/rules/general_commands.rb") and @datetime_general_commands != File.mtime("#{config.path}/rules/general_commands.rb")

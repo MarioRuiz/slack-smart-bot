@@ -65,7 +65,7 @@ class SlackSmartBot
               FileUtils.copy_file(default_general_rules, config.path + general_rules_file) unless File.exist?(config.path + general_rules_file)
               FileUtils.copy_file(default_general_commands, config.path + general_commands_file) unless File.exist?(config.path + general_commands_file)
               admin_users = Array.new()
-              creator_info = @users.select{|u| u.id == channel_found.creator}[-1]
+              creator_info = @users.select{|u| u.id == channel_found.creator or (u.key?(:enterprise_user) and u.enterprise_user.id == channel_found.creator)}[-1]
               admin_users = [from, creator_info.user.name] + config.masters
               admin_users.uniq!
               @logger.info "BOT_SILENT=#{silent} ruby #{config.file_path} \"#{channel}\" \"#{admin_users.join(",")}\" \"#{rules_file}\" on"

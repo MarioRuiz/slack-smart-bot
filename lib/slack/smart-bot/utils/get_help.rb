@@ -43,7 +43,6 @@ class SlackSmartBot
     else
       help = @help_messages_not_expanded.deep_copy[user_type]
     end
-
     if rules_file != ""
       help[:rules_file] = build_help(config.path+rules_file, expanded)[user_type].values.join("\n") + "\n"
      
@@ -65,7 +64,6 @@ class SlackSmartBot
         help[:rules_file] += rhelp[user_type].values.join("\n") + "\n"
       end
     end
-
     if File.exists?(config.path + '/rules/general_commands.rb')
       help[:general_commands_file] = build_help(config.path+'/rules/general_commands.rb', expanded)[user_type].values.join("\n") + "\n"
     end
@@ -181,50 +179,11 @@ class SlackSmartBot
         help.rules_file = help.rules_file.gsub(/^\s*\*These are specific commands.+NAME_OF_BOT THE_COMMAND`\s*$/im, "")
       end
 
-      unless expanded
-        resf = ''
-        help.rules_file.split(/^\s*\-+\s*$/).each do |rule|
-          command_done = false
-          explanation_done = false
-          example_done = false
-          if rule.match?(/These are specific commands for this/i)
-            resf += rule
-            resf += "-"*50
-            resf += "\n"
-          elsif rule.match?(/To run a command on demand and add the respond on a thread/i)
-            resf += rule
-            resf += "-"*50
-            resf += "\n"
-          else
-            rule.split("\n").each do |line|
-              if line.match?(/^\s*\-+\s*/i)
-                resf += line
-              elsif !command_done and line.match?(/^\s*`.+`\s*/i)
-                resf += "\n#{line}"
-                command_done = true
-              elsif !explanation_done and line.match?(/^\s+[^`].+\s*/i)
-                resf += "\n#{line}"
-                explanation_done = true
-              elsif !example_done and line.match?(/^\s*_.+_\s*/i)
-                resf += "\n     Example: #{line}"
-                example_done = true
-              end
-            end
-            resf += "\n\n"
-          end
-        end
-        unless resf.match?(/These are specific commands for this bot on this Channel/i)
-          if resf.match?(/\A\s*[=\-]+$/)
-            pre = ''
-            post = ''
-          else
-            pre = ('='*50) + "\n"
-            post = ('-'*50) + "\n"
-          end
-          resf = ("#{pre}*These are specific commands for this bot on this Channel:*\n#{post}" + resf) if descriptions
-        end
-        help.rules_file = resf
+      if !help.rules_file.to_s.include?('These are specific commands') and help.rules_file!=''
+        txt += "===================================
+         *Specific commands on this Channel, call them !THE_COMMAND or !!THE_COMMAND:*\n" if descriptions
       end
+  
       txt += help.rules_file
     end
     return txt

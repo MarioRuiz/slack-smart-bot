@@ -1,7 +1,7 @@
 class SlackSmartBot
   def respond(msg, dest = nil, unfurl_links: true, unfurl_media: true, thread_ts: '', web_client: '')
     result = true
-    unless msg.to_s.match?(/^A\s*\z/) or msg.to_s == ''
+    unless msg.to_s.match?(/^A\s*\z/) or msg.to_s == '' or Thread.current[:routine_type].to_s=='bgroutine'
       if !web_client.is_a?(TrueClass) and !web_client.is_a?(FalseClass)
         (!unfurl_links or !unfurl_media) ? web_client = true : web_client = false
       end

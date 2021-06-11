@@ -58,6 +58,7 @@ class SlackSmartBot
             msg << "\tCommand: #{v[:command]}" unless v[:command].to_s.strip == ''
             msg << "\tFile: #{v[:file_path]}" unless v[:file_path] == ''
             msg << "\tSilent: #{v[:silent]}" unless !v[:silent]
+            msg << "\tType: #{v[:routine_type]}" if v[:routine_type].to_s == 'bgroutine'
             respond msg.join("\n"), dest
           end
         end

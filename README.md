@@ -409,14 +409,16 @@ To see available shortcuts: **_`see shortcuts`_** and to delete a particular sho
 ### Routines
 To add specific commands to be run automatically every certain amount of time or a specific time: **_`add routine NAME every NUMBER PERIOD COMMAND`_** or **_`add routine NAME at TIME COMMAND`_**. Also just before the command you can supply the channel where you want to publish the results, if not channel supplied then it would be the SmartBot Channel or on the DM if the command is run from there. Remember the SmartBot needs to have access to the channel where you want to publish.
 
+In case you create a *bgroutine* instead of a normal *routine* then the results of the run won't be published.
+
 If you want to hide the routine executions use `add silent routine`. It won't show the routine name when executing.
 
 To see the last result of the execution you can call `see result routine NAME`
 
 Examples:  
 >**_`add routine run_tests every 3h !run tests on customers`_**  
->**_`add routine clean_db at 17:05 !clean customers temp db`_**  
->**_`add silent routine clean_db at 17:05 !clean customers temp db`_**  
+>**_`add bgroutine clean_db at 17:05 !clean customers temp db`_**  
+>**_`add silent bgroutine clean_db at 17:05 !clean customers temp db`_**  
 >**_`add routine clean_custdb on Mondays at 05:00 !clean customers db`_**  
 >**_`add routine clean_custdb on Tuesdays at 09:00 #SREChannel !clean customers db`_**  
 >**_`add silent routine suggestions on weekdays at 09:00 suggest command`_**

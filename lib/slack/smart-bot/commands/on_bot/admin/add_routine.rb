@@ -3,7 +3,9 @@ class SlackSmartBot
   # helpadmin: `add routine NAME every NUMBER PERIOD COMMAND`
   # helpadmin: `add routine NAME every NUMBER PERIOD #CHANNEL COMMAND`
   # helpadmin: `add routine NAME every NUMBER PERIOD`
+  # helpadmin: `add bgroutine NAME every NUMBER PERIOD`
   # helpadmin: `add silent routine NAME every NUMBER PERIOD`
+  # helpadmin: `add silent bgroutine NAME every NUMBER PERIOD`
   # helpadmin: `create routine NAME every NUMBER PERIOD`
   # helpadmin: `add routine NAME at TIME COMMAND`
   # helpadmin: `add routine NAME at TIME #CHANNEL COMMAND`
@@ -14,6 +16,7 @@ class SlackSmartBot
   # helpadmin: `create routine NAME at TIME`
   # helpadmin:    It will execute the command/rule supplied. Only for Admin and Master Admins.
   # helpadmin:    If no COMMAND supplied, then it will be necessary to attach a file with the code to be run and add this command as message to the file. ONLY for MASTER ADMINS.
+  # helpadmin:    In case *bgroutine* then the results of the run won't be published. To see the results call: `see result routine NAME`
   # helpadmin:    In case *silent* provided then when executed will be only displayed if the routine returns a message
   # helpadmin:    NAME: one word to identify the routine
   # helpadmin:    NUMBER: Integer
@@ -24,15 +27,15 @@ class SlackSmartBot
   # helpadmin:    COMMAND: any valid smart bot command or rule
   # helpadmin:    Examples:
   # helpadmin:      _add routine example every 30s !ruby puts 'a'_
-  # helpadmin:      _add routine example every 3 days !ruby puts 'a'_
+  # helpadmin:      _add bgroutine example every 3 days !ruby puts 'a'_
   # helpadmin:      _add routine example at 17:05 !ruby puts 'a'_
   # helpadmin:      _create silent routine Example every 12 hours !Run customer tests_
-  # helpadmin:      _add routine example on Mondays at 05:00 !run customer tests_
+  # helpadmin:      _add bgroutine example on Mondays at 05:00 !run customer tests_
   # helpadmin:      _add routine example on Tuesdays at 09:00 #SREChannel !run db cleanup_
   # helpadmin:      _add routine example on weekdays at 22:00 suggest command_
   # helpadmin:    <https://github.com/MarioRuiz/slack-smart-bot#routines|more info>
   # helpadmin:
-  def add_routine(dest, from, user, name, type, number_time, period, command_to_run, files, silent, channel)
+  def add_routine(dest, from, user, name, type, number_time, period, command_to_run, files, silent, channel, routine_type)
     save_stats(__method__)
     if files.nil? or files.size == 0 or (files.size > 0 and config.masters.include?(from))
       if config.admins.include?(from)
@@ -125,10 +128,10 @@ class SlackSmartBot
                                              every: every, every_in_seconds: every_in_seconds, at: at, dayweek: dayweek, file_path: file_path, 
                                              command: command_to_run.to_s.strip, silent: silent,
                                              next_run: next_run.to_s, dest: channel_id, last_run: "", last_elapsed: "", 
-                                             running: false}
+                                             running: false, routine_type: routine_type}
             update_routines
             respond "Added routine *`#{name}`* to the channel", dest
-            create_routine_thread(name)
+            create_routine_thread(name, @routines[@channel_id][name])
           end
         end
       else

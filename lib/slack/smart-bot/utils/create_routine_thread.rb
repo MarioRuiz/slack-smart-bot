@@ -1,6 +1,6 @@
 class SlackSmartBot
 
-  def create_routine_thread(name)
+  def create_routine_thread(name, hroutine)
     t = Thread.new do
       while @routines.key?(@channel_id) and @routines[@channel_id].key?(name)
         @routines[@channel_id][name][:thread] = Thread.current
@@ -31,12 +31,13 @@ class SlackSmartBot
                   user: {id: @routines[@channel_id][name][:creator_id], name: @routines[@channel_id][name][:creator]},
                   files: false,
                   command: @routines[@channel_id][name][:file_path],
-                  routine: true
+                  routine: true,
+                  routine_name: name,
+                  routine_type: hroutine[:routine_type]
                 }
                 save_stats(name, data: data)
                 stdout, stderr, status = Open3.capture3(process_to_run)
-                if !@routines[@channel_id][name][:silent] or (@routines[@channel_id][name][:silent] and 
-                  (!stderr.match?(/\A\s*\z/) or !stdout.match?(/\A\s*\z/)))
+                if !@routines[@channel_id][name][:silent]
                   unless config.on_maintenance
                     if @routines[@channel_id][name][:dest]!=@channel_id
                       respond "routine from <##{@channel_id}> *`#{name}`*: #{@routines[@channel_id][name][:file_path]}", @routines[@channel_id][name][:dest]
@@ -45,12 +46,16 @@ class SlackSmartBot
                     end
                   end
                 end
-                if stderr == ""
-                  unless stdout.match?(/\A\s*\z/)
-                    respond stdout, @routines[@channel_id][name][:dest]
+                if hroutine[:routine_type].to_s!='bgroutine'
+                  if stderr == ""
+                    unless stdout.match?(/\A\s*\z/)
+                      respond stdout, @routines[@channel_id][name][:dest]
+                    end
+                  else
+                    respond "#{stdout} #{stderr}", @routines[@channel_id][name][:dest]
                   end
                 else
-                  respond "#{stdout} #{stderr}", @routines[@channel_id][name][:dest]
+                  File.write("#{config.path}/routines/#{@channel_id}/#{name}_output.txt", stdout.to_s+stderr.to_s, mode: "a+")
                 end
               else #command
                 if !@routines[@channel_id][name][:silent] and !config.on_maintenance
@@ -67,7 +72,8 @@ class SlackSmartBot
                   text: @routines[@channel_id][name][:command],
                   files: nil,
                   routine: true,
-                  routine_name: name }
+                  routine_name: name,
+                  routine_type: hroutine[:routine_type] }
                 treat_message(data)
               end
               # in case the routine was deleted while running the process

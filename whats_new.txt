@@ -1,4 +1,4 @@
-*Version 1.10.0DEV13* Released 2021-Jun-07
+*Version 1.10.0DEV14* Released 2021-Jun-11
 
 *For General users*
 - When on a private conversation with the SmartBot (DM) and not using any channels rule on the conversation, the general_rules will be available.
@@ -16,6 +16,7 @@
 - Added a new config for the SmartBot to log all RTM communication, admits `true` or `false`, by default `false`: `logrtm`
 - Use the command `send message to` and `react to` to impersonate the SmartBot. Only accessible for Master Admins on a DM with the SmartBot.
 - New command to see the result of the last run of a routine: `see result routine NAME`
+- Now it is possible to create *bgroutine* then the results of the routine run won't be published.
 ------------------------------
 
 *Previous*: <https://github.com/MarioRuiz/slack-smart-bot/blob/dd23939f93ee95aca3c04d33cd1ce197d6efbd37/whats_new.txt|1.9.0>

@@ -24,7 +24,7 @@ class SlackSmartBot
     @routines.each do |ch, rout|
       rout.each do |k, v|
         if !v[:running] and v[:channel_name] == config.channel
-          create_routine_thread(k)
+          create_routine_thread(k, v)
         end
       end
     end

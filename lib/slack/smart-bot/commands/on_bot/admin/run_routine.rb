@@ -44,6 +44,7 @@ class SlackSmartBot
                          text: @routines[@channel_id][name][:command],
                          files: nil,
                          routine_name: name, 
+                         routine_type: @routines[@channel_id][name][:routine_type],
                          routine: true })
         end
         @routines[@channel_id][name][:last_elapsed] = (Time.now - started)

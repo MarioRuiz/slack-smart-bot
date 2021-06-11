@@ -411,6 +411,8 @@ To add specific commands to be run automatically every certain amount of time or
 
 If you want to hide the routine executions use `add silent routine`. It won't show the routine name when executing.
 
+To see the last result of the execution you can call `see result routine NAME`
+
 Examples:  
 >**_`add routine run_tests every 3h !run tests on customers`_**  
 >**_`add routine clean_db at 17:05 !clean customers temp db`_**  
@@ -427,6 +429,7 @@ Other routine commands:
 * **_`remove routine NAME`_**
 * **_`run routine NAME`_**
 * **_`see routines`_**
+* **_`see result routine NAME`_**
 
 ### Limit who has access to a command
 

@@ -4,7 +4,7 @@ class SlackSmartBot
       general: [:whats_new, :hi_bot, :bye_bot, :bot_help, :suggest_command, :bot_status, :use_rules, :stop_using_rules, :bot_stats, :leaderboard],
       on_bot: [:ruby_code, :repl, :get_repl, :run_repl, :delete_repl, :see_repls, :add_shortcut, :delete_shortcut, :see_shortcuts],
       on_bot_admin: [:extend_rules, :stop_using_rules_on, :start_bot, :pause_bot, :add_routine,
-        :see_routines, :start_routine, :pause_routine, :remove_routine, :run_routine]
+        :see_routines, :start_routine, :pause_routine, :remove_routine, :see_result_routine, :run_routine]
     }
     if config.masters.include?(from)
       user_type = :master # master admin

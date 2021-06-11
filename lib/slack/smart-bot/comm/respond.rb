@@ -140,6 +140,9 @@ class SlackSmartBot
         result = false
       end
     end
+    if Thread.current.key?(:routine) and Thread.current[:routine]
+      File.write("#{config.path}/routines/#{@channel_id}/#{Thread.current[:routine_name]}_output.txt", msg, mode: "a+")
+    end
     return result
   end
 

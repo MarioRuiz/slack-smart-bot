@@ -21,6 +21,7 @@ class SlackSmartBot
               (@routines[@channel_id][name].key?(:dayweek) and @routines[@channel_id][name][:dayweek].to_s!='weekday' and @routines[@channel_id][name][:dayweek].to_s!='weekend') or
               (@routines[@channel_id][name].key?(:dayweek) and @routines[@channel_id][name][:dayweek].to_s=='weekday' and Date.today.wday>=1 and Date.today.wday<=5) or
               (@routines[@channel_id][name].key?(:dayweek) and @routines[@channel_id][name][:dayweek].to_s=='weekend' and (Date.today.wday==6 or Date.today.wday==0)) 
+              File.delete "#{config.path}/routines/#{@channel_id}/#{name}_output.txt" if File.exists?("#{config.path}/routines/#{@channel_id}/#{name}_output.txt")
               if @routines[@channel_id][name][:file_path] != ""
                 process_to_run = "#{ruby}#{Dir.pwd}#{@routines[@channel_id][name][:file_path][1..-1]}"
                 process_to_run = ("cd #{project_folder} &&" + process_to_run) if defined?(project_folder)
@@ -31,7 +32,7 @@ class SlackSmartBot
                   files: false,
                   command: @routines[@channel_id][name][:file_path],
                   routine: true
-                }            
+                }
                 save_stats(name, data: data)
                 stdout, stderr, status = Open3.capture3(process_to_run)
                 if !@routines[@channel_id][name][:silent] or (@routines[@channel_id][name][:silent] and 
@@ -65,7 +66,8 @@ class SlackSmartBot
                   user: @routines[@channel_id][name][:creator_id],
                   text: @routines[@channel_id][name][:command],
                   files: nil,
-                  routine: true }
+                  routine: true,
+                  routine_name: name }
                 treat_message(data)
               end
               # in case the routine was deleted while running the process

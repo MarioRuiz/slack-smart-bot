@@ -104,6 +104,11 @@ class SlackSmartBot
         when /\A\s*(kill|delete|remove)\s+routine\s+(\w+)\s*$/i
           name = $2.downcase
           remove_routine(dest, from, name)
+        when /\A\s*see\s+routines?\s+results?\s+(\w+)\s*$/i,
+          /\A\s*see\s+results?\s+routines?\s+(\w+)\s*$/i,
+          /\A\s*results?\s+routines?\s+(\w+)\s*$/i
+          name = $1.downcase
+          see_result_routine(dest, from, name)
         when /\A\s*(run|execute)\s+routine\s+(\w+)\s*$/i
           name = $2.downcase
           run_routine(dest, from, name)

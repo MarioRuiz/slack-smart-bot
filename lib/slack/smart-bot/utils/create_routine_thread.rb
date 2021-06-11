@@ -36,10 +36,12 @@ class SlackSmartBot
                 stdout, stderr, status = Open3.capture3(process_to_run)
                 if !@routines[@channel_id][name][:silent] or (@routines[@channel_id][name][:silent] and 
                   (!stderr.match?(/\A\s*\z/) or !stdout.match?(/\A\s*\z/)))
-                  if @routines[@channel_id][name][:dest]!=@channel_id
-                    respond "routine from <##{@channel_id}> *`#{name}`*: #{@routines[@channel_id][name][:file_path]}", @routines[@channel_id][name][:dest]
-                  else
-                    respond "routine *`#{name}`*: #{@routines[@channel_id][name][:file_path]}", @routines[@channel_id][name][:dest]
+                  unless config.on_maintenance
+                    if @routines[@channel_id][name][:dest]!=@channel_id
+                      respond "routine from <##{@channel_id}> *`#{name}`*: #{@routines[@channel_id][name][:file_path]}", @routines[@channel_id][name][:dest]
+                    else
+                      respond "routine *`#{name}`*: #{@routines[@channel_id][name][:file_path]}", @routines[@channel_id][name][:dest]
+                    end
                   end
                 end
                 if stderr == ""
@@ -50,7 +52,7 @@ class SlackSmartBot
                   respond "#{stdout} #{stderr}", @routines[@channel_id][name][:dest]
                 end
               else #command
-                if !@routines[@channel_id][name][:silent]
+                if !@routines[@channel_id][name][:silent] and !config.on_maintenance
                   if @routines[@channel_id][name][:dest]!=@channel_id
                     respond "routine from <##{@channel_id}> *`#{name}`*: #{@routines[@channel_id][name][:command]}", @routines[@channel_id][name][:dest]
                   else

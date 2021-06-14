@@ -259,6 +259,7 @@ class SlackSmartBot
         rescue Exception => stack
           @logger.fatal stack
         end
+
       else
         @logger.warn "Pay attention there is no user on users with id #{data.user}" if user_info.nil?
         if !config.on_master_bot and !dest.nil? and (data.channel == @master_bot_id or dest[0] == "D") and
@@ -267,6 +268,17 @@ class SlackSmartBot
         elsif !config.on_master_bot and !dest.nil? and data.user == config[:nick_id] and dest == @master_bot_id
           # to treat on other bots the status messages populated on master bot
           case data.text
+          when /General message has been set\./i, /General message won't be displayed anymore./i
+            sleep 2
+            if File.exist?("#{config.path}/config_tmp.status")
+              file_cts = IO.readlines("#{config.path}/config_tmp.status").join
+              unless file_cts.to_s() == ""
+                file_cts = eval(file_cts)
+                if file_cts.is_a?(Hash) and file_cts.key?(:general_message)
+                  config.general_message = file_cts.general_message
+                end
+              end
+            end
           when /From now on I'll be on maintenance status/i
             sleep 2
             if File.exist?("#{config.path}/config_tmp.status")

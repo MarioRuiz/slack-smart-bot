@@ -164,6 +164,9 @@ class SlackSmartBot
     begin
       t = Thread.new do
         begin
+          processed = false
+          processed_rules = false
+
           Thread.current[:dest] = dest
           Thread.current[:user] = user
           Thread.current[:command] = command
@@ -261,11 +264,11 @@ class SlackSmartBot
                     command[0] = "" if command[0] == "!"
                     command.gsub!(/^@\w+:*\s*/, "")
                     if method(:rules).parameters.size == 4
-                      rules(user, command, processed, dest)
+                      processed_rules = rules(user, command, processed, dest)
                     elsif method(:rules).parameters.size == 5
-                      rules(user, command, processed, dest, files)
+                      processed_rules = rules(user, command, processed, dest, files)
                     else
-                      rules(user, command, processed, dest, files, rules_file)
+                      processed_rules = rules(user, command, processed, dest, files, rules_file)
                     end
                   else
                     @logger.warn "It seems like rules method is not defined"
@@ -291,11 +294,11 @@ class SlackSmartBot
                     command[0] = "" if command[0] == "!"
                     command.gsub!(/^@\w+:*\s*/, "")
                     if method(:rules).parameters.size == 4
-                      rules(user, command, processed, dest)
+                      processed_rules = rules(user, command, processed, dest)
                     elsif method(:rules).parameters.size == 5
-                      rules(user, command, processed, dest, files)
+                      processed_rules = rules(user, command, processed, dest, files)
                     else
-                      rules(user, command, processed, dest, files, rules_file)
+                      processed_rules = rules(user, command, processed, dest, files, rules_file)
                     end
                   else
                     @logger.warn "It seems like rules method is not defined"
@@ -314,6 +317,7 @@ class SlackSmartBot
                 if defined?(general_rules)
                   command[0] = "" if command[0] == "!"
                   command.gsub!(/^@\w+:*\s*/, "")
+                  #todo: check to change processed > processed_rules
                   if method(:general_rules).parameters.size == 4
                     processed = general_rules(user, command, processed, dest)
                   elsif method(:general_rules).parameters.size == 5
@@ -337,6 +341,8 @@ class SlackSmartBot
                 end
               end
 
+              processed = (processed_rules || processed)
+
               if processed and @listening.key?(nick)
                 if Thread.current[:on_thread] and @listening[nick].key?(Thread.current[:thread_ts])
                   @listening[nick][Thread.current[:thread_ts]] = Time.now
@@ -344,8 +350,11 @@ class SlackSmartBot
                   @listening[nick][dest] = Time.now
                 end
               end
-
             end
+          end
+          
+          if processed and config.general_message != ''
+            respond config.general_message 
           end
         rescue Exception => stack
           @logger.fatal stack

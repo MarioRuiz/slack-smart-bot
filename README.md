@@ -280,6 +280,8 @@ To see the status of the bots, on the MASTER CHANNEL: **_`bot status`_**
 
 If you need it you can set the SmartBot on maintenance mode by running: **_`set maintenance on`_**. A message to be displayed can be added if not the default message will be used. Run **_`set maintenance off`_** when you want the SmartBot to be running in normal conditions again.
 
+To display a general message after every command use: `set general message MESSAGE`. Use `set general message off` to stop displaying it.
+
 To close the Master Bot, run on MASTER CHANNEL: **_`exit bot`_**
 
 If you are a Master Admin on a Direct Message with the Smart Bot you can call the **_`bot stats`_** and get use stats of the users. You need to set to `true` the `stats` settings when initializing the Smart Bot. As a normal user you will get your own stats when calling **_`bot stats`_**. Take a look at `bot help bot stats` for more info. Also you can call **_`leaderboard`_** to get some useful information about the use of the SmartBot.

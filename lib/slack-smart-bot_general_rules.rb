@@ -29,5 +29,6 @@ def general_rules(user, command, processed, dest, files = [], rules_file = "")
       else
         puts exception
       end
+      return false
     end
 end

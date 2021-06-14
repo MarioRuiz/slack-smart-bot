@@ -40,7 +40,9 @@ def rules(user, command, processed, dest, files = [], rules_file = "")
 
   load "#{config.path}/rules/general_rules.rb"
   
-  unless general_rules(user, command, processed, dest, files, rules_file)
+  if general_rules(user, command, processed, dest, files, rules_file)
+    return true
+  else
     begin
       case command
 
@@ -126,16 +128,17 @@ def rules(user, command, processed, dest, files = [], rules_file = "")
         #   send_file(to, msg, filepath, title, format, type = "text")
         #   send_file(dest, 'the message', "#{project_folder}/temp/logs_ptBI.log", 'title', 'text/plain', "text")
         #   send_file(dest, 'the message', "#{project_folder}/temp/example.jpeg", 'title', 'image/jpeg', "jpg")
-
-
       else
         unless processed
           dont_understand()
         end
+        return false
       end
+      return true
     rescue => exception
       @logger.fatal exception
       respond "Unexpected error!! Please contact an admin to solve it: <@#{config.admins.join(">, <@")}>"
+      return false
     end
   end
 end

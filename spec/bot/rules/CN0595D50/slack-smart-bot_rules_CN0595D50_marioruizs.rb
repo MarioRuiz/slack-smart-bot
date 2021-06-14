@@ -68,8 +68,9 @@ def rules(user, command, processed, dest, files = [], rules_file = "")
 
   load "#{config.path}/rules/general_rules.rb"
   
-  unless general_rules(user, command, processed, dest, files, rules_file)
-
+  if general_rules(user, command, processed, dest, files, rules_file)
+    return true
+  else
     begin
       case command
 
@@ -164,7 +165,9 @@ def rules(user, command, processed, dest, files = [], rules_file = "")
         unless processed
           dont_understand()
         end
-      end
+        return false
+      end      
+      return true
     rescue => exception
       if defined?(@logger)
         @logger.fatal exception
@@ -172,6 +175,7 @@ def rules(user, command, processed, dest, files = [], rules_file = "")
       else
         puts exception
       end
+      return false
     end
   end
 end

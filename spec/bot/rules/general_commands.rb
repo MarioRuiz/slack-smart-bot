@@ -41,5 +41,6 @@ def general_commands(user, command, dest, files = [])
       else
         puts exception
       end
+      return false
     end
 end

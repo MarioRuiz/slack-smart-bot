@@ -259,6 +259,11 @@ class SlackSmartBot
           status = $2.downcase
           message = $3.to_s
           set_maintenance(from, status, message)
+        when /\A(set|turn)\s+(general|generic)\s+message\s+(off)\s*()\z/im, /\A(set|turn)\s+(general|generic)\s+message\s+(on\s+)?\s*(.+)\s*\z/im
+          status = $3.to_s.downcase
+          status = 'on' if status == ''
+          message = $4.to_s
+          set_general_message(from, status, message)
         else
           processed = false
         end

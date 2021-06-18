@@ -1,4 +1,4 @@
-*Version 1.10.0-DEV15* Released 2021-Jun-14
+*Version 1.10.0-DEV16* Released 2021-Jun-18
 
 *For General users*
 - When on a private conversation with the SmartBot (DM) and not using any channels rule on the conversation, the general_rules will be available.
@@ -18,6 +18,7 @@
 - New command to see the result of the last run of a routine: `see result routine NAME`
 - Now it is possible to create *bgroutine* then the results of the routine run won't be published.
 - To display a general message after every command use: `set general message MESSAGE`. Use `set general message off` to stop displaying it.
+- When adding a general message is possible to use interpolation
 ------------------------------
 
 *Previous*: <https://github.com/MarioRuiz/slack-smart-bot/blob/dd23939f93ee95aca3c04d33cd1ce197d6efbd37/whats_new.txt|1.9.0>

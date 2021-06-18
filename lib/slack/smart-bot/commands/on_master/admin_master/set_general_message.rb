@@ -2,9 +2,14 @@ class SlackSmartBot
   # helpmaster: ----------------------------------------------
   # helpmaster: `set general message MESSAGE`
   # helpmaster: `set general message off`
-  # helpmaster: `turn maintenance off`
   # helpmaster:    The SmartBot will display the specified message after treating every command
   # helpmaster:    Only works if you are on Master channel and you are a master admin user
+  # helpmaster:    You can add interpolation to the message you are adding
+  # helpmaster:    Examples:
+  # helpmaster:      _set general message We will be on maintenance at 12:00_
+  # helpmaster:      _set general message We will be on maintenance in #{((Time.new(2021,6,18,13,30,0)-Time.now)/60).to_i} minutes_
+  # helpmaster:      _set general message `We will be on *maintenance* at *12:00*`_
+  # helpmaster:      _set general message `:information_source: Pay attention: We will be on *maintenance* in *#{((Time.new(2021,6,18,13,30,0)-Time.now)/60).to_i} minutes*`_
   # helpmaster:    <https://github.com/MarioRuiz/slack-smart-bot#bot-management|more info>
   # helpmaster:
   def set_general_message(from, status, message)

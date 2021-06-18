@@ -80,7 +80,9 @@ class SlackSmartBot
         end
 
         #todo: we need to add mixed channels: @smart-bot on private1 #bot1cm <#CXDDFRDDF|bot2cu>: echo A
-        if data.text.match(/^\s*<@#{config[:nick_id]}>\s+(on\s+)?((<#\w+\|[^>]+>\s*)+)\s*:?\s*(.*)/im) or 
+        if data.text.match(/\A\^\^+/) # to open a thread it will be only when starting by single ^
+          typem = :dont_treat
+        elsif data.text.match(/^\s*<@#{config[:nick_id]}>\s+(on\s+)?((<#\w+\|[^>]+>\s*)+)\s*:?\s*(.*)/im) or 
           data.text.match(/^\s*<@#{config[:nick_id]}>\s+(on\s+)?((#[a-zA-Z0-9]+\s*)+)\s*:?\s*(.*)/im) or
           data.text.match(/^\s*<@#{config[:nick_id]}>\s+(on\s+)?(([a-zA-Z0-9]+\s*)+)\s*:\s*(.*)/im)
           channels_rules = $2 #multiple channels @smart-bot on #channel1 #channel2 echo AAA

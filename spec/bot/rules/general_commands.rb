@@ -39,9 +39,9 @@ def general_commands(user, command, dest, files = [])
         # help:        aliases for announcement: statement, declaration, message
         # help:  Examples:
         # help:     _add green announcement :heavy_check_mark: All customer services are *up and running*_
-        # help:     _add red message Customers db is down :x:_
+        # help:     _add red declaration Customers db is down :x:_
         # help:     _add yellow statement Don't access the linux server without VPN_
-        # help:     _add declaration Party will start at 20:00 :tada:_
+        # help:     _add message Party will start at 20:00 :tada:_
         # help: 
       when /\A\s*(add|create)\s+(red\s+|green\s+|white\s+|yellow\s+)?(announcement|statement|declaration|message)\s+(.+)\s*\z/i
         type = $2.to_s.downcase.strip
@@ -81,6 +81,7 @@ def general_commands(user, command, dest, files = [])
         # help:     _see white messages_
         # help:     _see red statements_
         # help:     _see yellow declarations_
+        # help:     _see messages_
         # help: 
       when /\A\s*see\s+(red\s+|green\s+|white\s+|yellow\s+)?(announcements|statements|declarations|messages)()\s*\z/i,
         /\A\s*see\s+(all\s+)?(announcements|statements|declarations|messages)()\s*\z/i,

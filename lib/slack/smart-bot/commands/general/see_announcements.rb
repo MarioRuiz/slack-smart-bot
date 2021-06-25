@@ -13,6 +13,8 @@ class SlackSmartBot
         channels = []
         respond "Only master admins on a DM with the SmarBot can call this command."
       end
+    elsif typem == :on_dm
+      channels = [channel, @channel_id]
     else
       channels = [channel]
     end
@@ -44,9 +46,9 @@ class SlackSmartBot
             @announcements[channel_id].each do |m|
               if m[:user_deleted] == '' and (type == 'all' or type == '' or type==m[:type])
                 if type == 'all' and channel_id[0]=='D'
-                  message << "\t#{m[:message_id]} :#{"large_" if m[:type]!='white'}#{m[:type]}_square: #{m[:date]} #{m[:time]}: *private*"
+                  message << "\t#{m[:message_id]} :#{"large_" if m[:type]!='white'}#{m[:type]}_square: #{m[:date]} #{m[:time]} > *private*"
                 else
-                  message << "\t#{m[:message_id]} :#{"large_" if m[:type]!='white'}#{m[:type]}_square: #{m[:date]} #{m[:time]}: #{m[:message]} #{"(#{m[:user_created]})" unless channel_id[0]=='D'}"
+                  message << "\t#{m[:message_id]} :#{"large_" if m[:type]!='white'}#{m[:type]}_square: #{m[:date]} #{m[:time]} > #{m[:message]} #{"(#{m[:user_created]})" unless channel_id[0]=='D'}"
                 end
               end
             end
@@ -62,17 +64,17 @@ class SlackSmartBot
               end
               respond message.join("\n")
             else
-              if typem == :on_dm
+              if typem == :on_dm and channel_id[0]=='D'
                 respond "There are no #{type} announcements" unless type == 'all'
               else
-                respond "There are no #{type} announcements for <##{channel_id}>" unless type == 'all'
+                respond "There are no #{type} announcements for <##{channel_id}>" unless type == 'all' or (typem==:on_dm and channel_id[0]!='D')
               end
             end
           else
-            if typem == :on_dm
+            if typem == :on_dm and channel_id[0]=='D'
               respond "There are no announcements" unless type == 'all'
             else
-              respond "There are no announcements for <##{channel_id}>" unless type == 'all'
+              respond "There are no announcements for <##{channel_id}>" unless type == 'all' or (typem==:on_dm and channel_id[0]!='D')
             end
           end
         else

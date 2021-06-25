@@ -29,6 +29,68 @@ def general_commands(user, command, dest, files = [])
           'Það var ekkert', 'De nada', 'No hay de qué', 'De rien',  'Bitte', 'Prego', 'मेरा सौभाग्य है', '不客氣', 'Παρακαλώ']
         respond "#{responses.sample}#{'!'*rand(4)}"
 
+        # help: ----------------------------------------------
+        # help: `add announcement MESSAGE`
+        # help: `add red announcement MESSAGE`
+        # help: `add green announcement MESSAGE`
+        # help: `add yellow announcement MESSAGE`
+        # help: `add white announcement MESSAGE`
+        # help:     It will store the message on the announcement list labeled with the color specified, white by default.
+        # help:        aliases for announcement: statement, declaration, message
+        # help:  Examples:
+        # help:     _add green announcement :heavy_check_mark: All customer services are *up and running*_
+        # help:     _add red message Customers db is down :x:_
+        # help:     _add yellow statement Don't access the linux server without VPN_
+        # help:     _add declaration Party will start at 20:00 :tada:_
+        # help: 
+      when /\A\s*(add|create)\s+(red\s+|green\s+|white\s+|yellow\s+)?(announcement|statement|declaration|message)\s+(.+)\s*\z/i
+        type = $2.to_s.downcase.strip
+        type = 'white' if type == ''
+        message = $4
+        add_announcement(user, type, message)
+        
+
+        # help: ----------------------------------------------
+        # help: `delete announcement ID`
+        # help:     It will delete the message on the announcement list.
+        # help:        aliases for announcement: statement, declaration, message
+        # help:  Examples:
+        # help:     _delete announcement 24_
+        # help:     _delete message 645_
+        # help:     _delete statement 77_
+        # help:     _delete declaration 334_
+        # help: 
+      when /\A\s*(delete|remove)\s+(announcement\s+|statement\s+|declaration\s+|message\s+)?(\d+)\s*\z/i
+        message_id = $3
+        delete_announcement(user, message_id)
+
+        # help: ----------------------------------------------
+        # help: `see announcements`
+        # help: `see red announcements`
+        # help: `see green announcements`
+        # help: `see yellow announcements`
+        # help: `see white announcements`
+        # helpmaster: `see announcements #CHANNEL`
+        # helpmaster: `see all announcements`
+        # help:     It will display the announcements for the channel.
+        # help:        aliases for announcements: statements, declarations, messages
+        # helpmaster:        In case #CHANNEL it will display the announcements for that channel. Only master admins can use it from a DM with the Smartbot.
+        # helpmaster:        In case 'all' it will display all the announcements for all channels. Only master admins can use it from a DM with the Smartbot.
+        # help:  Examples:
+        # help:     _see announcements_
+        # help:     _see white messages_
+        # help:     _see red statements_
+        # help:     _see yellow declarations_
+        # help: 
+      when /\A\s*see\s+(red\s+|green\s+|white\s+|yellow\s+)?(announcements|statements|declarations|messages)()\s*\z/i,
+        /\A\s*see\s+(all\s+)?(announcements|statements|declarations|messages)()\s*\z/i,
+        /\A\s*see\s+(red\s+|green\s+|white\s+|yellow\s+)?(announcements|statements|declarations|messages)\s+#(\w+)\s*\z/i,
+        /\A\s*see\s+(red\s+|green\s+|white\s+|yellow\s+)?(announcements|statements|declarations|messages)\s+<#(C\w+)\|.+>\s*\z/i
+
+        type = $1.to_s.downcase.strip
+        channel = $3.to_s
+
+        see_announcements(user, type, channel)
 
       else
         return false

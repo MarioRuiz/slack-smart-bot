@@ -63,6 +63,7 @@ class SlackSmartBot
     Dir.mkdir("#{config.path}/logs") unless Dir.exist?("#{config.path}/logs")
     Dir.mkdir("#{config.path}/shortcuts") unless Dir.exist?("#{config.path}/shortcuts")
     Dir.mkdir("#{config.path}/routines") unless Dir.exist?("#{config.path}/routines")
+    Dir.mkdir("#{config.path}/announcements") unless Dir.exist?("#{config.path}/announcements")
     File.delete("#{config.path}/config_tmp.status") if File.exist?("#{config.path}/config_tmp.status")
 
     config.masters = MASTER_USERS if config.masters.to_s=='' and defined?(MASTER_USERS)
@@ -168,6 +169,8 @@ class SlackSmartBot
     @routines = Hash.new()
     @repls = Hash.new()
     @users = Hash.new()
+    @announcements = Hash.new()
+
 
     if File.exist?("#{config.path}/shortcuts/#{config.shortcuts_file}")
       file_sc = IO.readlines("#{config.path}/shortcuts/#{config.shortcuts_file}").join

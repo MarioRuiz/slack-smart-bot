@@ -27,6 +27,7 @@ slack-smart-bot can create bots on demand, create shortcuts, run ruby code... ju
     + [REPL](#repl)
   * [Sending notifications](#sending-notifications)
   * [Shortcuts](#shortcuts)
+  * [Announcements](#announcements)
   * [Routines](#routines)
   * [Limit who has access to a command](#limit-who-has-access-to-a-command)
   * [Tips](#tips)
@@ -407,6 +408,20 @@ Example:
 >**_Smart-Bot>_** `Running tests for customers 3488823-1233 1111555-6688`  
 
 To see available shortcuts: **_`see shortcuts`_** and to delete a particular shortcut: **_`delete shortcut NAME`_**
+
+### Announcements
+You can add any announcement on any channel where the SmartBot is a member by using **_`add COLOR announcement MESSAGE`_**. 
+
+It will store the message on the announcement list labeled with the color specified, blue by default. Possible colors blue, green, yellow and red. Aliases for announcement: statement, declaration, message.
+
+Examples:
+>**_Peter>_** `add green announcement :heavy_check_mark: All customer services are *up* and running`
+>**_Peter>_** `add red message Customers db is down :x:`
+>**_Peter>_** `add yellow statement Don't access the linux server without VPN`
+>**_Peter>_** `add announcement Party will start at 20:00 :tada:`
+
+To see the announcements of the channel: **_`see announcements`_**, **_`see COLOR announcements`_** and to delete a particular announcement: **_`delete announcement ID`_**
+
 
 ### Routines
 To add specific commands to be run automatically every certain amount of time or a specific time: **_`add routine NAME every NUMBER PERIOD COMMAND`_** or **_`add routine NAME at TIME COMMAND`_**. Also just before the command you can supply the channel where you want to publish the results, if not channel supplied then it would be the SmartBot Channel or on the DM if the command is run from there. Remember the SmartBot needs to have access to the channel where you want to publish.

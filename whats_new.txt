@@ -1,4 +1,4 @@
-*Version 1.10.0-DEV16* Released 2021-Jun-18
+*Version 1.10.0-DEV17* Released 2021-Jun-25
 
 *For General users*
 - When on a private conversation with the SmartBot (DM) and not using any channels rule on the conversation, the general_rules will be available.
@@ -6,6 +6,7 @@
 - Now when using general commands, the SmartBot will be responding on any channel where is a member, even though is not listening to you. For example: `clear screen`
 - Added command `suggest command` that will return the help content for a random command.
 - New command `leaderboard` returns useful information about the use of the SmartBot.
+- `add COLOR announcement MESSAGE` command stores the message on the announcement list labeled with the color specified, white by default. Aliases for announcement: statement, declaration, message. Related: `see announcements`, `delete announcement id`
 
 *For Admin users*
 - respond_thread method will send the respond creating a thread if necessary. It can be used also `respond 'msg', :on_thread`

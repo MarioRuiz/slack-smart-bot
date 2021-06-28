@@ -1,4 +1,4 @@
-*Version 1.10.0-DEV20* Released 2021-Jun-25
+*Version 1.10.0-DEV21* Released 2021-Jun-28
 
 *For General users*
 - When on a private conversation with the SmartBot (DM) and not using any channels rule on the conversation, the general_rules will be available.
@@ -6,7 +6,7 @@
 - Now when using general commands, the SmartBot will be responding on any channel where is a member, even though is not listening to you. For example: `clear screen`
 - Added command `suggest command` that will return the help content for a random command.
 - New command `leaderboard` returns useful information about the use of the SmartBot.
-- `add COLOR announcement MESSAGE` command stores the message on the announcement list labeled with the color specified, white by default. Aliases for announcement: statement, declaration, message. Related: `see announcements`, `delete announcement id`
+- `add COLOR announcement MESSAGE`, `add EMOJI announcement MESSAGE` command stores the message on the announcement list labeled with the color/emoji specified, white by default. Aliases for announcement: statement, declaration, message. Related: `see announcements`, `delete announcement id`
 
 *For Admin users*
 - respond_thread method will send the respond creating a thread if necessary. It can be used also `respond 'msg', :on_thread`
@@ -20,6 +20,7 @@
 - Now it is possible to create *bgroutine* then the results of the routine run won't be published.
 - To display a general message after every command use: `set general message MESSAGE`. Use `set general message off` to stop displaying it.
 - When adding a general message is possible to use interpolation
+- If you are a master admin and you are on master channel then you can call `publish announcements` that will publish the announcements on all channels. The messages stored on a DM won't be published. This is very convenient to be called from a *Routine* for example every weekday at 09:00.
 ------------------------------
 
 *Previous*: <https://github.com/MarioRuiz/slack-smart-bot/blob/dd23939f93ee95aca3c04d33cd1ce197d6efbd37/whats_new.txt|1.9.0>

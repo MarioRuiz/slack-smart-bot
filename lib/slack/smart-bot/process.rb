@@ -78,6 +78,8 @@ class SlackSmartBot
           where = $1
           message = $2
           notify_message(dest, from, where, message)
+        when /\Apublish\s+announcements\s*\z/i
+          publish_announcements(user)
         when /\A\s*create\s+(cloud\s+|silent\s+)?bot\s+on\s+<#C\w+\|(.+)>\s*/i, 
           /\Acreate\s+(cloud\s+|silent\s+)?bot\s+on\s+#(.+)\s*/i, 
           /\Acreate\s+(cloud\s+|silent\s+)?bot\s+on\s+(.+)\s*/i

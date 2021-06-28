@@ -1,9 +1,14 @@
 class SlackSmartBot
 
-  def see_announcements(user, type, channel)
+  def see_announcements(user, type, channel, mention=false, publish=false)
     save_stats(__method__)
     channel = Thread.current[:dest] if channel == ''
     typem = Thread.current[:typem]
+    if publish
+      dest = channel
+    else
+      dest = Thread.current[:dest]
+    end
     
     if type == 'all'
       if config.masters.include?(user.name) and typem==:on_dm
@@ -11,9 +16,9 @@ class SlackSmartBot
         channels.select! {|i| i[/\.csv$/]}
       else
         channels = []
-        respond "Only master admins on a DM with the SmarBot can call this command."
+        respond "Only master admins on a DM with the SmarBot can call this command.", dest
       end
-    elsif typem == :on_dm
+    elsif typem == :on_dm and channel == Thread.current[:dest]
       channels = [channel, @channel_id]
     else
       channels = [channel]
@@ -34,10 +39,15 @@ class SlackSmartBot
       end
       if config[:allow_access].key?(__method__) and !config[:allow_access][__method__].include?(user.name) and !config[:allow_access][__method__].include?(user.id) and 
         (!user.key?(:enterprise_user) or ( user.key?(:enterprise_user) and !config[:allow_access][__method__].include?(user[:enterprise_user].id)))
-        respond "You don't have access to use this command, please contact an Admin to be able to use it: <@#{config.admins.join(">, <@")}>"
+        respond "You don't have access to use this command, please contact an Admin to be able to use it: <@#{config.admins.join(">, <@")}>", dest
       else
-        if channel_id == Thread.current[:dest] or (channel_id!=Thread.current[:dest] and config.masters.include?(user.name) and typem==:on_dm) #master admin user
-          if File.exists?("#{config.path}/announcements/#{channel_id}.csv") and !@announcements.key?(channel_id)
+        if (channel_id!=Thread.current[:dest] and config.masters.include?(user.name) and typem==:on_dm) or publish
+          see_announcements_on_demand = true
+        else
+          see_announcements_on_demand = false
+        end
+        if channel_id == Thread.current[:dest] or see_announcements_on_demand or publish #master admin user or publish_announcements
+          if File.exists?("#{config.path}/announcements/#{channel_id}.csv") and (!@announcements.key?(channel_id) or see_announcements_on_demand) # to force to have the last version that maybe was updated by other SmartBot in case of demand
             t = CSV.table("#{config.path}/announcements/#{channel_id}.csv", headers: ['message_id', 'user_deleted', 'user_created', 'date', 'time', 'type', 'message'])
             @announcements[channel_id] = t
           end
@@ -45,10 +55,22 @@ class SlackSmartBot
             message = []
             @announcements[channel_id].each do |m|
               if m[:user_deleted] == '' and (type == 'all' or type == '' or type==m[:type])
-                if type == 'all' and channel_id[0]=='D'
-                  message << "\t#{m[:message_id]} :#{"large_" if m[:type]!='white'}#{m[:type]}_square: #{m[:date]} #{m[:time]} > *private*"
+                if m[:type].match?(/:\w+:/)
+                  emoji = m[:type]
+                elsif m[:type] == 'white'
+                  emoji = ':white_square:'
                 else
-                  message << "\t#{m[:message_id]} :#{"large_" if m[:type]!='white'}#{m[:type]}_square: #{m[:date]} #{m[:time]} > #{m[:message]} #{"(#{m[:user_created]})" unless channel_id[0]=='D'}"
+                  emoji = ":large_#{m[:type]}_square:"
+                end
+                if mention
+                  user_created = "<@#{m[:user_created]}>"
+                else
+                  user_created = m[:user_created]
+                end
+                if type == 'all' and channel_id[0]=='D'
+                  message << "\t#{m[:message_id]} #{emoji} *_#{m[:date]}_* #{m[:time]} *:* \t*private*"
+                else
+                  message << "\t#{m[:message_id]} #{emoji} *_#{m[:date]}_* #{m[:time]} #{"#{user_created} " unless channel_id[0]=='D'}*:* \t#{m[:message]}"
                 end
               end
             end
@@ -62,23 +84,23 @@ class SlackSmartBot
               else
                 message.unshift("*Announcements for channel <##{channel_id}>*")
               end
-              respond message.join("\n")
+              respond message.join("\n"), dest
             else
               if typem == :on_dm and channel_id[0]=='D'
-                respond "There are no #{type} announcements" unless type == 'all'
+                respond("There are no #{type} announcements", dest) unless type == 'all'
               else
-                respond "There are no #{type} announcements for <##{channel_id}>" unless type == 'all' or (typem==:on_dm and channel_id[0]!='D')
+                respond("There are no #{type} announcements for <##{channel_id}>", dest) unless publish or type == 'all' or (typem==:on_dm and channel_id[0]!='D' and !see_announcements_on_demand)
               end
             end
           else
             if typem == :on_dm and channel_id[0]=='D'
-              respond "There are no announcements" unless type == 'all'
+              respond("There are no announcements", dest) unless type == 'all'
             else
-              respond "There are no announcements for <##{channel_id}>" unless type == 'all' or (typem==:on_dm and channel_id[0]!='D')
+              respond("There are no announcements for <##{channel_id}>", dest) unless publish or type == 'all' or (typem==:on_dm and channel_id[0]!='D' and !see_announcements_on_demand)
             end
           end
         else
-          respond "Go to <##{channel_id}> and call the command from there."
+          respond "Go to <##{channel_id}> and call the command from there.", dest
         end
       end
     end

@@ -410,17 +410,20 @@ Example:
 To see available shortcuts: **_`see shortcuts`_** and to delete a particular shortcut: **_`delete shortcut NAME`_**
 
 ### Announcements
-You can add any announcement on any channel where the SmartBot is a member by using **_`add COLOR announcement MESSAGE`_**. 
+You can add any announcement on any channel where the SmartBot is a member by using **_`add COLOR announcement MESSAGE`_** or **_`add EMOJI announcement MESSAGE`_**.
 
-It will store the message on the announcement list labeled with the color specified, blue by default. Possible colors blue, green, yellow and red. Aliases for announcement: statement, declaration, message.
+It will store the message on the announcement list labeled with the color/emoji specified, white by default. Possible colors white, green, yellow and red. Aliases for announcement: statement, declaration, message.
 
 Examples:
 >**_Peter>_** `add green announcement :heavy_check_mark: All customer services are *up* and running`
 >**_Peter>_** `add red message Customers db is down :x:`
 >**_Peter>_** `add yellow statement Don't access the linux server without VPN`
 >**_Peter>_** `add announcement Party will start at 20:00 :tada:`
+>**_Peter>_** `add :heavy_exclamation_mark: message Pay attention all DB are on maintenance until 20:00 GMT`
 
-To see the announcements of the channel: **_`see announcements`_**, **_`see COLOR announcements`_** and to delete a particular announcement: **_`delete announcement ID`_**
+To see the announcements of the channel: **_`see announcements`_**, **_`see COLOR announcements`_**, **_`see EMOJI announcements`_** and to delete a particular announcement: **_`delete announcement ID`_**
+
+If you are a master admin and you are on master channel then you can call **_`publish announcements`_** that will publish the announcements on all channels. The messages stored on a DM won't be published. This is very convenient to be called from a *Routine* for example every weekday at 09:00.
 
 
 ### Routines

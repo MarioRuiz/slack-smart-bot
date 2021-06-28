@@ -4,7 +4,7 @@ def get_channels(bot_is_in: false)
             if bot_is_in
                 client.web_client.conversations_members.reject {|r,v| !v.members.include?(config.nick_id)}.values
             else
-            client.web_client.conversations_members.values
+                client.web_client.conversations_members.values
             end
         else
             if bot_is_in

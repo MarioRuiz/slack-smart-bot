@@ -35,15 +35,19 @@ def general_commands(user, command, dest, files = [])
         # help: `add green announcement MESSAGE`
         # help: `add yellow announcement MESSAGE`
         # help: `add white announcement MESSAGE`
-        # help:     It will store the message on the announcement list labeled with the color specified, white by default.
+        # help: `add EMOJI announcement MESSAGE`
+        # help:     It will store the message on the announcement list labeled with the color or emoji specified, white by default.
         # help:        aliases for announcement: statement, declaration, message
         # help:  Examples:
         # help:     _add green announcement :heavy_check_mark: All customer services are *up and running*_
         # help:     _add red declaration Customers db is down :x:_
         # help:     _add yellow statement Don't access the linux server without VPN_
         # help:     _add message Party will start at 20:00 :tada:_
+        # help:     _add :heavy_exclamation_mark: message Pay attention all DB are on maintenance until 20:00 GMT_
+        # help:    <https://github.com/MarioRuiz/slack-smart-bot#announcements|more info>
         # help: 
-      when /\A\s*(add|create)\s+(red\s+|green\s+|white\s+|yellow\s+)?(announcement|statement|declaration|message)\s+(.+)\s*\z/i
+      when /\A\s*(add|create)\s+(red\s+|green\s+|white\s+|yellow\s+)?(announcement|statement|declaration|message)\s+(.+)\s*\z/i,
+        /\A\s*(add|create)\s+(:\w+:)\s+(announcement|statement|declaration|message)\s+(.+)\s*\z/i
         type = $2.to_s.downcase.strip
         type = 'white' if type == ''
         message = $4
@@ -59,6 +63,7 @@ def general_commands(user, command, dest, files = [])
         # help:     _delete message 645_
         # help:     _delete statement 77_
         # help:     _delete declaration 334_
+        # help:    <https://github.com/MarioRuiz/slack-smart-bot#announcements|more info>
         # help: 
       when /\A\s*(delete|remove)\s+(announcement\s+|statement\s+|declaration\s+|message\s+)?(\d+)\s*\z/i
         message_id = $3
@@ -70,6 +75,7 @@ def general_commands(user, command, dest, files = [])
         # help: `see green announcements`
         # help: `see yellow announcements`
         # help: `see white announcements`
+        # help: `see EMOJI announcements`
         # helpmaster: `see announcements #CHANNEL`
         # helpmaster: `see all announcements`
         # help:     It will display the announcements for the channel.
@@ -82,11 +88,13 @@ def general_commands(user, command, dest, files = [])
         # help:     _see red statements_
         # help:     _see yellow declarations_
         # help:     _see messages_
+        # help:     _see :heavy_exclamation_mark: messages_
+        # help:    <https://github.com/MarioRuiz/slack-smart-bot#announcements|more info>
         # help: 
-      when /\A\s*see\s+(red\s+|green\s+|white\s+|yellow\s+)?(announcements|statements|declarations|messages)()\s*\z/i,
+      when /\A\s*see\s+(red\s+|green\s+|white\s+|yellow\s+|:\w+:\s+)?(announcements|statements|declarations|messages)()\s*\z/i,
         /\A\s*see\s+(all\s+)?(announcements|statements|declarations|messages)()\s*\z/i,
-        /\A\s*see\s+(red\s+|green\s+|white\s+|yellow\s+)?(announcements|statements|declarations|messages)\s+#(\w+)\s*\z/i,
-        /\A\s*see\s+(red\s+|green\s+|white\s+|yellow\s+)?(announcements|statements|declarations|messages)\s+<#(C\w+)\|.+>\s*\z/i
+        /\A\s*see\s+(red\s+|green\s+|white\s+|yellow\s+|:\w+:\s+)?(announcements|statements|declarations|messages)\s+#([\w\-]+)\s*\z/i,
+        /\A\s*see\s+(red\s+|green\s+|white\s+|yellow\s+|:\w+:\s+)?(announcements|statements|declarations|messages)\s+<#(C\w+)\|.+>\s*\z/i
 
         type = $1.to_s.downcase.strip
         channel = $3.to_s

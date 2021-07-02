@@ -17,8 +17,9 @@ class SlackSmartBot
         respond "You are on <##{@channel_id}> SmartBot channel. Call `bot help` to see all commands you can use or `bot rules` just to see the specific commands for this Bot channel."
       end
       if Thread.current[:using_channel]!=''
-        message = ["If you want to change bot channel rules call `use #CHANNEL` or `stop using rules from <##{Thread.current[:using_channel]}>` to stop using rules from this channel."]
-        message << "You can call a command from any other channel by calling `#CHANNEL COMMAND`"
+        message = ["You are using rules from <##{Thread.current[:using_channel]}>"]
+        message << "If you want to change bot channel rules call `use #CHANNEL` or `stop using rules from <##{Thread.current[:using_channel]}>` to stop using rules from this channel."
+        message << "You can call a command from any other channel by calling `#CHANNEL COMMAND`" if Thread.current[:typem] == :on_dm
         respond message.join("\n")
       end
       @listening[from] = {} unless @listening.key?(from)

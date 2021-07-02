@@ -1,4 +1,4 @@
-*Version 1.10.0-DEV21* Released 2021-Jun-28
+*Version 1.10.0-DEV22* Released 2021-Jul-02
 
 *For General users*
 - When on a private conversation with the SmartBot (DM) and not using any channels rule on the conversation, the general_rules will be available.
@@ -7,6 +7,7 @@
 - Added command `suggest command` that will return the help content for a random command.
 - New command `leaderboard` returns useful information about the use of the SmartBot.
 - `add COLOR announcement MESSAGE`, `add EMOJI announcement MESSAGE` command stores the message on the announcement list labeled with the color/emoji specified, white by default. Aliases for announcement: statement, declaration, message. Related: `see announcements`, `delete announcement id`
+- `hi bot` and `bye bot` can be called from any channel where the SmartBot is a member.
 
 *For Admin users*
 - respond_thread method will send the respond creating a thread if necessary. It can be used also `respond 'msg', :on_thread`

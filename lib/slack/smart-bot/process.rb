@@ -40,12 +40,8 @@ class SlackSmartBot
     
         case command
 
-        when /\A\s*(Hello|Hallo|Hi|Hola|What's\sup|Hey|Hæ)\s+(#{@salutations.join("|")})\s*$/i
-          hi_bot(user, dest, dchannel, from, display_name)
         when /\A\s*what's\s+new\s*$/i
           whats_new(user, dest, dchannel, from, display_name)
-        when /\A\s*(Bye|Bæ|Good\s+Bye|Adiós|Ciao|Bless|Bless\sBless|Adeu)\s+(#{@salutations.join("|")})\s*$/i
-          bye_bot(dest, from, display_name)
         when /\A\s*(#{@salutations.join("|")})\s+(rules|help)\s*(.+)?$/i, /\A(#{@salutations.join("|")}),? what can I do/i
           $2.to_s.match?(/rules/i) ? specific = true : specific = false
           help_command = $3

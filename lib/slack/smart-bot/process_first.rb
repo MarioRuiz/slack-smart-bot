@@ -227,6 +227,7 @@ class SlackSmartBot
                 processed = true
               end    
             end
+            processed = (processed || general_bot_commands(user, command, dest, files) )
             processed = (processed || general_commands(user, command, dest, files) ) if defined?(general_commands)
             @logger.info "command: #{nick}> #{command}" if processed
           end

@@ -117,6 +117,19 @@ def rules(user, command, processed, dest, files = [], rules_file = "")
         #   # send 'the message' to a specific user id as direct message
         #   respond "the message", 'US3344D3'
 
+        # Example sending blocks https://api.slack.com/block-kit
+        # my_blocks = [
+        #   { type: "context",
+        #     elements:
+        #       [
+        #         { type: "plain_text", :text=>"\tInfo: " },
+        #         { type: "image", image_url: "https://avatars.slack-edge.com/2021-03-23/182815_e54abb1dd_24.jpg", alt_text: "mario" },
+        #         { type: "mrkdwn", text: " *Mario Ruiz* (marior)  " }
+        #       ]
+        #   }
+        # ]
+        # respond blocks: my_blocks
+
         # Example downloading a file from slack
         #  if !files.nil? and files.size == 1 and files[0].filetype == 'yaml'
         #    require 'nice_http'

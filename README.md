@@ -159,6 +159,21 @@ def rules(user, command, processed, dest)
       
       unreact :runner
 
+    # Example sending blocks. More info: https://api.slack.com/block-kit
+    # help: It will return the info about who is the admin
+    when /\AWho is the admin\?\z/i
+         my_blocks = [
+           { type: "context",
+             elements:
+               [
+                 { type: "plain_text", :text=>"\tAdmin: " },
+                 { type: "image", image_url: "https://avatars.slack-edge.com/2021-03-23/182815_e54abb1dd_24.jpg", alt_text: "mario" },
+                 { type: "mrkdwn", text: " *Mario Ruiz* (marior)  " }
+               ]
+           }
+         ]
+         respond blocks: my_blocks
+
     else
       unless processed
         dont_understand()

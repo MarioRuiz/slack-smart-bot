@@ -109,6 +109,46 @@ def general_bot_commands(user, command, dest, files = [])
 
         see_announcements(user, type, channel)
 
+        # help: ----------------------------------------------
+        # help: `see statuses`
+        # help: `see statuses #CHANNEL`
+        # help: `see status EMOJI`
+        # help: `see status EMOJI #CHANNEL`
+        # help: `see status EMOJI1 EMOJI99`
+        # help: `who is on vacation?`
+        # help: `who is on EMOJI`
+        # help: `who is on EMOJI #CHANNEL`
+        # help: `who is on EMOJI1 EMOJI99`
+        # help: `who is not on vacation?`
+        # help: `who is not on EMOJI`
+        # help:     It will display the current statuses of the members of the channel where you are calling the command or on the channel you supply.
+        # help:    <https://github.com/MarioRuiz/slack-smart-bot#see-statuses|more info>
+        # help: 
+      when /\A\s*(see|get)\s+(statuses)()\s*\z/i,
+        /\A\s*(see\s+status|get\s+status|who\s+is\s+on|who\s+is\s+not\s+on)\s+(:[\w\-\:\s]+:)\s*\??()\s*\z/i,
+        /\A\s*(who\s+is\s+on|who\s+is\s+not\s+on)\s+(vacation|holiday)\s*\??()\s*\z/i,
+        /\A\s*(see|get)\s+(statuses)\s+#([\w\-]+)\s*\z/i,
+        /\A\s*(see\s+status|get\s+status|who\s+is\s+on|who\s+is\s+not\s+on)\s+(:[\w\-\:\s]+:)\s*\??\s+#([\w\-]+)\s*\z/i,
+        /\A\s*(who\s+is\s+on|who\s+is\s+not\s+on)\s+(vacation|holiday)\s*\??\s+#([\w\-]+)\s*\z/i,
+        /\A\s*(see|get)\s+(statuses)\s+<#(C\w+)\|.+>\s*\z/i,
+        /\A\s*(see\s+status|get\s+status|who\s+is\s+on|who\s+is\s+not\s+on)\s+(:[\w\-\:\s]+:)\s*\??\s+<#(C\w+)\|.+>\s*\z/i,
+        /\A\s*(who\s+is\s+on|who\s+is\s+not\s+on)\s+(vacation|holiday)\s*\??\s+<#(C\w+)\|.+>\s*\z/i
+
+        not_on = $1.match?(/who\s+is\s+not\s+on/i)
+        type = $2.downcase
+        channel = $3.to_s
+        if type == 'statuses'
+          types = []
+        elsif type =='vacation' or type == 'holiday'
+          types = [':palm_tree:']
+        else
+          type.gsub!(' ', '')
+          type.gsub!('::',': :')
+          types = type.split(' ')
+        end
+        see_statuses(user, channel, types, dest, not_on)
+
+
     else
       return false
     end

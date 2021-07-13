@@ -8,6 +8,7 @@
 - New command `leaderboard` returns useful information about the use of the SmartBot.
 - `add COLOR announcement MESSAGE`, `add EMOJI announcement MESSAGE` command stores the message on the announcement list labeled with the color/emoji specified, white by default. Aliases for announcement: statement, declaration, message. Related: `see announcements`, `delete announcement id`
 - `hi bot` and `bye bot` can be called from any channel where the SmartBot is a member.
+- Added general command `see statuses`, `who is on vacation?`, `who is not on vacation?`
 
 *For Admin users*
 - respond_thread method will send the respond creating a thread if necessary. It can be used also `respond 'msg', :on_thread`

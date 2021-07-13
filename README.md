@@ -28,6 +28,7 @@ slack-smart-bot can create bots on demand, create shortcuts, run ruby code... ju
   * [Sending notifications](#sending-notifications)
   * [Shortcuts](#shortcuts)
   * [Announcements](#announcements)
+  * [Announcements](#see-statuses)
   * [Routines](#routines)
   * [Limit who has access to a command](#limit-who-has-access-to-a-command)
   * [Tips](#tips)
@@ -440,6 +441,17 @@ To see the announcements of the channel: **_`see announcements`_**, **_`see COLO
 
 If you are a master admin and you are on master channel then you can call **_`publish announcements`_** that will publish the announcements on all channels. The messages stored on a DM won't be published. This is very convenient to be called from a *Routine* for example every weekday at 09:00.
 
+### See statuses
+To see a list of statuses of the members in the channel you can call `see statuses`, `who is on vacation?`, `who is not on vacation?`, `who is on EMOJI`, `who is on EMOJI #CHANNEL`
+
+You need to be a member of the channel to be able to get this info.
+
+Examples:
+>**_Peter>_** `see statuses`
+>**_Peter>_** `who is on vacation?`
+>**_Peter>_** `who is not on vacation?`
+>**_Peter>_** `who is on vacation? #SalesChannel`
+>**_Peter>_** `who is on :working-from-home:`
 
 ### Routines
 To add specific commands to be run automatically every certain amount of time or a specific time: **_`add routine NAME every NUMBER PERIOD COMMAND`_** or **_`add routine NAME at TIME COMMAND`_**. Also just before the command you can supply the channel where you want to publish the results, if not channel supplied then it would be the SmartBot Channel or on the DM if the command is run from there. Remember the SmartBot needs to have access to the channel where you want to publish.

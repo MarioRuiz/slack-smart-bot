@@ -6,6 +6,7 @@ class SlackSmartBot
   # help:
   def stop_using_rules(dest, channel, user, dchannel)
     save_stats(__method__)
+    channel.gsub!('#','') # for the case the channel name is in plain text including #
     if @channels_id.key?(channel)
       channel_id = @channels_id[channel]
     else

@@ -52,14 +52,14 @@ class SlackSmartBot
         when /\A\s*use\s+(rules\s+)?(from\s+)?<#C\w+\|(.+)>\s*$/i, /\Ause\s+(rules\s+)?(from\s+)?([^\s]+\s*$)/i
           channel = $3
           use_rules(dest, channel, user, dchannel)
-        when /\A\s*stop\s+using\s+rules\s+(from\s+)<#\w+\|(.+)>/i, /\A\s*stop\s+using\s+rules\s+(from\s+)(.+)/i
+        when /\A\s*stop\s+using\s+rules\s+(from\s+)<#\w+\|(.+)>/i, /\A\s*stop\s+using\s+rules\s+(from\s+)(.+)\s*$/i
           channel = $2
           stop_using_rules(dest, channel, user, dchannel)
         when /\A\s*extend\s+rules\s+(to\s+)<#C\w+\|(.+)>/i, /\A\s*extend\s+rules\s+(to\s+)(.+)/i,
             /\A\s*use\s+rules\s+(on\s+)<#C\w+\|(.+)>/i, /\A\s*use\s+rules\s+(on\s+)(.+)/i
           channel = $2
           extend_rules(dest, user, from, channel, typem)
-        when /\A\s*stop\s+using\s+rules\s+(on\s+)<#\w+\|(.+)>/i, /\A\s*stop\s+using\s+rules\s+(on\s+)(.+)/i
+        when /\A\s*stop\s+using\s+rules\s+(on\s+)<#\w+\|(.+)>/i, /\A\s*stop\s+using\s+rules\s+(on\s+)(.+)\s*$/i
           channel = $2
           stop_using_rules_on(dest, user, from, channel, typem)
         when /\A\s*exit\s+bot\s*$/i, /\A\s*quit\s+bot\s*$/i, /\A\s*close\s+bot\s*$/i

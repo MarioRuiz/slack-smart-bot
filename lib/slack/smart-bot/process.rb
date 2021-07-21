@@ -35,7 +35,6 @@ class SlackSmartBot
       end
       processed = true
     end
-
     if !config.on_maintenance or (config.on_maintenance and command.match?(/\A(set|turn)\s+maintenance\s+off\s*\z/))
       #todo: check :on_pg in this case
       if typem == :on_master or typem == :on_bot or typem == :on_pg or typem == :on_dm
@@ -87,12 +86,12 @@ class SlackSmartBot
         when /\A\s*kill\s+bot\s+on\s+<#C\w+\|(.+)>\s*$/i, /\Akill\s+bot\s+on\s+#(.+)\s*$/i, /\Akill\s+bot\s+on\s+(.+)\s*$/i
           channel = $1
           kill_bot_on_channel(dest, from, channel)
-        when /\A\s*(add|create)\s+(silent\s+)?(bgroutine|routine)\s+(\w+)\s+(every)\s+(\d+)\s*(days|hours|minutes|seconds|mins|min|secs|sec|d|h|m|s)\s*(\s#(\w+)\s*)(\s.+)?\s*$/i,
-          /\A\s*(add|create)\s+(silent\s+)?(bgroutine|routine)\s+(\w+)\s+(every)\s+(\d+)\s*(days|hours|minutes|seconds|mins|min|secs|sec|d|h|m|s)\s*(\s<#(C\w+)\|.+>\s*)?(\s.+)?\s*$/i,
-          /\A\s*(add|create)\s+(silent\s+)?(bgroutine|routine)\s+(\w+)\s+on\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday|weekend|weekday)s?\s+at\s+(\d+:\d+:?\d+?)\s*()(\s#(\w+)\s*)(\s.+)?\s*$/i,
-          /\A\s*(add|create)\s+(silent\s+)?(bgroutine|routine)\s+(\w+)\s+on\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday|weekend|weekday)s?\s+at\s+(\d+:\d+:?\d+?)\s*()(\s<#(C\w+)\|.+>\s*)?(\s.+)?\s*$/i,
-          /\A\s*(add|create)\s+(silent\s+)?(bgroutine|routine)\s+(\w+)\s+(at)\s+(\d+:\d+:?\d+?)\s*()(\s#(\w+)\s*)(\s.+)?\s*$/i,
-          /\A\s*(add|create)\s+(silent\s+)?(bgroutine|routine)\s+(\w+)\s+(at)\s+(\d+:\d+:?\d+?)\s*()(\s<#(C\w+)\|.+>\s*)?(\s.+)?\s*$/i
+        when /\A\s*(add|create)\s+(silent\s+)?(bgroutine|routine)\s+([\w\.]+)\s+(every)\s+(\d+)\s*(days|hours|minutes|seconds|mins|min|secs|sec|d|h|m|s)\s*(\s#(\w+)\s*)(\s.+)?\s*\z/im,
+          /\A\s*(add|create)\s+(silent\s+)?(bgroutine|routine)\s+([\w\.]+)\s+(every)\s+(\d+)\s*(days|hours|minutes|seconds|mins|min|secs|sec|d|h|m|s)\s*(\s<#(C\w+)\|.+>\s*)?(\s.+)?\s*\z/im,
+          /\A\s*(add|create)\s+(silent\s+)?(bgroutine|routine)\s+([\w\.]+)\s+on\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday|weekend|weekday)s?\s+at\s+(\d+:\d+:?\d+?)\s*()(\s#(\w+)\s*)(\s.+)?\s*\z/im,
+          /\A\s*(add|create)\s+(silent\s+)?(bgroutine|routine)\s+([\w\.]+)\s+on\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday|weekend|weekday)s?\s+at\s+(\d+:\d+:?\d+?)\s*()(\s<#(C\w+)\|.+>\s*)?(\s.+)?\s*\z/im,
+          /\A\s*(add|create)\s+(silent\s+)?(bgroutine|routine)\s+([\w\.]+)\s+(at)\s+(\d+:\d+:?\d+?)\s*()(\s#(\w+)\s*)(\s.+)?\s*\z/im,
+          /\A\s*(add|create)\s+(silent\s+)?(bgroutine|routine)\s+([\w\.]+)\s+(at)\s+(\d+:\d+:?\d+?)\s*()(\s<#(C\w+)\|.+>\s*)?(\s.+)?\s*\z/im
           silent = $2.to_s!=''
           routine_type = $3.downcase
           name = $4.downcase
@@ -101,22 +100,33 @@ class SlackSmartBot
           period = $7
           channel = $9
           command_to_run = $10
+          content = command_to_run.to_s.scan(/\A\s*```(.+)```\s*\z/im).join
+          unless content == ''
+            files = [
+              {
+                name: name,
+                filetype: '',
+                content: content
+              }
+            ]
+            command_to_run = ''
+          end
           add_routine(dest, from, user, name, type, number_time, period, command_to_run, files, silent, channel, routine_type)
-        when /\A\s*(kill|delete|remove)\s+routine\s+(\w+)\s*$/i
+        when /\A\s*(kill|delete|remove)\s+routine\s+([\w\.]+)\s*$/i
           name = $2.downcase
           remove_routine(dest, from, name)
-        when /\A\s*see\s+routines?\s+results?\s+(\w+)\s*$/i,
-          /\A\s*see\s+results?\s+routines?\s+(\w+)\s*$/i,
-          /\A\s*results?\s+routines?\s+(\w+)\s*$/i
+        when /\A\s*see\s+routines?\s+results?\s+([\w\.]+)\s*$/i,
+          /\A\s*see\s+results?\s+routines?\s+([\w\.]+)\s*$/i,
+          /\A\s*results?\s+routines?\s+([\w\.]+)\s*$/i
           name = $1.downcase
           see_result_routine(dest, from, name)
-        when /\A\s*(run|execute)\s+routine\s+(\w+)\s*$/i
+        when /\A\s*(run|execute)\s+routine\s+([\w\.]+)\s*$/i
           name = $2.downcase
           run_routine(dest, from, name)
-        when /\A\s*pause\s+routine\s+(\w+)\s*$/i
+        when /\A\s*pause\s+routine\s+([\w\.]+)\s*$/i
           name = $1.downcase
           pause_routine(dest, from, name)
-        when /\A\s*start\s+routine\s+(\w+)\s*$/i
+        when /\A\s*start\s+routine\s+([\w\.]+)\s*$/i
           name = $1.downcase
           start_routine(dest, from, name)
         when /\A\s*see\s+(all\s+)?routines\s*$/i

@@ -25,6 +25,7 @@ class SlackSmartBot
   # helpadmin:    DAYWEEK: Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday. And their plurals. Also possible to be used 'weekdays' and 'weekends'
   # helpadmin:    #CHANNEL: the destination channel where the results will be published. If not supplied then the bot channel by default or a DM if the command is run from a DM.
   # helpadmin:    COMMAND: any valid smart bot command or rule
+  # helpadmin:    It is possible to add a script directly. Only master admins can do it.
   # helpadmin:    Examples:
   # helpadmin:      _add routine example every 30s !ruby puts 'a'_
   # helpadmin:      _add bgroutine example every 3 days !ruby puts 'a'_
@@ -33,6 +34,7 @@ class SlackSmartBot
   # helpadmin:      _add bgroutine example on Mondays at 05:00 !run customer tests_
   # helpadmin:      _add routine example on Tuesdays at 09:00 #SREChannel !run db cleanup_
   # helpadmin:      _add routine example on weekdays at 22:00 suggest command_
+  # helpadmin:      _add routine example.rb at 17:05 ```puts Time.now```_
   # helpadmin:    <https://github.com/MarioRuiz/slack-smart-bot#routines|more info>
   # helpadmin:
   def add_routine(dest, from, user, name, type, number_time, period, command_to_run, files, silent, channel, routine_type)
@@ -109,8 +111,14 @@ class SlackSmartBot
               if files[0].filetype == "ruby" and files[0].name.scan(/[^\.]+(\.\w+$)/).join == ''
                 file_path += ".rb"
               end
-              http = NiceHttp.new(host: "https://files.slack.com", headers: { "Authorization" => "Bearer #{config[:token]}" }, log_headers: :partial)
-              http.get(files[0].url_private_download, save_data: file_path)
+              if files[0].key?(:content)
+                File.open(file_path, 'w') do |f| 
+                  f.write files[0].content
+                end
+              else
+                http = NiceHttp.new(host: "https://files.slack.com", headers: { "Authorization" => "Bearer #{config[:token]}" }, log_headers: :partial)
+                http.get(files[0].url_private_download, save_data: file_path)
+              end
               system("chmod +x #{file_path}")
             end
             get_channels_name_and_id() unless @channels_name.keys.include?(channel) or @channels_id.keys.include?(channel)

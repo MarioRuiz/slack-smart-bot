@@ -354,7 +354,7 @@ class SlackSmartBot
             end
           end
           
-          if processed and config.general_message != ''
+          if processed and config.general_message != '' and !routine
             respond eval("\"" + config.general_message + "\"")
           end
         rescue Exception => stack

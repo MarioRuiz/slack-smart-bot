@@ -50,7 +50,7 @@ def general_bot_commands(user, command, dest, files = [])
         # help:     _add green announcement :heavy_check_mark: All customer services are up and running_
         # help:     _add red declaration Customers db is down :x:_
         # help:     _add yellow statement Don't access the linux server without VPN_
-        # help:     _add message Party will start at 20:00 :tada:_
+        # help:     _add message `*Party* will start at *20:00* :tada:`_
         # help:     _add :heavy_exclamation_mark: message Pay attention all DB are on maintenance until 20:00 GMT_
         # help:    <https://github.com/MarioRuiz/slack-smart-bot#announcements|more info>
         # help: 

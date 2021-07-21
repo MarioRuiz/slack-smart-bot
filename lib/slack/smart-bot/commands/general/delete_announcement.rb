@@ -2,10 +2,7 @@ class SlackSmartBot
 
   def delete_announcement(user, message_id)
     save_stats(__method__)
-    if config[:allow_access].key?(__method__) and !config[:allow_access][__method__].include?(user.name) and !config[:allow_access][__method__].include?(user.id) and 
-      (!user.key?(:enterprise_user) or ( user.key?(:enterprise_user) and !config[:allow_access][__method__].include?(user[:enterprise_user].id)))
-      respond "You don't have access to use this command, please contact an Admin to be able to use it: <@#{config.admins.join(">, <@")}>"
-    else
+    if has_access?(__method__, user)
       if File.exists?("#{config.path}/announcements/#{Thread.current[:dest]}.csv") and !@announcements.key?(Thread.current[:dest])
         t = CSV.table("#{config.path}/announcements/#{Thread.current[:dest]}.csv", headers: ['message_id', 'user_deleted', 'user_created', 'date', 'time', 'type', 'message'])
         @announcements[Thread.current[:dest]] = t

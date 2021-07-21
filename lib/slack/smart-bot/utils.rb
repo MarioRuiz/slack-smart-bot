@@ -15,4 +15,5 @@ require_relative 'utils/get_repls'
 require_relative 'utils/update_repls'
 require_relative 'utils/answer'
 require_relative 'utils/answer_delete'
+require_relative 'utils/has_access'
 

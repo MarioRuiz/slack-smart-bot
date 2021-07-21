@@ -134,19 +134,21 @@ def rules(user, command, processed, dest, files = [], rules_file = "")
         # helpadmin:   It will run the process and report the results when done
         # helpadmin:
       when /^run something/i
-        respond "Running"
+        if has_access?(:run_something, user)
+          respond "Running"
 
-        process_to_run = "ruby -v"
-        process_to_run = ("cd #{project_folder} &&" + process_to_run) if defined?(project_folder)
-        stdout, stderr, status = Open3.capture3(process_to_run)
-        if stderr == ""
-          if stdout == ""
-            respond "#{display_name}: Nothing returned."
+          process_to_run = "ruby -v"
+          process_to_run = ("cd #{project_folder} &&" + process_to_run) if defined?(project_folder)
+          stdout, stderr, status = Open3.capture3(process_to_run)
+          if stderr == ""
+            if stdout == ""
+              respond "#{display_name}: Nothing returned."
+            else
+              respond "#{display_name}: #{stdout}"
+            end
           else
-            respond "#{display_name}: #{stdout}"
+            respond "#{display_name}: #{stderr}"
           end
-        else
-          respond "#{display_name}: #{stderr}"
         end
 
         # Example downloading a file from slack

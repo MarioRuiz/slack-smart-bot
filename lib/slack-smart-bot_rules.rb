@@ -79,20 +79,22 @@ def rules(user, command, processed, dest, files = [], rules_file = "")
         # help:
       when /\Arun something/i
         save_stats :run_something
-        react :runner
+        if has_access?(:run_something, user)
+          react :runner
 
-        process_to_run = "ruby -v"
-        process_to_run = ("cd #{project_folder} &&" + process_to_run) if defined?(project_folder)
-        stdout, stderr, status = Open3.capture3(process_to_run)
-        unreact :runner
-        if stderr == ""
-          if stdout == ""
-            respond "#{display_name}: Nothing returned."
+          process_to_run = "ruby -v"
+          process_to_run = ("cd #{project_folder} &&" + process_to_run) if defined?(project_folder)
+          stdout, stderr, status = Open3.capture3(process_to_run)
+          unreact :runner
+          if stderr == ""
+            if stdout == ""
+              respond "#{display_name}: Nothing returned."
+            else
+              respond "#{display_name}: #{stdout}"
+            end
           else
-            respond "#{display_name}: #{stdout}"
+            respond "#{display_name}: #{stdout} #{stderr}"
           end
-        else
-          respond "#{display_name}: #{stdout} #{stderr}"
         end
         
         # Emoticons you can use with `react` command https://www.webfx.com/tools/emoji-cheat-sheet/

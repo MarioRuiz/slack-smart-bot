@@ -24,11 +24,7 @@ class SlackSmartBot
     save_stats(__method__)
     unless typem == :on_extended
       from = user.name
-      if config[:allow_access].key?(__method__) and !config[:allow_access][__method__].include?(user.name) and !config[:allow_access][__method__].include?(user.id) and 
-        (!user.key?(:enterprise_user) or ( user.key?(:enterprise_user) and !config[:allow_access][__method__].include?(user[:enterprise_user].id)))
-        respond "You don't have access to use this command, please contact an Admin to be able to use it: <@#{config.admins.join(">, <@")}>"
-      else
-
+      if has_access?(__method__, user)
         if global 
           if !config.on_master_bot or typem != :on_master
             respond "It is only possible to add global shortcuts from Master channel"

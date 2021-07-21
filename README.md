@@ -504,10 +504,16 @@ If you want to change who has access to a certain command without restarting the
 config.allow_access.repl = ['marioruiz', 'samcooke']
 ```
 
-These are the commands that are possible to be limited:
+These are the commands that are possible to be limited plus all your SmartBot rules:
 
-`bot_help, bot_rules, bot_status, use_rules, add_shortcut, delete_shortcut, repl, run_repl, get_repl, delete_repl, see_repls, ruby_code, see_shortcuts, create_bot`
+`bot_help, bot_rules, bot_status, use_rules, add_shortcut, delete_shortcut, repl, run_repl, get_repl, delete_repl, see_repls, ruby_code, see_shortcuts, create_bot, add_announcement, delete_announcement, see_announcements`
 
+To check from a rule if the user has access to it:
+
+```ruby
+if has_access?(:your_command_id)
+end
+```
 
 ### Tips
 

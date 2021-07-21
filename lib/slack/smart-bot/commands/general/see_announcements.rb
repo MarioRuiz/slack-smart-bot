@@ -37,10 +37,7 @@ class SlackSmartBot
           channel_id = @channels_id[channel]
         end
       end
-      if config[:allow_access].key?(__method__) and !config[:allow_access][__method__].include?(user.name) and !config[:allow_access][__method__].include?(user.id) and 
-        (!user.key?(:enterprise_user) or ( user.key?(:enterprise_user) and !config[:allow_access][__method__].include?(user[:enterprise_user].id)))
-        respond "You don't have access to use this command, please contact an Admin to be able to use it: <@#{config.admins.join(">, <@")}>", dest
-      else
+      if has_access?(__method__, user)
         if (channel_id!=Thread.current[:dest] and config.masters.include?(user.name) and typem==:on_dm) or publish
           see_announcements_on_demand = true
         else

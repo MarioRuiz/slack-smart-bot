@@ -30,7 +30,9 @@ class SlackSmartBot
     if (on_demand or typem == :on_dm or
       (@listening.key?(from) and (@listening[from].key?(dest) or @listening[from].key?(Thread.current[:thread_ts])) )) and 
       config.on_maintenance and !command.match?(/\A(set|turn)\s+maintenance\s+off\s*\z/)
-      respond config.on_maintenance_message, dest unless Thread.current.key?(:routine) and Thread.current[:routine]
+      unless Thread.current.key?(:routine) and Thread.current[:routine]
+        respond eval("\"" + config.on_maintenance_message + "\"")
+      end
       processed = true
     end
 

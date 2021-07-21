@@ -8,6 +8,11 @@ class SlackSmartBot
   # helpmaster: `turn maintenance off`
   # helpmaster:    The SmartBot will be on maintenance and responding with a generic message
   # helpmaster:    Only works if you are on Master channel and you are a master admin user
+  # helpmaster:    You can add interpolation to the message you are adding
+  # helpmaster:    Examples:
+  # helpmaster:      _set maintenance on_
+  # helpmaster:      _set maintenance on We are on maintenance. We'll be available again in #{((Time.new(2021,6,18,13,30,0)-Time.now)/60).to_i} minutes_
+  # helpmaster:      _turn maintenance on `We are on *maintenance* until *12:00*`_
   # helpmaster:    <https://github.com/MarioRuiz/slack-smart-bot#bot-management|more info>
   # helpmaster:
   def set_maintenance(from, status, message)

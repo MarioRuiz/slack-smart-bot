@@ -25,6 +25,9 @@
 - When adding a general message is possible to use interpolation
 - If you are a master admin and you are on master channel then you can call `publish announcements` that will publish the announcements on all channels. The messages stored on a DM won't be published. This is very convenient to be called from a *Routine* for example every weekday at 09:00.
 - Now it is possible to send blocks `respond blocks: my_blocks`. More info about blocks: https://api.slack.com/block-kit
+- When using bgroutines if we want to avoid a file to be sent: 
+        send_file(dest, 'description', "file_path", 'desc', 'text/plain', "text") unless Thread.current[:routine_type] == 'bgroutine'
+
 ------------------------------
 
 *Previous*: <https://github.com/MarioRuiz/slack-smart-bot/blob/dd23939f93ee95aca3c04d33cd1ce197d6efbd37/whats_new.txt|1.9.0>

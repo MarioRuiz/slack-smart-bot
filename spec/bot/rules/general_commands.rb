@@ -36,7 +36,7 @@ def general_commands(user, command, dest, files = [])
   rescue => exception
     if defined?(@logger)
       @logger.fatal exception
-      respond "Unexpected error!! Please contact an admin to solve it: <@#{ADMIN_USERS.join(">, <@")}>"
+      respond "Unexpected error!! Please contact an admin to solve it: <@#{config.admins.join(">, <@")}>"
     else
       puts exception
     end

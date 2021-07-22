@@ -24,6 +24,7 @@ class SlackSmartBot
               else
                 command_txt = data.command
               end
+              command_txt.gsub!(/```.+```/m,'```CODE```')
 
               if data.routine
                 user_name = "routine/#{data.user.name}"

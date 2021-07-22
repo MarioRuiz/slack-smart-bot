@@ -1,21 +1,7 @@
 class SlackSmartBot
 
-  # help: ----------------------------------------------
-  # help: `bot help`
-  # help: `bot help COMMAND`
-  # help: `bot rules`
-  # help: `bot rules COMMAND`
-  # help: `bot help expanded`
-  # help: `bot rules expanded`
-  # help: `bot what can I do?`
-  # help:    it will display this help. For a more detailed help call `bot help expanded` or `bot rules expanded`.
-  # help:    if COMMAND supplied just help for that command
-  # help:    you can use the option 'expanded' or the alias 'extended'
-  # help:    `bot rules` will show only the specific rules for this channel.
-  # help:    <https://github.com/MarioRuiz/slack-smart-bot#bot-help|more info>
-  # help:
-  def bot_help(user, from, dest, dchannel, specific, help_command, rules_file)
-    save_stats(__method__)
+  def bot_help(user, from, dest, dchannel, specific, help_command, rules_file, savestats=true)
+    save_stats(__method__) if savestats
     if has_access?(__method__, user)
       help_found = false
 

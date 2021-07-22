@@ -28,9 +28,10 @@ slack-smart-bot can create bots on demand, create shortcuts, run ruby code... ju
   * [Sending notifications](#sending-notifications)
   * [Shortcuts](#shortcuts)
   * [Announcements](#announcements)
-  * [Announcements](#see-statuses)
+  * [See Statuses](#see-statuses)
   * [Routines](#routines)
   * [Limit who has access to a command](#limit-who-has-access-to-a-command)
+  * [See favorite commands](#see-favorite-commands)
   * [Tips](#tips)
     + [Send a file](#send-a-file)
     + [Download a file](#download-a-file)
@@ -514,6 +515,16 @@ To check from a rule if the user has access to it:
 if has_access?(:your_command_id)
 end
 ```
+
+### See favorite commands
+
+It will display the favorite commands in that channel. 
+
+Examples:  
+>**_`see favorite commands`_**  
+>**_`favorite commands`_**  
+>**_`my favourite commands`_**  
+>**_`most used commands`_**  
 
 ### Tips
 

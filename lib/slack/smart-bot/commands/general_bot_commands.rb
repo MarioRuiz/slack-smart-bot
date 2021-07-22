@@ -13,6 +13,23 @@ def general_bot_commands(user, command, dest, files = [])
 
     case command
 
+
+      # help: ----------------------------------------------
+      # help: `bot help`
+      # help: `bot help COMMAND`
+      # help: `bot rules`
+      # help: `bot rules COMMAND`
+      # help: `bot help expanded`
+      # help: `bot rules expanded`
+      # help: `bot what can I do?`
+      # help:    it will display this help. For a more detailed help call `bot help expanded` or `bot rules expanded`.
+      # help:    if COMMAND supplied just help for that command
+      # help:    you can use the option 'expanded' or the alias 'extended'
+      # help:    `bot rules` will show only the specific rules for this channel.
+      # help:    <https://github.com/MarioRuiz/slack-smart-bot#bot-help|more info>
+      # help:
+
+
       # help: ----------------------------------------------
       # help: `Hi Bot`
       # help: `Hi Smart`
@@ -149,6 +166,18 @@ def general_bot_commands(user, command, dest, files = [])
         see_statuses(user, channel, types, dest, not_on)
 
 
+        # help: ----------------------------------------------
+        # help: `see favorite commands`
+        # help: `see my favorite commands`
+        # help:     It will display the favorite commands.
+        # help:     aliases for favorite: favourite, most used, fav
+        # helpmaster:    You need to set stats to true to generate the stats when running the bot instance and get this info.
+        # help:    <https://github.com/MarioRuiz/slack-smart-bot#see-favorite-commands|more info>
+        # help: 
+      when /\A\s*(see\s+)?(my\s+)?(fav|favorite|favourite|most\s+used)\s+commands\s*\z/i
+        only_mine = $2.to_s!=''
+        see_favorite_commands(user, only_mine)
+
     else
       return false
     end
@@ -156,7 +185,7 @@ def general_bot_commands(user, command, dest, files = [])
   rescue => exception
     if defined?(@logger)
       @logger.fatal exception
-      respond "Unexpected error!! Please contact an admin to solve it: <@#{ADMIN_USERS.join(">, <@")}>"
+      respond "Unexpected error!! Please contact an admin to solve it: <@#{config.admins.join(">, <@")}>"
     else
       puts exception
     end

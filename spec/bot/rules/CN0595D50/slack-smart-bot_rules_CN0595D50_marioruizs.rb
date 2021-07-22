@@ -96,6 +96,7 @@ def rules(user, command, processed, dest, files = [], rules_file = "")
       # help:  which rules for bot1cm
       # help:
       when /^which\s+rules$/i
+        save_stats :which_rules
         respond "bot1cm"
         react :thumbsup
 

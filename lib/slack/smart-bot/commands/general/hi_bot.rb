@@ -12,7 +12,7 @@ class SlackSmartBot
         message << "Call `bot help` to see the commands you can use."
         respond message.join("\n")
       elsif Thread.current[:typem] == :on_dm and Thread.current[:using_channel] == ''
-        respond "To start using the rules from a Bot channel call `use #CHANNEL`.\nIf you want to call just one command from a specific channel: `#CHANNEL COMMAND`"
+        respond "To start using the rules from a Bot channel call `use #CHANNEL`.\nAvailable SmartBots: <##{@bots_created.keys.join('>, <#')}>\nIf you want to call just one command from a specific channel: `#CHANNEL COMMAND`"
       else
         respond "You are on <##{@channel_id}> SmartBot channel. Call `bot help` to see all commands you can use or `bot rules` just to see the specific commands for this Bot channel."
       end

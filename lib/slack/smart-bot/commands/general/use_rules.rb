@@ -35,6 +35,7 @@ class SlackSmartBot
           else
             @rules_imported[user.id][user.id] = channel_found.id
           end
+          sleep 0.5
           update_rules_imported()
           respond "I'm using now the rules from <##{channel_found.id}>", dest
 

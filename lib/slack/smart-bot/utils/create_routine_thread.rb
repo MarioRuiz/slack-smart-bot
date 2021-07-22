@@ -6,6 +6,10 @@ class SlackSmartBot
         @routines[@channel_id][name][:thread] = Thread.current
         started = Time.now
         if @status == :on and @routines[@channel_id][name][:status] == :on
+          if !@routines[@channel_id][name].key?(:creator_id) or @routines[@channel_id][name][:creator_id].to_s == ''
+            user_info = @users.select{|u| u.name == @routines[@channel_id][name][:creator]}[-1]
+            @routines[@channel_id][name][:creator_id] = user_info.id unless user_info.nil? or user_info.empty?
+          end
           @logger.info "Routine: #{@routines[@channel_id][name].inspect}"
           if @routines[@channel_id][name][:file_path].match?(/\.rb$/i)
             ruby = "ruby "

@@ -11,6 +11,7 @@ def general_commands(user, command, dest, files = [])
         # help: `NUMBER cls`
         # help:     It will send a big empty message.
         # help:        NUMBER (optional): number of lines. Default 100. Max 200.
+        # help: command_id: :cls
         # help: 
     when /\A\s*(\d*)\s*(clear|cls|clear\s+screen)\s*\z/i
       save_stats :cls

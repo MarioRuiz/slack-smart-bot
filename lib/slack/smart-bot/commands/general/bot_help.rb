@@ -2,6 +2,7 @@ class SlackSmartBot
 
   def bot_help(user, from, dest, dchannel, specific, help_command, rules_file, savestats=true)
     save_stats(__method__) if savestats
+    output = []
     if has_access?(__method__, user)
       help_found = false
 
@@ -19,8 +20,9 @@ class SlackSmartBot
 
       if help_command.to_s != ""
         help_message.gsub(/====+/,'-'*30).split(/^\s*-------*$/).each do |h|
-          if h.match?(/[`_]#{help_command}/i)
-            respond h, dest, unfurl_links: false, unfurl_media: false
+          if h.match?(/[`_]#{help_command}/i) or h.match?(/^\s*command_id:\s+:#{help_command}\s*$/)
+            respond h.gsub(/^\s*command_id:\s+:\w+\s*$/,''), dest, unfurl_links: false, unfurl_media: false
+            output << h
             help_found = true
           end
         end
@@ -29,12 +31,14 @@ class SlackSmartBot
           message += "*You are using rules from another channel: <##{Thread.current[:using_channel]}>. These are the specific commands for that channel:*"
         end
         respond message, dest, unfurl_links: false, unfurl_media: false
+        output << message
       end
 
       if (help_command.to_s == "")
         help_message.split(/^\s*=========*$/).each do |h|
           unless h.match?(/\A\s*\z/)
-            respond "#{"=" * 35}\n#{h}", dest, unfurl_links: false, unfurl_media: false
+            respond "#{"=" * 35}\n#{h.gsub(/^\s*command_id:\s+:\w+\s*$/,'')}", dest, unfurl_links: false, unfurl_media: false
+            output << "#{"=" * 35}\n#{h}"
           end
         end
         if Thread.current[:typem] == :on_pg or Thread.current[:typem] == :on_pub
@@ -42,14 +46,17 @@ class SlackSmartBot
             txt = "\nThese are the *SmartBots* running on this Slack workspace: *<##{@master_bot_id}>, <##{@bots_created.keys.join('>, <#')}>*\n"
             txt += "Join one channel and call *`bot rules`* to see specific commands for that channel or *`bot help`* to see all commands for that channel.\n"
             respond txt, unfurl_links: false, unfurl_media: false
+            output << txt
           end
         end
       else
         unless help_found
           if specific
-            respond("I didn't find any rule starting by `#{help_command}`", dest)
+            output << "I didn't find any rule starting by `#{help_command}`"
+            respond(output[-1], dest)
           else
-            respond("I didn't find any command starting by `#{help_command}`", dest)
+            output << "I didn't find any command starting by `#{help_command}`"
+            respond(output[-1], dest)
           end
         end
       end
@@ -61,7 +68,8 @@ class SlackSmartBot
           end
         end
         if defined?(git_project) && (git_project.to_s != "") && (help_command.to_s == "")
-          respond "Git project: #{git_project}", dest, unfurl_links: false, unfurl_media: false
+          output << "Git project: #{git_project}"
+          respond output[-1], dest, unfurl_links: false, unfurl_media: false
         else
           def git_project
             ""
@@ -72,9 +80,14 @@ class SlackSmartBot
           end
         end
       elsif help_command.to_s == ""
-        respond "Slack Smart Bot Github project: https://github.com/MarioRuiz/slack-smart-bot", dest, unfurl_links: false, unfurl_media: false
+        output << "Slack Smart Bot Github project: https://github.com/MarioRuiz/slack-smart-bot"
+        respond output[-1], dest, unfurl_links: false, unfurl_media: false
       end
-      respond(message_not_expanded, unfurl_media: false, unfurl_links: false) unless expanded
+      unless expanded
+        output << message_not_expanded
+        respond(message_not_expanded, unfurl_media: false, unfurl_links: false)
+      end
     end
+    return output.join("\n")
   end
 end

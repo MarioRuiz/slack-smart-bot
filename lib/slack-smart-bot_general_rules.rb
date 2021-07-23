@@ -13,6 +13,8 @@ def general_rules(user, command, processed, dest, files = [], rules_file = "")
         # help:  Examples:
         # help:     _echo I am the Smart Bot_
         # help:     _100 echo :heart:_
+        # help: command_id: :echo
+        # help:        
       when /\A\s*(\d*)\s*echo\s(.+)/i
         save_stats :echo
         $1.to_s == '' ? times = 1 : times = $1.to_i

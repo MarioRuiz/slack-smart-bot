@@ -49,6 +49,7 @@ def rules(user, command, processed, dest, files = [], rules_file = "")
         # help: ----------------------------------------------
         # help: `go to sleep`
         # help:   it will sleep the bot for 5 seconds
+        # help: command_id: :go_to_sleep
         # help:
       when /\A\s*go\sto\ssleep/i
         save_stats :go_to_sleep
@@ -76,6 +77,7 @@ def rules(user, command, processed, dest, files = [], rules_file = "")
         # help: ----------------------------------------------
         # help: `run something`
         # help:   It will run the process and report the results when done
+        # help: command_id: :run_something
         # help:
       when /\Arun something/i
         save_stats :run_something

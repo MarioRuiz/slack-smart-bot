@@ -20,7 +20,7 @@ class SlackSmartBot
 
       if help_command.to_s != ""
         help_message.gsub(/====+/,'-'*30).split(/^\s*-------*$/).each do |h|
-          if h.match?(/[`_]#{help_command}/i) or h.match?(/^\s*command_id:\s+:#{help_command}\s*$/)
+          if h.match?(/[`_]#{help_command}/i) or h.match?(/^\s*command_id:\s+:#{help_command.gsub(' ', '_')}\s*$/)
             respond h.gsub(/^\s*command_id:\s+:\w+\s*$/,''), dest, unfurl_links: false, unfurl_media: false
             output << h
             help_found = true

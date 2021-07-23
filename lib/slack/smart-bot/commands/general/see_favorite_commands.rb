@@ -27,22 +27,19 @@ class SlackSmartBot
           end
         end
         commands = []
-        i = 0
         count_commands.sort_by {|k,v| -v}.each do |command, num|
-          if i >= 5
-              break
-          else 
-            commands << command
-          end
-          i+=1
+          commands << command
         end
         if commands.empty?
           respond "There is no data stored."
         else
           output = ""
+          i = 0
           commands.each do |command|
             unless output.match?(/^\s*command_id:\s+:#{command}\s*$/)
+              i+=1
               output += bot_help(user, user.name, Thread.current[:dest], channel, false, command.gsub('_',' '), config.rules_file, false)
+              break if i>=5
             end
           end
         end

@@ -186,7 +186,7 @@ end
 
 Also you can add general rules that will be available on all Smart Bot channels to `./rules/general_rules.rb`
 
-If you have commands that want to make them available everywhere the Smart Bot is invited then add those commands to `./rules/general_commands.rb`. 
+If you have commands that want to make them available everywhere the Smart Bot is a member then add those commands to `./rules/general_commands.rb`. 
 
 ### How to access the Smart Bot
 You can access the bot directly on the MASTER CHANNEL, on a secondary channel where the bot is running and directly by opening a private chat with the bot, in this case the conversation will be just between you and the bot.

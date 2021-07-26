@@ -169,6 +169,8 @@ def general_bot_commands(user, command, dest, files = [])
         # help: ----------------------------------------------
         # help: `see favorite commands`
         # help: `see my favorite commands`
+        # help: `favorite commands`
+        # help: `my favorite commands`
         # help:     It will display the favorite commands.
         # help:     aliases for favorite: favourite, most used, fav
         # helpmaster:    You need to set stats to true to generate the stats when running the bot instance and get this info.

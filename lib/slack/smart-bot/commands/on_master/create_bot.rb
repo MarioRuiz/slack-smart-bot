@@ -3,11 +3,11 @@ class SlackSmartBot
   # helpmaster: `create bot on CHANNEL_NAME`
   # helpmaster: `create cloud bot on CHANNEL_NAME`
   # helpmaster: `create silent bot on CHANNEL_NAME`
-  # helpmaster:    creates a new bot on the channel specified
-  # helpmaster:    it will work only if you are on Master channel
-  # helpmaster:    the admins will be the master admins, the creator of the bot and the creator of the channel
-  # helpmaster:    follow the instructions in case creating cloud bots
-  # helpmaster:    in case 'silent' won't display the Bot initialization message on the CHANNEL_NAME
+  # helpmaster:    Creates a new bot on the channel specified
+  # helpmaster:    It will work only if you are on Master channel
+  # helpmaster:    The admins will be the master admins, the creator of the bot and the creator of the channel
+  # helpmaster:    Follow the instructions in case creating cloud bots
+  # helpmaster:    In case 'silent' won't display the Bot initialization message on the CHANNEL_NAME
   # helpmaster:    <https://github.com/MarioRuiz/slack-smart-bot#bot-management|more info>
   # helpmaster:
   def create_bot(dest, user, type, channel)
@@ -63,7 +63,11 @@ class SlackSmartBot
               FileUtils.copy_file(default_general_commands, config.path + general_commands_file) unless File.exist?(config.path + general_commands_file)
               admin_users = Array.new()
               creator_info = @users.select{|u| u.id == channel_found.creator or (u.key?(:enterprise_user) and u.enterprise_user.id == channel_found.creator)}[-1]
-              admin_users = [from, creator_info.user.name] + config.masters
+              if creator_info.nil?
+                admin_users = [from] + config.masters
+              else
+                admin_users = [from, creator_info.user.name] + config.masters
+              end
               admin_users.uniq!
               @logger.info "BOT_SILENT=#{silent} ruby #{config.file_path} \"#{channel}\" \"#{admin_users.join(",")}\" \"#{rules_file}\" on"
           

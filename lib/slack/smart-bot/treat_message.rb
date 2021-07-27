@@ -105,6 +105,18 @@ class SlackSmartBot
               channel_rules = tcid
               channel_rules_name = tcname
               break
+            elsif @bots_created.key?(@channel_id) and @bots_created[@channel_id][:extended].include?(tcname)
+              data.text = data_text
+              typem = :on_call
+              channel_rules = @channel_id
+              channel_rules_name = @channels_name[@channel_id]
+              break
+            elsif config.on_master_bot
+              data.text = data_text
+              typem = :on_call_pub
+              channel_rules = tcid
+              channel_rules_name = tcname
+              break
             end
           end
         elsif data.channel == @master_bot_id
@@ -225,7 +237,7 @@ class SlackSmartBot
             command = "#{command} #{res.body.to_s.force_encoding("UTF-8")}"
           end
 
-          if typem == :on_call
+          if typem == :on_call or typem == :on_call_pub
             command = "!" + command unless command[0] == "!" or command.match?(/^\s*$/) or command[0] == "^"
 
             #todo: add pagination for case more than 1000 channels on the workspace
@@ -239,7 +251,11 @@ class SlackSmartBot
             elsif @status != :on
               respond "The bot in that channel is not :on", data.channel
             elsif data.user == channel_found.creator or members.include?(data.user)
-              process_first(user_info, command, dest, channel_rules, typem, data.files, data.ts, data.thread_ts, data.routine, data.routine_name, data.routine_type)
+              if typem == :on_call_pub
+                process_first(user_info, command, dest, channel_rules, :on_call, data.files, data.ts, data.thread_ts, data.routine, data.routine_name, data.routine_type)
+              else
+                process_first(user_info, command, dest, channel_rules, typem, data.files, data.ts, data.thread_ts, data.routine, data.routine_name, data.routine_type)
+              end                
             else
               respond "You need to join the channel <##{channel_found.id}> to be able to use the rules.", data.channel
             end

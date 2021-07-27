@@ -178,6 +178,7 @@ class SlackSmartBot
           Thread.current[:routine] = routine
           Thread.current[:routine_name] = routine_name
           Thread.current[:routine_type] = routine_type
+          Thread.current[:dchannel] = dchannel
           if thread_ts.to_s == ''
             Thread.current[:on_thread] = false
             Thread.current[:thread_ts] = Thread.current[:ts] # to create the thread if necessary

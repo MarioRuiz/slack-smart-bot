@@ -2,11 +2,14 @@ class SlackSmartBot
   def see_favorite_commands(user, only_mine)
     save_stats(__method__)
     if config.stats
-      if Thread.current[:using_channel].to_s==''
+      if Thread.current[:typem] == :on_call
+        channel = Thread.current[:dchannel]
+      elsif Thread.current[:using_channel].to_s==''
         channel = Thread.current[:dest]
       else
         channel = Thread.current[:using_channel]
       end
+      
       files = Dir["#{config.stats_path}.*.log"].sort.reverse[0..1]
       if files.empty?
         respond "There is no data stored."

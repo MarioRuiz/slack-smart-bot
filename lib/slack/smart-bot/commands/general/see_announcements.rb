@@ -2,8 +2,15 @@ class SlackSmartBot
 
   def see_announcements(user, type, channel, mention=false, publish=false)
     save_stats(__method__)
-    channel = Thread.current[:dest] if channel == ''
     typem = Thread.current[:typem]
+    general_message = "\nRelated commands `add announcement MESSAGE`, `delete announcement ID`"
+    if channel == ''
+      if typem == :on_call
+        channel = Thread.current[:dchannel]
+      else
+        channel = Thread.current[:dest]
+      end
+    end
     if publish
       dest = channel
     else
@@ -81,19 +88,20 @@ class SlackSmartBot
               else
                 message.unshift("*Announcements for channel <##{channel_id}>*")
               end
+              message << general_message
               respond message.join("\n"), dest
             else
               if typem == :on_dm and channel_id[0]=='D'
-                respond("There are no #{type} announcements", dest) unless type == 'all'
+                respond("There are no #{type} announcements#{general_message}", dest) unless type == 'all'
               else
-                respond("There are no #{type} announcements for <##{channel_id}>", dest) unless publish or type == 'all' or (typem==:on_dm and channel_id[0]!='D' and !see_announcements_on_demand)
+                respond("There are no #{type} announcements for <##{channel_id}>#{general_message}", dest) unless publish or type == 'all' or (typem==:on_dm and channel_id[0]!='D' and !see_announcements_on_demand)
               end
             end
           else
             if typem == :on_dm and channel_id[0]=='D'
-              respond("There are no announcements", dest) unless type == 'all'
+              respond("There are no announcements#{general_message}", dest) unless type == 'all'
             else
-              respond("There are no announcements for <##{channel_id}>", dest) unless publish or type == 'all' or (typem==:on_dm and channel_id[0]!='D' and !see_announcements_on_demand)
+              respond("There are no announcements for <##{channel_id}>#{general_message}", dest) unless publish or type == 'all' or (typem==:on_dm and channel_id[0]!='D' and !see_announcements_on_demand)
             end
           end
         else

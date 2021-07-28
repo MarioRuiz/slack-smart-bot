@@ -63,7 +63,7 @@ class SlackSmartBot
               FileUtils.copy_file(default_general_commands, config.path + general_commands_file) unless File.exist?(config.path + general_commands_file)
               admin_users = Array.new()
               creator_info = @users.select{|u| u.id == channel_found.creator or (u.key?(:enterprise_user) and u.enterprise_user.id == channel_found.creator)}[-1]
-              if creator_info.nil?
+              if creator_info.nil? or creator_info.empty? or creator_info.user.nil?
                 admin_users = [from] + config.masters
               else
                 admin_users = [from, creator_info.user.name] + config.masters

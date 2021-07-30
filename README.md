@@ -471,7 +471,7 @@ Examples:
 >**_`add routine clean_custdb on Tuesdays at 09:00 #SREChannel !clean customers db`_**  
 >**_`add silent routine suggestions on weekdays at 09:00 suggest command`_**
 
-Also instead of adding a Command to be executed, you can attach a file, then the routine will be created and the attached file will be executed on the criteria specified. Also you can supply a script adding ```the commands``` and specifying on the routine name the extension that will have. Only Master Admins are allowed to add files or scripts.
+Also instead of adding a Command to be executed, you can attach a file, then the routine will be created and the attached file will be executed on the criteria specified. Also you can supply a script adding \`\`\`the code\`\`\` and specifying on the routine name the extension that will have. Only Master Admins are allowed to add files or scripts.
 
 Other routine commands:
 * **_`pause routine NAME`_**

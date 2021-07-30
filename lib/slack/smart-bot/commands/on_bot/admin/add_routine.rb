@@ -34,7 +34,6 @@ class SlackSmartBot
   # helpadmin:      _add bgroutine example on Mondays at 05:00 !run customer tests_
   # helpadmin:      _add routine example on Tuesdays at 09:00 #SREChannel !run db cleanup_
   # helpadmin:      _add routine example on weekdays at 22:00 suggest command_
-  # helpadmin:      _add routine example.rb at 17:05 ```puts Time.now```_
   # helpadmin:    <https://github.com/MarioRuiz/slack-smart-bot#routines|more info>
   # helpadmin:
   def add_routine(dest, from, user, name, type, number_time, period, command_to_run, files, silent, channel, routine_type)

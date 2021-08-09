@@ -13,7 +13,7 @@ def get_channels(bot_is_in: false)
         resp = {}
         next_cursor = ""
         begin
-          resp.merge!(client.conversations_list(
+          resp.merge!(client.web_client.conversations_list(
             cursor: next_cursor,
             types: "private_channel, public_channel",
             limit: "1000",

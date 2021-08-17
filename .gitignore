@@ -23,7 +23,8 @@ tmp.sh
 tmp.rb
 /spec/examples.txt
 config_tmp.status
-
+/status/
+/spec/bot/status/
 # Used by dotenv library to load environment variables.
 # .env
 

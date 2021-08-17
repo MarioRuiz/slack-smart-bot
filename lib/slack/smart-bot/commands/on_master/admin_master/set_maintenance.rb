@@ -28,9 +28,11 @@ class SlackSmartBot
         if status == 'on'
           config.on_maintenance = true
           respond "From now on I'll be on maintenance status so I won't be responding accordingly."
+          save_status :off, :maintenance_on, config.on_maintenance_message
         else
           config.on_maintenance = false
           respond "From now on I won't be on maintenance. Everything is back to normal!"
+          save_status :on, :maintenance_off, config.on_maintenance_message
         end
         
         file = File.open("#{config.path}/config_tmp.status", "w")

@@ -1,4 +1,4 @@
-*Version 1.10.0-DEV32* Released 2021-Aug-09
+*Version 1.10.0-DEV33* Released 2021-Aug-17
 
 *For General users*
 - When on a private conversation with the SmartBot (DM) and not using any channels rule on the conversation, the general_rules will be available.
@@ -27,6 +27,7 @@
 - Now it is possible to send blocks `respond blocks: my_blocks`. More info about blocks: https://api.slack.com/block-kit
 - When using bgroutines if we want to avoid a file to be sent: 
         send_file(dest, 'description', "file_path", 'desc', 'text/plain', "text") unless Thread.current[:routine_type] == 'bgroutine'
+- SmartBot will notify about SmartBot status changes if defined the status_channel in config file and the channel exists. By default: smartbot-status
 
 ------------------------------
 

@@ -3,6 +3,8 @@ class SlackSmartBot
     unless config.simulate
       m = "Successfully connected, welcome '#{client.self.name}' to the '#{client.team.name}' team at https://#{client.team.domain}.slack.com."
       puts m
+      save_status :on, :connected, m
+
       @logger.info m
       config.nick = client.self.name
       config.nick_id = client.self.id

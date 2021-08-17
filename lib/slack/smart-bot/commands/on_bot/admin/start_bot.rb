@@ -12,11 +12,12 @@ class SlackSmartBot
     if config.admins.include?(from) #admin user
       respond "This bot is running and listening from now on. You can pause again: pause this bot", dest
       @status = :on
-      @bots_created[@channel_id][:status] = :on
-      update_bots_file()
       unless config.on_master_bot
+        @bots_created[@channel_id][:status] = :on
+        update_bots_file()
         send_msg_channel config.master_channel, "Changed status on #{config.channel} to :on"
       end
+      save_status :on, :started, 'The admin started this bot'
     else
       respond "Only admin users can change my status", dest
     end

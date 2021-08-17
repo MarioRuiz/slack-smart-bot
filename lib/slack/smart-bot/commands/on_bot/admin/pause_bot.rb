@@ -13,11 +13,12 @@ class SlackSmartBot
       respond "This bot is paused from now on. You can start it again: start this bot", dest
       respond "zZzzzzZzzzzZZZZZZzzzzzzzz", dest
       @status = :paused
-      @bots_created[@channel_id][:status] = :paused
-      update_bots_file()
       unless config.on_master_bot
+        @bots_created[@channel_id][:status] = :paused 
+        update_bots_file()
         send_msg_channel config.master_channel, "Changed status on #{config.channel} to :paused"
       end
+      save_status :off, :paused, 'The admin paused this bot'
     else
       respond "Only admin users can put me on pause", dest
     end

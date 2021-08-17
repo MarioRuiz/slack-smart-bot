@@ -45,6 +45,7 @@ class SlackSmartBot
     config[:on_maintenance_message] = "Sorry I'm on maintenance so I cannot attend your request." unless config.key?(:on_maintenance_message)
     config[:general_message] = "" unless config.key?(:general_message)
     config[:logrtm] = false unless config.key?(:logrtm)
+    config[:status_channel] = 'smartbot-status' unless config.key?(:status_channel)
 
     if config.path.to_s!='' and config.file.to_s==''
       config.file = File.basename($0)
@@ -120,6 +121,7 @@ class SlackSmartBot
     File.new("#{config.path}/buffer_complete.log", "w") if config[:simulate] and config.on_master_bot
 
     self.config = config
+    save_status :off, :initializing, "Initializing bot: #{config_log.inspect}"
 
     unless config.simulate and config.key?(:client)
       Slack.configure do |conf|
@@ -131,6 +133,7 @@ class SlackSmartBot
     while restarts < 200 and !created
       begin
         @logger.info "Connecting #{config_log.inspect}"
+        save_status :off, :connecting, "Connecting #{config_log.inspect}"
         if config.simulate and config.key?(:client)
           self.client = config.client
         else
@@ -151,6 +154,8 @@ class SlackSmartBot
           @logger.fatal "Rescued on creation: #{e.inspect}"
           @logger.info "Waiting 60 seconds to retry. restarts: #{restarts}"
           puts "#{Time.now}: Not able to create client. Waiting 60 seconds to retry: #{config_log.inspect}"
+          save_status :off, :waiting, "Not able to create client. Waiting 60 seconds to retry: #{config_log.inspect}"
+
           sleep 60
         else
           exit!
@@ -170,6 +175,7 @@ class SlackSmartBot
     @repls = Hash.new()
     @users = Hash.new()
     @announcements = Hash.new()
+    @last_status_change = Time.now
 
 
     if File.exist?("#{config.path}/shortcuts/#{config.shortcuts_file}")
@@ -200,6 +206,8 @@ class SlackSmartBot
             end
             @logger.info "BOT_SILENT=#{silent} ruby #{config.file_path} \"#{value[:channel_name]}\" \"#{value[:admins]}\" \"#{value[:rules_file]}\" #{value[:status].to_sym}"
             puts "Starting #{value[:channel_name]} Smart Bot"
+            save_status :off, :starting, "Starting #{value[:channel_name]} Smart Bot"
+
             t = Thread.new do
               `BOT_SILENT=#{silent} ruby #{config.file_path} \"#{value[:channel_name]}\" \"#{value[:admins]}\" \"#{value[:rules_file]}\" #{value[:status].to_sym}`
             end
@@ -237,9 +245,11 @@ class SlackSmartBot
       end
     rescue Slack::Web::Api::Errors::TooManyRequestsError
       @logger.fatal "TooManyRequestsError"
+      save_status :off, :TooManyRequestsError, "TooManyRequestsError please re run the bot and be sure of executing first: killall ruby"
       abort("TooManyRequestsError please re run the bot and be sure of executing first: killall ruby")
     rescue Exception => stack
       pp stack if config.testing
+      save_status :off, :wrong_admin_user, "The admin user specified on settings: #{config.admins.join(", ")}, doesn't exist on Slack. Execution aborted"
       abort("The admin user specified on settings: #{config.admins.join(", ")}, doesn't exist on Slack. Execution aborted")
     end
 
@@ -284,12 +294,14 @@ class SlackSmartBot
         m = "Connection closing, exiting. #{Time.now}"
         @logger.info m
         @logger.info _data
+        save_status :off, :closing, "Connection closing, exiting."
       end
   
       client.on :closed do |_data|
         m = "Connection has been disconnected. #{Time.now}"
         @logger.info m
         @logger.info _data
+        save_status :off, :disconnected, "Connection has been disconnected."
       end
     end
     self

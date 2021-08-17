@@ -84,7 +84,9 @@ You can get one by any of these options:
 - *[Legacy API Token](https://api.slack.com/custom-integrations/legacy-tokens)*. 
 
 
-*Remember to invite the smart bot to the channels where they will be accessible before creating the bot*
+*Remember to invite the smart bot to the channels where they will be accessible before creating the bot*  
+
+SmartBot will notify about SmartBot status changes or any SmartBot incident if defined the status_channel in settings file and the channel exists. By default: smartbot-status  
 
 ## Usage
 

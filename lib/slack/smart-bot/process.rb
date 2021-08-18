@@ -322,10 +322,12 @@ class SlackSmartBot
               respond "channel: #{channel_name} not found", dest
             end
           end
-        when /\A\s*ruby\s(.+)/im, /\A\s*code\s(.+)/im
+        when /\A\s*ruby\s+(.+)/im, /\A\s*code\s+(.+)/im
           code = $1
           code.gsub!("\\n", "\n")
           code.gsub!("\\r", "\r")
+          code.gsub!(/^\s*```/,'')
+          code.gsub!(/```\s*$/,'')
           @logger.info code
           ruby_code(dest, user, code, rules_file)
         when /\A\s*(private\s+|clean\s+|clean\s+private\s+|private\s+clean\s+)?(repl|irb|live)\s*()()()\z/i, 

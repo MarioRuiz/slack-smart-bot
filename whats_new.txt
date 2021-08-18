@@ -10,6 +10,7 @@
 - `hi bot` and `bye bot` can be called from any channel where the SmartBot is a member.
 - Added general command `see statuses`, `who is on vacation?`, `who is not on vacation?`
 - New general command `see favorite commands`. It will display the favorite commands in that channel. 
+- Now when running the `ruby` command it can be supplied a code block.
 
 *For Admin users*
 - respond_thread method will send the respond creating a thread if necessary. It can be used also `respond 'msg', :on_thread`

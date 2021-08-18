@@ -50,7 +50,7 @@ class SlackSmartBot
       end
     else
       message = ''
-      message = "\nTake in consideration when on external calls, not all the commands are availalbe." if typem==:on_call
+      message = "\nTake in consideration when on external calls, not all the commands are available." if typem==:on_call
       if res_final.empty?
         resp = answer.sample
         respond "#{user.profile.display_name}, #{resp}#{message}", dest

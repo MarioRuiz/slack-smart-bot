@@ -3,6 +3,21 @@ class SlackSmartBot
     nick = user.name
     rules_file = ""
     text.gsub!(/^!!/,'^') # to treat it just as ^
+
+    shared = []
+    if @shares.key?(@channels_name[dest]) and ts.to_s!='' and (user.id!=config.nick_id or (user.id == config.nick_id and !text.match?(/\A\*?Shares from channel/)))
+      @shares[@channels_name[dest]].each do |row|
+        if row[:user_deleted]==''
+          if ((row[:type] == 'text' and text.include?(row[:condition][1..-2])) or (row[:type]=='regexp' and text.match?(/#{row[:condition][1..-2]}/im))) and !shared.include?(row[:to_channel])
+            link = client.web_client.chat_getPermalink(channel: dest, message_ts: ts).permalink
+            respond "*<#{link}|Shared> by <@#{row[:user_created]}> from <##{dest}>* using share id #{row[:share_id]}", row[:to_channel]
+            shared << row[:to_channel]
+            sleep 0.2
+          end
+        end
+      end
+    end
+
     if typem == :on_call
       rules_file = config.rules_file
     elsif dest[0] == "C" or dest[0] == "G" # on a channel or private channel

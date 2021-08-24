@@ -1,4 +1,4 @@
-def get_channels(bot_is_in: false)
+def get_channels(bot_is_in: false, types: 'private_channel,public_channel')
   begin
     if config.simulate and config.key?(:client)
       if bot_is_in
@@ -15,7 +15,7 @@ def get_channels(bot_is_in: false)
         while resp.response_metadata.next_cursor.to_s != ""
           resp = client.web_client.conversations_list(
             cursor: resp.response_metadata.next_cursor.to_s,
-            types: "private_channel,public_channel",
+            types: types,
             limit: "1000",
             exclude_archived: "true",
           )

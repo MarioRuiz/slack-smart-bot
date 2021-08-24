@@ -19,7 +19,7 @@ class SlackSmartBot
                           elsif el.type == 'user'
                             data_text += "<@#{el.user_id}>"
                           elsif el.type == 'channel'
-                            tch = data.text.scan(/(<##{el.channel_id}\|[^\>]+>)/).join
+                            tch = data.text.scan(/(<##{el.channel_id}\|[^\>]*>)/).join
                             data_text += tch
                           else
                             data_text += el.url
@@ -51,7 +51,6 @@ class SlackSmartBot
         data.routine_name = ''
         data.routine_type = ''
       end
-
       if config[:testing] and config.on_master_bot
         open("#{config.path}/buffer.log", "a") { |f|
           f.puts "|#{data.channel}|#{data.user}|#{data.user_name}|#{data.text}"

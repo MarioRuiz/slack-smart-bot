@@ -28,6 +28,7 @@ slack-smart-bot can create bots on demand, create shortcuts, run ruby code... ju
   * [Sending notifications](#sending-notifications)
   * [Shortcuts](#shortcuts)
   * [Announcements](#announcements)
+  * [Share Messages](#share-messages)
   * [See Statuses](#see-statuses)
   * [Routines](#routines)
   * [Limit who has access to a command](#limit-who-has-access-to-a-command)
@@ -443,6 +444,17 @@ Examples:
 To see the announcements of the channel: **_`see announcements`_**, **_`see COLOR announcements`_**, **_`see EMOJI announcements`_** and to delete a particular announcement: **_`delete announcement ID`_**
 
 If you are a master admin and you are on master channel then you can call **_`publish announcements`_** that will publish the announcements on all channels. The messages stored on a DM won't be published. This is very convenient to be called from a *Routine* for example every weekday at 09:00.
+
+### Share messages
+You can automatically share any new message that is posted on the channel and meet the specified criteria by using **_`share messages /REGEXP/ on #CHANNEL`_** or **_`share messages "TEXT" on #CHANNEL`_**.
+
+This command is only available in public channels. The user adding the Share and the SmartBot need to be a member of both channels.
+
+Examples:
+>**_Peter>_** `share messages /(last\s+|previous\s+)?sales\s+results\s+/ on #sales`
+>**_Peter>_** `share messages "share post" on #announcements`
+
+To see the shares of the channel: **_`see shares`_** and to delete a particular share: **_`delete share ID`_**
 
 ### See statuses
 To see a list of statuses of the members in the channel you can call `see statuses`, `who is on vacation?`, `who is not on vacation?`, `who is on EMOJI`, `who is on EMOJI #CHANNEL`

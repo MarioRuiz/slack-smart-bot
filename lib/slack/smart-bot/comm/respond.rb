@@ -1,5 +1,5 @@
 class SlackSmartBot
-  def respond(msg = "", dest = nil, unfurl_links: true, unfurl_media: true, thread_ts: "", web_client: "", blocks: [])
+  def respond(msg = "", dest = nil, unfurl_links: true, unfurl_media: true, thread_ts: "", web_client: true, blocks: [], dont_share: false)
     result = true
     if (msg.to_s != "" or !msg.to_s.match?(/^A\s*\z/) or !blocks.empty?) and Thread.current[:routine_type].to_s != "bgroutine"
       if !web_client.is_a?(TrueClass) and !web_client.is_a?(FalseClass)
@@ -61,18 +61,18 @@ class SlackSmartBot
               if on_thread
                 msgs.each do |msg|
                   if web_client
-                    client.web_client.chat_postMessage(channel: @channel_id, text: msg, as_user: true, unfurl_links: unfurl_links, unfurl_media: unfurl_media, thread_ts: thread_ts)
+                    resp = client.web_client.chat_postMessage(channel: @channel_id, text: msg, as_user: true, unfurl_links: unfurl_links, unfurl_media: unfurl_media, thread_ts: thread_ts)
                   else
-                    client.message(channel: @channel_id, text: msg, as_user: true, thread_ts: thread_ts, unfurl_links: unfurl_links, unfurl_media: unfurl_media)
+                    resp = client.message(channel: @channel_id, text: msg, as_user: true, thread_ts: thread_ts, unfurl_links: unfurl_links, unfurl_media: unfurl_media)
                   end
                   sleep wait
                 end
               else
                 msgs.each do |msg|
                   if web_client
-                    client.web_client.chat_postMessage(channel: @channel_id, text: msg, as_user: true, unfurl_links: unfurl_links, unfurl_media: unfurl_media)
+                    resp = client.web_client.chat_postMessage(channel: @channel_id, text: msg, as_user: true, unfurl_links: unfurl_links, unfurl_media: unfurl_media)
                   else
-                    client.message(channel: @channel_id, text: msg, as_user: true, unfurl_links: unfurl_links, unfurl_media: unfurl_media)
+                    resp = client.message(channel: @channel_id, text: msg, as_user: true, unfurl_links: unfurl_links, unfurl_media: unfurl_media)
                   end
                   sleep wait
                 end
@@ -92,18 +92,18 @@ class SlackSmartBot
               if on_thread
                 msgs.each do |msg|
                   if web_client
-                    client.web_client.chat_postMessage(channel: dest, text: msg, as_user: true, unfurl_links: unfurl_links, unfurl_media: unfurl_media, thread_ts: thread_ts)
+                    resp = client.web_client.chat_postMessage(channel: dest, text: msg, as_user: true, unfurl_links: unfurl_links, unfurl_media: unfurl_media, thread_ts: thread_ts)
                   else
-                    client.message(channel: dest, text: msg, as_user: true, thread_ts: thread_ts, unfurl_links: unfurl_links, unfurl_media: unfurl_media)
+                    resp = client.message(channel: dest, text: msg, as_user: true, thread_ts: thread_ts, unfurl_links: unfurl_links, unfurl_media: unfurl_media)
                   end
                   sleep wait
                 end
               else
                 msgs.each do |msg|
                   if web_client
-                    client.web_client.chat_postMessage(channel: dest, text: msg, as_user: true, unfurl_links: unfurl_links, unfurl_media: unfurl_media)
+                    resp = client.web_client.chat_postMessage(channel: dest, text: msg, as_user: true, unfurl_links: unfurl_links, unfurl_media: unfurl_media)
                   else
-                    client.message(channel: dest, text: msg, as_user: true, unfurl_links: unfurl_links, unfurl_media: unfurl_media)
+                    resp = client.message(channel: dest, text: msg, as_user: true, unfurl_links: unfurl_links, unfurl_media: unfurl_media)
                   end
                   sleep wait
                 end
@@ -148,12 +148,12 @@ class SlackSmartBot
             else
               if on_thread
                 blocks.each_slice(40).to_a.each do |blockstmp|
-                  client.web_client.chat_postMessage(channel: @channel_id, blocks: blockstmp, as_user: true, thread_ts: thread_ts)
+                  resp = client.web_client.chat_postMessage(channel: @channel_id, blocks: blockstmp, as_user: true, thread_ts: thread_ts)
                   sleep wait
                 end
               else
                 blocks.each_slice(40).to_a.each do |blockstmp|
-                  client.web_client.chat_postMessage(channel: @channel_id, blocks: blockstmp, as_user: true)
+                  resp = client.web_client.chat_postMessage(channel: @channel_id, blocks: blockstmp, as_user: true)
                   sleep wait
                 end
               end
@@ -171,12 +171,12 @@ class SlackSmartBot
             else
               if on_thread
                 blocks.each_slice(40).to_a.each do |blockstmp|
-                  client.web_client.chat_postMessage(channel: dest, blocks: blockstmp, as_user: true, thread_ts: thread_ts)
+                  resp = client.web_client.chat_postMessage(channel: dest, blocks: blockstmp, as_user: true, thread_ts: thread_ts)
                   sleep wait
                 end
               else
                 blocks.each_slice(40).to_a.each do |blockstmp|
-                  client.web_client.chat_postMessage(channel: dest, blocks: blockstmp, as_user: true)
+                  resp = client.web_client.chat_postMessage(channel: dest, blocks: blockstmp, as_user: true)
                   sleep wait
                 end
               end

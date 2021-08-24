@@ -1,4 +1,4 @@
-*Version 1.10.0-DEV33* Released 2021-Aug-17
+*Version 1.10.0-DEV34* Released 2021-Aug-24
 
 *For General users*
 - When on a private conversation with the SmartBot (DM) and not using any channels rule on the conversation, the general_rules will be available.
@@ -11,6 +11,7 @@
 - Added general command `see statuses`, `who is on vacation?`, `who is not on vacation?`
 - New general command `see favorite commands`. It will display the favorite commands in that channel. 
 - Now when running the `ruby` command it can be supplied a code block.
+- New general command `share messages /REGEXP/ on #CHANNEL`, `share messages "TEXT" on #CHANNEL`, `see shares', `delete share ID`. It will automatically share new messages published that meet the specified criteria.
 
 *For Admin users*
 - respond_thread method will send the respond creating a thread if necessary. It can be used also `respond 'msg', :on_thread`

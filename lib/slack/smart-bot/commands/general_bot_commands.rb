@@ -90,7 +90,7 @@ def general_bot_commands(user, command, dest, files = [])
         # help:     _delete declaration 334_
         # help:    <https://github.com/MarioRuiz/slack-smart-bot#announcements|more info>
         # help: 
-      when /\A\s*(delete|remove)\s+(announcement\s+|statement\s+|declaration\s+|message\s+)?(\d+)\s*\z/i
+      when /\A\s*(delete|remove)\s+(announcement|statement|declaration|message)\s+(\d+)\s*\z/i
         message_id = $3
         delete_announcement(user, message_id)
 
@@ -125,6 +125,53 @@ def general_bot_commands(user, command, dest, files = [])
         channel = $3.to_s
 
         see_announcements(user, type, channel)
+
+
+        # help: ----------------------------------------------
+        # help: `share messages /REGEXP/ on #CHANNEL`
+        # help: `share messages "TEXT" on #CHANNEL`
+        # xhelp: `share messages :EMOJI: on #CHANNEL`
+        # help:     It will automatically share new messages published that meet the specified criteria.
+        # xhelp:     In case :EMOJI: it will share the messages with the indicated reaction.
+        # help:     SmartBot user and user adding the share need to be members on both channels.
+        # help:     The Regexp will automatically add the parameters /im
+        # help:     Only available on public channels.
+        # help:  Examples:
+        # help:     _share messages /(last\s+|previous\s+)?sales\s+results\s+/ on #sales_
+        # help:     _share messages "share post" on #announcements_
+        # xhelp:     _share messages :tada: on #announcements_
+        # xhelp:     _share messages :moneybag: from #sales_
+        # help:    <https://github.com/MarioRuiz/slack-smart-bot#share-messages|more info>
+        # help: 
+      when /\A\s*share\s+messages\s+(\/.+\/|".+"|'.+')\s+on\s+<#\w+\|(.+)>\s*\z/i,
+        /\A\s*share\s+messages\s+(\/.+\/|".+"|'.+')\s+on\s+<#(\w+)\|>\s*\z/,
+        /\A\s*share\s+messages\s+(\/.+\/|".+"|'.+')\s+on\s+(.+)\s*\z/i
+        condition = $1
+        channel = $2
+        channel.gsub!('#','') # for the case the channel name is in plain text including #
+        channel = @channels_name[channel] if @channels_name.key?(channel)
+        channel_from = @channels_name[dest]
+        channel_to = channel
+        share_messages(user, channel_from, channel_to, condition)
+
+        # help: ----------------------------------------------
+        # help: `see shares`
+        # help:     It will display the active shares from this channel.
+        # help:    <https://github.com/MarioRuiz/slack-smart-bot#share-messages|more info>
+        # help: 
+      when /\A\s*see\s+shares\s*\z/i
+        see_shares()
+
+        # help: ----------------------------------------------
+        # help: `delete share ID`
+        # help:     It will delete the share id specified.
+        # help:  Examples:
+        # help:     _delete share 24_
+        # help:    <https://github.com/MarioRuiz/slack-smart-bot#share-messages|more info>
+        # help: 
+      when /\A\s*(delete|remove)\s+share\s+(\d+)\s*\z/i
+        share_id = $2
+        delete_share(user, share_id)
 
         # help: ----------------------------------------------
         # help: `see statuses`

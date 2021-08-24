@@ -74,28 +74,37 @@ class SlackSmartBot
       typem = :dont_treat
       if !dest.nil? and !data.text.nil? and !data.text.to_s.match?(/\A\s*\z/)
         if data.channel[0] == "D" and !data.text.to_s.match?(/^\s*<@#{config[:nick_id]}>\s+/) and 
-          (data.text.to_s.match?(/^\s*(on)?\s*<#\w+\|[^>]+>/i) or data.text.to_s.match?(/^\s*(on)?\s*#\w+/i))
+          (data.text.to_s.match?(/^\s*(on)?\s*<#\w+\|[^>]*>/i) or data.text.to_s.match?(/^\s*(on)?\s*#\w+/i))
           data.text = "<@#{config[:nick_id]}> " + data.text.to_s
         end
-
         #todo: we need to add mixed channels: @smart-bot on private1 #bot1cm <#CXDDFRDDF|bot2cu>: echo A
         if data.text.match(/\A\^\^+/) # to open a thread it will be only when starting by single ^
           typem = :dont_treat
-        elsif data.text.match(/^\s*<@#{config[:nick_id]}>\s+(on\s+)?((<#\w+\|[^>]+>\s*)+)\s*:?\s*(.*)/im) or 
+        elsif data.text.match(/^\s*<@#{config[:nick_id]}>\s+(on\s+)?((<#\w+\|[^>]*>\s*)+)\s*:?\s*(.*)/im) or 
           data.text.match(/^\s*<@#{config[:nick_id]}>\s+(on\s+)?((#[a-zA-Z0-9\-\_]+\s*)+)\s*:?\s*(.*)/im) or
           data.text.match(/^\s*<@#{config[:nick_id]}>\s+(on\s+)?(([a-zA-Z0-9\-\_]+\s*)+)\s*:\s*(.*)/im)
           channels_rules = $2 #multiple channels @smart-bot on #channel1 #channel2 echo AAA
           data_text = $4
           channel_rules_name = ''
           channel_rules = ''
-          channels_arr = channels_rules.scan(/<#(\w+)\|([^>]+)>/)
+          channels_arr = channels_rules.scan(/<#(\w+)\|([^>]*)>/)
           if channels_arr.size == 0
             channels_arr = []
             channels_rules.scan(/([^\s]+)/).each do |cn|
               cna = cn.join.gsub('#','')
-              channels_arr << [@channels_id[cna], cna]
+              if @channels_name.key?(cna)
+                channels_arr << [cna, @channels_name[cna]]
+              else
+                channels_arr << [@channels_id[cna], cna]
+              end
+            end
+          else
+            channels_arr.each do |row|
+              row[0] = @channels_id[row[1]] if row[0] == ''
+              row[1] = @channels_name[row[0]] if row[1] == ''              
             end
           end
+          
           # to be treated only on the bots of the requested channels
           channels_arr.each do |tcid, tcname|
             if @channel_id == tcid
@@ -112,6 +121,7 @@ class SlackSmartBot
               break
             end
           end
+
         elsif data.channel == @master_bot_id
           if config.on_master_bot #only to be treated on master bot channel
             typem = :on_master

@@ -10,7 +10,7 @@ def get_channels(bot_is_in: false, types: 'private_channel,public_channel')
       if bot_is_in
         client.web_client.users_conversations(exclude_archived: true, limit: 1000, types: "im, public_channel,private_channel").channels
       else
-        resp = client.web_client.conversations_list(types: "private_channel,public_channel", limit: "1000", exclude_archived: "true")
+        resp = client.web_client.conversations_list(types: types, limit: "1000", exclude_archived: "true")
         channels = resp.channels
         while resp.response_metadata.next_cursor.to_s != ""
           resp = client.web_client.conversations_list(
@@ -20,8 +20,7 @@ def get_channels(bot_is_in: false, types: 'private_channel,public_channel')
             exclude_archived: "true",
           )
           channels += resp.channels
-        end
-
+        end        
         return channels
       end
     end

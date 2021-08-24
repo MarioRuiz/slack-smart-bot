@@ -119,7 +119,7 @@ def general_bot_commands(user, command, dest, files = [])
       when /\A\s*see\s+(red\s+|green\s+|white\s+|yellow\s+|:\w+:\s+)?(announcements|statements|declarations|messages)()\s*\z/i,
         /\A\s*see\s+(all\s+)?(announcements|statements|declarations|messages)()\s*\z/i,
         /\A\s*see\s+(red\s+|green\s+|white\s+|yellow\s+|:\w+:\s+)?(announcements|statements|declarations|messages)\s+#([\w\-]+)\s*\z/i,
-        /\A\s*see\s+(red\s+|green\s+|white\s+|yellow\s+|:\w+:\s+)?(announcements|statements|declarations|messages)\s+<#(C\w+)\|.+>\s*\z/i
+        /\A\s*see\s+(red\s+|green\s+|white\s+|yellow\s+|:\w+:\s+)?(announcements|statements|declarations|messages)\s+<#(C\w+)\|.*>\s*\z/i
 
         type = $1.to_s.downcase.strip
         channel = $3.to_s

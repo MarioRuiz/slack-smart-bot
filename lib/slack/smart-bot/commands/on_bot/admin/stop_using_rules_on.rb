@@ -13,6 +13,7 @@ class SlackSmartBot
         respond "Only admins can extend or stop using the rules. Admins on this channel: #{config.admins}", dest
       else
         get_bots_created()
+        channel = @channels_name[channel] if @channels_name.key?(channel)
         if @bots_created[@channel_id][:extended].include?(channel)
           @bots_created[@channel_id][:extended].delete(channel)
           update_bots_file()

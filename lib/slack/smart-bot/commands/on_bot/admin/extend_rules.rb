@@ -16,6 +16,7 @@ class SlackSmartBot
       else
         #todo: add pagination for case more than 1000 channels on the workspace
         channels = get_channels()
+        channel = @channels_name[channel] if @channels_name.key?(channel)
 
         channel_found = channels.detect { |c| c.name == channel }
         get_channels_name_and_id()

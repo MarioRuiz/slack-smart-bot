@@ -8,6 +8,7 @@ class SlackSmartBot
         csv << [Time.now.strftime("%Y/%m/%d"), Time.now.strftime("%H:%M"), status, status_id, message]
       end
       if @channels_id.is_a?(Hash) and @channels_id.keys.include?(config.status_channel)
+        is_back = false
         m = ''
         if (Time.now-@last_status_change) > 60 or !defined?(@last_notified_status_id)
           if status_id == :connected
@@ -29,12 +30,18 @@ class SlackSmartBot
         elsif config.on_master_bot and status_id == :maintenance_off
           m = ":large_green_circle: The *SmartBot* is up and running again."
         elsif status == :off and status_id != @last_notified_status_id
-          m = ":red_circle: The *SmartBot* on *<##{@channel_id}|#{config.channel}>* is down. An admin will take a look. <@#{config.admins.join(">, <@")}>"
+          current_status = @last_notified_status_id
+          sleep 20
+          if @last_notified_status_id == :connected
+            is_back = true
+          else
+            m = ":red_circle: The *SmartBot* on *<##{@channel_id}|#{config.channel}>* is down. An admin will take a look. <@#{config.admins.join(">, <@")}>"
+          end
         end
         @last_status_change = Time.now
+        @last_notified_status_id = status_id unless is_back
         unless m == ''
           respond m, config.status_channel
-          @last_notified_status_id = status_id
         end
       end
 

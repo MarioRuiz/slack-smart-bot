@@ -14,7 +14,7 @@ class SlackSmartBot
       end
       found = false
       message = ''
-      if @announcements[channel][:message_id].include?(message_id.to_i)
+      if @announcements.key?(channel) and @announcements[channel][:message_id].include?(message_id.to_i)
         CSV.open("#{config.path}/announcements/#{channel}.csv", "w") do |csv|
           @announcements[channel].each do |row|
             if row[:message_id].to_i == message_id.to_i

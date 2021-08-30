@@ -19,8 +19,8 @@ class SlackSmartBot
       if channel_id.nil?
         respond "There is no channel with that name: #{channel}, please be sure is written exactly the same", dest
       elsif @bots_created.keys.include?(channel_id)
-        @bots_created[@channel_id] ||= {}
-        if @bots_created[channel_id][:admins].split(",").include?(from)
+        @bots_created[channel_id] ||= {}
+        if @bots_created[channel_id][:admins].to_s.split(",").include?(from)
           if @bots_created[channel_id][:thread].kind_of?(Thread) and @bots_created[channel_id][:thread].alive?
             @bots_created[channel_id][:thread].kill
           end
@@ -28,7 +28,7 @@ class SlackSmartBot
           update_bots_file()
           respond "Bot on channel: #{channel}, has been killed and deleted.", dest
           send_msg_channel(channel, "Bot has been killed by #{from}")
-          save_status :off, :killed, 'The admin killed this bot'
+          save_status :off, :killed, "The admin killed SmartBot on *<##{channel_id}|#{@channels_name[channel_id]}>*"
         else
           respond "You need to be the creator or an admin of that bot channel", dest
         end

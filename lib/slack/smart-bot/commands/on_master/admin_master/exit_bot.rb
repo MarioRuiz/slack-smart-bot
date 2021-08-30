@@ -22,7 +22,7 @@ class SlackSmartBot
             @bots_created.each { |key, value|
               value[:thread] = ""
               send_msg_channel(key, "Bot has been closed by #{from}")
-              save_status :off, :exited, 'The admin closed this bot'
+              save_status :off, :exited, "The admin closed SmartBot on *<##{key}|#{value.channel_name}>*"
               sleep 0.5
             }
             update_bots_file()

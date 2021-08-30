@@ -7,6 +7,11 @@ class SlackSmartBot
       CSV.open("#{config.path}/status/#{config.channel}_status.csv", "a+") do |csv|
         csv << [Time.now.strftime("%Y/%m/%d"), Time.now.strftime("%H:%M"), status, status_id, message]
       end
+      if status_id == :disconnected
+        sleep 1
+      elsif status_id == :connected
+        sleep 2
+      end
       if @channels_id.is_a?(Hash) and @channels_id.keys.include?(config.status_channel)
         is_back = false
         m = ''
@@ -29,7 +34,7 @@ class SlackSmartBot
           m = ":red_circle: The *SmartBot* is on maintenance so not possible to attend any request."
         elsif config.on_master_bot and status_id == :maintenance_off
           m = ":large_green_circle: The *SmartBot* is up and running again."
-        elsif status == :off and status_id != @last_notified_status_id
+        elsif status == :off and status_id != @last_notified_status_id and status_id != :closing
           current_status = @last_notified_status_id
           sleep 20
           if @last_notified_status_id == :connected

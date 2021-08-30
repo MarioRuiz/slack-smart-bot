@@ -72,6 +72,17 @@ class SlackSmartBot
         @pings << $1
       end
       typem = :dont_treat
+      if data.nil? or data.user.nil? or data.user.to_s==''
+        user_info = nil
+        @users = get_users() if @users.empty?
+      else
+        #todo: when changed @questions user_id then move user_info inside the ifs to avoid calling it when not necessary
+        user_info = @users.select{|u| u.id == data.user or (u.key?(:enterprise_user) and u.enterprise_user.id == data.user)}[-1]
+        if user_info.nil? or user_info.empty?
+          @users = get_users() 
+          user_info = @users.select{|u| u.id == data.user or (u.key?(:enterprise_user) and u.enterprise_user.id == data.user)}[-1]
+        end
+      end
       if !dest.nil? and !data.text.nil? and !data.text.to_s.match?(/\A\s*\z/)
         if data.channel[0] == "D" and !data.text.to_s.match?(/^\s*<@#{config[:nick_id]}>\s+/) and 
           (data.text.to_s.match?(/^\s*(on)?\s*<#\w+\|[^>]*>/i) or data.text.to_s.match?(/^\s*(on)?\s*#\w+/i))
@@ -132,9 +143,9 @@ class SlackSmartBot
           end
         elsif data.channel[0] == "D" #Direct message
           get_rules_imported()
-          if @rules_imported.key?(data.user) && @rules_imported[data.user].key?(data.user) and
-            @bots_created.key?(@rules_imported[data.user][data.user])
-            if @channel_id == @rules_imported[data.user][data.user]
+          if @rules_imported.key?(user_info.name) && @rules_imported[user_info.name].key?(user_info.name) and
+            @bots_created.key?(@rules_imported[user_info.name][user_info.name])
+            if @channel_id == @rules_imported[user_info.name][user_info.name]
               #only to be treated by the channel we are 'using'
               typem = :on_dm
             end
@@ -168,17 +179,6 @@ class SlackSmartBot
           elsif data.channel[0] == 'C' and config.on_master_bot and !extended #public group
             typem = :on_pub
           end
-        end
-      end
-      if data.nil? or data.user.nil? or data.user.to_s==''
-        user_info = nil
-        @users = get_users() if @users.empty?
-      else
-        #todo: when changed @questions user_id then move user_info inside the ifs to avoid calling it when not necessary
-        user_info = @users.select{|u| u.id == data.user or (u.key?(:enterprise_user) and u.enterprise_user.id == data.user)}[-1]
-        if user_info.nil? or user_info.empty?
-          @users = get_users() 
-          user_info = @users.select{|u| u.id == data.user or (u.key?(:enterprise_user) and u.enterprise_user.id == data.user)}[-1]
         end
       end
       load "#{config.path}/rules/general_commands.rb" if File.exists?("#{config.path}/rules/general_commands.rb") and @datetime_general_commands != File.mtime("#{config.path}/rules/general_commands.rb")

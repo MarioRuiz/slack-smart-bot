@@ -24,8 +24,8 @@ class SlackSmartBot
           routines = @routines.dup
         end
       else
-        if @rules_imported.key?(user.id) and @rules_imported[user.id].key?(user.id) and dest[0] == "D"
-          file_conf = IO.readlines("#{config.path}/routines/routines_#{@rules_imported[user.id][user.id]}.rb").join
+        if @rules_imported.key?(user.name) and @rules_imported[user.name].key?(user.name) and dest[0] == "D"
+          file_conf = IO.readlines("#{config.path}/routines/routines_#{@rules_imported[user.name][user.name]}.rb").join
           routines = eval(file_conf)
         else
           routines = @routines.dup

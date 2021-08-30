@@ -23,22 +23,22 @@ class SlackSmartBot
     elsif dest[0] == "C" or dest[0] == "G" # on a channel or private channel
       rules_file = config.rules_file
 
-      if @rules_imported.key?(user.id) and @rules_imported[user.id].key?(dchannel)
-        unless @bots_created.key?(@rules_imported[user.id][dchannel])
+      if @rules_imported.key?(user.name) and @rules_imported[user.name].key?(dchannel)
+        unless @bots_created.key?(@rules_imported[user.name][dchannel])
           get_bots_created()
         end
-        if @bots_created.key?(@rules_imported[user.id][dchannel])
-          rules_file = @bots_created[@rules_imported[user.id][dchannel]][:rules_file]
+        if @bots_created.key?(@rules_imported[user.name][dchannel])
+          rules_file = @bots_created[@rules_imported[user.name][dchannel]][:rules_file]
         end
       end
-    elsif dest[0] == "D" and @rules_imported.key?(user.id) and @rules_imported[user.id].key?(user.id) #direct message
-      unless @bots_created.key?(@rules_imported[user.id][user.id])
+    elsif dest[0] == "D" and @rules_imported.key?(user.name) and @rules_imported[user.name].key?(user.name) #direct message
+      unless @bots_created.key?(@rules_imported[user.name][user.name])
         get_bots_created()
       end
-      if @bots_created.key?(@rules_imported[user.id][user.id])
-        rules_file = @bots_created[@rules_imported[user.id][user.id]][:rules_file]
+      if @bots_created.key?(@rules_imported[user.name][user.name])
+        rules_file = @bots_created[@rules_imported[user.name][user.name]][:rules_file]
       end
-    elsif dest[0] == 'D' and (!@rules_imported.key?(user.id) or ( @rules_imported.key?(user.id) and !@rules_imported[user.id].key?(user.id)))
+    elsif dest[0] == 'D' and (!@rules_imported.key?(user.name) or ( @rules_imported.key?(user.name) and !@rules_imported[user.name].key?(user.name)))
       if File.exist?("#{config.path}/rules/general_rules.rb")
         rules_file = "/rules/general_rules.rb"
       end
@@ -200,12 +200,12 @@ class SlackSmartBot
           else
             Thread.current[:on_thread] = true
           end
-          if (dest[0] == "C") || (dest[0] == "G") and @rules_imported.key?(user.id) &&
-            @rules_imported[user.id].key?(dchannel) && @bots_created.key?(@rules_imported[user.id][dchannel])
-              Thread.current[:using_channel] = @rules_imported[user.id][dchannel]
-          elsif dest[0] == "D" && @rules_imported.key?(user.id) && @rules_imported[user.id].key?(user.id) and
-            @bots_created.key?(@rules_imported[user.id][user.id])
-              Thread.current[:using_channel] = @rules_imported[user.id][user.id]
+          if (dest[0] == "C") || (dest[0] == "G") and @rules_imported.key?(user.name) &&
+            @rules_imported[user.name].key?(dchannel) && @bots_created.key?(@rules_imported[user.name][dchannel])
+              Thread.current[:using_channel] = @rules_imported[user.name][dchannel]
+          elsif dest[0] == "D" && @rules_imported.key?(user.name) && @rules_imported[user.name].key?(user.name) and
+            @bots_created.key?(@rules_imported[user.name][user.name])
+              Thread.current[:using_channel] = @rules_imported[user.name][user.name]
           else
               Thread.current[:using_channel] = ''
           end
@@ -262,9 +262,9 @@ class SlackSmartBot
               #todo: verify this
 
               if dest[0] == "C" or dest[0] == "G" or (dest[0] == "D" and typem == :on_call)
-                if typem != :on_call and @rules_imported.key?(user.id) and @rules_imported[user.id].key?(dchannel)
-                  if @bots_created.key?(@rules_imported[user.id][dchannel])
-                    if @bots_created[@rules_imported[user.id][dchannel]][:status] != :on
+                if typem != :on_call and @rules_imported.key?(user.name) and @rules_imported[user.name].key?(dchannel)
+                  if @bots_created.key?(@rules_imported[user.name][dchannel])
+                    if @bots_created[@rules_imported[user.name][dchannel]][:status] != :on
                       respond "The bot on that channel is not :on", dest
                       rules_file = ""
                     end
@@ -291,9 +291,9 @@ class SlackSmartBot
                     @logger.warn "It seems like rules method is not defined"
                   end
                 end
-              elsif @rules_imported.key?(user.id) and @rules_imported[user.id].key?(user.id)
-                if @bots_created.key?(@rules_imported[user.id][user.id])
-                  if @bots_created[@rules_imported[user.id][user.id]][:status] == :on
+              elsif @rules_imported.key?(user.name) and @rules_imported[user.name].key?(user.name)
+                if @bots_created.key?(@rules_imported[user.name][user.name])
+                  if @bots_created[@rules_imported[user.name][user.name]][:status] == :on
                     begin
                       eval(File.new(config.path+rules_file).read) if File.exist?(config.path+rules_file) and !['.','..'].include?(config.path + rules_file)
                     rescue Exception => stack
@@ -301,7 +301,7 @@ class SlackSmartBot
                       @logger.fatal stack
                     end
                   else
-                    respond "The bot on <##{@rules_imported[user.id][user.id]}|#{@bots_created[@rules_imported[user.id][user.id]][:channel_name]}> is not :on", dest
+                    respond "The bot on <##{@rules_imported[user.name][user.name]}|#{@bots_created[@rules_imported[user.name][user.name]][:channel_name]}> is not :on", dest
                     rules_file = ""
                   end
                 end
@@ -322,7 +322,7 @@ class SlackSmartBot
                   end
                 end
               elsif dest[0] == 'D' and 
-                (!@rules_imported.key?(user.id) or ( @rules_imported.key?(user.id) and !@rules_imported[user.id].key?(user.id))) and 
+                (!@rules_imported.key?(user.name) or ( @rules_imported.key?(user.name) and !@rules_imported[user.name].key?(user.name))) and 
                 rules_file.include?('general_rules.rb')
                 begin
                   eval(File.new(config.path+rules_file).read) if File.exist?(config.path+rules_file) and !['.','..'].include?(config.path + rules_file)

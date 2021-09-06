@@ -298,7 +298,7 @@ class SlackSmartBot
         m = "Connection closing, exiting. #{Time.now}"
         @logger.info m
         @logger.info _data
-        save_status :off, :closing, "Connection closing, exiting."
+        #save_status :off, :closing, "Connection closing, exiting." #todo: don't notify for the moment, remove when checked
       end
   
       client.on :closed do |_data|

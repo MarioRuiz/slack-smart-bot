@@ -5,17 +5,21 @@ class SlackSmartBot
       Dir.mkdir("#{config.path}/status") unless Dir.exist?("#{config.path}/status")
 
       CSV.open("#{config.path}/status/#{config.channel}_status.csv", "a+") do |csv|
-        csv << [Time.now.strftime("%Y/%m/%d"), Time.now.strftime("%H:%M"), status, status_id, message]
+        csv << [Time.now.strftime("%Y/%m/%d"), Time.now.strftime("%H:%M:%S"), status, status_id, message]
       end
       if status_id == :disconnected
-        sleep 1
-      elsif status_id == :connected
-        sleep 2
+        Thread.new do
+          sleep 50
+          @logger.info "check disconnection 50 scs later #{@last_notified_status_id}"
+          unless @last_notified_status_id == :connected
+            respond ":red_circle: The *SmartBot* on *<##{@channel_id}|#{config.channel}>* is down. An admin will take a look. <@#{config.admins.join(">, <@")}>", config.status_channel
+          end
+        end
       end
       if @channels_id.is_a?(Hash) and @channels_id.keys.include?(config.status_channel)
         is_back = false
         m = ''
-        if (Time.now-@last_status_change) > 60 or !defined?(@last_notified_status_id)
+        if (Time.now-@last_status_change) > 20 or !defined?(@last_notified_status_id)
           if status_id == :connected
             if defined?(@last_notified_status_id)
               m = ":exclamation: :large_green_circle: The *SmartBot* on *<##{@channel_id}|#{config.channel}>* was not available for #{(Time.now-@last_status_change).round(0)} secs. *Now it is up and running again.*" 
@@ -34,17 +38,9 @@ class SlackSmartBot
           m = ":red_circle: The *SmartBot* is on maintenance so not possible to attend any request."
         elsif config.on_master_bot and status_id == :maintenance_off
           m = ":large_green_circle: The *SmartBot* is up and running again."
-        elsif status == :off and status_id != @last_notified_status_id and status_id != :closing
-          current_status = @last_notified_status_id
-          sleep 20
-          if @last_notified_status_id == :connected
-            is_back = true
-          else
-            m = ":red_circle: The *SmartBot* on *<##{@channel_id}|#{config.channel}>* is down. An admin will take a look. <@#{config.admins.join(">, <@")}>"
-          end
         end
         @last_status_change = Time.now
-        @last_notified_status_id = status_id unless is_back
+        @last_notified_status_id = status_id
         unless m == ''
           respond m, config.status_channel
         end

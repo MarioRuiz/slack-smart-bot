@@ -64,7 +64,7 @@ RSpec.describe SlackSmartBot, "use_rules" do
       send_message "use bot2cu", from: user, to: channel
       sleep 4
       send_message "Hi bot", from: user, to: channel
-      expect(buffer(to: channel, from: :ubot)[-1]).to match(/^You are using specific rules for channel: <##{CBOT2CU}>/)
+      expect(buffer(to: channel, from: :ubot)[-1]).to match(/^You are using rules from <##{CBOT2CU}>/i)
     end
     it 'displays message when bot help' do
       send_message "use bot2cu", from: user, to: channel

@@ -3,6 +3,7 @@ RSpec.describe SlackSmartBot, "extend_rules" do
   describe "on channel bot" do
     channel = :cbot1cm
     user = :uadmin
+    @regexp_dont_understand = ["what?", "huh?", "sorry?", "what do you mean?", "I don't understand"].join("|")
 
     before(:all) do
       send_message "stop using rules on external_channel", from: user, to: channel
@@ -121,7 +122,7 @@ RSpec.describe SlackSmartBot, "extend_rules" do
     end
     it "doesn't respond to extend rules command on extended channel" do
       send_message "!extend rules to unknown", from: :uadmin, to: :cext1
-      expect(buffer(to: :cext1, from: :ubot).join).to match(/I don't understand/)
+      expect(buffer(to: :cext1, from: :ubot).join).to match(/#{@regexp_dont_understand}/)
     end
     it "run the rules even for user not part of original channel" do
       send_message "!which rules", from: :user2, to: :cext1
@@ -129,31 +130,22 @@ RSpec.describe SlackSmartBot, "extend_rules" do
       expect(buffer(to: :cext1, from: :ubot).join).to match(/bot1cm/)
     end
 
-    it "displays don't understand an similar rules for wrong rule" do
+    it "displays don't understand and similar rules for wrong rule" do
       send_message "stop using rules on external_channel", from: :uadmin, to: :cbot2cu
       sleep 2
       send_message "stop using rules on external_channel", from: :uadmin, to: :cbot1cm
       sleep 2
       send_message "extend rules to external_channel", from: :uadmin, to: :cbot1cm
       sleep 2
-      send_message "!botx", from: :uadmin, to: :cexternal
-      sleep 2
-      expect(buffer(to: :cexternal, from: :ubot).join).to match(/I don't understand/i)
-      expect(bufferc(to: :cexternal, from: :ubot).join).not_to match(/Similar rules on/i)
       send_message "!echox", from: :uadmin, to: :cexternal
-      expect(buffer(to: :cexternal, from: :ubot).join).to match(/I don't understand/i)
+      expect(buffer(to: :cexternal, from: :ubot).join).to match(/#{@regexp_dont_understand}/i)
       expect(bufferc(to: :cexternal, from: :ubot).join).to match(/Similar rules on/i)
       send_message "extend rules to external_channel", from: :uadmin, to: :cbot2cu
       sleep 2
-      send_message "!botx", from: :uadmin, to: :cexternal
-      #expect(buffer(to: :cexternal, from: :ubot).join).to match(/I don't understand/i)
-      expect(bufferc(to: :cexternal, from: :ubot).join).not_to match(/Similar rules on/i)
       send_message "!doo", from: :uadmin, to: :cexternal
-      #expect(buffer(to: :cexternal, from: :ubot).join).to match(/I don't understand/i)
       expect(buffer(to: :cexternal, from: :ubot).join).not_to match(/bot1cm/i)
       expect(bufferc(to: :cexternal, from: :ubot).join).to match(/bot2cu/i)
       send_message "!echox", from: :uadmin, to: :cexternal
-      #expect(buffer(to: :cexternal, from: :ubot).join).to match(/I don't understand/i)
       expect(buffer(to: :cexternal, from: :ubot).join).to match(/bot1cm/i)
       expect(bufferc(to: :cexternal, from: :ubot).join).to match(/bot2cu/i)
     end
@@ -164,7 +156,7 @@ RSpec.describe SlackSmartBot, "extend_rules" do
       command = "extend rules to unknown"
       send_message "<@#{UBOT}> on <##{CBOT1CM}|bot1cm> #{command}", from: :uadmin, to: :cexternal
       sleep 2
-      expect(buffer(to: :cexternal, from: :ubot).join).to  match(/I don't understand/)
+      expect(buffer(to: :cexternal, from: :ubot).join).to  match(/#{@regexp_dont_understand}/)
       expect(buffer(to: :cexternal, from: :ubot).join).to  match(/Take in consideration when on external calls/)
   end
   end

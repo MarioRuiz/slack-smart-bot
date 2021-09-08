@@ -1,7 +1,13 @@
 def csettings()
-    {
+    {#client.web_client.users_list
         client: {
             web_client: {
+                users_list: [
+                    { name: 'example', id: 'UMSRCRTAR', profile: {display_name: 'example'}}, #smart-bot #example
+                    { name: 'marioruizs', id: 'UJP2EK400', profile: {display_name: 'Mario Ruiz Sánchez'} }, 
+                    { name: 'smartbotuser1', id: 'UNDE229T9', profile: {display_name: 'user1'}},
+                    { name: 'smartbotuser2', id: 'UMYQS8E7L', profile: {display_name: 'user2'}} 
+                ],
                 users_info: {
                     UMSRCRTAR: { user: { name: 'example', id: 'UMSRCRTAR', profile: {display_name: 'example'}}}, #smart-bot #example
                     UJP2EK400: { user: { name: 'marioruizs', id: 'UJP2EK400', profile: {display_name: 'Mario Ruiz Sánchez'} } }, 

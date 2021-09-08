@@ -65,8 +65,8 @@ class SlackSmartBot
       end
     end
 
-    help[:general_commands_file] = build_help("#{__dir__}/../commands/general_bot_commands.rb", expanded)[user_type].values.join("\n") + "\n"
-    if File.exists?(config.path + '/rules/general_commands.rb')
+    help[:general_commands_file] = build_help("#{__dir__}/../commands/general_bot_commands.rb", expanded)[user_type].values.join("\n") + "\n" unless only_rules
+    if File.exists?(config.path + '/rules/general_commands.rb') and !only_rules
       help[:general_commands_file] += build_help(config.path+'/rules/general_commands.rb', expanded)[user_type].values.join("\n") + "\n"
     end
     help = remove_hash_keys(help, :admin_master) unless user_type == :master

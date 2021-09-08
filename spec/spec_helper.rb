@@ -28,6 +28,9 @@ RSpec.configure do |config|
       FileUtils.rm_rf(Dir["./spec/bot/routines/**/*"])
       FileUtils.rm_rf(Dir["./spec/bot/shortcuts/*"])
       FileUtils.rm_rf(Dir["./spec/bot/stats/*"])
+      FileUtils.rm_rf(Dir["./spec/bot/shares/*"])
+      FileUtils.rm_rf(Dir["./spec/bot/status/*"])
+      FileUtils.rm_rf(Dir["./spec/bot/announcements/*"])
       FileUtils.rm_rf(Dir["./spec/bot/repl/**/*"])
       File.delete("./spec/bot/rules/rules_imported.rb") if File.exists?("./spec/bot/rules/rules_imported.rb")
 

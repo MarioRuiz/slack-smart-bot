@@ -3,6 +3,7 @@ RSpec.describe SlackSmartBot, "kill_bot_on_channel" do
   describe "on channel bot" do
     channel = :cbot1cm
     user = :user1
+    @regexp_dont_understand = ["what?", "huh?", "sorry?", "what do you mean?", "I don't understand"].join("|")
 
     after(:all) do
       send_message "bye bot", from: user, to: channel
@@ -77,7 +78,7 @@ RSpec.describe SlackSmartBot, "kill_bot_on_channel" do
     it "doesn't respond to external demand" do
       command = "kill bot on unknown"
       send_message "<@#{UBOT}> on <##{CBOT1CM}|bot1cm> #{command}", from: :uadmin, to: :cexternal
-      expect(buffer(to: :cexternal, from: :ubot).join).to  match(/I don't understand/)
+      expect(buffer(to: :cexternal, from: :ubot).join).to  match(/#{@regexp_dont_understand}/)
       expect(buffer(to: :cexternal, from: :ubot).join).to  match(/Take in consideration when on external calls/)
     end
   end

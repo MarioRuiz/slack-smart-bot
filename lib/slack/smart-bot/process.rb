@@ -185,8 +185,8 @@ class SlackSmartBot
           end
 
         when /\A\s*(leader\s+board|leaderboard|ranking|podium)()()\s*$/i,
-          /\A\s*(leader\s+board|leaderboard|ranking|podium)\s+(from\s+(\d\d\d\d[\/\-\.]\d\d[\/\-\.]\d\d))()\s*$/i,
-          /\A\s*(leader\s+board|leaderboard|ranking|podium)\s+(from\s+(\d\d\d\d[\/\-\.]\d\d[\/\-\.]\d\d))\s+(to\s+(\d\d\d\d[\/\-\.]\d\d[\/\-\.]\d\d))\s*$/i,
+          /\A\s*(leader\s+board|leaderboard|ranking|podium)\s+from\s+(\d\d\d\d[\/\-\.]\d\d[\/\-\.]\d\d)\s+to\s+(\d\d\d\d[\/\-\.]\d\d[\/\-\.]\d\d)\s*$/i,
+          /\A\s*(leader\s+board|leaderboard|ranking|podium)\s+from\s+(\d\d\d\d[\/\-\.]\d\d[\/\-\.]\d\d)()\s*$/i,
           /\A\s*(leader\s+board|leaderboard|ranking|podium)\s+(today|yesterday|last\s+week|this\s+week|last\s+month|this\s+month|last\s+year|this year)()\s*$/i
           require 'date'
           opt1 = $2.to_s
@@ -195,7 +195,11 @@ class SlackSmartBot
             from = opt1
             period = ''
             from = from.gsub('.','-').gsub('/','-')
-            to = to.gsub('.','-').gsub('/','-') unless to.empty?
+            if to.empty?
+              to = Date.today.strftime("%Y-%m-%d")
+            else
+              to = to.gsub('.','-').gsub('/','-')
+            end
           elsif opt1.to_s==''
             period = 'last week'
             date = Date.today

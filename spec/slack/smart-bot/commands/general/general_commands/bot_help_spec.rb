@@ -105,6 +105,14 @@ RSpec.describe SlackSmartBot, "bot_help" do
         expect(buffer(to: DIRECT.user1.ubot, from: :ubot).join).to match(/ruby RUBY_CODE/i)
         expect(buffer(to: DIRECT.user1.ubot, from: :ubot).join).not_to match(/These are the specific commands for that channel/)
       end
+      it "responds to normal user in direct message when not using rules and calling bot rules" do
+        send_message "stop using rules from bot1cm", from: :user1, to: :ubot
+        sleep 2
+        send_message "bot rules", from: :user1, to: :ubot
+        sleep 2
+        expect(buffer(to: DIRECT.user1.ubot, from: :ubot).join).to match(/Specific commands on this Channel/)
+        expect(buffer(to: DIRECT.user1.ubot, from: :ubot).join).to match(/echo SOMETHING/i)
+      end
       it "responds to normal user in direct message when using rules" do
         send_message "use rules from bot1cm", from: :user1, to: :ubot
         sleep 2
@@ -130,7 +138,15 @@ RSpec.describe SlackSmartBot, "bot_help" do
         expect(buffer(to: :cexternal, from: :ubot).join).to  match(/I don't understand/)
         expect(buffer(to: :cexternal, from: :ubot).join).to  match(/Take in consideration when on external calls/)
       end
+      it "responds" do
+        command = "bot help"
+        send_message "#{command}", from: :uadmin, to: :cexternal
+        sleep 1
+        expect(buffer(to: :cexternal, from: :ubot).join).to  match(/General commands on any channel where the Smart Bot is a member/i)
+        expect(buffer(to: :cexternal, from: :ubot).join).to  match(/it will display this help. For a more detailed help/i)
+      end  
     end
+  
   end
 
   describe "bot rules" do

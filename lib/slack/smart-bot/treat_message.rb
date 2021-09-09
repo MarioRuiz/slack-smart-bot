@@ -1,5 +1,6 @@
 class SlackSmartBot
   def treat_message(data, remove_blocks = true)
+    @buffered = false if config[:testing]
     begin
       begin
         unless data.text.to_s.match(/\A\s*\z/)
@@ -51,7 +52,8 @@ class SlackSmartBot
         data.routine_name = ''
         data.routine_type = ''
       end
-      if config[:testing] and config.on_master_bot
+      if config[:testing] and config.on_master_bot and !@buffered
+        @buffered = true
         open("#{config.path}/buffer.log", "a") { |f|
           f.puts "|#{data.channel}|#{data.user}|#{data.user_name}|#{data.text}"
         }

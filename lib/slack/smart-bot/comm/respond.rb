@@ -78,7 +78,8 @@ class SlackSmartBot
                 end
               end
             end
-            if config[:testing] and config.on_master_bot
+            if config[:testing] and config.on_master_bot and !@buffered
+              @buffered = true
               open("#{config.path}/buffer.log", "a") { |f|
                 f.puts "|#{@channel_id}|#{config[:nick_id]}|#{config[:nick]}|#{msg}"
               }
@@ -109,7 +110,8 @@ class SlackSmartBot
                 end
               end
             end
-            if config[:testing] and config.on_master_bot
+            if config[:testing] and config.on_master_bot and !@buffered
+              @buffered = true
               open("#{config.path}/buffer.log", "a") { |f|
                 f.puts "|#{dest}|#{config[:nick_id]}|#{config[:nick]}|#{msg}"
               }
@@ -158,7 +160,8 @@ class SlackSmartBot
                 end
               end
             end
-            if config[:testing] and config.on_master_bot
+            if config[:testing] and config.on_master_bot and !@buffered
+              @buffered = true
               open("#{config.path}/buffer.log", "a") { |f|
                 f.puts "|#{@channel_id}|#{config[:nick_id]}|#{config[:nick]}|#{blocks.join}"
               }
@@ -181,7 +184,8 @@ class SlackSmartBot
                 end
               end
             end
-            if config[:testing] and config.on_master_bot
+            if config[:testing] and config.on_master_bot and !@buffered
+              @buffered = true
               open("#{config.path}/buffer.log", "a") { |f|
                 f.puts "|#{dest}|#{config[:nick_id]}|#{config[:nick]}|#{blocks.join}"
               }

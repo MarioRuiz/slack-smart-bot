@@ -1,5 +1,6 @@
 def csettings()
-    {#client.web_client.users_list
+
+    {
         client: {
             web_client: {
                 users_list: [
@@ -9,10 +10,10 @@ def csettings()
                     { name: 'smartbotuser2', id: 'UMYQS8E7L', profile: {display_name: 'user2'}} 
                 ],
                 users_info: {
-                    UMSRCRTAR: { user: { name: 'example', id: 'UMSRCRTAR', profile: {display_name: 'example'}}}, #smart-bot #example
-                    UJP2EK400: { user: { name: 'marioruizs', id: 'UJP2EK400', profile: {display_name: 'Mario Ruiz Sánchez'} } }, 
-                    UNDE229T9: { user: { name: 'smartbotuser1', id: 'UNDE229T9', profile: {display_name: 'user1'}} },
-                    UMYQS8E7L: { user: { name: 'smartbotuser2', id: 'UMYQS8E7L', profile: {display_name: 'user2'}} }
+                    UMSRCRTAR: { user: { name: 'example', id: 'UMSRCRTAR', profile: {display_name: 'example', status_text: '', status_emoji: '', expiration: ''}}}, #smart-bot #example
+                    UJP2EK400: { user: { name: 'marioruizs', id: 'UJP2EK400', profile: {display_name: 'Mario Ruiz Sánchez', status_text: 'on vacation', status_emoji: ':palm_tree:', expiration: ''} } }, 
+                    UNDE229T9: { user: { name: 'smartbotuser1', id: 'UNDE229T9', profile: {display_name: 'user1', status_text: '', status_emoji: ':boy:', expiration: ''}} },
+                    UMYQS8E7L: { user: { name: 'smartbotuser2', id: 'UMYQS8E7L', profile: {display_name: 'user2', status_text: '', status_emoji: '', expiration: ''}} }
                 },
                 conversations_members: {
                     CN0595D50: { id: 'CN0595D50', name: 'bot1cm', creator: 'UJP2EK400', members: ['UMSRCRTAR','UJP2EK400', 'UNDE229T9']}, #bot1cm

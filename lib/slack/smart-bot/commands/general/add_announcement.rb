@@ -25,7 +25,7 @@ class SlackSmartBot
       CSV.open("#{config.path}/announcements/#{channel}.csv", "a+") do |csv|
         csv << values
       end
-      respond 'The announcement has been added. Related commands `see announcements`, `delete announcement ID`'
+      respond "The announcement has been added. (id: #{num}).\nRelated commands `see announcements`, `delete announcement ID`"
 
     end
   end

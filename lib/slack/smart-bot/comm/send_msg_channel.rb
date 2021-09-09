@@ -24,7 +24,8 @@ class SlackSmartBot
             client.message(channel: channel_id, text: msg, as_user: true, unfurl_links: unfurl_links, unfurl_media: unfurl_media)
           end
         end
-        if config[:testing] and config.on_master_bot
+        if config[:testing] and config.on_master_bot and !@buffered
+          @buffered = true
           open("#{config.path}/buffer.log", "a") { |f|
             f.puts "|#{channel_id}|#{config[:nick_id]}|#{config[:nick]}|#{msg}"
           }

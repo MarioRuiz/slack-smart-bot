@@ -18,8 +18,6 @@ class SlackSmartBot
           command = message[3].to_s.strip
           # take in consideration that on simulation we are treating all messages even those that are not populated on real cases like when the message is not populated to the specific bot connection when message is sent with the bot          
           @logger.info "treat message: #{message}" if config.testing
-
-
           if command.match?(/^\s*\-!!/) or command.match?(/^\s*\-\^/)
             command.scan(/`([^`]+)`/).flatten.each do |cmd|
               if cmd.to_s!=''

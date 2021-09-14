@@ -44,8 +44,8 @@ RSpec.describe SlackSmartBot, "get_bot_logs" do
       user = :uadmin
 
       it "is not allowed if not user admin" do
-        send_message "!get bot logs'", from: :user1, to: DIRECT.user1.ubot
-        message = "I don't understand"
+        send_message "!get bot logs", from: :user1, to: DIRECT.user1.ubot
+        message = "Only master admin users on a private conversation with the bot can get the bot logs"
         expect(buffer(to: DIRECT.user1.ubot, from: :ubot).join).to match(/#{message}/)
       end
       

@@ -22,5 +22,8 @@ USER2 = "UMYQS8E7L" #user2
 DIRECT = {
     :uadmin=>{:ubot=>"DMV17MUTG"},
     :user1=>{:ubot=>"DNB4GTK2Q"},
-    :user2=>{:ubot=>"DNDQBA4NA"}
+    :user2=>{:ubot=>"DNDQBA4NA"},
+    :UJP2EK400=>{:ubot=>"DMV17MUTG"},
+    :UNDE229T9=>{:ubot=>"DNB4GTK2Q"},
+    :UMYQS8E7L=>{:ubot=>"DNDQBA4NA"}
 }

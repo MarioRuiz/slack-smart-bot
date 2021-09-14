@@ -34,12 +34,12 @@ class SlackSmartBot
             }
           end
         else
-          im = client.web_client.conversations_open(users: id_user)
           if config[:simulate]
             open("#{config.path}/buffer_complete.log", "a") { |f|
-              f.puts "|#{im["channel"]["id"]}|#{config[:nick_id]}|#{config[:nick]}|#{msg}#{blocks.join}~~~"
+              f.puts "|#{DIRECT[id_user.to_sym].ubot}|#{config[:nick_id]}|#{config[:nick]}|#{msg}#{blocks.join}~~~"
             }
           else  
+            im = client.web_client.conversations_open(users: id_user)
             if web_client
               if on_thread
                 client.web_client.chat_postMessage(channel: im["channel"]["id"], text: msg, blocks: blocks, as_user: true, unfurl_links: unfurl_links, unfurl_media: unfurl_media, thread_ts: Thread.current[:thread_ts])

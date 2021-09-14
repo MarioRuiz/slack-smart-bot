@@ -32,6 +32,8 @@ class SlackSmartBot
 
         dest = @channels_id[dest] if @channels_id.key?(dest) #it is a name of channel
 
+        on_thread ? txt_on_thread=':on_thread:' : txt_on_thread=''
+
         if blocks.empty?
           if !config.simulate #https://api.slack.com/docs/rate-limits
             msg.size > 500 ? wait = 0.5 : wait = 0.1
@@ -51,11 +53,10 @@ class SlackSmartBot
           end
           msgs << txt
           msgs.flatten!
-
           if dest.nil?
             if config[:simulate]
               open("#{config.path}/buffer_complete.log", "a") { |f|
-                f.puts "|#{@channel_id}|#{config[:nick_id]}|#{config[:nick]}|#{msg}~~~"
+                f.puts "|#{@channel_id}|#{config[:nick_id]}|#{config[:nick]}|#{txt_on_thread}#{msg}~~~"
               }
             else
               if on_thread
@@ -87,7 +88,7 @@ class SlackSmartBot
           elsif dest[0] == "C" or dest[0] == "G" # channel
             if config[:simulate]
               open("#{config.path}/buffer_complete.log", "a") { |f|
-                f.puts "|#{dest}|#{config[:nick_id]}|#{config[:nick]}|#{msg}~~~"
+                f.puts "|#{dest}|#{config[:nick_id]}|#{config[:nick]}|#{txt_on_thread}#{msg}~~~"
               }
             else
               if on_thread
@@ -123,7 +124,11 @@ class SlackSmartBot
             end
           elsif dest[0] == "@"
             begin
-              user_info = @users.select { |u| u.id == dest[1..-1] or (u.key?(:enterprise_user) and u.enterprise_user.id == dest[1..-1]) }[-1]
+              @logger.info @users.inspect #Jal
+              @logger.info dest
+              @logger.info "jal"
+
+              user_info = @users.select { |u| u.id == dest[1..-1] or u.name == dest[1..-1] or (u.key?(:enterprise_user) and u.enterprise_user.id == dest[1..-1]) }[-1]
               msgs.each do |msg|
                 send_msg_user(user_info.id, msg, on_thread, unfurl_links: unfurl_links, unfurl_media: unfurl_media)
                 sleep wait
@@ -145,7 +150,7 @@ class SlackSmartBot
           if dest.nil?
             if config[:simulate]
               open("#{config.path}/buffer_complete.log", "a") { |f|
-                f.puts "|#{@channel_id}|#{config[:nick_id]}|#{config[:nick]}|#{blocks.join}~~~"
+                f.puts "|#{@channel_id}|#{config[:nick_id]}|#{config[:nick]}|#{txt_on_thread}#{blocks.join}~~~"
               }
             else
               if on_thread
@@ -169,7 +174,7 @@ class SlackSmartBot
           elsif dest[0] == "C" or dest[0] == "G" # channel
             if config[:simulate]
               open("#{config.path}/buffer_complete.log", "a") { |f|
-                f.puts "|#{dest}|#{config[:nick_id]}|#{config[:nick]}|#{blocks.join}~~~"
+                f.puts "|#{dest}|#{config[:nick_id]}|#{config[:nick]}|#{txt_on_thread}#{blocks.join}~~~"
               }
             else
               if on_thread

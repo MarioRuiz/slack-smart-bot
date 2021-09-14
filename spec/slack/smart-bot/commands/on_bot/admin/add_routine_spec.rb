@@ -61,6 +61,17 @@ RSpec.describe SlackSmartBot, "add_routine" do
       expect(res).to match(/[^']Now yes/)
     end
 
+    it "creates a silent bgroutine" do
+      send_message "add silent bgroutine example every 2s !ruby puts 'Sam'", from: user, to: channel
+      sleep 6
+      res = bufferc(to: channel, from: :ubot).join
+      expect(res).to match(/Added routine \*`example`\* to the channel/)
+      sleep 2
+      res = buffer(to: channel, from: :ubot).join
+      expect(res).not_to match(/Sam/)
+      expect(res).not_to match(/routine \*`example`\*: !ruby puts 'Sam'/)
+    end
+
     it "accepts on demand" do
       send_message "!add routine example every 2s !ruby puts 'Sam'", from: user, to: channel
       expect(buffer(to: channel, from: :ubot).join).to match(/Added routine \*`example`\* to the channel/)
@@ -113,6 +124,16 @@ RSpec.describe SlackSmartBot, "add_routine" do
       send_message 'see routines', from: user, to: channel
       sleep 3
       expect(buffer(to: channel, from: :ubot).join).to match(/Next Run: #{(started+(2*60)).strftime("%Y-%m-%d %H:%M")}/)
+    end
+
+    it "creates the routine on weekends" do
+      send_message "add routine example on weekends at 10:00 !ruby puts 'Sam'", from: user, to: channel
+      expect(bufferc(to: channel, from: :ubot).join).to match(/Added routine \*`example`\* to the channel/)
+    end
+
+    it "creates the routine on weekdays" do
+      send_message "add routine example on weekdays at 10:00 !ruby puts 'Sam'", from: user, to: channel
+      expect(bufferc(to: channel, from: :ubot).join).to match(/Added routine \*`example`\* to the channel/)
     end
 
     unless SIMULATE

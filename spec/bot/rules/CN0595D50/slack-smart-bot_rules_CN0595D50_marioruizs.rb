@@ -105,6 +105,11 @@ def rules(user, command, processed, dest, files = [], rules_file = "")
         if Time.now.to_s > tempo
           respond "Now yes" 
         end
+      when /^respond on thread/i
+        respond 'on_thread', :on_thread
+
+      when /^respond direct/i
+        respond 'direct', :direct
 
         # help: ----------------------------------------------
         # help: `go to sleep`

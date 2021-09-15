@@ -38,8 +38,10 @@ class SlackSmartBot
           if commands.size < 5 and help_command.to_s!='' and commands_search.size > 0
             commands_search.shuffle!
             (5-commands.size).times do |n|
-              respond commands_search[n].gsub(/^\s*command_id:\s+:\w+\s*$/,''), dest, unfurl_links: false, unfurl_media: false
-              help_found = true
+              unless commands_search[n].nil?
+                respond commands_search[n].gsub(/^\s*command_id:\s+:\w+\s*$/,''), dest, unfurl_links: false, unfurl_media: false
+                help_found = true
+              end
             end
           end
           unless help_found

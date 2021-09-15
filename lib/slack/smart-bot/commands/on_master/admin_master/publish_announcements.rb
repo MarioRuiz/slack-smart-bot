@@ -19,7 +19,8 @@ class SlackSmartBot
             see_announcements(user, '', channel, true, true)
             sleep 0.5 # to avoid reach ratelimit
           end
-        end    
+        end
+        react :heavy_check_mark
 
       else
         respond 'Only master admins on master channel can use this command.'

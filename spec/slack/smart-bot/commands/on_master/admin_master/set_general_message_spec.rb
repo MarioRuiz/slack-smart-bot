@@ -44,6 +44,14 @@ RSpec.describe SlackSmartBot, "set_general_message" do
       sleep 0.5
       expect(buffer(to: :cbot1cm, from: :ubot).join).to match(/Example message/)
     end
+    it 'is possible to use interpolation' do 
+      send_message 'set general message Example #{Time.new(2021,6,18,13,30,0)}', from: user, to: channel
+      expect(bufferc(to: channel, from: :ubot).join).to match(/General message has been set/)
+      sleep 7
+      send_message "!echo A", from: user, to: :cbot1cm
+      sleep 0.5
+      expect(buffer(to: :cbot1cm, from: :ubot).join).to match(/Example 2021-06-18 13:30:00/)
+    end
 
     it 'set general message off' do
       send_message "set general message Example message", from: user, to: channel

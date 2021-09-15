@@ -34,6 +34,7 @@ RSpec.describe SlackSmartBot, "set_maintenance" do
       expect(buffer(to: channel, from: :ubot)[-1]).to eq "From now on I'll be on maintenance status so I won't be responding accordingly."
       send_message "!echo A", from: user, to: channel
       expect(buffer(to: channel, from: :ubot)[-1]).to eq "Sorry I'm on maintenance so I cannot attend your request."
+      expect(buffer(to: :cstatus, from: :ubot).join).to match(/:red_circle: The \*SmartBot\* is on maintenance so not possible to attend any request./)
     end
 
     it 'turns maintenance on and displays supplied message' do
@@ -52,12 +53,20 @@ RSpec.describe SlackSmartBot, "set_maintenance" do
       expect(buffer(to: :cbot1cm, from: :ubot)[-1]).to eq "Sorry I'm on maintenance so I cannot attend your request."
     end
 
+    it 'is possible to use interpolation' do 
+      send_message 'set maintenance on Example #{Time.new(2021,6,18,13,30,0)}', from: user, to: channel
+      expect(buffer(to: channel, from: :ubot)[-1]).to eq "From now on I'll be on maintenance status so I won't be responding accordingly."
+      send_message "!echo A", from: user, to: channel
+      expect(buffer(to: channel, from: :ubot)[-1]).to match(/Example 2021-06-18 13:30:00/)
+    end
+
     it 'turns maintenance off' do
       send_message "set maintenance on", from: user, to: channel
       expect(buffer(to: channel, from: :ubot)[-1]).to eq "From now on I'll be on maintenance status so I won't be responding accordingly."
       send_message "!echo AAAAA", from: user, to: channel
       expect(buffer(to: channel, from: :ubot)[-1]).to eq "Sorry I'm on maintenance so I cannot attend your request."
       send_message "set maintenance off", from: user, to: channel
+      expect(buffer(to: :cstatus, from: :ubot).join).to match(/:large_green_circle: The \*SmartBot\* is up and running again./)
       expect(bufferc(to: channel, from: :ubot)[-1]).to eq "From now on I won't be on maintenance. Everything is back to normal!"
       sleep 6
       send_message "!echo EEEEEE", from: user, to: channel

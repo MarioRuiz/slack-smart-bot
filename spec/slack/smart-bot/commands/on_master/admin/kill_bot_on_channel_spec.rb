@@ -26,8 +26,10 @@ RSpec.describe SlackSmartBot, "kill_bot_on_channel" do
     it "kills bot on channel name" do
       send_message "create bot on external_channel", from: user, to: channel
       sleep 6
+      #expect(buffer(to: :cstatus, from: :ubot).join).to match(/:large_green_circle: The \*SmartBot\* on \*<#CP28CTWSD|external_channel>\* is up and running again./)      
       send_message "kill bot on external_channel", from: user, to: channel
       sleep 3
+      expect(buffer(to: :cstatus, from: :ubot).join).to match(/:red_circle: The admin closed SmartBot on \*<#CP28CTWSD|external_channel>\*/)
       expect(bufferc(to: channel, from: :ubot).join).to match(/Bot on channel: external_channel, has been killed and deleted./)
       send_message "hi bot", from: user, to: :external_channel
       expect(buffer(to: :external_channel, from: :ubot).join).to match(/^\s*$/)

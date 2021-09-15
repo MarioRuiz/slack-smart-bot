@@ -10,6 +10,7 @@ RSpec.describe SlackSmartBot, "start_bot" do
 
     it "starts bot with admin user" do
       send_message "start bot", from: :uadmin, to: channel
+      expect(buffer(to: :cstatus, from: :ubot).join).to match(/:large_green_circle: The admin started this bot \*<#CN0595D50|bot1cm>\*/)
       expect(bufferc(to: channel, from: :ubot).join).to match(/This bot is running and listening from now on. You can pause again: pause this bot/)
       sleep 2
       send_message "hi bot", from: user, to: channel

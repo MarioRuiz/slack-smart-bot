@@ -27,6 +27,8 @@ def get_key(user)
     key = CPRIV1
   when :cprivext
     key = CPRIVEXT
+  when :cstatus 
+    key = CSTATUS
   end
   return key
 end

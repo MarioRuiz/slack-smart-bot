@@ -126,7 +126,7 @@ class SlackSmartBot
                                 if !exclude_routines or (exclude_routines and !row[:user_name].match?(/^routine\//) )
                                     if exclude_command == '' or (exclude_command!='' and row[:command]!=exclude_command)
                                         if st_command == '' or (st_command != '' and row[:command] == st_command)
-                                            if row[:bot_channel_id] == channel_id or channel_id == ''
+                                            if row[:bot_channel_id] == channel_id or channel_id == '' or row[:dest_channel_id] == channel_id
                                                 if row[:date] >= from and row[:date] <= to
                                                     count_users[row[:user_id]] ||= 0
                                                     count_users[row[:user_id]] += 1

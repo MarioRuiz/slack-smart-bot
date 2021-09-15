@@ -253,7 +253,7 @@ class SlackSmartBot
           opts = $1.to_s
           all_opts = opts.downcase.split(' ')
           all_data = all_opts.include?('alldata')
-          st_channel = opts.scan(/<#(\w+)\|.+>/).join
+          st_channel = opts.scan(/<#(\w+)\|.*>/).join
           st_from = opts.scan(/from\s+(\d\d\d\d[\/\-\.]\d\d[\/\-\.]\d\d)/).join
           st_from = st_from.gsub('.','-').gsub('/','-')
           st_to = opts.scan(/to\s+(\d\d\d\d[\/\-\.]\d\d[\/\-\.]\d\d)/).join

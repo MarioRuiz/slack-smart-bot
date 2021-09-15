@@ -21,5 +21,11 @@ RSpec.describe SlackSmartBot, "bot_rules" do
       sleep 2
       expect(buffer(to: channel, from: :ubot).join).to match(/run something/i) # message
     end
+    it 'responds on a thread if lines>50' do
+      send_message "bot rules expanded", from: :uadmin, to: channel
+      sleep 2
+      expect(buffer(to: channel, from: :ubot).join).to match(/Since there are many lines returned the results are returned on a thread by default/)
+      expect(buffer(to: channel, from: :ubot).join).to match(/^:on_thread:/)  
+    end
   end
 end

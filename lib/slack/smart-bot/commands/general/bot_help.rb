@@ -22,7 +22,6 @@ class SlackSmartBot
       if help_command.to_s != ""
         help_message.gsub(/====+/,'-'*30).split(/^\s*-------*$/).each do |h|
           if h.match?(/[`_]#{help_command}/i) or h.match?(/^\s*command_id:\s+:#{help_command.gsub(' ', '_')}\s*$/)
-            respond h.gsub(/^\s*command_id:\s+:\w+\s*$/,''), dest, unfurl_links: false, unfurl_media: false
             output << h
             help_found = true
             commands << h
@@ -42,14 +41,12 @@ class SlackSmartBot
         if Thread.current[:using_channel]!=''
           message += "*You are using rules from another channel: <##{Thread.current[:using_channel]}>. These are the specific commands for that channel:*"
         end
-        respond message, dest, unfurl_links: false, unfurl_media: false
         output << message
       end
 
       if (help_command.to_s == "")
         help_message.split(/^\s*=========*$/).each do |h|
           unless h.match?(/\A\s*\z/)
-            respond "#{"=" * 35}\n#{h.gsub(/^\s*command_id:\s+:\w+\s*$/,'')}", dest, unfurl_links: false, unfurl_media: false
             output << "#{"=" * 35}\n#{h}"
           end
         end
@@ -57,16 +54,14 @@ class SlackSmartBot
           if @bots_created.size>0
             txt = "\nThese are the *SmartBots* running on this Slack workspace: *<##{@master_bot_id}>, <##{@bots_created.keys.join('>, <#')}>*\n"
             txt += "Join one channel and call *`bot rules`* to see specific commands for that channel or *`bot help`* to see all commands for that channel.\n"
-            respond txt, unfurl_links: false, unfurl_media: false
             output << txt
           end
         end
       else
-        if commands.size < 5 and help_command.to_s!='' and commands_search.size > 0
+        if commands.size < 10 and help_command.to_s!='' and commands_search.size > 0
           commands_search.shuffle!
-          (5-commands.size).times do |n|
+          (10-commands.size).times do |n|
             unless commands_search[n].nil?
-              respond commands_search[n].gsub(/^\s*command_id:\s+:\w+\s*$/,''), dest, unfurl_links: false, unfurl_media: false
               output << commands_search[n]
               help_found = true
             end
@@ -75,10 +70,8 @@ class SlackSmartBot
         unless help_found
           if specific
             output << "I didn't find any rule with `#{help_command}`"
-            respond(output[-1], dest)
           else
             output << "I didn't find any command with `#{help_command}`"
-            respond(output[-1], dest)
           end
         end
       end
@@ -91,7 +84,6 @@ class SlackSmartBot
         end
         if defined?(git_project) && (git_project.to_s != "") && (help_command.to_s == "")
           output << "Git project: #{git_project}"
-          respond output[-1], dest, unfurl_links: false, unfurl_media: false
         else
           def git_project
             ""
@@ -103,12 +95,17 @@ class SlackSmartBot
         end
       elsif help_command.to_s == ""
         output << "Slack Smart Bot Github project: https://github.com/MarioRuiz/slack-smart-bot"
-        respond output[-1], dest, unfurl_links: false, unfurl_media: false
       end
       unless expanded
         output << message_not_expanded
-        respond(message_not_expanded, unfurl_media: false, unfurl_links: false)
       end
+    end
+    if output.join("\n").lines.count > 50 and dest[0]!='D'
+      dest = :on_thread
+      output.unshift('Since there are many lines returned the results are returned on a thread by default.')
+    end
+    output.each do |h|
+      respond h.gsub(/^\s*command_id:\s+:\w+\s*$/,''), dest, unfurl_links: false, unfurl_media: false
     end
     return output.join("\n")
   end

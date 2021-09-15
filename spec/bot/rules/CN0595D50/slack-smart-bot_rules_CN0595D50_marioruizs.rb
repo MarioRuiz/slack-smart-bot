@@ -112,6 +112,30 @@ def rules(user, command, processed, dest, files = [], rules_file = "")
         respond 'direct', :direct
 
         # help: ----------------------------------------------
+        # help: Example of help with many lines
+        # help:   .
+        # help:   .
+        # help:   .
+        # help:   .
+        # help:   .
+        # help:   .
+        # help:   .
+        # help:   .
+        # help:   .
+        # help:   .
+        # help:   .
+        # help:   .
+        # help:   .
+        # help:   .
+        # help:   .
+        # help:   .
+        # help:   .
+        # help:   .
+        # help:   .
+        # help:
+
+
+        # help: ----------------------------------------------
         # help: `go to sleep`
         # help:   it will sleep the bot for 5 seconds
         # help:   that's all

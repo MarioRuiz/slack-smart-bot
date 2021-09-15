@@ -55,9 +55,9 @@ class SlackSmartBot
           /\Ause\s+(rules\s+)?(from\s+)?([^\s]+\s*$)/i
           channel = $3
           use_rules(dest, channel, user, dchannel)
-        when /\A\s*stop\s+using\s+rules\s+(from\s+)<#\w+\|(.+)>/i, 
-          /\A\s*stop\s+using\s+rules\s+(from\s+)<#(\w+)\|>/i, 
-          /\A\s*stop\s+using\s+rules\s+(from\s+)(.+)\s*$/i
+        when /\A\s*stop\s+using\s+(rules\s+from\s+)?<#\w+\|(.+)>/i, 
+          /\A\s*stop\s+using\s+(rules\s+from\s+)?<#(\w+)\|>/i, 
+          /\A\s*stop\s+using\s+(rules\s+from\s+)?(.+)\s*$/i
           channel = $2
           stop_using_rules(dest, channel, user, dchannel)
         when /\A\s*extend\s+rules\s+(to\s+)<#C\w+\|(.+)>/i, /\A\s*extend\s+rules\s+(to\s+)<#(\w+)\|>/i, 

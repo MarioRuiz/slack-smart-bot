@@ -17,13 +17,25 @@ class SlackSmartBot
         message_not_expanded += "Also to get specific *expanded* help for a specific command or rule call *`bot help COMMAND`*\n"
       end
       help_message = get_help(rules_file, dest, from, specific, expanded)
-
+      commands = []
+      commands_search = []
       if help_command.to_s != ""
         help_message.gsub(/====+/,'-'*30).split(/^\s*-------*$/).each do |h|
           if h.match?(/[`_]#{help_command}/i) or h.match?(/^\s*command_id:\s+:#{help_command.gsub(' ', '_')}\s*$/)
             respond h.gsub(/^\s*command_id:\s+:\w+\s*$/,''), dest, unfurl_links: false, unfurl_media: false
             output << h
             help_found = true
+            commands << h
+          elsif !h.match?(/\A\s*\*/) and !h.match?(/\A\s*=+/) #to avoid general messages for bot help *General commands...*
+            all_found = true
+            help_command.to_s.split(' ') do |hc|
+              unless hc.match?(/^\s*\z/)
+                if !h.match?(/#{hc}/i)
+                  all_found = false                  
+                end
+              end
+            end
+            commands_search << h if all_found
           end
         end
       else
@@ -50,12 +62,20 @@ class SlackSmartBot
           end
         end
       else
+        if commands.size < 5 and help_command.to_s!='' and commands_search.size > 0
+          commands_search.shuffle!
+          (5-commands.size).times do |n|
+            respond commands_search[n].gsub(/^\s*command_id:\s+:\w+\s*$/,''), dest, unfurl_links: false, unfurl_media: false
+            output << commands_search[n]
+            help_found = true
+          end
+        end
         unless help_found
           if specific
-            output << "I didn't find any rule starting by `#{help_command}`"
+            output << "I didn't find any rule with `#{help_command}`"
             respond(output[-1], dest)
           else
-            output << "I didn't find any command starting by `#{help_command}`"
+            output << "I didn't find any command with `#{help_command}`"
             respond(output[-1], dest)
           end
         end

@@ -14,16 +14,36 @@ class SlackSmartBot
   
         help_filtered = get_help(rules_file, dest, from, true, expanded)
 
+        commands = []
+        commands_search = []
         if help_command.to_s != ""
           help_found = false
           help_filtered.split(/^\s*-------*$/).each do |h|
             if h.match?(/[`_]#{help_command}/i)
               respond "*#{config.channel}*:#{h}", dest, unfurl_links: false, unfurl_media: false
               help_found = true
+              commands << h
+            elsif !h.match?(/\A\s*\*/) and !h.match?(/\A\s*=+/) #to avoid general messages for bot help *General rules...*
+              all_found = true
+              help_command.to_s.split(' ') do |hc|
+                unless hc.match?(/^\s*\z/)
+                  if !h.match?(/#{hc}/i)
+                    all_found = false                  
+                  end
+                end
+              end
+              commands_search << h if all_found
+            end
+          end
+          if commands.size < 5 and help_command.to_s!='' and commands_search.size > 0
+            commands_search.shuffle!
+            (5-commands.size).times do |n|
+              respond commands_search[n].gsub(/^\s*command_id:\s+:\w+\s*$/,''), dest, unfurl_links: false, unfurl_media: false
+              help_found = true
             end
           end
           unless help_found
-            respond "*#{config.channel}*: I didn't find any command starting by `#{help_command}`", dest, unfurl_links: false, unfurl_media: false
+            respond "*#{config.channel}*: I didn't find any command with `#{help_command}`", dest, unfurl_links: false, unfurl_media: false
           end
 
         else

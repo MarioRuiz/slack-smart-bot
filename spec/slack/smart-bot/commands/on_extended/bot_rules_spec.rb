@@ -14,7 +14,12 @@ RSpec.describe SlackSmartBot, "bot_rules" do
       send_message "bot rules which", from: user, to: channel
       expect(buffer(to: channel, from: :ubot).join).to match(/which rules for bot1cm/)
       send_message "bot rules aaaaa", from: user, to: channel
-      expect(buffer(to: channel, from: :ubot).join).to match(/I didn't find any command starting by `aaaaa`/)
+      expect(buffer(to: channel, from: :ubot).join).to match(/I didn't find any command with `aaaaa`/)
+    end
+    it 'returns help searching on rule description' do
+      send_message "bot help run the process", from: user, to: channel
+      sleep 2
+      expect(buffer(to: channel, from: :ubot).join).to match(/run something/i) # message
     end
   end
 end

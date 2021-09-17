@@ -4,7 +4,7 @@ class SlackSmartBot
     if (msg.to_s != "" or !msg.to_s.match?(/^A\s*\z/) or !blocks.empty?) and Thread.current[:routine_type].to_s != "bgroutine"
       if !web_client.is_a?(TrueClass) and !web_client.is_a?(FalseClass)
         (!unfurl_links or !unfurl_media) ? web_client = true : web_client = false
-      end
+      end      
       begin
         msg = msg.to_s
         web_client = true if !blocks.empty?
@@ -151,7 +151,7 @@ class SlackSmartBot
             else
               if on_thread
                 blocks.each_slice(40).to_a.each do |blockstmp|
-                  resp = client.web_client.chat_postMessage(channel: @channel_id, blocks: blockstmp, as_user: true, thread_ts: thread_ts)
+                resp = client.web_client.chat_postMessage(channel: @channel_id, blocks: blockstmp, as_user: true, thread_ts: thread_ts)
                   sleep wait
                 end
               else

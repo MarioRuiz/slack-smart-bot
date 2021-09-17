@@ -78,7 +78,10 @@ class SlackSmartBot
           output.unshift('Since there are many lines returned the results are returned on a thread by default.')
         end
         output.each do |h|
-          respond h.gsub(/^\s*command_id:\s+:\w+\s*$/,''), dest, unfurl_links: false, unfurl_media: false
+          msg = h.gsub(/^\s*command_id:\s+:\w+\s*$/,'')
+          unless msg.match?(/\A\s*\z/)
+            respond msg, dest, unfurl_links: false, unfurl_media: false
+          end
         end
     
       end

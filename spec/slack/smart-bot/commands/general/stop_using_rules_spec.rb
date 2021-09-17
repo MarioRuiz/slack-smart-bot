@@ -3,6 +3,7 @@ RSpec.describe SlackSmartBot, "stop_using_rules" do
   describe "on channel bot" do
     channel = :cbot1cm
     user = :user1
+    @regexp_dont_understand = ["what?", "huh?", "sorry?", "what do you mean?", "I don't understand"].join("|")
 
     before(:each) do
       send_message "use rules from bot2cu", from: user, to: channel
@@ -21,6 +22,13 @@ RSpec.describe SlackSmartBot, "stop_using_rules" do
     end
     it "works: stop using rules from #bot2cu" do
       send_message "stop using rules from <##{CBOT2CU}|bot2cu>", from: user, to: channel
+      sleep 1
+      expect(bufferc(to: channel, from: :ubot).join).to match(/You won't be using those rules from now on/)
+      send_message "!which rules", from: user, to: channel
+      expect(buffer(to: channel, from: :ubot).join).to match(/^bot1cm$/)
+    end
+    it "works: stop using #bot2cu" do
+      send_message "stop using <##{CBOT2CU}|bot2cu>", from: user, to: channel
       sleep 1
       expect(bufferc(to: channel, from: :ubot).join).to match(/You won't be using those rules from now on/)
       send_message "!which rules", from: user, to: channel
@@ -76,7 +84,7 @@ RSpec.describe SlackSmartBot, "stop_using_rules" do
       sleep 1
       expect(bufferc(to: channel, from: :ubot).join).to match(/You won't be using those rules from now on/)
       send_message "!which rules", from: user, to: channel
-      expect(buffer(to: channel, from: :ubot).join).to match(/I don't understand/)
+      expect(buffer(to: channel, from: :ubot).join).to match(/#{@regexp_dont_understand}/)
     end
 
     it "displays message when no using those rules" do
@@ -89,7 +97,7 @@ RSpec.describe SlackSmartBot, "stop_using_rules" do
   describe "on extended channel" do
     it "doesn't respond" do
       send_message "!stop using rules from unknown", from: :uadmin, to: :cext1
-      expect(buffer(to: :cext1, from: :ubot).join).to match(/I don't understand/)
+      expect(buffer(to: :cext1, from: :ubot).join).to match(/#{@regexp_dont_understand}/)
     end
   end
 
@@ -97,7 +105,7 @@ RSpec.describe SlackSmartBot, "stop_using_rules" do
     it "doesn't respond to external demand" do
       command = "stop using rules from unknown"
       send_message "<@#{UBOT}> on <##{CBOT1CM}|bot1cm> #{command}", from: :uadmin, to: :cexternal
-      expect(buffer(to: :cexternal, from: :ubot).join).to match(/I don't understand/)
+      expect(buffer(to: :cexternal, from: :ubot).join).to match(/#{@regexp_dont_understand}/)
     end
   end
 end

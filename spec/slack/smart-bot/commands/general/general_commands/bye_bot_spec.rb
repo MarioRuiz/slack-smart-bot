@@ -19,14 +19,14 @@ RSpec.describe SlackSmartBot, "bye_bot" do
     expect(buffer(to: :cbot1cm, from: :ubot)[0]).to match(@bye_regexp)
   end
 
-  it 'doesn\'t responds in channel with extended rules' do
+  it 'responds in channel with extended rules' do
     send_message @bye_bot, from: :user1, to: :cext1
-    expect(buffer(to: :cext1, from: :ubot)[0]).not_to match(@bye_regexp)
+    expect(buffer(to: :cext1, from: :ubot)[0]).to match(@bye_regexp)
   end
 
-  it 'doesn\'t responds in private channel with extended rules' do
+  it 'responds in private channel with extended rules' do
     send_message @bye_bot, from: :user1, to: :cprivext
-    expect(buffer(to: :cprivext, from: :ubot)[0]).not_to match(@bye_regexp)
+    expect(buffer(to: :cprivext, from: :ubot)[0]).to match(@bye_regexp)
   end
 
   it "resets @answer" do
@@ -37,16 +37,15 @@ RSpec.describe SlackSmartBot, "bye_bot" do
     expect(buffer(to: :cbot1cm, from: :ubot)[-1]).to match(/bot1cm/)
   end
 
-  it "doesn't respond on extended channel" do
-    send_message "!bye bot", from: :uadmin, to: :cext1
-    expect(buffer(to: :cext1, from: :ubot).join).to match(/I don't understand/)
+  it "responds on extended channel" do
+    send_message "bye bot", from: :user1, to: :cext1
+    expect(buffer(to: :cext1, from: :ubot)[-1]).to match(@bye_regexp)
   end
   describe "on external channel not extended" do
-    it "doesn't respond to external demand" do
+    it "responds" do
       command = "bye bot"
-      send_message "<@#{UBOT}> on <##{CBOT1CM}|bot1cm> #{command}", from: :uadmin, to: :cexternal
-      expect(buffer(to: :cexternal, from: :ubot).join).to  match(/I don't understand/)
-      expect(buffer(to: :cexternal, from: :ubot).join).to  match(/Take in consideration when on external calls/)
+      send_message "#{command}", from: :user1, to: :cexternal
+      expect(buffer(to: :cexternal, from: :ubot)[0]).to match(@bye_regexp)
   end
   end
 end

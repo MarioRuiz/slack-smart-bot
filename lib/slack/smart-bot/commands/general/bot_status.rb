@@ -3,14 +3,12 @@ class SlackSmartBot
   # helpadmin: `bot status`
   # helpadmin:    Displays the status of the bot
   # helpadmin:    If on master channel and admin user also it will display info about bots created
+  # helpadmin:    <https://github.com/MarioRuiz/slack-smart-bot#bot-management|more info>
   # helpadmin:
   def bot_status(dest, user)
     save_stats(__method__)
     get_bots_created()
-    if config[:allow_access].key?(__method__) and !config[:allow_access][__method__].include?(user.name) and !config[:allow_access][__method__].include?(user.id) and 
-      (!user.key?(:enterprise_user) or ( user.key?(:enterprise_user) and !config[:allow_access][__method__].include?(user[:enterprise_user].id)))
-      respond "You don't have access to use this command, please contact an Admin to be able to use it: <@#{config.admins.join(">, <@")}>"
-    else
+    if has_access?(__method__, user)
       gems_remote = `gem list slack-smart-bot --remote`
       version_remote = gems_remote.to_s().scan(/slack-smart-bot \((\d+\.\d+\.\d+)/).join
       version_message = ""

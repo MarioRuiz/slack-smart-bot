@@ -14,5 +14,13 @@ RSpec.describe SlackSmartBot, "generic" do
         sleep 2
         expect(buffer(to: channel, from: :ubot).join).to match(/^A1A1$/)
       end
+      it 'responds on thread when using :on_thread for respond method' do
+        send_message "!respond on thread", from: user, to: channel
+        expect(buffer(to: channel, from: :ubot).join).to match(/^:on_thread:on_thread$/)
+      end
+      it 'responds on DM when using :direct for respond method' do
+        send_message "!respond direct", from: :user1, to: channel
+        expect(buffer(to: DIRECT.user1.ubot, from: :ubot).join).to match(/^direct$/)
+      end
     end
 end

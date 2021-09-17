@@ -8,6 +8,7 @@ class SlackSmartBot
   # helpadmin:    NAME: one word to identify the routine
   # helpadmin:    Examples:
   # helpadmin:      _run routine example_
+  # helpadmin:    <https://github.com/MarioRuiz/slack-smart-bot#routines|more info>
   # helpadmin:
 
   def run_routine(dest, from, name)
@@ -16,6 +17,7 @@ class SlackSmartBot
       if !config.on_master_bot and dest[0] == "D"
         respond "It's only possible to run routines from MASTER channel from a direct message with the bot.", dest
       elsif @routines.key?(@channel_id) and @routines[@channel_id].key?(name)
+        File.delete "#{config.path}/routines/#{@channel_id}/#{name}_output.txt" if File.exists?("#{config.path}/routines/#{@channel_id}/#{name}_output.txt")
         if @routines[@channel_id][name][:file_path] != ""
           if @routines[@channel_id][name][:file_path].match?(/\.rb$/i)
             ruby = "ruby "
@@ -40,7 +42,10 @@ class SlackSmartBot
           treat_message({ channel: @routines[@channel_id][name][:dest],
                          user: @routines[@channel_id][name][:creator_id],
                          text: @routines[@channel_id][name][:command],
-                         files: nil })
+                         files: nil,
+                         routine_name: name, 
+                         routine_type: @routines[@channel_id][name][:routine_type],
+                         routine: true })
         end
         @routines[@channel_id][name][:last_elapsed] = (Time.now - started)
         @routines[@channel_id][name][:last_run] = started.to_s

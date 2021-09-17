@@ -3,7 +3,8 @@ RSpec.describe SlackSmartBot, "add_routine" do
   describe "on channel bot" do
     channel = :cbot1cm
     user = :uadmin
-
+    @regexp_dont_understand = ["what?", "huh?", "sorry?", "what do you mean?", "I don't understand"].join("|")
+    
     before(:all) do
       sleep 1
       send_message "delete routine example", from: user, to: channel
@@ -60,6 +61,17 @@ RSpec.describe SlackSmartBot, "add_routine" do
       expect(res).to match(/[^']Now yes/)
     end
 
+    it "creates a silent bgroutine" do
+      send_message "add silent bgroutine example every 2s !ruby puts 'Sam'", from: user, to: channel
+      sleep 6
+      res = bufferc(to: channel, from: :ubot).join
+      expect(res).to match(/Added routine \*`example`\* to the channel/)
+      sleep 2
+      res = buffer(to: channel, from: :ubot).join
+      expect(res).not_to match(/Sam/)
+      expect(res).not_to match(/routine \*`example`\*: !ruby puts 'Sam'/)
+    end
+
     it "accepts on demand" do
       send_message "!add routine example every 2s !ruby puts 'Sam'", from: user, to: channel
       expect(buffer(to: channel, from: :ubot).join).to match(/Added routine \*`example`\* to the channel/)
@@ -114,6 +126,16 @@ RSpec.describe SlackSmartBot, "add_routine" do
       expect(buffer(to: channel, from: :ubot).join).to match(/Next Run: #{(started+(2*60)).strftime("%Y-%m-%d %H:%M")}/)
     end
 
+    it "creates the routine on weekends" do
+      send_message "add routine example on weekends at 10:00 !ruby puts 'Sam'", from: user, to: channel
+      expect(bufferc(to: channel, from: :ubot).join).to match(/Added routine \*`example`\* to the channel/)
+    end
+
+    it "creates the routine on weekdays" do
+      send_message "add routine example on weekdays at 10:00 !ruby puts 'Sam'", from: user, to: channel
+      expect(bufferc(to: channel, from: :ubot).join).to match(/Added routine \*`example`\* to the channel/)
+    end
+
     unless SIMULATE
       it "doesn't allow to create routine attaching file if not master admin" do
         send_message "create routine example every 2s", from: :user1, to: :cbot2cu, file_ruby: "puts 'Sam'"
@@ -161,7 +183,7 @@ RSpec.describe SlackSmartBot, "add_routine" do
   describe "on extended channel" do
     it "doesn't respond" do
       send_message "!add routine example every 2s !ruby puts 'Sam'", from: :uadmin, to: :cext1
-      expect(buffer(to: :cext1, from: :ubot).join).to match(/I don't understand/)
+      expect(buffer(to: :cext1, from: :ubot).join).to match(/#{@regexp_dont_understand}/)
     end
   end
 
@@ -169,7 +191,7 @@ RSpec.describe SlackSmartBot, "add_routine" do
     it "doesn't respond to external demand" do
       command = 'add routine example every 2s !ruby puts "Sam"'
       send_message "<@#{UBOT}> on <##{CBOT1CM}|bot1cm> #{command}", from: :uadmin, to: :cexternal
-      expect(buffer(to: :cexternal, from: :ubot).join).to  match(/I don't understand/)
+      expect(buffer(to: :cexternal, from: :ubot).join).to  match(/#{@regexp_dont_understand}/)
       expect(buffer(to: :cexternal, from: :ubot).join).to  match(/Take in consideration when on external calls/)
   end
   end

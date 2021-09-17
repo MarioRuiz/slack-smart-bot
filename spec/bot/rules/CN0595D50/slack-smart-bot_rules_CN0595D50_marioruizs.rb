@@ -68,8 +68,9 @@ def rules(user, command, processed, dest, files = [], rules_file = "")
 
   load "#{config.path}/rules/general_rules.rb"
   
-  unless general_rules(user, command, processed, dest, files, rules_file)
-
+  if general_rules(user, command, processed, dest, files, rules_file)
+    return true
+  else
     begin
       case command
 
@@ -95,6 +96,7 @@ def rules(user, command, processed, dest, files = [], rules_file = "")
       # help:  which rules for bot1cm
       # help:
       when /^which\s+rules$/i
+        save_stats :which_rules
         respond "bot1cm"
         react :thumbsup
 
@@ -103,6 +105,35 @@ def rules(user, command, processed, dest, files = [], rules_file = "")
         if Time.now.to_s > tempo
           respond "Now yes" 
         end
+      when /^respond on thread/i
+        respond 'on_thread', :on_thread
+
+      when /^respond direct/i
+        respond 'direct', :direct
+
+        # help: ----------------------------------------------
+        # help: Example of help with many lines
+        # help:   .
+        # help:   .
+        # help:   .
+        # help:   .
+        # help:   .
+        # help:   .
+        # help:   .
+        # help:   .
+        # help:   .
+        # help:   .
+        # help:   .
+        # help:   .
+        # help:   .
+        # help:   .
+        # help:   .
+        # help:   .
+        # help:   .
+        # help:   .
+        # help:   .
+        # help:
+
 
         # help: ----------------------------------------------
         # help: `go to sleep`
@@ -133,19 +164,21 @@ def rules(user, command, processed, dest, files = [], rules_file = "")
         # helpadmin:   It will run the process and report the results when done
         # helpadmin:
       when /^run something/i
-        respond "Running"
+        if has_access?(:run_something, user)
+          respond "Running"
 
-        process_to_run = "ruby -v"
-        process_to_run = ("cd #{project_folder} &&" + process_to_run) if defined?(project_folder)
-        stdout, stderr, status = Open3.capture3(process_to_run)
-        if stderr == ""
-          if stdout == ""
-            respond "#{display_name}: Nothing returned."
+          process_to_run = "ruby -v"
+          process_to_run = ("cd #{project_folder} &&" + process_to_run) if defined?(project_folder)
+          stdout, stderr, status = Open3.capture3(process_to_run)
+          if stderr == ""
+            if stdout == ""
+              respond "#{display_name}: Nothing returned."
+            else
+              respond "#{display_name}: #{stdout}"
+            end
           else
-            respond "#{display_name}: #{stdout}"
+            respond "#{display_name}: #{stderr}"
           end
-        else
-          respond "#{display_name}: #{stderr}"
         end
 
         # Example downloading a file from slack
@@ -164,7 +197,9 @@ def rules(user, command, processed, dest, files = [], rules_file = "")
         unless processed
           dont_understand()
         end
-      end
+        return false
+      end      
+      return true
     rescue => exception
       if defined?(@logger)
         @logger.fatal exception
@@ -172,6 +207,7 @@ def rules(user, command, processed, dest, files = [], rules_file = "")
       else
         puts exception
       end
+      return false
     end
   end
 end

@@ -11,6 +11,7 @@ RSpec.describe SlackSmartBot, "pause_bot" do
 
     it "pause bot with admin user" do
       send_message "pause bot", from: :uadmin, to: channel
+      expect(buffer(to: :cstatus, from: :ubot).join).to match(/:red_circle: The admin paused this bot \*<#CN0595D50|bot1cm>\*/)
       expect(bufferc(to: channel, from: :ubot).join).to match(/This bot is paused from now on. You can start it again: start this bot/)
       send_message "hi bot", from: user, to: channel
       expect(bufferc(to: channel, from: :ubot).join).to match(/^\s*$/)

@@ -40,15 +40,18 @@ def rules(user, command, processed, dest, files = [], rules_file = "")
 
   load "#{config.path}/rules/general_rules.rb"
   
-  unless general_rules(user, command, processed, dest, files, rules_file)
+  if general_rules(user, command, processed, dest, files, rules_file)
+    return true
+  else
     begin
       case command
 
         # help: ----------------------------------------------
         # help: `go to sleep`
         # help:   it will sleep the bot for 5 seconds
+        # help: command_id: :go_to_sleep
         # help:
-      when /^go\sto\ssleep/i
+      when /\A\s*go\sto\ssleep/i
         save_stats :go_to_sleep
         if answer.empty?
           ask "do you want me to take a siesta?"
@@ -74,32 +77,41 @@ def rules(user, command, processed, dest, files = [], rules_file = "")
         # help: ----------------------------------------------
         # help: `run something`
         # help:   It will run the process and report the results when done
+        # help: command_id: :run_something
         # help:
-      when /^run something/i
+      when /\Arun something/i
         save_stats :run_something
-        react :runner
+        if has_access?(:run_something, user)
+          react :runner
 
-        process_to_run = "ruby -v"
-        process_to_run = ("cd #{project_folder} &&" + process_to_run) if defined?(project_folder)
-        stdout, stderr, status = Open3.capture3(process_to_run)
-        unreact :runner
-        if stderr == ""
-          if stdout == ""
-            respond "#{display_name}: Nothing returned."
+          process_to_run = "ruby -v"
+          process_to_run = ("cd #{project_folder} &&" + process_to_run) if defined?(project_folder)
+          stdout, stderr, status = Open3.capture3(process_to_run)
+          unreact :runner
+          if stderr == ""
+            if stdout == ""
+              respond "#{display_name}: Nothing returned."
+            else
+              respond "#{display_name}: #{stdout}"
+            end
           else
-            respond "#{display_name}: #{stdout}"
+            respond "#{display_name}: #{stdout} #{stderr}"
           end
-        else
-          respond "#{display_name}: #{stdout} #{stderr}"
         end
         
         # Emoticons you can use with `react` command https://www.webfx.com/tools/emoji-cheat-sheet/
         
-        # Examples for respond and respond_direct
+        # Examples for respond, respond_thread and respond_direct
         #   # send 'the message' to the channel or direct message where the command was written
         #   respond "the message"
         #   # send 'the message' privately as a direct message to the user that sent the command
         #   respond_direct "the message"
+        #   # same thing can be done:
+        #   respond "the message", :direct
+        #   # send 'the message' opening a thread
+        #   respond_thread "the message"
+        #   # same thing can be done:
+        #   respond 'the message', :on_thread
         #   # send 'the message' to a specific channel name
         #   respond "the message", 'my_channel'
         #   # send 'the message' to a specific channel id
@@ -108,6 +120,19 @@ def rules(user, command, processed, dest, files = [], rules_file = "")
         #   respond "the message", '@theuser'
         #   # send 'the message' to a specific user id as direct message
         #   respond "the message", 'US3344D3'
+
+        # Example sending blocks https://api.slack.com/block-kit
+        # my_blocks = [
+        #   { type: "context",
+        #     elements:
+        #       [
+        #         { type: "plain_text", :text=>"\tInfo: " },
+        #         { type: "image", image_url: "https://avatars.slack-edge.com/2021-03-23/182815_e54abb1dd_24.jpg", alt_text: "mario" },
+        #         { type: "mrkdwn", text: " *Mario Ruiz* (marior)  " }
+        #       ]
+        #   }
+        # ]
+        # respond blocks: my_blocks
 
         # Example downloading a file from slack
         #  if !files.nil? and files.size == 1 and files[0].filetype == 'yaml'
@@ -120,16 +145,17 @@ def rules(user, command, processed, dest, files = [], rules_file = "")
         #   send_file(to, msg, filepath, title, format, type = "text")
         #   send_file(dest, 'the message', "#{project_folder}/temp/logs_ptBI.log", 'title', 'text/plain', "text")
         #   send_file(dest, 'the message', "#{project_folder}/temp/example.jpeg", 'title', 'image/jpeg', "jpg")
-
-
       else
         unless processed
           dont_understand()
         end
+        return false
       end
+      return true
     rescue => exception
       @logger.fatal exception
       respond "Unexpected error!! Please contact an admin to solve it: <@#{config.admins.join(">, <@")}>"
+      return false
     end
   end
 end

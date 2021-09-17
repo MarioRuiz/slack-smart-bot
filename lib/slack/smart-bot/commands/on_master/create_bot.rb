@@ -2,18 +2,20 @@ class SlackSmartBot
   # helpmaster: ----------------------------------------------
   # helpmaster: `create bot on CHANNEL_NAME`
   # helpmaster: `create cloud bot on CHANNEL_NAME`
-  # helpmaster:    creates a new bot on the channel specified
-  # helpmaster:    it will work only if you are on Master channel
-  # helpmaster:    the admins will be the master admins, the creator of the bot and the creator of the channel
-  # helpmaster:    follow the instructions in case creating cloud bots
+  # helpmaster: `create silent bot on CHANNEL_NAME`
+  # helpmaster:    Creates a new bot on the channel specified
+  # helpmaster:    It will work only if you are on Master channel
+  # helpmaster:    The admins will be the master admins, the creator of the bot and the creator of the channel
+  # helpmaster:    Follow the instructions in case creating cloud bots
+  # helpmaster:    In case 'silent' won't display the Bot initialization message on the CHANNEL_NAME
+  # helpmaster:    <https://github.com/MarioRuiz/slack-smart-bot#bot-management|more info>
   # helpmaster:
-  def create_bot(dest, user, cloud, channel)
+  def create_bot(dest, user, type, channel)
+    cloud = type.include?('cloud')
+    silent = type.include?('silent')
     save_stats(__method__)
     from = user.name
-    if config[:allow_access].key?(__method__) and !config[:allow_access][__method__].include?(user.name) and !config[:allow_access][__method__].include?(user.id) and 
-      (!user.key?(:enterprise_user) or ( user.key?(:enterprise_user) and !config[:allow_access][__method__].include?(user[:enterprise_user].id)))
-      respond "You don't have access to use this command, please contact an Admin to be able to use it: <@#{config.admins.join(">, <@")}>"
-    else
+    if has_access?(__method__, user)
       if config.on_master_bot
         get_channels_name_and_id() unless @channels_name.keys.include?(channel) or @channels_id.keys.include?(channel)
         channel_id = nil
@@ -25,6 +27,7 @@ class SlackSmartBot
         end
         #todo: add pagination for case more than 1000 channels on the workspace
         channels = get_channels()
+        channel = @channels_name[channel] if @channels_name.key?(channel)
         channel_found = channels.detect { |c| c.name == channel }
         members = get_channel_members(@channels_id[channel]) unless channel_found.nil?
 
@@ -40,32 +43,40 @@ class SlackSmartBot
           if channel_id != config[:channel]
             begin
               rules_file = "slack-smart-bot_rules_#{channel_id}_#{from.gsub(" ", "_")}.rb"
-              if defined?(RULES_FOLDER)
+              if defined?(RULES_FOLDER) # consider removing RULES_FOLDER since we are not using it anywhere else
                 rules_file = RULES_FOLDER + rules_file
                 general_rules_file = RULES_FOLDER + 'general_rules.rb'
+                general_commands_file = RULES_FOLDER + 'general_commands.rb'
               else
                 Dir.mkdir("#{config.path}/rules") unless Dir.exist?("#{config.path}/rules")
                 Dir.mkdir("#{config.path}/rules/#{channel_id}") unless Dir.exist?("#{config.path}/rules/#{channel_id}")
                 rules_file = "/rules/#{channel_id}/" + rules_file
                 general_rules_file = "/rules/general_rules.rb"
+                general_commands_file = "/rules/general_commands.rb"
               end
               default_rules = (__FILE__).gsub(/slack\/smart-bot\/commands\/on_master\/create_bot\.rb$/, "slack-smart-bot_rules.rb")
               default_general_rules = (__FILE__).gsub(/slack\/smart-bot\/commands\/on_master\/create_bot\.rb$/, "slack-smart-bot_general_rules.rb")
+              default_general_commands = (__FILE__).gsub(/slack\/smart-bot\/commands\/on_master\/create_bot\.rb$/, "slack-smart-bot_general_commands.rb")
               
               File.delete(config.path + rules_file) if File.exist?(config.path + rules_file)
               FileUtils.copy_file(default_rules, config.path + rules_file) unless File.exist?(config.path + rules_file)
               FileUtils.copy_file(default_general_rules, config.path + general_rules_file) unless File.exist?(config.path + general_rules_file)
+              FileUtils.copy_file(default_general_commands, config.path + general_commands_file) unless File.exist?(config.path + general_commands_file)
               admin_users = Array.new()
-              creator_info = get_user_info(channel_found.creator)
-              admin_users = [from, creator_info.user.name] + config.masters
+              creator_info = @users.select{|u| u.id == channel_found.creator or (u.key?(:enterprise_user) and u.enterprise_user.id == channel_found.creator)}[-1]
+              if creator_info.nil? or creator_info.empty? or creator_info.user.nil?
+                admin_users = [from] + config.masters
+              else
+                admin_users = [from, creator_info.user.name] + config.masters
+              end
               admin_users.uniq!
-              @logger.info "ruby #{config.file_path} \"#{channel}\" \"#{admin_users.join(",")}\" \"#{rules_file}\" on"
+              @logger.info "BOT_SILENT=#{silent} ruby #{config.file_path} \"#{channel}\" \"#{admin_users.join(",")}\" \"#{rules_file}\" on"
           
               if cloud
                 respond "Copy the bot folder to your cloud location and run `ruby #{config.file} \"#{channel}\" \"#{admin_users.join(",")}\" \"#{rules_file}\" on&`", dest
               else
                 t = Thread.new do
-                  `BOT_SILENT=false ruby #{config.file_path} \"#{channel}\" \"#{admin_users.join(",")}\" \"#{rules_file}\" on`
+                  `BOT_SILENT=#{silent} ruby #{config.file_path} \"#{channel}\" \"#{admin_users.join(",")}\" \"#{rules_file}\" on`
                 end
               end
               @bots_created[channel_id] = {
@@ -80,6 +91,8 @@ class SlackSmartBot
                 cloud: cloud,
                 thread: t,
               }
+              @bots_created[channel_id].silent = true if silent
+
               respond "The bot has been created on channel: #{channel}. Rules file: #{File.basename rules_file}. Admins: #{admin_users.join(", ")}", dest
               update_bots_file()
             rescue Exception => stack

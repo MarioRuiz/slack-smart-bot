@@ -9,14 +9,12 @@ class SlackSmartBot
   # help:     It will return only the values that were print out on the repl with puts, print, p or pp
   # help:     Example:
   # help:       _run repl CreateCustomer LOCATION=spain HOST='https://10.30.40.50:8887'_
+  # help:     <https://github.com/MarioRuiz/slack-smart-bot#repl|more info>
   # help:
   def run_repl(dest, user, session_name, env_vars, rules_file)
     #todo: add tests
     from = user.name
-    if config[:allow_access].key?(__method__) and !config[:allow_access][__method__].include?(user.name) and !config[:allow_access][__method__].include?(user.id) and 
-      (!user.key?(:enterprise_user) or ( user.key?(:enterprise_user) and !config[:allow_access][__method__].include?(user[:enterprise_user].id)))
-      respond "You don't have access to use this command, please contact an Admin to be able to use it: <@#{config.admins.join(">, <@")}>"
-    else
+    if has_access?(__method__, user)
       save_stats(__method__)
       Dir.mkdir("#{config.path}/repl") unless Dir.exist?("#{config.path}/repl")
       Dir.mkdir("#{config.path}/repl/#{@channel_id}") unless Dir.exist?("#{config.path}/repl/#{@channel_id}")
@@ -43,7 +41,8 @@ class SlackSmartBot
               eval(File.new(config.path+rules_file).read) if File.exist?(config.path+rules_file)
             end
           end
-          if File.exist?("#{project_folder}/.smart-bot-repl") and @repls[session_name][:type] != :private_clean and @repls[session_name][:type] != :public_clean
+          if File.exist?("#{project_folder}/.smart-bot-repl") and 
+            ((@repls.key?(session_name) and @repls[session_name][:type] != :private_clean and @repls[session_name][:type] != :public_clean) or !@repls.key?(session_name))
             content += File.read("#{project_folder}/.smart-bot-repl")
             content += "\n"
           end

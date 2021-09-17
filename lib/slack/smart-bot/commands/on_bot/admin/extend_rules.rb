@@ -4,6 +4,7 @@ class SlackSmartBot
   # helpadmin: `extend rules to CHANNEL_NAME`
   # helpadmin: `use rules on CHANNEL_NAME`
   # helpadmin:    It will allow to use the specific rules from this channel on the CHANNEL_NAME
+  # helpadmin:    <https://github.com/MarioRuiz/slack-smart-bot#extending-rules-to-other-channels|more info>
   # helpadmin:
   def extend_rules(dest, user, from, channel, typem)
     save_stats(__method__)
@@ -15,6 +16,7 @@ class SlackSmartBot
       else
         #todo: add pagination for case more than 1000 channels on the workspace
         channels = get_channels()
+        channel = @channels_name[channel] if @channels_name.key?(channel)
 
         channel_found = channels.detect { |c| c.name == channel }
         get_channels_name_and_id()

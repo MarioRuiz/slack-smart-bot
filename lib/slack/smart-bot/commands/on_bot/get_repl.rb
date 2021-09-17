@@ -4,14 +4,12 @@ class SlackSmartBot
   # help: `get irb SESSION_NAME`
   # help: `get live SESSION_NAME`
   # help:     Will get the Ruby commands sent on that SESSION_NAME.
+  # help:     <https://github.com/MarioRuiz/slack-smart-bot#repl|more info>
   # help:
   def get_repl(dest, user, session_name)
     #todo: add tests
     save_stats(__method__)
-    if config[:allow_access].key?(__method__) and !config[:allow_access][__method__].include?(user.name) and !config[:allow_access][__method__].include?(user.id) and 
-      (!user.key?(:enterprise_user) or ( user.key?(:enterprise_user) and !config[:allow_access][__method__].include?(user[:enterprise_user].id)))
-      respond "You don't have access to use this command, please contact an Admin to be able to use it: <@#{config.admins.join(">, <@")}>"
-    else
+    if has_access?(__method__, user)
       Dir.mkdir("#{config.path}/repl") unless Dir.exist?("#{config.path}/repl")
       Dir.mkdir("#{config.path}/repl/#{@channel_id}") unless Dir.exist?("#{config.path}/repl/#{@channel_id}")
       if File.exist?("#{config.path}/repl/#{@channel_id}/#{session_name}.run")

@@ -5,6 +5,7 @@ class SlackSmartBot
   # helpadmin:    It will show the routines of the channel
   # helpadmin:    In case of `all` and on the master channel, it will show all the routines from all channels
   # helpadmin:    You can use this command only if you are an admin user
+  # helpadmin:    <https://github.com/MarioRuiz/slack-smart-bot#routines|more info>
   # helpadmin:
   def see_routines(dest, from, user, all)
     save_stats(__method__)
@@ -23,8 +24,8 @@ class SlackSmartBot
           routines = @routines.dup
         end
       else
-        if @rules_imported.key?(user.id) and @rules_imported[user.id].key?(user.id) and dest[0] == "D"
-          file_conf = IO.readlines("#{config.path}/routines/routines_#{@rules_imported[user.id][user.id]}.rb").join
+        if @rules_imported.key?(user.name) and @rules_imported[user.name].key?(user.name) and dest[0] == "D"
+          file_conf = IO.readlines("#{config.path}/routines/routines_#{@rules_imported[user.name][user.name]}.rb").join
           routines = eval(file_conf)
         else
           routines = @routines.dup
@@ -57,6 +58,7 @@ class SlackSmartBot
             msg << "\tCommand: #{v[:command]}" unless v[:command].to_s.strip == ''
             msg << "\tFile: #{v[:file_path]}" unless v[:file_path] == ''
             msg << "\tSilent: #{v[:silent]}" unless !v[:silent]
+            msg << "\tType: #{v[:routine_type]}" if v[:routine_type].to_s == 'bgroutine'
             respond msg.join("\n"), dest
           end
         end

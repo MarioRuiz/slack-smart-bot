@@ -67,8 +67,9 @@ def rules(user, command, processed, dest, files = [], rules_file = "")
   end
   
   load "#{config.path}/rules/general_rules.rb"
-  unless general_rules(user, command, processed, dest, files, rules_file)
-
+  if general_rules(user, command, processed, dest, files, rules_file)
+    return true
+  else
     begin
       case command
       when /^which rules$/i

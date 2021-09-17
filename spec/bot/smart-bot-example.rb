@@ -8,7 +8,8 @@ settings = {
   stats: true,
   file: 'smart-bot-example.rb',
   nick: 'example', 
-  nick_id: 'UMSRCRTAR'
+  nick_id: 'UMSRCRTAR',
+  logrtm: false
 }
 
 if ENV['SIMULATE'] == 'true'

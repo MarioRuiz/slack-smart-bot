@@ -20,9 +20,9 @@ RSpec.describe SlackSmartBot, "hi_bot" do
     expect(buffer(to: :cbot1cm, from: :ubot)[0]).to match(@hi_regexp)
   end
 
-  it 'doesn\'t responds in channel with extended rules' do
+  it 'responds in channel with extended rules' do
     send_message @hi_bot, from: :user1, to: :cext1
-    expect(buffer(to: :cext1, from: :ubot)[0]).not_to match(@hi_regexp)
+    expect(buffer(to: :cext1, from: :ubot)[0]).to match(@hi_regexp)
   end
 
   it 'doesn\'t responds in private channel with extended rules' do
@@ -51,18 +51,18 @@ RSpec.describe SlackSmartBot, "hi_bot" do
     sleep 1
     expect(buffer(to: :cbot1cm, from: :ubot)[0]).to match(@hi_regexp)
   end
-  it "doesn't respond on extended channel" do
-    send_message "!hi bot", from: :uadmin, to: :cext1
+  it "responds on extended channel" do
+    send_message "hi bot", from: :user1, to: :cext1
     sleep 1
-    expect(buffer(to: :cext1, from: :ubot).join).to match(/I don't understand/)
+    expect(buffer(to: :cext1, from: :ubot)[0]).to match(@hi_regexp)
   end
 
   describe "on external channel not extended" do
-    it "doesn't respond to external demand" do
+    it "responds" do
       command = "hi bot"
-      send_message "<@#{UBOT}> on <##{CBOT1CM}|bot1cm> #{command}", from: :uadmin, to: :cexternal
+      send_message "#{command}", from: :uadmin, to: :cexternal
       sleep 1
-      expect(buffer(to: :cexternal, from: :ubot).join).to  match(/Take in consideration when on external calls/)
+      expect(buffer(to: :cexternal, from: :ubot).join).to  match(/You are on a channel where the SmartBot is just a member/i)
     end
   end
 

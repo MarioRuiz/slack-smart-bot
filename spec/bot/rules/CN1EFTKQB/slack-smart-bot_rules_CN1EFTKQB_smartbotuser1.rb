@@ -68,8 +68,9 @@ def rules(user, command, processed, dest, files = [], rules_file = "")
 
   load "#{config.path}/rules/general_rules.rb"
   
-  unless general_rules(user, command, processed, dest, files, rules_file)
-
+  if general_rules(user, command, processed, dest, files, rules_file)
+    return true
+  else
     begin
       case command
 
@@ -129,6 +130,19 @@ def rules(user, command, processed, dest, files = [], rules_file = "")
           respond "#{display_name}: #{stderr}", dest
         end
 
+        # Example sending blocks https://api.slack.com/block-kit
+        # my_blocks = [
+        #   { type: "context",
+        #     elements:
+        #       [
+        #         { type: "plain_text", :text=>"\tInfo: " },
+        #         { type: "image", image_url: "https://avatars.slack-edge.com/2021-03-23/182815_e54abb1dd_24.jpg", alt_text: "mario" },
+        #         { type: "mrkdwn", text: " *Mario Ruiz* (marior)  " }
+        #       ]
+        #   }
+        # ]
+        # respond blocks: my_blocks
+
         # Example downloading a file from slack
         #  if !files.nil? and files.size == 1 and files[0].filetype == 'yaml'
         #    require 'nice_http'
@@ -140,12 +154,15 @@ def rules(user, command, processed, dest, files = [], rules_file = "")
         #   send_file(to, msg, filepath, title, format, type = "text")
         #   send_file(dest, 'the message', "#{project_folder}/temp/logs_ptBI.log", 'title', 'text/plain', "text")
         #   send_file(dest, 'the message', "#{project_folder}/temp/example.jpeg", 'title', 'image/jpeg', "jpg")
+        
 
       else
         unless processed
           dont_understand()
         end
-      end
+        return false
+      end      
+      return true
     rescue => exception
       if defined?(@logger)
         @logger.fatal exception
@@ -153,6 +170,7 @@ def rules(user, command, processed, dest, files = [], rules_file = "")
       else
         puts exception
       end
+      return false
     end
   end
 end

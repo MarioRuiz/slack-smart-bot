@@ -4,21 +4,28 @@ RSpec.describe SlackSmartBot, "bot_rules" do
     channel = :cext1
     user = :uadmin
 
-    it "doesn't respond if not on demand" do
+    it "responds to bot rules" do
       send_message "bot rules", from: user, to: channel
-      expect(buffer(to: channel, from: :ubot).join).to eq ""
-    end
-    it "responds to !bot rules" do
-      send_message "!bot rules", from: user, to: channel
       expect(buffer(to: channel, from: :ubot).join).to match(/Rules from channel bot1cm/)
       expect(buffer(to: channel, from: :ubot).join).to match(/To run the commands on this extended channel, add `!`, `!!` or `\^` before the command./)
       expect(buffer(to: channel, from: :ubot).join).to match(/which rules for bot1cm/)
     end
-    it "responds to !bot rules COMMAND" do
-      send_message "!bot rules which", from: user, to: channel
+    it "responds to bot rules COMMAND" do
+      send_message "bot rules which", from: user, to: channel
       expect(buffer(to: channel, from: :ubot).join).to match(/which rules for bot1cm/)
-      send_message "!bot rules aaaaa", from: user, to: channel
-      expect(buffer(to: channel, from: :ubot).join).to match(/I didn't find any command starting by `aaaaa`/)
+      send_message "bot rules aaaaa", from: user, to: channel
+      expect(buffer(to: channel, from: :ubot).join).to match(/I didn't find any command with `aaaaa`/)
+    end
+    it 'returns help searching on rule description' do
+      send_message "bot help run the process", from: user, to: channel
+      sleep 2
+      expect(buffer(to: channel, from: :ubot).join).to match(/run something/i) # message
+    end
+    it 'responds on a thread if lines>50' do
+      send_message "bot rules expanded", from: :uadmin, to: channel
+      sleep 2
+      expect(buffer(to: channel, from: :ubot).join).to match(/Since there are many lines returned the results are returned on a thread by default/)
+      expect(buffer(to: channel, from: :ubot).join).to match(/^:on_thread:/)  
     end
   end
 end

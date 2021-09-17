@@ -1,24 +1,9 @@
 class SlackSmartBot
 
-  # help: ----------------------------------------------
-  # help: `bot help`
-  # help: `bot help COMMAND`
-  # help: `bot rules`
-  # help: `bot rules COMMAND`
-  # help: `bot help expanded`
-  # help: `bot rules expanded`
-  # help: `bot what can I do?`
-  # help:    it will display this help. For a more detailed help call `bot help expanded` or `bot rules expanded`.
-  # help:    if COMMAND supplied just help for that command
-  # help:    you can use the option 'expanded' or the alias 'extended'
-  # help:    `bot rules` will show only the specific rules for this channel.
-  # help:
-  def bot_help(user, from, dest, dchannel, specific, help_command, rules_file)
-    save_stats(__method__)
-    if config[:allow_access].key?(__method__) and !config[:allow_access][__method__].include?(user.name) and !config[:allow_access][__method__].include?(user.id) and 
-      (!user.key?(:enterprise_user) or ( user.key?(:enterprise_user) and !config[:allow_access][__method__].include?(user[:enterprise_user].id)))
-      respond "You don't have access to use this command, please contact an Admin to be able to use it: <@#{config.admins.join(">, <@")}>"
-    else
+  def bot_help(user, from, dest, dchannel, specific, help_command, rules_file, savestats=true)
+    save_stats(__method__) if savestats
+    output = []
+    if has_access?(__method__, user)
       help_found = false
 
       message = ""
@@ -28,36 +13,65 @@ class SlackSmartBot
         message_not_expanded = ''
       else
         expanded = false
-        message_not_expanded = "*If you want to see the expanded version of `bot help` or `bot rules`, please call `bot help expanded` or `bot rules expanded`*\n"
-        message_not_expanded += "*Also to get specific expanded help for a specific command or rule call `bot help COMMAND`*\n"
+        message_not_expanded = "If you want to see the *expanded* version of *`bot help`* or *`bot rules`*, please call *`bot help expanded`* or *`bot rules expanded`*\n"
+        message_not_expanded += "Also to get specific *expanded* help for a specific command or rule call *`bot help COMMAND`*\n"
       end
-
       help_message = get_help(rules_file, dest, from, specific, expanded)
-
+      commands = []
+      commands_search = []
       if help_command.to_s != ""
         help_message.gsub(/====+/,'-'*30).split(/^\s*-------*$/).each do |h|
-          if h.match?(/[`_]#{help_command}/i)
-            respond h, dest
+          if h.match?(/[`_]#{help_command}/i) or h.match?(/^\s*command_id:\s+:#{help_command.gsub(' ', '_')}\s*$/)
+            output << h
             help_found = true
+            commands << h
+          elsif !h.match?(/\A\s*\*/) and !h.match?(/\A\s*=+/) #to avoid general messages for bot help *General commands...*
+            all_found = true
+            help_command.to_s.split(' ') do |hc|
+              unless hc.match?(/^\s*\z/)
+                if !h.match?(/#{hc}/i)
+                  all_found = false                  
+                end
+              end
+            end
+            commands_search << h if all_found
           end
         end
       else
         if Thread.current[:using_channel]!=''
           message += "*You are using rules from another channel: <##{Thread.current[:using_channel]}>. These are the specific commands for that channel:*"
         end
-        respond message, dest
+        output << message
       end
 
       if (help_command.to_s == "")
         help_message.split(/^\s*=========*$/).each do |h|
-          respond("#{"=" * 35}\n#{h}", dest) unless h.match?(/\A\s*\z/)
+          unless h.match?(/\A\s*\z/)
+            output << "#{"=" * 35}\n#{h}"
+          end
+        end
+        if Thread.current[:typem] == :on_pg or Thread.current[:typem] == :on_pub
+          if @bots_created.size>0
+            txt = "\nThese are the *SmartBots* running on this Slack workspace: *<##{@master_bot_id}>, <##{@bots_created.keys.join('>, <#')}>*\n"
+            txt += "Join one channel and call *`bot rules`* to see specific commands for that channel or *`bot help`* to see all commands for that channel.\n"
+            output << txt
+          end
         end
       else
+        if commands.size < 10 and help_command.to_s!='' and commands_search.size > 0
+          commands_search.shuffle!
+          (10-commands.size).times do |n|
+            unless commands_search[n].nil?
+              output << commands_search[n]
+              help_found = true
+            end
+          end
+        end
         unless help_found
           if specific
-            respond("I didn't find any rule starting by `#{help_command}`", dest)
+            output << "I didn't find any rule with `#{help_command}`"
           else
-            respond("I didn't find any command starting by `#{help_command}`", dest)
+            output << "I didn't find any command with `#{help_command}`"
           end
         end
       end
@@ -69,7 +83,7 @@ class SlackSmartBot
           end
         end
         if defined?(git_project) && (git_project.to_s != "") && (help_command.to_s == "")
-          respond "Git project: #{git_project}", dest
+          output << "Git project: #{git_project}"
         else
           def git_project
             ""
@@ -80,9 +94,22 @@ class SlackSmartBot
           end
         end
       elsif help_command.to_s == ""
-        respond "Slack Smart Bot Github project: https://github.com/MarioRuiz/slack-smart-bot", dest
+        output << "Slack Smart Bot Github project: https://github.com/MarioRuiz/slack-smart-bot"
       end
-      respond message_not_expanded unless expanded
+      unless expanded
+        output << message_not_expanded
+      end
     end
+    if output.join("\n").lines.count > 50 and dest[0]!='D'
+      dest = :on_thread
+      output.unshift('Since there are many lines returned the results are returned on a thread by default.')
+    end
+    output.each do |h|
+      msg = h.gsub(/^\s*command_id:\s+:\w+\s*$/,'')
+      unless msg.match?(/\A\s*\z/)
+        respond msg, dest, unfurl_links: false, unfurl_media: false
+      end
+    end
+    return output.join("\n")
   end
 end

@@ -1,11 +1,15 @@
 class SlackSmartBot
 
-  def create_routine_thread(name)
+  def create_routine_thread(name, hroutine)
     t = Thread.new do
       while @routines.key?(@channel_id) and @routines[@channel_id].key?(name)
         @routines[@channel_id][name][:thread] = Thread.current
         started = Time.now
         if @status == :on and @routines[@channel_id][name][:status] == :on
+          if !@routines[@channel_id][name].key?(:creator_id) or @routines[@channel_id][name][:creator_id].to_s == ''
+            user_info = @users.select{|u| u.name == @routines[@channel_id][name][:creator]}[-1]
+            @routines[@channel_id][name][:creator_id] = user_info.id unless user_info.nil? or user_info.empty?
+          end
           @logger.info "Routine: #{@routines[@channel_id][name].inspect}"
           if @routines[@channel_id][name][:file_path].match?(/\.rb$/i)
             ruby = "ruby "
@@ -16,63 +20,84 @@ class SlackSmartBot
           if @routines[@channel_id][name][:at] == "" or
              (@routines[@channel_id][name][:at] != "" and @routines[@channel_id][name][:running] and
               @routines[@channel_id][name][:next_run] != "" and Time.now.to_s >= @routines[@channel_id][name][:next_run])
-            if @routines[@channel_id][name][:file_path] != ""
-              process_to_run = "#{ruby}#{Dir.pwd}#{@routines[@channel_id][name][:file_path][1..-1]}"
-              process_to_run = ("cd #{project_folder} &&" + process_to_run) if defined?(project_folder)
-              data = {
-                dest: @routines[@channel_id][name][:dest],
-                typem: 'routine_file',
-                user: {id: @routines[@channel_id][name][:creator_id], name: @routines[@channel_id][name][:creator]},
-                files: false,
-                command: @routines[@channel_id][name][:file_path],
-                routine: true
-              }            
-              save_stats(name, data: data)
-              stdout, stderr, status = Open3.capture3(process_to_run)
-              if !@routines[@channel_id][name][:silent] or (@routines[@channel_id][name][:silent] and 
-                (!stderr.match?(/\A\s*\z/) or !stdout.match?(/\A\s*\z/)))
-                if @routines[@channel_id][name][:dest]!=@channel_id
-                  respond "routine from <##{@channel_id}> *`#{name}`*: #{@routines[@channel_id][name][:file_path]}", @routines[@channel_id][name][:dest]
+              
+            if !@routines[@channel_id][name].key?(:dayweek) or 
+              (@routines[@channel_id][name].key?(:dayweek) and @routines[@channel_id][name][:dayweek].to_s!='weekday' and @routines[@channel_id][name][:dayweek].to_s!='weekend') or
+              (@routines[@channel_id][name].key?(:dayweek) and @routines[@channel_id][name][:dayweek].to_s=='weekday' and Date.today.wday>=1 and Date.today.wday<=5) or
+              (@routines[@channel_id][name].key?(:dayweek) and @routines[@channel_id][name][:dayweek].to_s=='weekend' and (Date.today.wday==6 or Date.today.wday==0)) 
+              File.delete "#{config.path}/routines/#{@channel_id}/#{name}_output.txt" if File.exists?("#{config.path}/routines/#{@channel_id}/#{name}_output.txt")
+              if @routines[@channel_id][name][:file_path] != ""
+                process_to_run = "#{ruby}#{Dir.pwd}#{@routines[@channel_id][name][:file_path][1..-1]}"
+                process_to_run = ("cd #{project_folder} &&" + process_to_run) if defined?(project_folder)
+                data = {
+                  dest: @routines[@channel_id][name][:dest],
+                  typem: 'routine_file',
+                  user: {id: @routines[@channel_id][name][:creator_id], name: @routines[@channel_id][name][:creator]},
+                  files: false,
+                  command: @routines[@channel_id][name][:file_path],
+                  routine: true,
+                  routine_name: name,
+                  routine_type: hroutine[:routine_type]
+                }
+                save_stats(name, data: data)
+                stdout, stderr, status = Open3.capture3(process_to_run)
+                if !@routines[@channel_id][name][:silent]
+                  unless config.on_maintenance
+                    if @routines[@channel_id][name][:dest]!=@channel_id
+                      respond "routine from <##{@channel_id}> *`#{name}`*: #{@routines[@channel_id][name][:file_path]}", @routines[@channel_id][name][:dest]
+                    else
+                      respond "routine *`#{name}`*: #{@routines[@channel_id][name][:file_path]}", @routines[@channel_id][name][:dest]
+                    end
+                  end
+                end
+                if hroutine[:routine_type].to_s!='bgroutine'
+                  if stderr == ""
+                    unless stdout.match?(/\A\s*\z/)
+                      respond stdout, @routines[@channel_id][name][:dest]
+                    end
+                  else
+                    respond "#{stdout} #{stderr}", @routines[@channel_id][name][:dest]
+                  end
                 else
-                  respond "routine *`#{name}`*: #{@routines[@channel_id][name][:file_path]}", @routines[@channel_id][name][:dest]
+                  File.write("#{config.path}/routines/#{@channel_id}/#{name}_output.txt", stdout.to_s+stderr.to_s, mode: "a+")
                 end
-              end
-              if stderr == ""
-                unless stdout.match?(/\A\s*\z/)
-                  respond stdout, @routines[@channel_id][name][:dest]
+              else #command
+                if !@routines[@channel_id][name][:silent] and !config.on_maintenance
+                  if @routines[@channel_id][name][:dest]!=@channel_id
+                    respond "routine from <##{@channel_id}> *`#{name}`*: #{@routines[@channel_id][name][:command]}", @routines[@channel_id][name][:dest]
+                  else
+                    respond "routine *`#{name}`*: #{@routines[@channel_id][name][:command]}", @routines[@channel_id][name][:dest]
+                  end
                 end
-              else
-                respond "#{stdout} #{stderr}", @routines[@channel_id][name][:dest]
+                started = Time.now
+                data = { channel: @channel_id,
+                  dest: @routines[@channel_id][name][:dest],
+                  user: @routines[@channel_id][name][:creator_id],
+                  text: @routines[@channel_id][name][:command],
+                  files: nil,
+                  routine: true,
+                  routine_name: name,
+                  routine_type: hroutine[:routine_type] }
+                treat_message(data)
               end
-            else #command
-              if !@routines[@channel_id][name][:silent]
-                if @routines[@channel_id][name][:dest]!=@channel_id
-                  respond "routine from <##{@channel_id}> *`#{name}`*: #{@routines[@channel_id][name][:command]}", @routines[@channel_id][name][:dest]
-                else
-                  respond "routine *`#{name}`*: #{@routines[@channel_id][name][:command]}", @routines[@channel_id][name][:dest]
-                end
+              # in case the routine was deleted while running the process
+              if !@routines.key?(@channel_id) or !@routines[@channel_id].key?(name)
+                Thread.exit
               end
-              started = Time.now
-              data = { channel: @channel_id,
-                dest: @routines[@channel_id][name][:dest],
-                user: @routines[@channel_id][name][:creator_id],
-                text: @routines[@channel_id][name][:command],
-                files: nil,
-                routine: true }
-              treat_message(data)
+              @routines[@channel_id][name][:last_run] = started.to_s
+            elsif (@routines[@channel_id][name].key?(:dayweek) and @routines[@channel_id][name][:dayweek].to_s=='weekday' and (Date.today.wday==6 or Date.today.wday==0)) or
+              (@routines[@channel_id][name].key?(:dayweek) and @routines[@channel_id][name][:dayweek].to_s=='weekend' and Date.today.wday>=1 and Date.today.wday<=5) 
+              @routines[@channel_id][name][:last_run] = started.to_s
             end
-            # in case the routine was deleted while running the process
-            if !@routines.key?(@channel_id) or !@routines[@channel_id].key?(name)
-              Thread.exit
-            end
-            @routines[@channel_id][name][:last_run] = started.to_s
           end
           if @routines[@channel_id][name][:last_run] == "" and @routines[@channel_id][name][:next_run] != "" #for the first create_routine of one routine with at
             elapsed = 0
             require "time"
             every_in_seconds = Time.parse(@routines[@channel_id][name][:next_run]) - Time.now
           elsif @routines[@channel_id][name][:at] != "" #coming from start after pause for 'at'
-            if @routines[@channel_id][name].key?(:dayweek) and @routines[@channel_id][name][:dayweek].to_s!=''
+            if @routines[@channel_id][name].key?(:dayweek) and @routines[@channel_id][name][:dayweek].to_s!=''and 
+              @routines[@channel_id][name][:dayweek].to_s!='weekend' and @routines[@channel_id][name][:dayweek].to_s!='weekday'
+              
               day = @routines[@channel_id][name][:dayweek]
               days = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday']
               incr = days.index(day) - Time.now.wday
@@ -83,6 +108,16 @@ class SlackSmartBot
               end
               days = incr/(24*60*60)
               weekly = true
+            elsif @routines[@channel_id][name].key?(:dayweek) and @routines[@channel_id][name][:dayweek].to_s!='' and 
+              @routines[@channel_id][name][:dayweek].to_s=='weekend'
+              
+              weekly = false
+              days = 0
+            elsif @routines[@channel_id][name].key?(:dayweek) and @routines[@channel_id][name][:dayweek].to_s!='' and 
+              @routines[@channel_id][name][:dayweek].to_s=='weekday'
+              
+              weekly = false
+              days = 0
             else
               days = 0
               weekly = false

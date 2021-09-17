@@ -28,6 +28,9 @@ RSpec.configure do |config|
       FileUtils.rm_rf(Dir["./spec/bot/routines/**/*"])
       FileUtils.rm_rf(Dir["./spec/bot/shortcuts/*"])
       FileUtils.rm_rf(Dir["./spec/bot/stats/*"])
+      FileUtils.rm_rf(Dir["./spec/bot/shares/*"])
+      FileUtils.rm_rf(Dir["./spec/bot/status/*"])
+      FileUtils.rm_rf(Dir["./spec/bot/announcements/*"])
       FileUtils.rm_rf(Dir["./spec/bot/repl/**/*"])
       File.delete("./spec/bot/rules/rules_imported.rb") if File.exists?("./spec/bot/rules/rules_imported.rb")
 
@@ -99,6 +102,7 @@ RSpec.configure do |config|
         expect(started).to eq true
       else
         sleep 10
+        #expect(buffer(to: :cstatus, from: :ubot).join).to match(/:large_green_circle: The *SmartBot* on #bot1cm is up and running again./)
       end
     end
     clean_buffer()
@@ -110,6 +114,8 @@ RSpec.configure do |config|
       send_message "yes", from: :uadmin, to: :cmaster
       expect(buffer(to: :cmaster, from: :ubot).join).to match(/Game over/)
       sleep 10
+      expect(buffer(to: :cstatus, from: :ubot).join).to match(/:red_circle: The admin closed SmartBot on \*<#CN0595D50|bot1cm>\*/)
+      expect(buffer(to: :cstatus, from: :ubot).join).to match(/:red_circle: The admin closed SmartBot on \*<#CN1EFTKQB|bot2cu>\*/)
       clean_buffer()
       send_message "hi bot", from: :uadmin, to: :cmaster
       send_message "hi bot", from: :uadmin, to: :cbot1cm

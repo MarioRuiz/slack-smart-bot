@@ -2,16 +2,14 @@ class SlackSmartBot
   # help: ----------------------------------------------
   # help: `see repls`
   # help: `see irbs`
-  # help:    It will display the repls
+  # help:     It will display the repls
+  # help:     <https://github.com/MarioRuiz/slack-smart-bot#repl|more info>
   # help:
   def see_repls(dest, user, typem)
     #todo: add tests
     save_stats(__method__)
     from = user.name
-    if config[:allow_access].key?(__method__) and !config[:allow_access][__method__].include?(user.name) and !config[:allow_access][__method__].include?(user.id) and 
-      (!user.key?(:enterprise_user) or ( user.key?(:enterprise_user) and !config[:allow_access][__method__].include?(user[:enterprise_user].id)))
-      respond "You don't have access to use this command, please contact an Admin to be able to use it: <@#{config.admins.join(">, <@")}>"
-    else
+    if has_access?(__method__, user)
       message = ""
       @repls.sort.to_h.each do |session_name, repl|
         if (repl.creator_name == user.name or repl.type == :public or repl.type == :public_clean) or (config.admins.include?(user.name) and typem == :on_dm)

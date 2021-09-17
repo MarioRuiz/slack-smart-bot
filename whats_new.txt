@@ -1,24 +1,36 @@
-*Version 1.9.2* Released 2021-Apr-27
-
-- Bugfixing and small improvements
-
-------------------------------
-
-*Version 1.9.0* Released 2021-Mar-18
+*Version 1.10.0* Released 2021-Sep-17
 
 *For General users*
-- Added command `what's new` that will show this.
-- `bot stats` will return detailed statistics using the SmartBot. If you call it from a DM with the SmartBot you will see all stats for all Bot channels.
-- Possible to create 'global' shortcuts that will be available on any SmartBot Channel.
-- Added option to start a `repl` without pre-executing '.smart-bot-repl' source code in case exists. Just add `clean` before the `repl` command. For example: `clean repl Example`
-- When using `Ruby` command in case the process doesn't finish in 20 seconds will be aborted.
-- When creating rules/commands and asking a question now you can use 'answer' instead of '@questions'. Take a look at README.md for an example.
-- Using external calls, it is possible to send to more than one bot channel the same rule: `@smart-bot on #channel1 #channel2 #channel3 echo Lala`
-- `bot help` and `bot rules` return by default a short version of the commands. Call `bot help expanded` or `bot rules expanded` to get a full desciption of the commands.
-- It is possible to exclude routines from results when using `bot stats`
-------------------------------
+- When on a private conversation with the SmartBot (DM) and not using any channels rule on the conversation, the general_rules will be available.
+- On DM with the SmartBot if you want to use a rule from a specific channel you can use also: `#CHANNEL RULE` or `on #CHANNEL RULE`. For example: `#sales get report for India` 
+- Now when using general commands, the SmartBot will be responding on any channel where is a member, even though is not listening to you. For example: `clear screen`
+- Added command `suggest command` that will return the help content for a random command.
+- New command `leaderboard` returns useful information about the use of the SmartBot.
+- `add COLOR announcement MESSAGE`, `add EMOJI announcement MESSAGE` command stores the message on the announcement list labeled with the color/emoji specified, white by default. Aliases for announcement: statement, declaration, message. Related: `see announcements`, `delete announcement id`
+- `hi bot` and `bye bot` can be called from any channel where the SmartBot is a member.
+- Added general command `see statuses`, `who is on vacation?`, `who is not on vacation?`
+- New general command `see favorite commands`. It will display the favorite commands in that channel. 
+- Now when running the `ruby` command it can be supplied a code block.
+- New general command `share messages /REGEXP/ on #CHANNEL`, `share messages "TEXT" on #CHANNEL`, `see shares', `delete share ID`. It will automatically share new messages published that meet the specified criteria.
+
 *For Admin users*
-- `Bot stats` now shows the top 10 users and attaches the full list of users and commands.
-- Bot Stats. Now the routines are displayed as routine/USER
-- When creating routines now it is possible to publish in a different channel: `add routine run_tests at 17:05 #thechannel !run api tests`
-- `Turn maintenance on/off` command available
+- respond_thread method will send the respond creating a thread if necessary. It can be used also `respond 'msg', :on_thread`
+- `respond 'msg', :direct` will send a direct message to the person that is executing the rule.
+- You can add general commands that will be responding on any channel where the Smart Bot is a member even though is not 'listening to you'. Add them to '/rules/general_commands.rb
+- when using `respond` you can supply two options: unfurl_links and unfurl_media. By default is a boolean: true
+- added option 'weekdays' and 'weekends' for `create routine` command, for example: `add silent routine suggestions on weekdays at 09:00 suggest command`
+- Added a new config for the SmartBot to log all RTM communication, admits `true` or `false`, by default `false`: `logrtm`
+- Use the command `send message to` and `react to` to impersonate the SmartBot. Only accessible for Master Admins on a DM with the SmartBot.
+- New command to see the result of the last run of a routine: `see result routine NAME`
+- Now it is possible to create *bgroutine* then the results of the routine run won't be published.
+- To display a general message after every command use: `set general message MESSAGE`. Use `set general message off` to stop displaying it.
+- When adding a general message is possible to use interpolation
+- If you are a master admin and you are on master channel then you can call `publish announcements` that will publish the announcements on all channels. The messages stored on a DM won't be published. This is very convenient to be called from a *Routine* for example every weekday at 09:00.
+- Now it is possible to send blocks `respond blocks: my_blocks`. More info about blocks: https://api.slack.com/block-kit
+- When using bgroutines if we want to avoid a file to be sent: 
+        send_file(dest, 'description', "file_path", 'desc', 'text/plain', "text") unless Thread.current[:routine_type] == 'bgroutine'
+- SmartBot will notify about SmartBot status changes if defined the status_channel in config file and the channel exists. By default: smartbot-status
+
+------------------------------
+
+*Previous*: <https://github.com/MarioRuiz/slack-smart-bot/blob/dd23939f93ee95aca3c04d33cd1ce197d6efbd37/whats_new.txt|1.9.0>

@@ -9,8 +9,8 @@ class SlackSmartBot
     else
       return help_message
     end
-
     files.each do |t|
+
       if Dir.exist?(t)
         res = build_help(t, expanded)
         help_message[:master][t.scan(/\/(\w+)$/).join.to_sym] = res[:master]
@@ -50,8 +50,8 @@ class SlackSmartBot
               elsif !explanation_done and line.match?(/^\s+[^`].+\s*/i)
                 resf += "\n#{line}"
                 explanation_done = true
-              elsif !example_done and line.match?(/^\s*_.+_\s*/i)
-                resf += "\n     Example: #{line}"
+              elsif !example_done and line.match?(/^\s*>?\s*_.+_\s*$/i)
+                resf += "\n     Example: #{line.gsub(/^\s*>/,'')}"
                 example_done = true
               end
             end

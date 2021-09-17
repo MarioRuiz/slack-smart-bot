@@ -11,6 +11,7 @@
 /spec/bot/shortcuts/
 /spec/examples.txt
 /spec/bot/repl
+/spec/bot/announcements/
 /test/tmp/
 /test/version_tmp/
 /tmp/
@@ -22,6 +23,8 @@ tmp.sh
 tmp.rb
 /spec/examples.txt
 config_tmp.status
+/status/
+/spec/bot/status/
 # Used by dotenv library to load environment variables.
 # .env
 

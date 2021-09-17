@@ -43,6 +43,9 @@ class SlackSmartBot
     config[:allow_access] = Hash.new unless config.key?(:allow_access)
     config[:on_maintenance] = false unless config.key?(:on_maintenance)
     config[:on_maintenance_message] = "Sorry I'm on maintenance so I cannot attend your request." unless config.key?(:on_maintenance_message)
+    config[:general_message] = "" unless config.key?(:general_message)
+    config[:logrtm] = false unless config.key?(:logrtm)
+    config[:status_channel] = 'smartbot-status' unless config.key?(:status_channel)
 
     if config.path.to_s!='' and config.file.to_s==''
       config.file = File.basename($0)
@@ -61,6 +64,8 @@ class SlackSmartBot
     Dir.mkdir("#{config.path}/logs") unless Dir.exist?("#{config.path}/logs")
     Dir.mkdir("#{config.path}/shortcuts") unless Dir.exist?("#{config.path}/shortcuts")
     Dir.mkdir("#{config.path}/routines") unless Dir.exist?("#{config.path}/routines")
+    Dir.mkdir("#{config.path}/announcements") unless Dir.exist?("#{config.path}/announcements")
+    Dir.mkdir("#{config.path}/shares") unless Dir.exist?("#{config.path}/shares")
     File.delete("#{config.path}/config_tmp.status") if File.exist?("#{config.path}/config_tmp.status")
 
     config.masters = MASTER_USERS if config.masters.to_s=='' and defined?(MASTER_USERS)
@@ -117,6 +122,7 @@ class SlackSmartBot
     File.new("#{config.path}/buffer_complete.log", "w") if config[:simulate] and config.on_master_bot
 
     self.config = config
+    save_status :off, :initializing, "Initializing bot: #{config_log.inspect}"
 
     unless config.simulate and config.key?(:client)
       Slack.configure do |conf|
@@ -128,10 +134,18 @@ class SlackSmartBot
     while restarts < 200 and !created
       begin
         @logger.info "Connecting #{config_log.inspect}"
+        save_status :off, :connecting, "Connecting #{config_log.inspect}"
         if config.simulate and config.key?(:client)
           self.client = config.client
         else
-          self.client = Slack::RealTime::Client.new(start_method: :rtm_connect)
+          if config.logrtm
+            logrtmname = "#{config.path}/logs/rtm_#{config.channel}.log"
+            File.delete(logrtmname) if File.exists?(logrtmname)
+            @logrtm = Logger.new(logrtmname)
+            self.client = Slack::RealTime::Client.new(start_method: :rtm_connect, logger: @logrtm)
+          else
+            self.client = Slack::RealTime::Client.new(start_method: :rtm_connect)
+          end
         end
         created = true
       rescue Exception => e
@@ -141,6 +155,8 @@ class SlackSmartBot
           @logger.fatal "Rescued on creation: #{e.inspect}"
           @logger.info "Waiting 60 seconds to retry. restarts: #{restarts}"
           puts "#{Time.now}: Not able to create client. Waiting 60 seconds to retry: #{config_log.inspect}"
+          save_status :off, :waiting, "Not able to create client. Waiting 60 seconds to retry: #{config_log.inspect}"
+
           sleep 60
         else
           exit!
@@ -158,6 +174,11 @@ class SlackSmartBot
     @rules_imported = Hash.new()
     @routines = Hash.new()
     @repls = Hash.new()
+    @users = Hash.new()
+    @announcements = Hash.new()
+    @shares = Hash.new()
+    @last_status_change = Time.now
+
 
     if File.exist?("#{config.path}/shortcuts/#{config.shortcuts_file}")
       file_sc = IO.readlines("#{config.path}/shortcuts/#{config.shortcuts_file}").join
@@ -180,10 +201,17 @@ class SlackSmartBot
       if @bots_created.kind_of?(Hash) and config.start_bots
         @bots_created.each { |key, value|
           if !value.key?(:cloud) or (value.key?(:cloud) and value[:cloud] == false)
-            @logger.info "ruby #{config.file_path} \"#{value[:channel_name]}\" \"#{value[:admins]}\" \"#{value[:rules_file]}\" #{value[:status].to_sym}"
+            if value.key?(:silent) and value.silent!=config.silent
+              silent = value.silent
+            else
+              silent = config.silent
+            end
+            @logger.info "BOT_SILENT=#{silent} ruby #{config.file_path} \"#{value[:channel_name]}\" \"#{value[:admins]}\" \"#{value[:rules_file]}\" #{value[:status].to_sym}"
             puts "Starting #{value[:channel_name]} Smart Bot"
+            save_status :off, :starting, "Starting #{value[:channel_name]} Smart Bot"
+
             t = Thread.new do
-              `ruby #{config.file_path} \"#{value[:channel_name]}\" \"#{value[:admins]}\" \"#{value[:rules_file]}\" #{value[:status].to_sym}`
+              `BOT_SILENT=#{silent} ruby #{config.file_path} \"#{value[:channel_name]}\" \"#{value[:admins]}\" \"#{value[:rules_file]}\" #{value[:status].to_sym}`
             end
             value[:thread] = t
             sleep value[:admins].size
@@ -191,6 +219,12 @@ class SlackSmartBot
         }
       end
     end
+    general_rules_file = "/rules/general_rules.rb"
+    general_commands_file = "/rules/general_commands.rb"
+    default_general_rules = (__FILE__).gsub(/\/slack-smart-bot\.rb$/, "/slack-smart-bot_general_rules.rb")
+    default_general_commands = (__FILE__).gsub(/\/slack-smart-bot\.rb$/, "/slack-smart-bot_general_commands.rb")
+    FileUtils.copy_file(default_general_rules, config.path + general_rules_file) unless File.exist?(config.path + general_rules_file)
+    FileUtils.copy_file(default_general_commands, config.path + general_commands_file) unless File.exist?(config.path + general_commands_file)
 
     get_rules_imported()
 
@@ -213,9 +247,11 @@ class SlackSmartBot
       end
     rescue Slack::Web::Api::Errors::TooManyRequestsError
       @logger.fatal "TooManyRequestsError"
+      save_status :off, :TooManyRequestsError, "TooManyRequestsError please re run the bot and be sure of executing first: killall ruby"
       abort("TooManyRequestsError please re run the bot and be sure of executing first: killall ruby")
     rescue Exception => stack
       pp stack if config.testing
+      save_status :off, :wrong_admin_user, "The admin user specified on settings: #{config.admins.join(", ")}, doesn't exist on Slack. Execution aborted"
       abort("The admin user specified on settings: #{config.admins.join(", ")}, doesn't exist on Slack. Execution aborted")
     end
 
@@ -231,6 +267,7 @@ class SlackSmartBot
     @questions = Hash.new()
     @answer = Hash.new()
     @repl_sessions = Hash.new()
+    @datetime_general_commands = 0
     @channels_id = Hash.new()
     @channels_name = Hash.new()
     get_channels_name_and_id()
@@ -239,6 +276,8 @@ class SlackSmartBot
 
     get_routines()
     get_repls()
+    get_shares()
+
     if @routines.key?(@channel_id)
       @routines[@channel_id].each do |k, v|
         @routines[@channel_id][k][:running] = false
@@ -250,7 +289,7 @@ class SlackSmartBot
       @routines.each do |ch, rout|
         rout.each do |k, v|
           if !v[:running] and v[:channel_name] == config.channel
-            create_routine_thread(k)
+            create_routine_thread(k, v)
           end
         end
       end
@@ -259,12 +298,14 @@ class SlackSmartBot
         m = "Connection closing, exiting. #{Time.now}"
         @logger.info m
         @logger.info _data
+        #save_status :off, :closing, "Connection closing, exiting." #todo: don't notify for the moment, remove when checked
       end
   
       client.on :closed do |_data|
         m = "Connection has been disconnected. #{Time.now}"
         @logger.info m
         @logger.info _data
+        save_status :off, :disconnected, "Connection has been disconnected."
       end
     end
     self

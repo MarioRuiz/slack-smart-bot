@@ -6,17 +6,16 @@ class SlackSmartBot
   # help: `use CHANNEL`
   # help:    it will use the rules from the specified channel.
   # help:    you need to be part of that channel to be able to use the rules.
+  # help:    <https://github.com/MarioRuiz/slack-smart-bot#using-rules-from-other-channels|more info>
   # help:
   def use_rules(dest, channel, user, dchannel)
     save_stats(__method__)
     get_bots_created()
-    if config[:allow_access].key?(__method__) and !config[:allow_access][__method__].include?(user.name) and !config[:allow_access][__method__].include?(user.id) and 
-      (!user.key?(:enterprise_user) or ( user.key?(:enterprise_user) and !config[:allow_access][__method__].include?(user[:enterprise_user].id)))
-      respond "You don't have access to use this command, please contact an Admin to be able to use it: <@#{config.admins.join(">, <@")}>"
-    else
+    if has_access?(__method__, user)
       #todo: add pagination for case more than 1000 channels on the workspace
       channels = get_channels()
       channel.gsub!('#','') # for the case the channel name is in plain text including #
+      channel = @channels_name[channel] if @channels_name.key?(channel)
       channel_found = channels.detect { |c| c.name == channel }
       get_channels_name_and_id() unless @channels_id.key?(channel)
       members = get_channel_members(@channels_id[channel]) unless channel_found.nil? or !@channels_id.key?(channel)
@@ -31,12 +30,13 @@ class SlackSmartBot
         respond "The bot in that channel is not :on", dest
       else
         if user.id == channel_found.creator or members.include?(user.id)
-          @rules_imported[user.id] = {} unless @rules_imported.key?(user.id)
+          @rules_imported[user.name] = {} unless @rules_imported.key?(user.name)
           if dest[0] == "C" or dest[0] == "G" #todo: take in consideration bots that are not master
-            @rules_imported[user.id][dchannel] = channel_found.id
+            @rules_imported[user.name][dchannel] = channel_found.id
           else
-            @rules_imported[user.id][user.id] = channel_found.id
+            @rules_imported[user.name][user.name] = channel_found.id
           end
+          sleep 0.5
           update_rules_imported()
           respond "I'm using now the rules from <##{channel_found.id}>", dest
 

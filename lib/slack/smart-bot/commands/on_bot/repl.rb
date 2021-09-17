@@ -19,7 +19,7 @@ class SlackSmartBot
   # help:     Send _quit_, _bye_ or _exit_ to finish the session.
   # help:     Send puts, print, p or pp if you want to print out something when using `run repl` later.
   # help:     After 30 minutes of no communication with the Smart Bot the session will be dismissed.
-  # help:     If you declare on your rules file a method called `project_folder` returning the path for the project folder, the code will be executed from that folder. 
+  # help:     If you declare on your rules file a method called 'project_folder' returning the path for the project folder, the code will be executed from that folder. 
   # help:     By default it will be automatically loaded the gems: string_pattern, nice_hash and nice_http
   # help:     To pre-execute some ruby when starting the session add the code to .smart-bot-repl file on the project root folder defined on project_folder
   # help:     If you want to see the methods of a class or module you created use _ls TheModuleOrClass_
@@ -29,14 +29,12 @@ class SlackSmartBot
   # help:       _repl CreateCustomer: "It creates a random customer for testing" LOCATION=spain HOST='https://10.30.40.50:8887'_
   # help:       _repl delete_logs_
   # help:       _private repl random-ssn_
+  # help:     <https://github.com/MarioRuiz/slack-smart-bot#repl|more info>
   # help:
   def repl(dest, user, session_name, env_vars, rules_file, command, description, type)
     #todo: add more tests
     from = user.name
-    if config[:allow_access].key?(__method__) and !config[:allow_access][__method__].include?(user.name) and !config[:allow_access][__method__].include?(user.id) and 
-      (!user.key?(:enterprise_user) or ( user.key?(:enterprise_user) and !config[:allow_access][__method__].include?(user[:enterprise_user].id)))
-      respond "You don't have access to use this command, please contact an Admin to be able to use it: <@#{config.admins.join(">, <@")}>"
-    else
+    if has_access?(__method__, user)
       if !@repl_sessions.key?(from)
         save_stats(__method__)
         Dir.mkdir("#{config.path}/repl") unless Dir.exist?("#{config.path}/repl")
@@ -147,7 +145,7 @@ class SlackSmartBot
                   rescue Exception => resp_repl
                     error = true
                   end
-                  if resp_repl.to_s != \"\"
+                  unless error
                     if code_to_run_repl.match?(/^\s*p\s+/i)
                       open(\"' + File.expand_path(config.path) + '/repl/' + @channel_id + '/' + session_name + '.output\", \"a+\") {|f|
                         f.puts \"\`\`\`\n#{resp_repl.inspect}\n\`\`\`\"
@@ -157,7 +155,7 @@ class SlackSmartBot
                         f.puts \"\`\`\`\n#{resp_repl.ai}\n\`\`\`\"
                       }
                     end
-                    unless error or !add_to_run_repl
+                    unless !add_to_run_repl
                       open(\"' + File.expand_path(config.path) + '/repl/' + @channel_id + '/' + session_name + '.run\", \"a+\") {|f|
                         f.puts code_to_run_repl
                       }

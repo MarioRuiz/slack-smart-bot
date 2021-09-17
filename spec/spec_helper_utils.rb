@@ -27,6 +27,8 @@ def get_key(user)
     key = CPRIV1
   when :cprivext
     key = CPRIVEXT
+  when :cstatus 
+    key = CSTATUS
   end
   return key
 end
@@ -47,7 +49,7 @@ end
 
 build_DIRECT() unless SIMULATE
 
-def buffer(to:, from:, tries: 20)
+def buffer(to:, from:, tries: 20, all: false)
   SIMULATE ? sleep(0.2) : sleep(0.5)
   to = get_key(to)
   from = get_key(from)
@@ -57,7 +59,11 @@ def buffer(to:, from:, tries: 20)
   while result == [""] and num <= tries
     SIMULATE ? sleep(0.1) : sleep(0.2)
     b = File.read("./spec/bot/buffer.log")
-    result = b.scan(/^|#{to}\|#{from}\|.*\|([^\|]+)$/).flatten
+    if all
+      result = b.scan(/^|#{to}\|#{from}\|(.*)/im).flatten 
+    else
+      result = b.scan(/^|#{to}\|#{from}\|.*\|([^\|]+)$/).flatten
+    end
     result.delete(nil)
     result.each do |r|
       r.gsub!(/\s*\z/m, "")

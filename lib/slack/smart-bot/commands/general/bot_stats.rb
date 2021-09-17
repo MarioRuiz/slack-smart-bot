@@ -28,6 +28,7 @@ class SlackSmartBot
     # help:      _bot stats #sales today_
     # help:      _bot stats #sales from 2020-01-01 monthly_
     # help:      _bot stats exclude routines masters from 2021/01/01 monthly_
+    # help:    <https://github.com/MarioRuiz/slack-smart-bot#bot-management|more info>
     # help:
     def bot_stats(dest, from_user, typem, channel_id, from, to, user, st_command, exclude_masters, exclude_routines, exclude_command, monthly, all_data)
         require 'csv'
@@ -81,16 +82,16 @@ class SlackSmartBot
                 end
     
                 if user!=''
-                    user_info = get_user_info(user)
-                    if users_id_name.key?(user_info.user.id)
-                        user_name = users_id_name[user_info.user.id]
+                    user_info = @users.select{|u| u.id == user or (u.key?(:enterprise_user) and u.enterprise_user.id == user)}[-1]
+                    if users_id_name.key?(user_info.id)
+                        user_name = users_id_name[user_info.id]
                     else
-                        user_name = user_info.user.name
+                        user_name = user_info.name
                     end
-                    if users_name_id.key?(user_info.user.name)
-                        user_id = users_name_id[user_info.user.name]
+                    if users_name_id.key?(user_info.name)
+                        user_id = users_name_id[user_info.name]
                     else
-                        user_id = user_info.user.id
+                        user_id = user_info.id
                     end
                 end
                 master_admins = config.masters.dup
@@ -105,7 +106,7 @@ class SlackSmartBot
                 end
     
                 Dir["#{config.stats_path}.*.log"].sort.each do |file|
-                    if file >= "#{config.stats_path}.#{from_file}.log" or file <= "#{config.stats_path}.#{to_file}.log"
+                    if file >= "#{config.stats_path}.#{from_file}.log" and file <= "#{config.stats_path}.#{to_file}.log"
                         CSV.foreach(file, headers: true, header_converters: :symbol, converters: :numeric) do |row|
                             row[:date] = row[:date].to_s
                             if row[:dest_channel_id].to_s[0]=='D'
@@ -125,7 +126,7 @@ class SlackSmartBot
                                 if !exclude_routines or (exclude_routines and !row[:user_name].match?(/^routine\//) )
                                     if exclude_command == '' or (exclude_command!='' and row[:command]!=exclude_command)
                                         if st_command == '' or (st_command != '' and row[:command] == st_command)
-                                            if row[:bot_channel_id] == channel_id or channel_id == ''
+                                            if row[:bot_channel_id] == channel_id or channel_id == '' or row[:dest_channel_id] == channel_id
                                                 if row[:date] >= from and row[:date] <= to
                                                     count_users[row[:user_id]] ||= 0
                                                     count_users[row[:user_id]] += 1

@@ -14,9 +14,7 @@ class SlackSmartBot
   def remove_routine(dest, from, name)
     save_stats(__method__)
     if config.admins.include?(from) #admin user
-      if !config.on_master_bot and dest[0] == "D"
-        respond "To remove the routine do it on <##{@channel_id}>"
-      elsif @routines.key?(@channel_id) and @routines[@channel_id].key?(name)
+      if @routines.key?(@channel_id) and @routines[@channel_id].key?(name)
         @routines[@channel_id][name][:thread].exit
         @routines[@channel_id].delete(name)
         update_routines()

@@ -168,6 +168,9 @@ class SlackSmartBot
             to = to_channel
           end
           send_message(dest, from, typem, to, thread_ts, message)
+        when /\A\s*delete\s+message\s+(.+)\s*$/i
+          url = $1
+          delete_message(from, typem, url)
         when /\A\s*react\s+(on|to|in)\s*([^\s]+)\s+([^\s]+)\s+(.+)\s*$/i
           to = $2
           thread_ts = $3.to_s

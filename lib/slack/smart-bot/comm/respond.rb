@@ -1,6 +1,7 @@
 class SlackSmartBot
-  def respond(msg = "", dest = nil, unfurl_links: true, unfurl_media: true, thread_ts: "", web_client: true, blocks: [], dont_share: false)
+  def respond(msg = "", dest = nil, unfurl_links: true, unfurl_media: true, thread_ts: "", web_client: true, blocks: [], dont_share: false, return_message: false)
     result = true
+    resp = nil
     if (msg.to_s != "" or !msg.to_s.match?(/^A\s*\z/) or !blocks.empty?) and Thread.current[:routine_type].to_s != "bgroutine"
       if !web_client.is_a?(TrueClass) and !web_client.is_a?(FalseClass)
         (!unfurl_links or !unfurl_media) ? web_client = true : web_client = false
@@ -225,6 +226,7 @@ class SlackSmartBot
     if Thread.current.key?(:routine) and Thread.current[:routine]
       File.write("#{config.path}/routines/#{@channel_id}/#{Thread.current[:routine_name]}_output.txt", msg, mode: "a+")
     end
+    result = resp if return_message
     return result
   end
 end

@@ -137,7 +137,7 @@ def general_bot_commands(user, command, dest, files = [])
         # help:     The Regexp will automatically add the parameters /im
         # help:     Only available on public channels.
         # help:  Examples:
-        # help:     _share messages /(last\s+|previous\s+)?sales\s+results\s+/ on #sales_
+        # help:     _share messages /(last\s+|previous\s+)sales\s+results\s+/ on #sales_
         # help:     _share messages "share post" on #announcements_
         # xhelp:     _share messages :tada: on #announcements_
         # xhelp:     _share messages :moneybag: from #sales_

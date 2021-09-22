@@ -435,11 +435,11 @@ You can add any announcement on any channel where the SmartBot is a member by us
 It will store the message on the announcement list labeled with the color/emoji specified, white by default. Possible colors white, green, yellow and red. Aliases for announcement: statement, declaration, message.
 
 Examples:
->**_Peter>_** `add green announcement :heavy_check_mark: All customer services are *up* and running`
->**_Peter>_** `add red message Customers db is down :x:`
->**_Peter>_** `add yellow statement Don't access the linux server without VPN`
->**_Peter>_** `add announcement Party will start at 20:00 :tada:`
->**_Peter>_** `add :heavy_exclamation_mark: message Pay attention all DB are on maintenance until 20:00 GMT`
+>**_Peter>_** `add green announcement :heavy_check_mark: All customer services are *up* and running`  
+>**_Peter>_** `add red message Customers db is down :x:`  
+>**_Peter>_** `add yellow statement Don't access the linux server without VPN`  
+>**_Peter>_** `add announcement Party will start at 20:00 :tada:`  
+>**_Peter>_** `add :heavy_exclamation_mark: message Pay attention all DB are on maintenance until 20:00 GMT`  
 
 To see the announcements of the channel: **_`see announcements`_**, **_`see COLOR announcements`_**, **_`see EMOJI announcements`_** and to delete a particular announcement: **_`delete announcement ID`_**
 
@@ -451,8 +451,8 @@ You can automatically share any new message that is posted on the channel and me
 This command is only available in public channels. The user adding the Share and the SmartBot need to be a member of both channels.
 
 Examples:
->**_Peter>_** `share messages /(last\s+|previous\s+)?sales\s+results\s+/ on #sales`
->**_Peter>_** `share messages "share post" on #announcements`
+>**_Peter>_** `share messages /(last\s+|previous\s+)?sales\s+results\s+/ on #sales`  
+>**_Peter>_** `share messages "share post" on #announcements`  
 
 To see the shares of the channel: **_`see shares`_** and to delete a particular share: **_`delete share ID`_**
 
@@ -462,11 +462,11 @@ To see a list of statuses of the members in the channel you can call `see status
 You need to be a member of the channel to be able to get this info.
 
 Examples:
->**_Peter>_** `see statuses`
->**_Peter>_** `who is on vacation?`
->**_Peter>_** `who is not on vacation?`
->**_Peter>_** `who is on vacation? #SalesChannel`
->**_Peter>_** `who is on :working-from-home:`
+>**_Peter>_** `see statuses`  
+>**_Peter>_** `who is on vacation?`  
+>**_Peter>_** `who is not on vacation?`  
+>**_Peter>_** `who is on vacation? #SalesChannel`  
+>**_Peter>_** `who is on :working-from-home:`  
 
 ### Routines
 To add specific commands to be run automatically every certain amount of time or a specific time: **_`add routine NAME every NUMBER PERIOD COMMAND`_** or **_`add routine NAME at TIME COMMAND`_**. Also just before the command you can supply the channel where you want to publish the results, if not channel supplied then it would be the SmartBot Channel or on the DM if the command is run from there. Remember the SmartBot needs to have access to the channel where you want to publish.

@@ -4,6 +4,7 @@ class SlackSmartBot
     # helpadmin: `send message to @USER_NAME : MESSAGE`
     # helpadmin: `send message to #CHANNEL_NAME : MESSAGE`
     # helpadmin: `send message to #CHANNEL_NAME THREAD_ID : MESSAGE`
+    # helpadmin: `send message to URL : MESSAGE`
     # helpadmin:    It will send the specified message as SmartBot
     # helpadmin:    You can use this command only if you are a Master admin user and if you are in a private conversation with the bot
     # helpadmin:

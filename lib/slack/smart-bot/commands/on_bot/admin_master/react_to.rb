@@ -2,6 +2,7 @@ class SlackSmartBot
 
     # helpadmin: ----------------------------------------------
     # helpadmin: `react to #CHANNEL_NAME THREAD_ID EMOJIS`
+    # helpadmin: `react to URL EMOJIS`
     # helpadmin:    It will send the specified reactions as SmartBot
     # helpadmin:    You can use this command only if you are a Master admin user and if you are in a private conversation with the bot
     # helpadmin:     Examples:
@@ -25,7 +26,7 @@ class SlackSmartBot
           react :x
         end
       else
-        respond "Only master admin users on a `pr`ivate conversation with the SmartBot can send reactions as SmartBot.", dest
+        respond "Only master admin users on a private conversation with the SmartBot can send reactions as SmartBot.", dest
       end
     end
 end

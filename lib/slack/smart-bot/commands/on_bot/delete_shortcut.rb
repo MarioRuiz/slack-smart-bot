@@ -19,11 +19,11 @@ class SlackSmartBot
           if !config.on_master_bot or typem != :on_master
             respond "It is only possible to delete global shortcuts from Master channel"
           else
-            if !config.admins.include?(from) and @shortcuts_global[:all].include?(shortcut) and 
+            if !is_admin?(from) and @shortcuts_global[:all].include?(shortcut) and 
               (!@shortcuts_global.key?(from) or !@shortcuts_global[from].include?(shortcut))
               respond "Only the creator of the shortcut or an admin user can delete it"
             elsif (@shortcuts_global.key?(from) and @shortcuts_global[from].keys.include?(shortcut)) or
-              (config.admins.include?(from) and @shortcuts_global[:all].include?(shortcut))
+              (is_admin?(from) and @shortcuts_global[:all].include?(shortcut))
               
               respond "global shortcut deleted!", dest
               if @shortcuts_global.key?(from) and @shortcuts_global[from].key?(shortcut)
@@ -39,11 +39,11 @@ class SlackSmartBot
             end
           end
         else
-          if !config.admins.include?(from) and @shortcuts[:all].include?(shortcut) and 
+          if !is_admin?(from) and @shortcuts[:all].include?(shortcut) and 
             (!@shortcuts.key?(from) or !@shortcuts[from].include?(shortcut))
             respond "Only the creator of the shortcut or an admin user can delete it", dest
           elsif (@shortcuts.keys.include?(from) and @shortcuts[from].keys.include?(shortcut)) or
-                (config.admins.include?(from) and @shortcuts[:all].include?(shortcut))
+                (is_admin?(from) and @shortcuts[:all].include?(shortcut))
             #are you sure? to avoid deleting by mistake
             if answer.empty?
               ask("are you sure you want to delete it?", command, from, dest)

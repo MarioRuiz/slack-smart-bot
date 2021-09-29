@@ -1,13 +1,15 @@
-*Version 1.10.1-DEV01* Released 2021-Sep-22
+*Version 1.11.0-DEV01* Released 2021-Sep-29
 
 *For General users*
-- 
+- `run repl` displays results as code in case a value on stdout is returned as Hash or Array (<https://github.com/MarioRuiz/slack-smart-bot/issues/41|#41>).
+- `repl` command displays results when using iterators and printing results (<https://github.com/MarioRuiz/slack-smart-bot/issues/35|#35>).
 
 *For Admin users*
 - When calling `respond` it can be supplied the argument `return_message: true` to get access to the posted message. `msg = respond('my message', return_message: true)` (<https://github.com/MarioRuiz/slack-smart-bot/issues/31|#31>)
 - New command `delete message URL` will delete the SmartBot message supplied. Only for Master Admins (<https://github.com/MarioRuiz/slack-smart-bot/issues/32|#32>).
 - `send message` accept also the url of the message to respond on a thread. Only for Master Admins (<https://github.com/MarioRuiz/slack-smart-bot/issues/39|#39>).
 - `react to` accept also the url of the message. Only for Master Admins (<https://github.com/MarioRuiz/slack-smart-bot/issues/40|#40>).
+- You can add, remove and list admins of any channel by using: `add admin @user`, `remove admin @user` and `see admins`. You need to be the creator of the channel, a Master admin or an admin (<https://github.com/MarioRuiz/slack-smart-bot/issues/42|#42>).
 
 ------------------------------
 

@@ -227,6 +227,36 @@ def general_bot_commands(user, command, dest, files = [])
         only_mine = $2.to_s!=''
         see_favorite_commands(user, only_mine)
 
+        # helpadmin: ----------------------------------------------
+        # helpadmin: `add admin @user`
+        # helpadmin:     It will add @user as an admin of the channel.
+        # helpadmin:     Only creator of the channel, admins and master admins can use this command.
+        # helpadmin:    <https://github.com/MarioRuiz/slack-smart-bot#bot-management|more info>
+        # helpadmin: 
+      when /\A\s*add\s+admin\s+<@(\w+)>\s*\z/i
+        admin_user = $1
+        add_admin(user, admin_user)
+
+        # help: ----------------------------------------------
+        # help: `see admins`
+        # help: `show admins`
+        # help: `who are admins?`
+        # help:     It will show who are the admins of the channel.
+        # help:    <https://github.com/MarioRuiz/slack-smart-bot#bot-management|more info>
+        # help: 
+      when /\A\s*(see|show)\s+admins\s*\z/i, /\A\s*who\s+are\s+(the\s+)?admins\??\s*\z/i
+        see_admins()
+
+        # helpadmin: ----------------------------------------------
+        # helpadmin: `remove admin @user`
+        # helpadmin:     It will remove the admin privileges for @user on the channel.
+        # helpadmin:     Only creator of the channel, admins and master admins can use this command.
+        # helpadmin:    <https://github.com/MarioRuiz/slack-smart-bot#bot-management|more info>
+        # helpadmin: 
+      when /\A\s*(remove|delete)\s+admin\s+<@(\w+)>\s*\z/i
+        admin_user = $2
+        remove_admin(user, admin_user)
+
     else
       return false
     end

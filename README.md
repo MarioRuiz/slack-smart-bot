@@ -31,7 +31,7 @@ slack-smart-bot can create bots on demand, create shortcuts, run ruby code... ju
   * [Share Messages](#share-messages)
   * [See Statuses](#see-statuses)
   * [Routines](#routines)
-  * [Limit who has access to a command](#limit-who-has-access-to-a-command)
+  * [Control who has access to a command](#control-who-has-access-to-a-command)
   * [See favorite commands](#see-favorite-commands)
   * [Tips](#tips)
     + [Send a file](#send-a-file)
@@ -309,6 +309,8 @@ If you are a Master Admin on a Direct Message with the Smart Bot you can call th
 
 You can also get the bot logs of the bot channel you are using by calling `get bot logs`. You need to be a Master Admin user on a DM with the Smart Bot.
 
+You can add, remove and list admins of any channel by using: `add admin @user`, `remove admin @user` and `see admins`. You need to be the creator of the channel, a Master admin or an admin.
+
 #### Cloud Bots
 If you want to create a bot that will be running on a different machine: **_`create cloud bot on CHANNEL`_**. Even though the cloud bots are running on different machines, the management can be done through the MASTER CHANNEL. The new cloud bot will be managed by your Master Bot like the others, closing, pausing...
 
@@ -495,7 +497,9 @@ Other routine commands:
 * **_`see routines`_**
 * **_`see result routine NAME`_**
 
-### Limit who has access to a command
+### Control who has access to a command
+
+You can add, remove and list admins of any channel by using: `add admin @user`, `remove admin @user` and `see admins`. You need to be the creator of the channel, a Master admin or an admin.
 
 If you want to define who has access to certain commands you can specify it on the settings when starting the Smart Bot:
 

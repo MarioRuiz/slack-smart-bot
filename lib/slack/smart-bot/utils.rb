@@ -18,4 +18,7 @@ require_relative 'utils/answer'
 require_relative 'utils/answer_delete'
 require_relative 'utils/has_access'
 require_relative 'utils/save_status'
+require_relative 'utils/get_admins_channels'
+require_relative 'utils/update_admins_channels'
+require_relative 'utils/is_admin'
 

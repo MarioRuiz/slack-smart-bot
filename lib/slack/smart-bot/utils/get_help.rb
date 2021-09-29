@@ -8,7 +8,7 @@ class SlackSmartBot
     }
     if config.masters.include?(from)
       user_type = :master # master admin
-    elsif config.admins.include?(from)
+    elsif is_admin?(from)
       user_type = :admin
     else
       user_type = :normal #normal user

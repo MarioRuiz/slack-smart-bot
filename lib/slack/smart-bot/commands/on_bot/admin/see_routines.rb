@@ -9,7 +9,7 @@ class SlackSmartBot
   # helpadmin:
   def see_routines(dest, from, user, all)
     save_stats(__method__)
-    if is_admin?
+    if config.admins.include?(from) #admin user
       if all
         routines = {}
         if config.on_master_bot

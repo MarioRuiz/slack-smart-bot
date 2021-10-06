@@ -11,7 +11,7 @@ class SlackSmartBot
   def exit_bot(command, from, dest, display_name)
     save_stats(__method__)
     if config.on_master_bot
-      if config.masters.include?(from) #admin user
+      if config.admins.include?(from) #admin user
         if answer.empty?
           ask("are you sure?", command, from, dest)
         else

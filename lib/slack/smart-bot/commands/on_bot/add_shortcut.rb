@@ -63,7 +63,7 @@ class SlackSmartBot
               end
             }
           end
-          if !is_admin?(from) and @shortcuts[:all].include?(shortcut_name) and !@shortcuts[from].include?(shortcut_name)
+          if !config.admins.include?(from) and @shortcuts[:all].include?(shortcut_name) and !@shortcuts[from].include?(shortcut_name)
             respond "Only the creator of the shortcut can modify it", dest
           elsif found_other
             respond "You cannot create a shortcut for all with the same name than other user is using", dest

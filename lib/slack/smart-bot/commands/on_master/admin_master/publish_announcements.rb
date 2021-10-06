@@ -10,7 +10,7 @@ class SlackSmartBot
   def publish_announcements(user)
     save_stats(__method__)
     if config.on_master_bot
-      if config.masters.include?(user.name) #admin user
+      if config.admins.include?(user.name) #admin user
         channels = Dir.entries("#{config.path}/announcements/")
         channels.select! {|i| i[/\.csv$/]}
         channels.each do |channel|

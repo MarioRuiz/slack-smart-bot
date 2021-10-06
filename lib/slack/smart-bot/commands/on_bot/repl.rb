@@ -189,16 +189,27 @@ class SlackSmartBot
           end
         end
         process_to_run.gsub!('\"','"')
-        file_run_path = "#{config.path}/repl/#{@channel_id}/#{session_name}.rb"
-        file_run = File.open(file_run_path, "w")
-        file_run.write process_to_run
-        file_run.close
+        file_run_path = "./tmp/repl/#{@channel_id}/#{session_name}.rb"
+        if defined?(project_folder)
+          Dir.mkdir("#{project_folder}/tmp/") unless Dir.exist?("#{project_folder}/tmp/")
+          Dir.mkdir("#{project_folder}/tmp/repl") unless Dir.exist?("#{project_folder}/tmp/repl")
+          Dir.mkdir("#{project_folder}/tmp/repl/#{@channel_id}/") unless Dir.exist?("#{project_folder}/tmp/repl/#{@channel_id}/")
+          file_run = File.open(file_run_path.gsub('./',"#{project_folder}/"), "w")
+          file_run.write process_to_run
+          file_run.close
+        else
+          Dir.mkdir("./tmp/") unless Dir.exist?("./tmp/")
+          Dir.mkdir("./tmp/repl") unless Dir.exist?("./tmp/repl")
+          Dir.mkdir("./tmp/repl/#{@channel_id}/") unless Dir.exist?("./tmp/repl/#{@channel_id}/")
+          file_run = File.open(file_run_path, "w")
+          file_run.write process_to_run
+          file_run.close
+        end
 
         process_to_run = "ruby #{file_run_path}"
 
         started = Time.now
-        process_to_run = ("cd #{project_folder} &&" + process_to_run) if defined?(project_folder)
-
+        process_to_run = ("cd #{project_folder} && " + process_to_run) if defined?(project_folder)
         stdin, stdout, stderr, wait_thr = Open3.popen3(process_to_run)
         timeout = 30 * 60 # 30 minutes
         

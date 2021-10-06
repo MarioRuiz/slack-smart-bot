@@ -1,7 +1,8 @@
 class SlackSmartBot
   def get_help(rules_file, dest, from, only_rules, expanded, descriptions: true, only_normal_user: false)
     order = {
-      general: [:whats_new, :hi_bot, :bye_bot, :bot_help, :suggest_command, :bot_status, :use_rules, :stop_using_rules, :bot_stats, :leaderboard],
+      general: [:bot_help, :hi_bot, :bye_bot, :add_admin, :remove_admin, :see_admins, :add_announcement, :delete_announcement, :see_announcements, :see_command_ids, :share_messages, :see_shares, :delete_share, :see_favorite_commands, :see_statuses],
+      on_bot_general: [:whats_new, :suggest_command, :bot_status, :use_rules, :stop_using_rules, :bot_stats, :leaderboard],
       on_bot: [:ruby_code, :repl, :get_repl, :run_repl, :delete_repl, :see_repls, :add_shortcut, :delete_shortcut, :see_shortcuts],
       on_bot_admin: [:extend_rules, :stop_using_rules_on, :start_bot, :pause_bot, :add_routine,
         :see_routines, :start_routine, :pause_routine, :remove_routine, :see_result_routine, :run_routine]
@@ -107,28 +108,28 @@ class SlackSmartBot
       *And all the specific rules of the Channel*\n"
     end
 
-    if help.key?(:general) and channel_type != :external and channel_type != :extended
+    if help.key?(:general_commands_file)
+      txt += "===================================
+        *General commands on any channel where the Smart Bot is a member:*\n" if descriptions
+      txt += help.general_commands_file
+    end
+
+    if help.key?(:on_bot) and help.on_bot.key?(:general) and channel_type != :external and channel_type != :extended
       if descriptions
         if channel_type == :direct
           txt += "===================================
           *General commands:*\n"
         else
           txt += "===================================
-          *General commands even when the Smart Bot is not listening to you:*\n"
+          *General commands on Bot channel even when the Smart Bot is not listening to you:*\n"
         end
       end
-      order.general.each do |o|
-        txt += help.general[o]
+      order.on_bot_general.each do |o|
+        txt += help.on_bot.general[o]
       end
       if channel_type == :master_bot
         txt += help.on_master.create_bot
       end
-    end
-
-    if help.key?(:general_commands_file)
-      txt += "===================================
-        *General commands on any channel where the Smart Bot is a member:*\n" if descriptions
-      txt += help.general_commands_file
     end
 
     if help.key?(:on_bot) and channel_type != :external and channel_type != :extended
@@ -138,7 +139,7 @@ class SlackSmartBot
           *General commands on bot, DM or on external call on demand:*\n"
         else
           txt += "===================================
-          *General commands only when the Smart Bot is listening to you or on demand:*\n"
+          *General commands on Bot channel only when the Smart Bot is listening to you or on demand:*\n"
         end
       end
       order.on_bot.each do |o|

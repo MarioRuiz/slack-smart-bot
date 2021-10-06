@@ -21,7 +21,7 @@ def general_commands(user, command, dest, files = [])
 
 
       # this is a hidden command that it is not listed when calling bot help
-    when /\s*(that's\s+)?(thanks|thank\s+you|I\s+love\s+you|nice|cool)\s+(#{@salutations.join("|")})\s*!*\s*$/i
+    when /\A\s*(that's\s+)?(thanks|thank\s+you|I\s+love\s+you|nice|cool)\s+(#{@salutations.join("|")})\s*!*\s*$/i
       save_stats :thanks
       reactions = [:heart, :heart_eyes, :blush, :relaxed, :simple_smile, :smiley, :two_hearts, :heartbeat, :green_heart ]
       reactions.sample(rand(3)+1).each {|rt| react rt }

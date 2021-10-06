@@ -12,7 +12,7 @@ class SlackSmartBot
   def notify_message(dest, from, where, message)
     save_stats(__method__)
     if config.on_master_bot
-      if config.masters.include?(from) #admin user
+      if config.admins.include?(from) #admin user
         if where.nil? #not all and not channel
           @bots_created.each do |k, v|
             respond message, k

@@ -257,6 +257,16 @@ def general_bot_commands(user, command, dest, files = [])
         admin_user = $2
         remove_admin(user, admin_user)
 
+        # helpadmin: ----------------------------------------------
+        # helpadmin: `see command ids`
+        # helpadmin:     It will display all available command ids.
+        # helpadmin:     The command id can be used on `bot stats command COMMAND_ID`, `allow access COMMAND_ID` and `deny access COMMAND_ID`
+        # helpadmin:     Only creator of the channel, admins and master admins can use this command.
+        # helpadmin:    <https://github.com/MarioRuiz/slack-smart-bot#bot-management|more info>
+        # helpadmin: 
+      when /\A\s*(see|display)\s+command(\s+|_)ids?\s*\z/i
+        see_command_ids()
+
     else
       return false
     end

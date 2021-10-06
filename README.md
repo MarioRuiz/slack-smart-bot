@@ -311,6 +311,8 @@ You can also get the bot logs of the bot channel you are using by calling `get b
 
 You can add, remove and list admins of any channel by using: `add admin @user`, `remove admin @user` and `see admins`. You need to be the creator of the channel, a Master admin or an admin.
 
+To see the full list of available command ids on any channel call: `see command ids`
+
 #### Cloud Bots
 If you want to create a bot that will be running on a different machine: **_`create cloud bot on CHANNEL`_**. Even though the cloud bots are running on different machines, the management can be done through the MASTER CHANNEL. The new cloud bot will be managed by your Master Bot like the others, closing, pausing...
 
@@ -500,6 +502,8 @@ Other routine commands:
 ### Control who has access to a command
 
 You can add, remove and list admins of any channel by using: `add admin @user`, `remove admin @user` and `see admins`. You need to be the creator of the channel, a Master admin or an admin.
+
+To see the full list of available command ids on any channel call: `see command ids`
 
 If you want to define who has access to certain commands you can specify it on the settings when starting the Smart Bot:
 

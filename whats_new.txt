@@ -1,8 +1,9 @@
-*Version 1.11.0-DEV01* Released 2021-Sep-29
+*Version 1.11.0-DEV01* Released 2021-Oct-06
 
 *For General users*
 - `run repl` displays results as code in case a value on stdout is returned as Hash or Array (<https://github.com/MarioRuiz/slack-smart-bot/issues/41|#41>).
 - `repl` command displays results when using iterators and printing results (<https://github.com/MarioRuiz/slack-smart-bot/issues/35|#35>).
+- `see command ids` will return the command ids. (<https://github.com/MarioRuiz/slack-smart-bot/issues/43|#43>)
 
 *For Admin users*
 - When calling `respond` it can be supplied the argument `return_message: true` to get access to the posted message. `msg = respond('my message', return_message: true)` (<https://github.com/MarioRuiz/slack-smart-bot/issues/31|#31>)

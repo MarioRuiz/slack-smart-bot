@@ -77,7 +77,7 @@ class SlackSmartBot
         default_rules = (__FILE__).gsub(/\.rb$/, "_rules.rb")
         FileUtils.copy_file(default_rules, config.path + '/' + config.rules_file)
       end
-      config.admins = config.masters unless config.admins.to_s!=''
+      config.admins = config.masters.dup unless config.admins.to_s!=''
       config.channel = config.master_channel unless config.channel.to_s!=''
       config.status_init = :on unless config.status_init.to_s!=''
     else
@@ -179,7 +179,6 @@ class SlackSmartBot
     @shares = Hash.new()
     @last_status_change = Time.now
 
-
     if File.exist?("#{config.path}/shortcuts/#{config.shortcuts_file}")
       file_sc = IO.readlines("#{config.path}/shortcuts/#{config.shortcuts_file}").join
       unless file_sc.to_s() == ""
@@ -270,13 +269,17 @@ class SlackSmartBot
     @datetime_general_commands = 0
     @channels_id = Hash.new()
     @channels_name = Hash.new()
+    @channels_creator = Hash.new()
     get_channels_name_and_id()
     @channel_id = @channels_id[config.channel].dup
     @master_bot_id = @channels_id[config.master_channel].dup
 
+    Dir.mkdir("#{config.path}/rules/#{@channel_id}") unless Dir.exist?("#{config.path}/rules/#{@channel_id}/")
+
     get_routines()
     get_repls()
     get_shares()
+    get_admins_channels()
 
     if @routines.key?(@channel_id)
       @routines[@channel_id].each do |k, v|

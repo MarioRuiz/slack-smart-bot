@@ -9,7 +9,7 @@ class SlackSmartBot
   # helpadmin:
   def pause_bot(dest, from)
     save_stats(__method__)
-    if config.admins.include?(from) #admin user
+    if is_admin?
       respond "This bot is paused from now on. You can start it again: start this bot", dest
       respond "zZzzzzZzzzzZZZZZZzzzzzzzz", dest
       @status = :paused

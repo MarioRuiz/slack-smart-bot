@@ -2,8 +2,8 @@
 RSpec.describe SlackSmartBot, "bot_help" do
   before(:all) do
     @general_command_msg = /General commands on any channel where the Smart Bot is a member/i
-    @general_nlist = /General commands even when the Smart Bot is not listening to you/
-    @general_list = /General commands only when the Smart Bot is listening to you or on demand/
+    @general_nlist = /General commands on Bot channel even when the Smart Bot is not listening to you/
+    @general_list = /General commands on Bot channel only when the Smart Bot is listening to you or on demand/
     @admin = /Admin commands:/
     @master_admin = /Master Admin commands:/
     @direct = /When on a private conversation with the Smart Bot, I'm always listening to you/

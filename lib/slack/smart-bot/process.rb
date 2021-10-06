@@ -155,8 +155,12 @@ class SlackSmartBot
           to = $2
           thread_ts = $3.to_s
           message = $4
-          to_channel = to.scan(/<#([^>]+)\|.*>/).join 
-          to_channel = to.scan(/#([^\s]+)/).join if to_channel == ''
+          if to.match?(/\Ahttps:/i)
+            to_channel, thread_ts = to.scan(/\/archives\/(\w+)\/(\w\d+)/)[0]
+          else
+            to_channel = to.scan(/<#([^>]+)\|.*>/).join 
+            to_channel = to.scan(/#([^\s]+)/).join if to_channel == ''
+          end
           if to_channel == ''
             to_user = to.scan(/<@(\w+)>/).join
             if to_user == ''
@@ -167,12 +171,22 @@ class SlackSmartBot
           else
             to = to_channel
           end
+          thread_ts.gsub!('.','')
           send_message(dest, from, typem, to, thread_ts, message)
-        when /\A\s*react\s+(on|to|in)\s*([^\s]+)\s+([^\s]+)\s+(.+)\s*$/i
+        when /\A\s*delete\s+message\s+(.+)\s*$/i
+          url = $1
+          delete_message(from, typem, url)
+        when /\A\s*react\s+(on|to|in)\s*([^\s]+)\s+([p\d\.]+)\s+(.+)\s*$/i,
+          /\A\s*react\s+(on|to|in)\s*([^\s]+)\s+()(.+)\s*$/i
           to = $2
           thread_ts = $3.to_s
           emojis = $4
-          to_channel = to.scan(/<#([^>]+)\|.*>/).join
+
+          if to.match?(/\A<?https:/i)
+            to_channel, thread_ts = to.scan(/\/archives\/(\w+)\/(\w\d+)/)[0]
+          else
+            to_channel = to.scan(/<#([^>]+)\|.*>/).join
+          end
           if to_channel == ''
             to_channel = to.scan(/#([^\s]+)/).join
             to_channel = @channels_id[to_channel].to_s

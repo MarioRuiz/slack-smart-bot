@@ -89,7 +89,7 @@ class SlackSmartBot
                 message.unshift("*Announcements for channel <##{channel_id}>*")
               end
               message << general_message
-              respond message.join("\n"), dest
+              respond message.join("\n"), dest, unfurl_links: false, unfurl_media: false
             else
               if typem == :on_dm and channel_id[0]=='D'
                 respond("There are no #{type} announcements#{general_message}", dest) unless type == 'all'

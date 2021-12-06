@@ -25,16 +25,19 @@ RSpec.describe SlackSmartBot, "exit_bot" do
 
     it "doesn't allow to be used if not master admin" do
       send_message "!exit bot", from: :user1, to: channel
+      sleep 1
       expect(buffer(to: channel, from: :ubot)[-1]).to eq "Only admin users can kill me"
     end
 
     it "responds to 'quit'" do
       send_message "quit bot", from: :user1, to: channel
+      sleep 1
       expect(buffer(to: channel, from: :ubot)[-1]).to eq "Only admin users can kill me"
     end
 
     it "responds to 'close'" do
       send_message "close bot", from: :user1, to: channel
+      sleep 1
       expect(buffer(to: channel, from: :ubot)[-1]).to eq "Only admin users can kill me"
     end
     it "can be cancelled" do

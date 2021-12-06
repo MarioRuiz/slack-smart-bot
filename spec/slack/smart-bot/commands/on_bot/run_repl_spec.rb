@@ -9,21 +9,27 @@ RSpec.describe SlackSmartBot, "run_repl" do
 
       it 'runs the specified repl' do
         send_message "!repl runreplexe ", from: user, to: channel
+        sleep 2
         send_message "puts 'done'", from: user, to: channel
+        sleep 1
         send_message "bye", from: user, to: channel
+        sleep 2
         clean_buffer()
         send_message "!run repl runreplexe", from: user, to: channel
-        sleep 2
+        sleep 3
         expect(buffer(to: channel, from: :ubot).join).to match(/done/i)
       end
 
       it 'accepts parameters to be supplied' do
         send_message "!repl runreplexe2", from: user, to: channel
+        sleep 2
         send_message "puts \"result:\#{param}\"", from: user, to: channel
+        sleep 1
         send_message "bye", from: user, to: channel
+        sleep 2
         clean_buffer()
         send_message "!run repl runreplexe2 PARAM='xxxx'", from: user, to: channel
-        sleep 2
+        sleep 3
         expect(buffer(to: channel, from: :ubot).join).to match(/xxxx/i)
       end
 

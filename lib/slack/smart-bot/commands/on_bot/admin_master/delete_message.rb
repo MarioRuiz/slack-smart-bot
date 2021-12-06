@@ -4,6 +4,7 @@ class SlackSmartBot
     # helpadmin: `delete message URL`
     # helpadmin:    It will delete the SmartBot message supplied
     # helpadmin:    You can use this command only if you are a Master admin user and if you are in a private conversation with the bot
+    # helpadmin: command_id: :delete_message
     # helpadmin:
     def delete_message(from, typem, url)
       save_stats(__method__)

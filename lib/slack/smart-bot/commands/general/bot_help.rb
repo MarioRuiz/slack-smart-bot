@@ -1,6 +1,6 @@
 class SlackSmartBot
 
-  def bot_help(user, from, dest, dchannel, specific, help_command, rules_file, savestats=true)
+  def bot_help(user, from, dest, dchannel, specific, help_command, rules_file, savestats: true, strict: false)
     save_stats(__method__) if savestats
     output = []
     if has_access?(__method__, user)
@@ -21,16 +21,24 @@ class SlackSmartBot
       commands_search = []
       if help_command.to_s != ""
         help_message.gsub(/====+/,'-'*30).split(/^\s*-------*$/).each do |h|
-          if h.match?(/[`_]#{help_command}/i) or h.match?(/^\s*command_id:\s+:#{help_command.gsub(' ', '_')}\s*$/)
-            output << h
-            help_found = true
-            commands << h
-          elsif !h.match?(/\A\s*\*/) and !h.match?(/\A\s*=+/) #to avoid general messages for bot help *General commands...*
-            all_found = true
-            help_command.to_s.split(' ') do |hc|
-              unless hc.match?(/^\s*\z/)
-                if !h.match?(/#{hc}/i)
-                  all_found = false                  
+          if strict
+            if h.match?(/`#{help_command}`/i) or h.match?(/^\s*command_id:\s+:#{help_command.gsub(' ', '_')}\s*$/)
+              output << h
+              help_found = true
+              commands << h
+            end
+          else
+            if h.match?(/[`_]#{help_command}/i) or h.match?(/^\s*command_id:\s+:#{help_command.gsub(' ', '_')}\s*$/)
+              output << h
+              help_found = true
+              commands << h
+            elsif !h.match?(/\A\s*\*/) and !h.match?(/\A\s*=+/) #to avoid general messages for bot help *General commands...*
+              all_found = true
+              help_command.to_s.split(' ') do |hc|
+                unless hc.match?(/^\s*\z/)
+                  if !h.match?(/#{hc}/i)
+                    all_found = false                  
+                  end
                 end
               end
             end

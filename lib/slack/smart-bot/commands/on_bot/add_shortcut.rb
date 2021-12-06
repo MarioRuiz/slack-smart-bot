@@ -19,6 +19,7 @@ class SlackSmartBot
   # help:        _shortcut Spanish Account_
   # help:        _Spanish Account_
   # help:    <https://github.com/MarioRuiz/slack-smart-bot#shortcuts|more info>
+  # help: command_id: :add_shortcut
   # help:
   def add_shortcut(dest, user, typem, for_all, shortcut_name, command, command_to_run, global)
     save_stats(__method__)

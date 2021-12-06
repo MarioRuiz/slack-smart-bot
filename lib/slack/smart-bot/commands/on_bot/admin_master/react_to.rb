@@ -9,6 +9,7 @@ class SlackSmartBot
     # helpadmin:       _react to #sales 1622550707.012100 :thumbsup:_
     # helpadmin:       _react to #sales p1622550707012100 :thumbsup:_
     # helpadmin:       _react to #sales p1622550707012100 :thumbsup: :heavy_check_mark: :bathtub:_
+    # helpadmin: command_id: :react_to
     # helpadmin:
     def react_to(dest, from, typem, to, thread_ts, emojis)
       save_stats(__method__)

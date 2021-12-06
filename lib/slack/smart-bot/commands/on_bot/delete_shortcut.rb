@@ -6,6 +6,7 @@ class SlackSmartBot
   # help:    It will delete the shortcut with the supplied name
   # help:    'global' or 'generic' can only be used on Master channel.
   # help:    <https://github.com/MarioRuiz/slack-smart-bot#shortcuts|more info>
+  # help: command_id: :delete_shortcut
   # help:
 
   def delete_shortcut(dest, user, shortcut, typem, command, global)

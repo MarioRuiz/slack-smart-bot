@@ -70,6 +70,7 @@ def general_bot_commands(user, command, dest, files = [])
         # help:     _add message `*Party* will start at *20:00* :tada:`_
         # help:     _add :heavy_exclamation_mark: message Pay attention all DB are on maintenance until 20:00 GMT_
         # help:    <https://github.com/MarioRuiz/slack-smart-bot#announcements|more info>
+        # help: command_id: :add_announcement
         # help: 
       when /\A\s*(add|create)\s+(red\s+|green\s+|white\s+|yellow\s+)?(announcement|statement|declaration|message)\s+(.+)\s*\z/i,
         /\A\s*(add|create)\s+(:\w+:)\s+(announcement|statement|declaration|message)\s+(.+)\s*\z/i
@@ -89,6 +90,7 @@ def general_bot_commands(user, command, dest, files = [])
         # help:     _delete statement 77_
         # help:     _delete declaration 334_
         # help:    <https://github.com/MarioRuiz/slack-smart-bot#announcements|more info>
+        # help: command_id: :delete_announcement
         # help: 
       when /\A\s*(delete|remove)\s+(announcement|statement|declaration|message)\s+(\d+)\s*\z/i
         message_id = $3
@@ -142,6 +144,7 @@ def general_bot_commands(user, command, dest, files = [])
         # xhelp:     _share messages :tada: on #announcements_
         # xhelp:     _share messages :moneybag: from #sales_
         # help:    <https://github.com/MarioRuiz/slack-smart-bot#share-messages|more info>
+        # help: command_id: :share_messages
         # help: 
       when /\A\s*share\s+messages\s+(\/.+\/|".+"|'.+')\s+on\s+<#\w+\|(.+)>\s*\z/i,
         /\A\s*share\s+messages\s+(\/.+\/|".+"|'.+')\s+on\s+<#(\w+)\|>\s*\z/,
@@ -168,6 +171,7 @@ def general_bot_commands(user, command, dest, files = [])
         # help:  Examples:
         # help:     _delete share 24_
         # help:    <https://github.com/MarioRuiz/slack-smart-bot#share-messages|more info>
+        # help: command_id: :delete_share
         # help: 
       when /\A\s*(delete|remove)\s+share\s+(\d+)\s*\z/i
         share_id = $2
@@ -232,6 +236,7 @@ def general_bot_commands(user, command, dest, files = [])
         # helpadmin:     It will add @user as an admin of the channel.
         # helpadmin:     Only creator of the channel, admins and master admins can use this command.
         # helpadmin:    <https://github.com/MarioRuiz/slack-smart-bot#bot-management|more info>
+        # helpadmin: command_id: :add_admin
         # helpadmin: 
       when /\A\s*add\s+admin\s+<@(\w+)>\s*\z/i
         admin_user = $1
@@ -252,6 +257,7 @@ def general_bot_commands(user, command, dest, files = [])
         # helpadmin:     It will remove the admin privileges for @user on the channel.
         # helpadmin:     Only creator of the channel, admins and master admins can use this command.
         # helpadmin:    <https://github.com/MarioRuiz/slack-smart-bot#bot-management|more info>
+        # helpadmin: command_id: :remove_admin
         # helpadmin: 
       when /\A\s*(remove|delete)\s+admin\s+<@(\w+)>\s*\z/i
         admin_user = $2

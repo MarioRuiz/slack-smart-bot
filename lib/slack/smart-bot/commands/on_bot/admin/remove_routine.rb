@@ -10,6 +10,7 @@ class SlackSmartBot
   # helpadmin:    Examples:
   # helpadmin:      _kill routine example_
   # helpadmin:    <https://github.com/MarioRuiz/slack-smart-bot#routines|more info>
+  # helpadmin: command_id: :remove_routine
   # helpadmin:
   def remove_routine(dest, from, name)
     save_stats(__method__)

@@ -10,6 +10,7 @@ class SlackSmartBot
   # helpadmin:    Examples:
   # helpadmin:      _see routine result example_
   # helpadmin:    <https://github.com/MarioRuiz/slack-smart-bot#routines|more info>
+  # helpadmin: command_id: :see_result_routine
   # helpadmin:
   def see_result_routine(dest, from, name)
     save_stats(__method__)

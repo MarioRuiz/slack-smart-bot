@@ -7,6 +7,7 @@ class SlackSmartBot
     # helpadmin: `send message to URL : MESSAGE`
     # helpadmin:    It will send the specified message as SmartBot
     # helpadmin:    You can use this command only if you are a Master admin user and if you are in a private conversation with the bot
+    # helpadmin: command_id: :send_message
     # helpadmin:
     def send_message(dest, from, typem, to, thread_ts, message)
       save_stats(__method__)

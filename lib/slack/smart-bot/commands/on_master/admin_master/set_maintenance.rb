@@ -14,6 +14,7 @@ class SlackSmartBot
   # helpmaster:      _set maintenance on We are on maintenance. We'll be available again in #{((Time.new(2021,6,18,13,30,0)-Time.now)/60).to_i} minutes_
   # helpmaster:      _turn maintenance on `We are on *maintenance* until *12:00*`_
   # helpmaster:    <https://github.com/MarioRuiz/slack-smart-bot#bot-management|more info>
+  # helpmaster: command_id: :set_maintenance
   # helpmaster:
   def set_maintenance(from, status, message)
     save_stats(__method__)

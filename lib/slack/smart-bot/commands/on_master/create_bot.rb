@@ -9,6 +9,7 @@ class SlackSmartBot
   # helpmaster:    Follow the instructions in case creating cloud bots
   # helpmaster:    In case 'silent' won't display the Bot initialization message on the CHANNEL_NAME
   # helpmaster:    <https://github.com/MarioRuiz/slack-smart-bot#bot-management|more info>
+  # helpmaster: command_id: :create_bot
   # helpmaster:
   def create_bot(dest, user, type, channel)
     cloud = type.include?('cloud')

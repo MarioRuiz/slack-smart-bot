@@ -9,6 +9,7 @@ class SlackSmartBot
   # helpadmin:    Examples:
   # helpadmin:      _run routine example_
   # helpadmin:    <https://github.com/MarioRuiz/slack-smart-bot#routines|more info>
+  # helpadmin: command_id: :run_routine
   # helpadmin:
 
   def run_routine(dest, from, name)

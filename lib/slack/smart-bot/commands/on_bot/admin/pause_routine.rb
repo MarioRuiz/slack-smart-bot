@@ -7,6 +7,7 @@ class SlackSmartBot
   # helpadmin:    Examples:
   # helpadmin:      _pause routine example_
   # helpadmin:    <https://github.com/MarioRuiz/slack-smart-bot#routines|more info>
+  # helpadmin: command_id: :pause_routine
   # helpadmin:
   def pause_routine(dest, from, name)
     save_stats(__method__)

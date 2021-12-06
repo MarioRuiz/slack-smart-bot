@@ -5,6 +5,7 @@ class SlackSmartBot
   # help: `get live SESSION_NAME`
   # help:     Will get the Ruby commands sent on that SESSION_NAME.
   # help:     <https://github.com/MarioRuiz/slack-smart-bot#repl|more info>
+  # help: command_id: :get_repl
   # help:
   def get_repl(dest, user, session_name)
     #todo: add tests

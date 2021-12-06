@@ -3,6 +3,7 @@ class SlackSmartBot
     # help: ----------------------------------------------
     # help: `What's new`
     # help:    It will display the last user changes on Slack Smart Bot
+    # help: command_id: :whats_new
     # help:
     def whats_new(user, dest, dchannel, from, display_name)
       if @status == :on

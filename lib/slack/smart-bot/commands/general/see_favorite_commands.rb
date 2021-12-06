@@ -40,7 +40,7 @@ class SlackSmartBot
           commands.each do |command|
             unless output.match?(/^\s*command_id:\s+:#{command}\s*$/)
               i+=1
-              output += bot_help(user, user.name, Thread.current[:dest], channel, false, command.gsub('_',' '), config.rules_file, false)
+              output += bot_help(user, user.name, Thread.current[:dest], channel, false, command.gsub('_',' '), config.rules_file, savestats: false, strict: true)
               break if i>=5
             end
           end

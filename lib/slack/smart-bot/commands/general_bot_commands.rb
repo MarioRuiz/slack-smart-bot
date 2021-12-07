@@ -273,6 +273,47 @@ def general_bot_commands(user, command, dest, files = [])
       when /\A\s*(see|display)\s+command(\s+|_)ids?\s*\z/i
         see_command_ids()
 
+        # help: ----------------------------------------------
+        # help: `poster MESSAGE`
+        # help: `poster :EMOTICON_TEXT: MESSAGE`
+        # help: `poster :EMOTICON_TEXT: :EMOTICON_BACKGROUND: MESSAGE`
+        # help: `poster MINUTESm MESSAGE`
+        # help:     It will create a poster with the message supplied. By default will be autodeleted 1 minute later.
+        # help:     If you want the poster to be permanent then use the command `pposter`
+        # help:     If minutes supplied then it will be deleted after the minutes specified. Maximum value 60.
+        # help:     To see the messages on a mobile phone put the phone on landscape mode
+        # help:     Max 15 characters. If the message is longer than that won't be treat it.
+        # help:     Only letters from a to z, 0 to 9 and the chars: ? ! - + =
+        # help:     To be displayed correctly use words with no more than 6 characters
+        # help:     Examples:
+        # help:            _poster nice work!_
+        # help:            _poster :heart: nice work!_
+        # help:            _poster :mac-spinning-wheel: :look: love!_
+        # help:            _poster 25m :heart: woah!_
+        # help: command_id: :poster
+        # help: 
+      when /\A()poster\s+(\d+m\s+)?(:[^:]+:)\s+(:[^:]+:)(.+)\s*\z/i, /\A()poster\s+(\d+m\s+)?(:.+:)\s+()(.+)\s*\z/i, /\A()poster\s+(\d+m\s+)?()()(.+)\s*\z/i,
+        /\A(p)poster\s+()(:[^:]+:)\s+(:[^:]+:)(.+)\s*\z/i, /\A(p)poster\s+()(:.+:)\s+()(.+)\s*\z/i, /\A(p)poster\s+()()()(.+)\s*\z/i
+        permanent = $1.to_s != ''
+        minutes = $2.to_s
+        emoticon_text = $3
+        emoticon_bg = $4
+        text = $5
+        minutes = minutes.scan(/(\d+)/).join
+        
+        if minutes == ''
+          minutes = 1
+        elsif minutes.to_i > 60
+          minutes = 60
+        end
+        
+        save_stats :poster
+        if text.to_s.gsub(/\s+/, '').length > 15
+          respond "Too long. Max 15 chars", :on_thread
+        else
+          poster(permanent, emoticon_text, emoticon_bg, text, minutes)
+        end
+
     else
       return false
     end

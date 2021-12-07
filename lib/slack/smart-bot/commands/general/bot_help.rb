@@ -26,6 +26,7 @@ class SlackSmartBot
               output << h
               help_found = true
               commands << h
+              break
             end
           else
             if h.match?(/[`_]#{help_command}/i) or h.match?(/^\s*command_id:\s+:#{help_command.gsub(' ', '_')}\s*$/)

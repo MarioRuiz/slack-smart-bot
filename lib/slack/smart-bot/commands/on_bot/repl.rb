@@ -17,7 +17,7 @@ class SlackSmartBot
   # help:     If 'clean' specified the repl won't pre execute the code written on the .smart-bot-repl file
   # help:     To avoid a message to be treated, start the message with '-'.
   # help:     Send _quit_, _bye_ or _exit_ to finish the session.
-  # help:     Send puts, print, p or pp if you want to print out something when using `run repl` later.
+  # help:     Send puts, print, p or pp if you want to print out something when using _run repl_ later.
   # help:     After 30 minutes of no communication with the Smart Bot the session will be dismissed.
   # help:     If you declare on your rules file a method called 'project_folder' returning the path for the project folder, the code will be executed from that folder. 
   # help:     By default it will be automatically loaded the gems: string_pattern, nice_hash and nice_http

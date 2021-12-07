@@ -16,7 +16,7 @@ class SlackSmartBot
         channels.each do |channel|
           channel.gsub!('.csv','')
           unless channel[0]== 'D'
-            see_announcements(user, '', channel, true, true)
+            see_announcements(user, '', channel, false, true)
             sleep 0.5 # to avoid reach ratelimit
           end
         end

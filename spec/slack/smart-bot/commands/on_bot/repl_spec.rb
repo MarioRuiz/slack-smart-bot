@@ -57,12 +57,11 @@ RSpec.describe SlackSmartBot, "repl" do
       send_message "bye", from: user, to: channel
       expect(buffer(to: channel, from: :ubot).join).to match(/REPL session finished: \w+_\d+/)
     end
-    unless ENV['AVOID_TRAVIS'].to_s == 'true' #todo: This test is not running on travis but locally. Investigate the reason
-      it 'executes the .smart-bot-repl file', :avoid_travis do
-        send_message "!repl prerun ", from: user, to: channel
-        send_message "puts LOLO", from: user, to: channel
-        expect(buffer(to: channel, from: :ubot).join).to match(/beautiful/i)
-      end
+    #todo: This test is not running on travis but locally. Investigate the reason
+    it 'executes the .smart-bot-repl file', :avoid_travis do
+      send_message "!repl prerun ", from: user, to: channel
+      send_message "puts LOLO", from: user, to: channel
+      expect(buffer(to: channel, from: :ubot).join).to match(/beautiful/i)
     end
     it 'creates repls with option clean' do
       send_message "!clean repl", from: user, to: channel
@@ -70,14 +69,13 @@ RSpec.describe SlackSmartBot, "repl" do
       expect(buffer(to: channel, from: :ubot).join).not_to match(/beautiful/i)
     end
 
-    unless ENV['AVOID_TRAVIS'].to_s == 'true' #todo: This test is not running on travis but locally. Investigate the reason
-      it 'responds continuosly', :avoid_travis do
-        send_message "!repl", from: user, to: channel
-        send_message "a = 2222", from: user, to: channel
-        expect(buffer(to: channel, from: :ubot).join).to match(/2222/)
-        send_message "a += 3", from: user, to: channel
-        expect(buffer(to: channel, from: :ubot).join).to match(/2225/)
-      end
+    #todo: This test is not running on travis but locally. Investigate the reason
+    it 'responds continuosly', :avoid_travis do
+      send_message "!repl", from: user, to: channel
+      send_message "a = 2222", from: user, to: channel
+      expect(buffer(to: channel, from: :ubot).join).to match(/2222/)
+      send_message "a += 3", from: user, to: channel
+      expect(buffer(to: channel, from: :ubot).join).to match(/2225/)
     end
   end
 end

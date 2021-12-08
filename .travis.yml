@@ -14,3 +14,7 @@ matrix:
     
 script: 
   - bundle exec rake spec
+
+env:
+  global:
+    - AVOID_TRAVIS=true  

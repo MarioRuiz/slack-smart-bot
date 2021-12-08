@@ -23,6 +23,7 @@ class SlackSmartBot
       command = commands.sample
     end until !@last_suggested_commands.include?(command) or commands.size <= 5
     @last_suggested_commands << command
+    command.gsub!(/^\s*command_id:\s+:\w+\s*$/,'')
     message = "*Command suggestion*:\n#{command}"
     respond message, dest, unfurl_links: false, unfurl_media: false
   end

@@ -88,7 +88,20 @@ def poster(permanent, emoticon_text, emoticon_bg, string, minutes)
       end
       rtxt.gsub!("1", emoticon_text)
       rtxt.gsub!("0", emoticon_bg)
-      messages << respond(rtxt, return_message: true)
+      txt = ""
+      msgs = []
+      rtxt.split("\n").each do |m|
+        if (m + txt).size > 4000
+          msgs << txt unless txt == ""
+          txt = ""
+        end
+        txt += (m + "\n")
+      end
+      msgs << txt
+      msgs.flatten!
+      msgs.each do |msg|
+        messages << respond(msg, return_message: true)
+      end
     end
   end
   unless permanent

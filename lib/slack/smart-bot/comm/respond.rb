@@ -1,5 +1,5 @@
 class SlackSmartBot
-  def respond(msg = "", dest = nil, unfurl_links: true, unfurl_media: true, thread_ts: "", web_client: true, blocks: [], dont_share: false, return_message: false)
+  def respond(msg = "", dest = nil, unfurl_links: true, unfurl_media: true, thread_ts: "", web_client: true, blocks: [], dont_share: false, return_message: false, max_chars_per_message: 4000)
     result = true
     resp = nil
     if (msg.to_s != "" or !msg.to_s.match?(/^A\s*\z/) or !blocks.empty?) and Thread.current[:routine_type].to_s != "bgroutine"
@@ -42,15 +42,18 @@ class SlackSmartBot
           else
             wait = 0
           end
-
-          msgs = [] # max of 4000 characters per message
-          txt = ""
-          msg.split("\n").each do |m|
-            if (m + txt).size > 4000
-              msgs << txt.chars.each_slice(4000).map(&:join) unless txt == ""
-              txt = ""
+          msgs = [] # max of max_chars_per_message characters per message
+          if max_chars_per_message.nil?
+            txt = msg
+          else
+            txt = ""
+            msg.split("\n").each do |m|
+              if (m + txt).size > max_chars_per_message
+                msgs << txt.chars.each_slice(max_chars_per_message).map(&:join) unless txt == ""
+                txt = ""
+              end
+              txt += (m + "\n")
             end
-            txt += (m + "\n")
           end
           msgs << txt
           msgs.flatten!

@@ -30,6 +30,7 @@ class SlackSmartBot
   # help:       _repl delete_logs_
   # help:       _private repl random-ssn_
   # help:     <https://github.com/MarioRuiz/slack-smart-bot#repl|more info>
+  # help: command_id: :repl
   # help:
   def repl(dest, user, session_name, env_vars, rules_file, command, description, type)
     #todo: add more tests

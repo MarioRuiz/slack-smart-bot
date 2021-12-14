@@ -10,6 +10,7 @@ class SlackSmartBot
   # help:    it will display the help content for a random command.
   # help:    if used 'rule' then it will display a random rule.
   # help:    if used 'command' it will show any kind of command or rule.
+  # help: command_id: :suggest_command
   # help:
   def suggest_command(from, dest, dchannel, specific, rules_file)
     save_stats(__method__)

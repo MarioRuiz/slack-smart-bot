@@ -6,6 +6,7 @@ class SlackSmartBot
   # helpmaster:    The messages stored on a DM won't be published.
   # helpmaster:    This is very convenient to be called from a *Routine* for example every weekday at 09:00.
   # helpmaster:    <https://github.com/MarioRuiz/slack-smart-bot#announcements|more info>
+  # helpmaster: command_id: :publish_announcements
   # helpmaster:
   def publish_announcements(user)
     save_stats(__method__)

@@ -17,6 +17,7 @@ class SlackSmartBot
     # help:      _leaderboard from 2021/05/01 to 2021/05/31_
     # help:      _ranking today_
     # help:    <https://github.com/MarioRuiz/slack-smart-bot#bot-management|more info>
+    # help: command_id: :leaderboard
     # help: 
     
     def leaderboard(from, to, period)

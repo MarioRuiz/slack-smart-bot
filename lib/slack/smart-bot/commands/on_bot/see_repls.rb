@@ -4,6 +4,7 @@ class SlackSmartBot
   # help: `see irbs`
   # help:     It will display the repls
   # help:     <https://github.com/MarioRuiz/slack-smart-bot#repl|more info>
+  # help: command_id: :see_repls
   # help:
   def see_repls(dest, user, typem)
     #todo: add tests

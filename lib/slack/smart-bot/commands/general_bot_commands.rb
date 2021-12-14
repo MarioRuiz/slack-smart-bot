@@ -27,6 +27,7 @@ def general_bot_commands(user, command, dest, files = [])
       # help:    you can use the option 'expanded' or the alias 'extended'
       # help:    `bot rules` will show only the specific rules for this channel.
       # help:    <https://github.com/MarioRuiz/slack-smart-bot#bot-help|more info>
+      # help: command_id: :bot_help
       # help:
 
 
@@ -39,6 +40,7 @@ def general_bot_commands(user, command, dest, files = [])
       # help:    After that if you want to avoid a single message to be treated by the smart bot, start the message by -
       # help:    Also apart of Hello you can use _Hallo, Hi, Hola, What's up, Hey, Hæ_
       # help:    <https://github.com/MarioRuiz/slack-smart-bot#how-to-access-the-smart-bot|more info>
+      # help: command_id: :hi_bot
       # help:
       when /\A\s*(Hello|Hallo|Hi|Hola|What's\sup|Hey|Hæ)\s+(#{@salutations.join("|")})\s*$/i
           hi_bot(user, dest, user.name, display_name)
@@ -50,6 +52,7 @@ def general_bot_commands(user, command, dest, files = [])
       # help:    Bot stops listening to you if you are on a Bot channel
       # help:    Also apart of Bye you can use _Bæ, Good Bye, Adiós, Ciao, Bless, Bless Bless, Adeu_
       # help:    <https://github.com/MarioRuiz/slack-smart-bot#how-to-access-the-smart-bot|more info>
+      # help: command_id: :bye_bot
       # help:
       when /\A\s*(Bye|Bæ|Good\s+Bye|Adiós|Ciao|Bless|Bless\sBless|Adeu)\s+(#{@salutations.join("|")})\s*$/i
           bye_bot(dest, user.name, display_name)
@@ -117,6 +120,7 @@ def general_bot_commands(user, command, dest, files = [])
         # help:     _see messages_
         # help:     _see :heavy_exclamation_mark: messages_
         # help:    <https://github.com/MarioRuiz/slack-smart-bot#announcements|more info>
+        # help: command_id: :see_announcements
         # help: 
       when /\A\s*see\s+(red\s+|green\s+|white\s+|yellow\s+|:\w+:\s+)?(announcements|statements|declarations|messages)()\s*\z/i,
         /\A\s*see\s+(all\s+)?(announcements|statements|declarations|messages)()\s*\z/i,
@@ -161,6 +165,7 @@ def general_bot_commands(user, command, dest, files = [])
         # help: `see shares`
         # help:     It will display the active shares from this channel.
         # help:    <https://github.com/MarioRuiz/slack-smart-bot#share-messages|more info>
+        # help: command_id: :see_shares
         # help: 
       when /\A\s*see\s+shares\s*\z/i
         see_shares()
@@ -191,6 +196,7 @@ def general_bot_commands(user, command, dest, files = [])
         # help: `who is not on EMOJI`
         # help:     It will display the current statuses of the members of the channel where you are calling the command or on the channel you supply.
         # help:    <https://github.com/MarioRuiz/slack-smart-bot#see-statuses|more info>
+        # help: command_id: :see_statuses
         # help: 
       when /\A\s*(see|get)\s+(statuses)()\s*\z/i,
         /\A\s*(see\s+status|get\s+status|who\s+is\s+on|who\s+is\s+not\s+on)\s+(:[\w\-\:\s]+:)\s*\??()\s*\z/i,
@@ -226,6 +232,7 @@ def general_bot_commands(user, command, dest, files = [])
         # help:     aliases for favorite: favourite, most used, fav
         # helpmaster:    You need to set stats to true to generate the stats when running the bot instance and get this info.
         # help:    <https://github.com/MarioRuiz/slack-smart-bot#see-favorite-commands|more info>
+        # help: command_id: :see_favorite_commands
         # help: 
       when /\A\s*(see\s+)?(my\s+)?(fav|favorite|favourite|most\s+used)\s+commands\s*\z/i
         only_mine = $2.to_s!=''
@@ -248,6 +255,7 @@ def general_bot_commands(user, command, dest, files = [])
         # help: `who are admins?`
         # help:     It will show who are the admins of the channel.
         # help:    <https://github.com/MarioRuiz/slack-smart-bot#bot-management|more info>
+        # help: command_id: :see_admins
         # help: 
       when /\A\s*(see|show)\s+admins\s*\z/i, /\A\s*who\s+are\s+(the\s+)?admins\??\s*\z/i
         see_admins()
@@ -269,6 +277,7 @@ def general_bot_commands(user, command, dest, files = [])
         # helpadmin:     The command id can be used on `bot stats command COMMAND_ID`, `allow access COMMAND_ID` and `deny access COMMAND_ID`
         # helpadmin:     Only creator of the channel, admins and master admins can use this command.
         # helpadmin:    <https://github.com/MarioRuiz/slack-smart-bot#bot-management|more info>
+        # helpadmin: command_id: :see_command_ids
         # helpadmin: 
       when /\A\s*(see|display)\s+command(\s+|_)ids?\s*\z/i
         see_command_ids()

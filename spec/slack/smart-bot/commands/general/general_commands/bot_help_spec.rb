@@ -86,8 +86,8 @@ RSpec.describe SlackSmartBot, "bot_help" do
         send_message "bot help expanded", from: :uadmin, to: channel
         sleep 2
         expect(buffer(to: channel, from: :ubot).join).not_to match(/If you want to see the *expanded* version/) # message
-        expect(buffer(to: channel, from: :ubot).join).to match(/add shortcut NAME: COMMAND/) # first command
-        expect(buffer(to: channel, from: :ubot).join).to match(/random command/) # not first command
+        expect(buffer(to: channel, from: :ubot).join).to match(/`bot help`/) # first command
+        expect(buffer(to: channel, from: :ubot).join).to match(/`bot help COMMAND`/) # not first command
         expect(buffer(to: channel, from: :ubot).join).to match(/it will display the help content for a random command/) # first description
         expect(buffer(to: channel, from: :ubot).join).to match(/if used 'rule' then it will display a random rule/) # not first description
         expect(buffer(to: channel, from: :ubot).join).to match(/react to #sales 1622550707.012100/) #first example

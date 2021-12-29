@@ -280,8 +280,44 @@ def general_bot_commands(user, command, dest, files = [])
         # helpadmin:    <https://github.com/MarioRuiz/slack-smart-bot#bot-management|more info>
         # helpadmin: command_id: :see_command_ids
         # helpadmin: 
-      when /\A\s*(see|display)\s+command(\s+|_)ids?\s*\z/i
+      when /\A\s*(see|display|get)\s+command(\s+|_)ids?\s*\z/i
         see_command_ids()
+
+        # helpadmin: ----------------------------------------------
+        # helpadmin: `allow access COMMAND_ID`
+        # helpadmin: `allow access COMMAND_ID @user1 @user99`
+        # helpadmin:     It will allow the specified command to be used on the channel.
+        # helpadmin:     If @user specified, only those users will have access to the command.
+        # helpadmin:     Only admins of the channel can use this command
+        # helpadmin:    <https://github.com/MarioRuiz/slack-smart-bot#control-who-has-access-to-a-command|more info>
+        # helpadmin: command_id: :allow_access
+        # helpadmin: 
+      when /\A\s*(allow|give)\s+access\s+(\w+)\s+(.+)\s*\z/i, /\A\s*(allow|give)\s+access\s+(\w+)()\s*\z/i
+        command_id = $2.downcase
+        opt = $3.to_s.split(' ')
+        allow_access(user, command_id, opt)
+
+        # helpadmin: ----------------------------------------------
+        # helpadmin: `deny access COMMAND_ID`
+        # helpadmin:     It won't allow the specified command to be used on the channel.
+        # helpadmin:     Only admins of the channel can use this command
+        # helpadmin:    <https://github.com/MarioRuiz/slack-smart-bot#control-who-has-access-to-a-command|more info>
+        # helpadmin: command_id: :deny_access
+        # helpadmin: 
+      when /\A\s*deny\s+access(\s+rights)?\s+(\w+)\s*\z/i
+        command_id = $2.downcase
+        deny_access(user, command_id)
+
+
+        # help: ----------------------------------------------
+        # help: `see access COMMAND_ID`
+        # help:     It will show the access rights for the specified command.
+        # help:    <https://github.com/MarioRuiz/slack-smart-bot#control-who-has-access-to-a-command|more info>
+        # help: command_id: :see_access
+        # help: 
+      when /\A\s*(see|show)\s+access(\s+rights)?\s+(.+)\s*\z/i
+        command_id = $3.downcase
+        see_access(command_id)
 
         # help: ----------------------------------------------
         # help: `poster MESSAGE`

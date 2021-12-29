@@ -505,7 +505,7 @@ You can add, remove and list admins of any channel by using: `add admin @user`, 
 
 To see the full list of available command ids on any channel call: `see command ids`
 
-If you want to define who has access to certain commands you can specify it on the settings when starting the Smart Bot:
+If you want to define who has access to certain commands in all SmartBot instances, you can specify it on the settings when starting the Smart Bot:
 
 ```ruby
 settings = {
@@ -521,15 +521,22 @@ settings = {
 ```
 You can use the user name or the user id.
 
-If you want to change who has access to a certain command without restarting the Smart Bot you can do it on the rules file:
+If you want to change who has access to a specific command without restarting the Smart Bot you can do it on the rules file, for example:
 
 ```ruby
-config.allow_access.repl = ['marioruiz', 'samcooke']
+        # helpadmin: ----------------------------------------------
+        # helpadmin: `update access`
+        # helpadmin:      It will update the privileges to access commands or rules
+        # helpadmin:      
+      when /\A\s*update\s+access\s*\z/i
+        save_stats(:update_access)
+        if is_admin?(user.name)
+          config.allow_access.repl = ['marioruiz', 'samcooke']
+          respond "updated on <##{@channel_id}>!"
+        else
+          respond 'Only admins can change the access rules'
+        end
 ```
-
-These are the commands that are possible to be limited plus all your SmartBot rules:
-
-`bot_help, bot_rules, bot_status, use_rules, add_shortcut, delete_shortcut, repl, run_repl, get_repl, delete_repl, see_repls, ruby_code, see_shortcuts, create_bot, add_announcement, delete_announcement, see_announcements`
 
 To check from a rule if the user has access to it:
 
@@ -537,6 +544,22 @@ To check from a rule if the user has access to it:
 if has_access?(:your_command_id)
 end
 ```
+
+Also you can allow or deny access for specific commands and users on any specific channel all you need is the Smartbot to be a member of the channel and use these commands on Slack:
+`allow access COMMAND_ID`  
+`allow access COMMAND_ID @user1 @user99`  
+It will allow the specified command to be used on the channel.  
+If @user specified, only those users will have access to the command  
+Only admins of the channel can use this command.  
+
+`deny access COMMAND_ID`  
+It won't allow the specified command to be used on the channel.  
+Only admins of the channel can use this command  
+
+`see access COMMAND_ID`  
+it will show the access rights for the specified command  
+
+The authorization is controlled by `save_stats` so it will be check out when calling `save_stats` or by calling `has_access?(:your_command_id)`
 
 ### See favorite commands
 

@@ -1,4 +1,4 @@
-*Version 1.11.0-DEV04* Released 2021-Dec-20
+*Version 1.11.0-DEV06* Released 2021-Dec-31
 
 *For General users*
 - `run repl` displays results as code in case a value on stdout is returned as Hash or Array (<https://github.com/MarioRuiz/slack-smart-bot/issues/41|#41>).
@@ -12,6 +12,7 @@
 - `send message` accept also the url of the message to respond on a thread. Only for Master Admins (<https://github.com/MarioRuiz/slack-smart-bot/issues/39|#39>).
 - `react to` accept also the url of the message. Only for Master Admins (<https://github.com/MarioRuiz/slack-smart-bot/issues/40|#40>).
 - You can add, remove and list admins of any channel by using: `add admin @user`, `remove admin @user` and `see admins`. You need to be the creator of the channel, a Master admin or an admin (<https://github.com/MarioRuiz/slack-smart-bot/issues/42|#42>).
+- `see access COMMAND_ID`, `allow access COMMAND_ID`, `allow access COMMAND_ID @user1 @user99` and `deny access COMMAND_ID`: Allows us to decide which commands are accessible on every channel.
 
 ------------------------------
 

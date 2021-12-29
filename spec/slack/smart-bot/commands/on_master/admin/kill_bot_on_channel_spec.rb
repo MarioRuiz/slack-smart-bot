@@ -31,8 +31,8 @@ RSpec.describe SlackSmartBot, "kill_bot_on_channel" do
       sleep 3
       expect(buffer(to: :cstatus, from: :ubot).join).to match(/:red_circle: The admin closed SmartBot on \*<#CP28CTWSD|external_channel>\*/)
       expect(bufferc(to: channel, from: :ubot).join).to match(/Bot on channel: external_channel, has been killed and deleted./)
-      send_message "hi bot", from: user, to: :external_channel
-      expect(buffer(to: :external_channel, from: :ubot).join).to match(/^\s*$/)
+      send_message "hi bot", from: user, to: :cexternal
+      expect(buffer(to: :cexternal, from: :ubot).join).to match(/^\s*$/)
     end
     it "kills bot on channel id" do
       send_message "create bot on external_channel", from: user, to: channel
@@ -40,8 +40,8 @@ RSpec.describe SlackSmartBot, "kill_bot_on_channel" do
       send_message "kill bot on <##{CEXTERNAL}|external_channel>", from: user, to: channel
       sleep 3
       expect(bufferc(to: channel, from: :ubot).join).to match(/Bot on channel: external_channel, has been killed and deleted./)
-      send_message "hi bot", from: user, to: :external_channel
-      expect(buffer(to: :external_channel, from: :ubot).join).to match(/^\s*$/)
+      send_message "hi bot", from: user, to: :cexternal
+      expect(buffer(to: :cexternal, from: :ubot).join).to match(/^\s*$/)
     end
     it "displays error if not a creator or admin of the channel" do
       send_message "kill bot on bot1cm", from: user, to: channel

@@ -54,3 +54,7 @@ require_relative "commands/general/add_admin"
 require_relative "commands/general/remove_admin"
 require_relative "commands/general/see_command_ids"
 require_relative "commands/general/poster"
+require_relative "commands/general/see_access"
+require_relative "commands/general/allow_access"
+require_relative "commands/general/deny_access"
+

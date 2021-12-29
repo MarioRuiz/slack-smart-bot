@@ -1,7 +1,7 @@
 class SlackSmartBot
   def get_help(rules_file, dest, from, only_rules, expanded, descriptions: true, only_normal_user: false)
     order = {
-      general: [:bot_help, :hi_bot, :bye_bot, :add_admin, :remove_admin, :see_admins, :poster, :add_announcement, :delete_announcement, :see_announcements, :see_command_ids, :share_messages, :see_shares, :delete_share, :see_favorite_commands, :see_statuses],
+      general: [:bot_help, :hi_bot, :bye_bot, :add_admin, :remove_admin, :see_admins, :poster, :add_announcement, :delete_announcement, :see_announcements, :see_command_ids, :share_messages, :see_shares, :delete_share, :see_favorite_commands, :see_statuses, :allow_access, :see_access, :deny_access],
       on_bot_general: [:whats_new, :suggest_command, :bot_status, :use_rules, :stop_using_rules, :bot_stats, :leaderboard],
       on_bot: [:ruby_code, :repl, :get_repl, :run_repl, :delete_repl, :see_repls, :add_shortcut, :delete_shortcut, :see_shortcuts],
       on_bot_admin: [:extend_rules, :stop_using_rules_on, :start_bot, :pause_bot, :add_routine,
@@ -102,10 +102,6 @@ class SlackSmartBot
         You need to join the specified channel to be able to use those rules.
         Also you can use this command to call another bot from a channel with a running bot.
       \n"
-      txt +="
-      The commands you will be able to use from a channel without a bot: 
-      *bot rules*, *ruby CODE*, *add shortcut NAME: COMMAND*, *delete shortcut NAME*, *see shortcuts*, *shortcut NAME*
-      *And all the specific rules of the Channel*\n"
     end
 
     if help.key?(:general_commands_file)

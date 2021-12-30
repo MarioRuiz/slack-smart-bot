@@ -3,6 +3,7 @@ class SlackSmartBot
     @buffered = false if config[:testing]
     begin
       begin
+        command_orig = data.text
         unless data.text.to_s.match(/\A\s*\z/)
           #to remove italic, bold... from data.text since there is no method on slack api
           if remove_blocks and !data.blocks.nil? and data.blocks.size > 0
@@ -256,24 +257,24 @@ class SlackSmartBot
             elsif @status != :on
               respond "The bot in that channel is not :on", data.channel
             elsif data.user == channel_found.creator or members.include?(data.user)
-              process_first(user_info, command, dest, channel_rules, typem, data.files, data.ts, data.thread_ts, data.routine, data.routine_name, data.routine_type)
+              process_first(user_info, command, dest, channel_rules, typem, data.files, data.ts, data.thread_ts, data.routine, data.routine_name, data.routine_type, command_orig)
             else
               respond "You need to join the channel <##{channel_found.id}> to be able to use the rules.", data.channel
             end
           elsif config.on_master_bot and typem == :on_extended and
                 command.size > 0 and command[0] != "-"
             # to run ruby only from the master bot for the case more than one extended
-            process_first(user_info, command, dest, @channel_id, typem, data.files, data.ts, data.thread_ts, data.routine, data.routine_name, data.routine_type)
+            process_first(user_info, command, dest, @channel_id, typem, data.files, data.ts, data.thread_ts, data.routine, data.routine_name, data.routine_type, command_orig)
           elsif !config.on_master_bot and @bots_created[@channel_id].key?(:extended) and
                 @bots_created[@channel_id][:extended].include?(@channels_name[data.channel]) and
                 command.size > 0 and command[0] != "-"
-            process_first(user_info, command, dest, @channel_id, typem, data.files, data.ts, data.thread_ts, data.routine, data.routine_name, data.routine_type)
+            process_first(user_info, command, dest, @channel_id, typem, data.files, data.ts, data.thread_ts, data.routine, data.routine_name, data.routine_type, command_orig)
           elsif (dest[0] == "D" or @channel_id == data.channel or data.user == config[:nick_id]) and
                 command.size > 0 and command[0] != "-"
-            process_first(user_info, command, dest, data.channel, typem, data.files, data.ts, data.thread_ts, data.routine, data.routine_name, data.routine_type)
+            process_first(user_info, command, dest, data.channel, typem, data.files, data.ts, data.thread_ts, data.routine, data.routine_name, data.routine_type, command_orig)
             # if @botname on #channel_rules: do something
           elsif typem == :on_pub or typem == :on_pg
-            process_first(user_info, command, dest, channel_rules, typem, data.files, data.ts, data.thread_ts, data.routine, data.routine_name, data.routine_type)
+            process_first(user_info, command, dest, channel_rules, typem, data.files, data.ts, data.thread_ts, data.routine, data.routine_name, data.routine_type, command_orig)
           end
         rescue Exception => stack
           @logger.fatal stack

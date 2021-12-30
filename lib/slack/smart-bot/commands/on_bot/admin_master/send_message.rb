@@ -12,6 +12,10 @@ class SlackSmartBot
     def send_message(dest, from, typem, to, thread_ts, message)
       save_stats(__method__)
       if config.masters.include?(from) and typem==:on_dm #master admin user
+        unless Thread.current[:command_orig].to_s == ''
+          message_orig = Thread.current[:command_orig].scan(/.+\s+:\s+(.+)/im).join
+          message = message_orig unless message_orig == ''
+        end
         succ = (respond message, to, thread_ts: thread_ts, web_client: true)
         if succ
           react :heavy_check_mark

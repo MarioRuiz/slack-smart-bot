@@ -22,6 +22,10 @@ RSpec.describe SlackSmartBot, "kill_bot_on_channel" do
     after(:all) do
       send_message "bye bot", from: user, to: channel
     end
+    after(:all) do
+      send_message "!kill bot on external_channel", from: user, to: channel
+      send_message "bye bot", from: user, to: channel
+    end
 
     it "kills bot on channel name" do
       send_message "create bot on external_channel", from: user, to: channel

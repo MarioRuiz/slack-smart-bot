@@ -107,6 +107,7 @@ def poster(permanent, emoticon_text, emoticon_bg, string, minutes)
   unless permanent
     react :heavy_check_mark
     sleep (minutes.to_i * 60)
+    messages.delete(nil)
     messages.each do |message|
       delete(message.channel, message.ts)
     end

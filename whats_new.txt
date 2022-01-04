@@ -1,10 +1,11 @@
-*Version 1.11.0-DEV06* Released 2021-Dec-31
+*Version 1.11.0-DEV07* Released 2022-Jan-04
 
 *For General users*
 - `run repl` displays results as code in case a value on stdout is returned as Hash or Array (<https://github.com/MarioRuiz/slack-smart-bot/issues/41|#41>).
 - `repl` command displays results when using iterators and printing results (<https://github.com/MarioRuiz/slack-smart-bot/issues/35|#35>).
 - `see command ids` will return the command ids. (<https://github.com/MarioRuiz/slack-smart-bot/issues/43|#43>)
 - `poster MESSAGE`, `poster :EMOTICON_TEXT: MESSAGE`, `poster :EMOTICON_TEXT: :EMOTICON_BACKGROUND: MESSAGE`, `poster MINUTESm MESSAGE` It will create a poster with the message supplied. By default will be autodeleted 1 minute later. (<https://github.com/MarioRuiz/slack-smart-bot/issues/34|#34>)
+- `who is available?` show members of the channel that are on line and not on a meeting or vacation or sick.
 
 *For Admin users*
 - When calling `respond` it can be supplied the argument `return_message: true` to get access to the posted message. `msg = respond('my message', return_message: true)` (<https://github.com/MarioRuiz/slack-smart-bot/issues/31|#31>)

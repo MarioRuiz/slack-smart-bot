@@ -66,7 +66,6 @@ class SlackSmartBot
       end
       if list.size > 0
         list.each do |emoji, users|
-          emoji = '' if only_active
           blocks = [
             {
                       "type": "context",

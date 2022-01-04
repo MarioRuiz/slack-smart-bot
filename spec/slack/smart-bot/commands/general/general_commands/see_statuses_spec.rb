@@ -62,7 +62,7 @@ RSpec.describe SlackSmartBot, "see_statuses" do
         send_message "who is available?", from: :user1, to: :cbot1cm
         buff = buffer(to: :cbot1cm, from: :ubot).join
         expect(buff).not_to match(/\(marioruizs\)/i) #it's on vacation
-        expect(buff).to match(/\*Available\*\s+\*Members\*\s+on\s+<##{CBOT1CM}>/i)
+        expect(buff).to match(/\*Available\*\s+\*Members\*\s+:boy:\s+on\s+<##{CBOT1CM}>/i)
         expect(buff).to match(/\(smartbotuser1\)/i)
       end
     end

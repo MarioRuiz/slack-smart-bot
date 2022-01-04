@@ -125,7 +125,7 @@ def general_bot_commands(user, command, dest, files = [])
       when /\A\s*see\s+(red\s+|green\s+|white\s+|yellow\s+|:\w+:\s+)?(announcements|statements|declarations|messages)()\s*\z/i,
         /\A\s*see\s+(all\s+)?(announcements|statements|declarations|messages)()\s*\z/i,
         /\A\s*see\s+(red\s+|green\s+|white\s+|yellow\s+|:\w+:\s+)?(announcements|statements|declarations|messages)\s+#([\w\-]+)\s*\z/i,
-        /\A\s*see\s+(red\s+|green\s+|white\s+|yellow\s+|:\w+:\s+)?(announcements|statements|declarations|messages)\s+<#(C\w+)\|.*>\s*\z/i
+        /\A\s*see\s+(red\s+|green\s+|white\s+|yellow\s+|:\w+:\s+)?(announcements|statements|declarations|messages)\s+<#(\w+)\|.*>\s*\z/i
 
         type = $1.to_s.downcase.strip
         channel = $3.to_s
@@ -207,11 +207,11 @@ def general_bot_commands(user, command, dest, files = [])
         /\A\s*(see|get)\s+(statuses)\s+#([\w\-]+)\s*\z/i,
         /\A\s*(see\s+status|get\s+status|who\s+is\s+on|who\s+are\s+on|who\s+is\s+not\s+on|who\s+are\s+not\s+on)\s+(:[\w\-\:\s]+:)\s*\??\s+#([\w\-]+)\s*\z/i,
         /\A\s*(who\s+is|who\s+are)\s+(available|active)\s*\??\s+#([\w\-]+)\s*\z/i,
-        /\A\s*(who\s+is|who\s+are)\s+(available|active)\s*\??\s+<#(C\w+)\|.+>\s*\z/i,
+        /\A\s*(who\s+is|who\s+are)\s+(available|active)\s*\??\s+<#(\w+)\|.*>\s*\z/i,
         /\A\s*(who\s+is\s+on|who\s+are\s+on|who\s+is\s+not\s+on|who\s+are\s+not\s+on)\s+(vacation|holiday)\s*\??\s+#([\w\-]+)\s*\z/i,
-        /\A\s*(see|get)\s+(statuses)\s+<#(C\w+)\|.+>\s*\z/i,
-        /\A\s*(see\s+status|get\s+status|who\s+is\s+on|who\s+is\s+not\s+on|who\s+are\s+on|who\s+are\s+not\s+on)\s+(:[\w\-\:\s]+:)\s*\??\s+<#(C\w+)\|.+>\s*\z/i,
-        /\A\s*(who\s+is\s+on|who\s+is\s+not\s+on|who\s+are\s+on|who\s+are\s+not\s+on)\s+(vacation|holiday)\s*\??\s+<#(C\w+)\|.+>\s*\z/i
+        /\A\s*(see|get)\s+(statuses)\s+<#(\w+)\|.*>\s*\z/i,
+        /\A\s*(see\s+status|get\s+status|who\s+is\s+on|who\s+is\s+not\s+on|who\s+are\s+on|who\s+are\s+not\s+on)\s+(:[\w\-\:\s]+:)\s*\??\s+<#(\w+)\|.*>\s*\z/i,
+        /\A\s*(who\s+is\s+on|who\s+is\s+not\s+on|who\s+are\s+on|who\s+are\s+not\s+on)\s+(vacation|holiday)\s*\??\s+<#(\w+)\|.*>\s*\z/i
 
         not_on = $1.match?(/who\s+(is|are)\s+not\s+on/i)
         type = $2.downcase

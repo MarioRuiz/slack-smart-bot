@@ -15,6 +15,12 @@ def csettings()
                     UNDE229T9: { user: { name: 'smartbotuser1', id: 'UNDE229T9', profile: {display_name: 'user1', status_text: '', status_emoji: ':boy:', expiration: ''}} },
                     UMYQS8E7L: { user: { name: 'smartbotuser2', id: 'UMYQS8E7L', profile: {display_name: 'user2', status_text: '', status_emoji: '', expiration: ''}} }
                 },
+                users_get_presence: {
+                    UMSRCRTAR: { name: 'example', presence: 'active' }, #smart-bot #example
+                    UJP2EK400: { name: 'marioruizs', presence: 'active' }, 
+                    UNDE229T9: { name: 'smartbotuser1', presence: 'active' },
+                    UMYQS8E7L: { name: 'smartbotuser2', presence: 'away' }
+                },
                 conversations_members: {
                     CN0595D50: { id: 'CN0595D50', name: 'bot1cm', creator: 'UJP2EK400', members: ['UMSRCRTAR','UJP2EK400', 'UNDE229T9']}, #bot1cm
                     CN1EFTKQB: { id: 'CN1EFTKQB', name: 'bot2cu', creator: 'UNDE229T9', members: ['UMSRCRTAR','UJP2EK400', 'UNDE229T9', 'UMYQS8E7L']}, #bot2cu

@@ -471,6 +471,7 @@ Examples:
 >**_Peter>_** `who is not on vacation?`  
 >**_Peter>_** `who is on vacation? #SalesChannel`  
 >**_Peter>_** `who is on :working-from-home:`  
+>**_Peter>_** `who is available?`
 
 ### Routines
 To add specific commands to be run automatically every certain amount of time or a specific time: **_`add routine NAME every NUMBER PERIOD COMMAND`_** or **_`add routine NAME at TIME COMMAND`_**. Also just before the command you can supply the channel where you want to publish the results, if not channel supplied then it would be the SmartBot Channel or on the DM if the command is run from there. Remember the SmartBot needs to have access to the channel where you want to publish.

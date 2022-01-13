@@ -3,7 +3,7 @@ class SlackSmartBot
   def see_announcements(user, type, channel, mention=false, publish=false)
     save_stats(__method__)
     typem = Thread.current[:typem]
-    general_message = "\nRelated commands `add announcement MESSAGE`, `delete announcement ID`"
+    general_message = ""
     if channel == ''
       if typem == :on_call
         channel = Thread.current[:dchannel]
@@ -88,7 +88,7 @@ class SlackSmartBot
               else
                 message.unshift("*Announcements for channel <##{channel_id}>*")
               end
-              message << general_message
+              message << general_message unless general_message.empty?
               respond message.join("\n"), dest, unfurl_links: false, unfurl_media: false
             else
               if typem == :on_dm and channel_id[0]=='D'

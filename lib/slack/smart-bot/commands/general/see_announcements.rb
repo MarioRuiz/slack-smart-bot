@@ -70,6 +70,8 @@ class SlackSmartBot
                   user_created = "<@#{m[:user_created]}>"
                 else
                   user_created = m[:user_created]
+                  user_info = @users.select { |u| u.name == user_created or (u.key?(:enterprise_user) and u.enterprise_user.name == user_created) }[-1]
+                  user_created = user_info.profile.display_name unless user_info.nil?
                 end
                 if type == 'all' and channel_id[0]=='D'
                   message << "\t#{m[:message_id]} #{emoji} *_#{m[:date]}_* #{m[:time]} *:* \t*private*"

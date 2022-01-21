@@ -79,11 +79,14 @@ class SlackSmartBot
           update_repls()        
         end
         react :running
+        @ts_react ||= {}
         if Thread.current[:ts].to_s == ''
-          @ts_react = Thread.current[:thread_ts]
+          @ts_react[session_name] = Thread.current[:thread_ts]
         else
-          @ts_react = Thread.current[:ts]
+          @ts_react[session_name] = Thread.current[:ts]
         end        
+        @ts_repl ||= {}
+        @ts_repl[session_name] = ''
 
         message = "Session name: *#{session_name}*
         From now on I will execute all you write as a Ruby command and I will keep the session open until you send `quit` or `bye` or `exit`. 
@@ -123,7 +126,7 @@ class SlackSmartBot
             def ls(obj)
               (obj.methods - Object.methods)
             end
-                        
+            file_run_path = \"' +  + File.expand_path(config.path) + '/repl/' + @channel_id + '/' + session_name + '.rb\"
             file_input_repl = File.open(\"' + File.expand_path(config.path) + '/repl/' + @channel_id + '/' + session_name + '.input\", \"r\")
             ' + pre_execute + '
             while true do 
@@ -153,7 +156,11 @@ class SlackSmartBot
                   rescue Exception => resp_repl
                     error = true
                   end
-                  unless error
+                  if error
+                    open(\"' + File.expand_path(config.path) + '/repl/' + @channel_id + '/' + session_name + '.output\", \"a+\") {|f|
+                      f.puts \"\`\`\`\n#{resp_repl.to_s.gsub(/^.+' + session_name + '\.rb:\d+:/,\"\")}\`\`\`\"
+                    }
+                  else
                     if code_to_run_repl.match?(/^\s*p\s+/i)
                       resp_repl = stdout_repl unless stdout_repl.to_s == \'\'
                       if stdout_repl.to_s == \'\'
@@ -223,7 +230,7 @@ class SlackSmartBot
                   f.puts 'quit'
                 }
                 respond "REPL session finished: #{@repl_sessions[from][:name]}", dest
-                unreact :running, @ts_react
+                unreact :running, @ts_react[@repl_sessions[from].name]
                 pids = `pgrep -P #{@repl_sessions[from][:pid]}`.split("\n").map(&:to_i) #todo: it needs to be adapted for Windows
                 pids.each do |pid|
                   begin
@@ -237,6 +244,10 @@ class SlackSmartBot
             sleep 0.2
             resp_repl = file_output_repl.read
             if resp_repl.to_s!=''
+              if @ts_repl[@repl_sessions[from].name].to_s != ''
+                unreact(:running, @ts_repl[@repl_sessions[from].name]) 
+                @ts_repl[@repl_sessions[from].name] = ''
+              end
               if resp_repl.to_s.lines.count < 60 and resp_repl.to_s.size < 3500
                 respond resp_repl, dest
               else
@@ -249,6 +260,8 @@ class SlackSmartBot
             @logger.fatal excp
           end
         end
+      elsif @repl_sessions.key?(from) and @repl_sessions[from][:command].to_s == ''
+        respond 'You are already in a repl on this SmartBot. You need to quit that one before starting a new one.'
       else
         @repl_sessions[from][:finished] = Time.now
         code = @repl_sessions[from][:command]
@@ -262,7 +275,9 @@ class SlackSmartBot
           code.match?(/open3/i) or code.match?(/bundle/i) or code.match?(/gemfile/i) or code.include?("%x") or
           code.include?("ENV") or code.match?(/=\s*IO/) or code.include?("Dir.") or 
           code.match?(/=\s*File/) or code.match?(/=\s*Dir/) or code.match?(/<\s*File/) or code.match?(/<\s*Dir/) or
-          code.match?(/\w+:\s*File/) or code.match?(/\w+:\s*Dir/)
+          code.match?(/\w+:\s*File/) or code.match?(/\w+:\s*Dir/) or 
+          code.match?(/=?\s*(require|load)(\(|\s)/i)
+
           respond "Sorry I cannot run this due security reasons", dest
         else
           @repl_sessions[from][:input]<<code
@@ -272,7 +287,7 @@ class SlackSmartBot
               f.puts code
             }
             respond "REPL session finished: #{@repl_sessions[from][:name]}", dest
-            unreact :running, @ts_react
+            unreact :running, @ts_react[@repl_sessions[from].name]
             pids = `pgrep -P #{@repl_sessions[from][:pid]}`.split("\n").map(&:to_i) #todo: it needs to be adapted for Windows
             pids.each do |pid|
               begin
@@ -284,6 +299,10 @@ class SlackSmartBot
           when /^\s*-/i
             #ommit
           else
+            if @ts_repl[@repl_sessions[from].name].to_s == ''
+              @ts_repl[@repl_sessions[from].name] = Thread.current[:ts]
+              react :running 
+            end
             open("#{config.path}/repl/#{@channel_id}/#{@repl_sessions[from][:name]}.input", 'a+') {|f|
               f.puts code
             }

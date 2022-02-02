@@ -265,6 +265,10 @@ class SlackSmartBot
 
         when /\A\s*bot\s+stats\s*(.*)\s*$/i
           opts = $1.to_s
+          exclude_members_channel = opts.scan(/exclude\s+members\s+<#(\w+)\|.*>/i).join #todo: add test
+          opts.gsub!(/exclude\s+members\s+<#\w+\|.*>/,'')
+          members_channel =  opts.scan(/members\s+<#(\w+)\|.*>/i).join #todo: add test
+          opts.gsub!(/members\s+<#\w+\|.*>/,'')
           all_opts = opts.downcase.split(' ')
           all_data = all_opts.include?('alldata')
           st_channel = opts.scan(/<#(\w+)\|.*>/).join
@@ -298,7 +302,7 @@ class SlackSmartBot
           if (typem == :on_master or typem == :on_bot) and dest[0]!='D' #routine bot stats to be published on DM
             st_channel = dchannel
           end
-          bot_stats(dest, user, typem, st_channel, st_from, st_to, st_user, st_command, exclude_masters, exclude_routines, exclude_command, monthly, all_data)
+          bot_stats(dest, user, typem, st_channel, st_from, st_to, st_user, st_command, exclude_masters, exclude_routines, exclude_command, monthly, all_data, members_channel, exclude_members_channel)
         when /\A(set|turn)\s+maintenance\s+(on|off)\s*()\z/im, /\A(set|turn)\s+maintenance\s+(on)\s*(.+)\s*\z/im
           status = $2.downcase
           message = $3.to_s

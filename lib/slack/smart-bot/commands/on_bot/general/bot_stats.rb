@@ -310,11 +310,16 @@ class SlackSmartBot
                             i = 0
                             count_user.sort_by {|k,v| -v}.each do |user, count|
                                 i+=1
+                                if user.include?('routine/')
+                                    user_link = users_id_name[user]
+                                else
+                                    user_link = "<@#{user}>"
+                                end
                                 if i <= 10
-                                    message << "\t<@#{user}>: #{count} (#{(count.to_f*100/total).round(2)}%)"
+                                    message << "\t#{user_link}: #{count} (#{(count.to_f*100/total).round(2)}%)"
                                 end
                                 if users.size > 10 and all_data
-                                    users_attachment << "\t<@#{user}>: #{count} (#{(count.to_f*100/total).round(2)}%)"
+                                    users_attachment << "\t#{user_link}: #{count} (#{(count.to_f*100/total).round(2)}%)"
                                 end
                             end
                         end

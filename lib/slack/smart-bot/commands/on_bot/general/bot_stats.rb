@@ -97,7 +97,7 @@ class SlackSmartBot
                     count_channels_dest = {}
         
                     # to translate global and enterprise users since sometimes was returning different names/ids
-                    if from[0..3]=='2020' # this was an issue only on that period
+                    #if from[0..3]=='2020' # this was an issue only on that period
                         Dir["#{config.stats_path}.*.log"].sort.each do |file|
                             if file >= "#{config.stats_path}.#{from_file}.log" or file <= "#{config.stats_path}.#{to_file}.log"
                                 CSV.foreach(file, headers: true, header_converters: :symbol, converters: :numeric) do |row|
@@ -111,7 +111,7 @@ class SlackSmartBot
                                 end
                             end
                         end
-                    end
+                    #end
         
                     if user!=''
                         user_info = @users.select{|u| u.id == user or (u.key?(:enterprise_user) and u.enterprise_user.id == user)}[-1]
@@ -255,7 +255,7 @@ class SlackSmartBot
                             channels = rows.bot_channel.uniq.sort
                             channels.each do |channel|
                                 count = rows.count {|h| h.bot_channel==channel}
-                                message << "\t#{channel}: #{count} (#{(count.to_f*100/total).round(2)}%)"
+                                message << "\t<##{@channels_id[channel]}>: #{count} (#{(count.to_f*100/total).round(2)}%)"
                             end
                         end
                         channels_dest_attachment = []
@@ -266,12 +266,24 @@ class SlackSmartBot
                             message << "*From Channel* - #{count_channels_dest.size}"
                         end
 
-                        count_channels_dest.keys[0..9].each do |ch|
-                            message << "\t#{ch}: #{count_channels_dest[ch]} (#{(count_channels_dest[ch].to_f*100/total).round(2)}%)"
+                        count_channels_dest.keys[0..9].each do |ch| #jal
+                            c = @channels_id[ch]
+                            if c.nil? or c[0]=='G'
+                                c = ch
+                            else
+                                c = "<##{c}>"
+                            end
+                            message << "\t#{c}: #{count_channels_dest[ch]} (#{(count_channels_dest[ch].to_f*100/total).round(2)}%)"
                         end
                         if count_channels_dest.size > 10 and all_data
                             count_channels_dest.each do |ch, value|
-                                channels_dest_attachment << "\t#{ch}: #{value} (#{(value.to_f*100/total).round(2)}%)"
+                                c = @channels_id[ch]
+                                if c.nil? or c[0]=='G'
+                                    c = ch
+                                else
+                                    c = "<##{c}>"
+                                end
+                                channels_dest_attachment << "\t#{c}: #{value} (#{(value.to_f*100/total).round(2)}%)"
                             end
                         end
 
@@ -293,10 +305,10 @@ class SlackSmartBot
                             count_user.sort_by {|k,v| -v}.each do |user, count|
                                 i+=1
                                 if i <= 10
-                                    message << "\t#{users_id_name[user]}: #{count} (#{(count.to_f*100/total).round(2)}%)"
+                                    message << "\t<@#{user}>: #{count} (#{(count.to_f*100/total).round(2)}%)"
                                 end
                                 if users.size > 10 and all_data
-                                    users_attachment << "\t#{users_id_name[user]}: #{count} (#{(count.to_f*100/total).round(2)}%)"
+                                    users_attachment << "\t<@#{user}>: #{count} (#{(count.to_f*100/total).round(2)}%)"
                                 end
                             end
                         end

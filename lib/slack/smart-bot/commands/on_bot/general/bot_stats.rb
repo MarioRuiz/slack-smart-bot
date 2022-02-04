@@ -255,7 +255,13 @@ class SlackSmartBot
                             channels = rows.bot_channel.uniq.sort
                             channels.each do |channel|
                                 count = rows.count {|h| h.bot_channel==channel}
-                                message << "\t<##{@channels_id[channel]}>: #{count} (#{(count.to_f*100/total).round(2)}%)"
+                                c = @channels_id[channel]
+                                if c.nil? or c[0]=='G'
+                                    c = channel
+                                else
+                                    c = "<##{c}>"
+                                end
+                                message << "\t#{c}: #{count} (#{(count.to_f*100/total).round(2)}%)"
                             end
                         end
                         channels_dest_attachment = []

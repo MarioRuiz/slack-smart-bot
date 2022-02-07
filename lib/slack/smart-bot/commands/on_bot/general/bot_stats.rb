@@ -255,11 +255,11 @@ class SlackSmartBot
                             channels = rows.bot_channel.uniq.sort
                             channels.each do |channel|
                                 count = rows.count {|h| h.bot_channel==channel}
-                                c = @channels_id[channel]
-                                if c.nil? or c[0]=='G'
-                                    c = channel
+                                channel_info = @channels_list.select { |c| c.name.to_s.downcase == channel.to_s.downcase}[-1]
+                                if @channels_id.key?(channel) and !channel_info.is_private
+                                    c = "<##{@channels_id[channel]}>"
                                 else
-                                    c = "<##{c}>"
+                                    c = channel
                                 end
                                 message << "\t#{c}: #{count} (#{(count.to_f*100/total).round(2)}%)"
                             end
@@ -272,22 +272,22 @@ class SlackSmartBot
                             message << "*From Channel* - #{count_channels_dest.size}"
                         end
 
-                        count_channels_dest.keys[0..9].each do |ch| #jal
-                            c = @channels_id[ch]
-                            if c.nil? or c[0]=='G'
-                                c = ch
+                        count_channels_dest.keys[0..9].each do |ch|
+                            channel_info = @channels_list.select { |c| c.name.to_s.downcase == ch.to_s.downcase}[-1]
+                            if @channels_id.key?(ch) and !channel_info.is_private
+                                c = "<##{@channels_id[ch]}>"
                             else
-                                c = "<##{c}>"
+                                c = ch
                             end
                             message << "\t#{c}: #{count_channels_dest[ch]} (#{(count_channels_dest[ch].to_f*100/total).round(2)}%)"
                         end
                         if count_channels_dest.size > 10 and all_data
                             count_channels_dest.each do |ch, value|
-                                c = @channels_id[ch]
-                                if c.nil? or c[0]=='G'
-                                    c = ch
+                                channel_info = @channels_list.select { |c| c.name.to_s.downcase == ch.to_s.downcase}[-1]
+                                if @channels_id.key?(ch) and !channel_info.is_private
+                                    c = "<##{@channels_id[ch]}>"
                                 else
-                                    c = "<##{c}>"
+                                    c = ch
                                 end
                                 channels_dest_attachment << "\t#{c}: #{value} (#{(value.to_f*100/total).round(2)}%)"
                             end

@@ -99,6 +99,8 @@ class SlackSmartBot
           /\Akill\s+bot\s+on\s+#(.+)\s*$/i, /\Akill\s+bot\s+on\s+(.+)\s*$/i
           channel = $1
           kill_bot_on_channel(dest, from, channel)
+        when /\A\s*(where\s+is|which\s+channels|where\s+is\s+a\s+member)\s+(#{@salutations.join("|")})\??\s*$/i
+          where_smartbot(user)
         when /\A\s*(add|create)\s+(silent\s+)?(bgroutine|routine)\s+([\w\.]+)\s+(every)\s+(\d+)\s*(days|hours|minutes|seconds|mins|min|secs|sec|d|h|m|s)\s*(\s#(\w+)\s*)(\s.+)?\s*\z/im,
           /\A\s*(add|create)\s+(silent\s+)?(bgroutine|routine)\s+([\w\.]+)\s+(every)\s+(\d+)\s*(days|hours|minutes|seconds|mins|min|secs|sec|d|h|m|s)\s*(\s<#(C\w+)\|.+>\s*)?(\s.+)?\s*\z/im,
           /\A\s*(add|create)\s+(silent\s+)?(bgroutine|routine)\s+([\w\.]+)\s+(every)\s+(\d+)\s*(days|hours|minutes|seconds|mins|min|secs|sec|d|h|m|s)\s*(\s<#(\w+)\|>\s*)?(\s.+)?\s*\z/im,

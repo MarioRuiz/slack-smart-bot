@@ -284,12 +284,7 @@ class SlackSmartBot
                         if count_channels_dest.size > 10 and all_data
                             count_channels_dest.each do |ch, value|
                                 channel_info = @channels_list.select { |c| c.name.to_s.downcase == ch.to_s.downcase}[-1]
-                                if @channels_id.key?(ch) and !channel_info.is_private
-                                    c = "<##{@channels_id[ch]}>"
-                                else
-                                    c = ch
-                                end
-                                channels_dest_attachment << "\t#{c}: #{value} (#{(value.to_f*100/total).round(2)}%)"
+                                channels_dest_attachment << "\t##{ch}: #{value} (#{(value.to_f*100/total).round(2)}%)"
                             end
                         end
 
@@ -319,7 +314,7 @@ class SlackSmartBot
                                     message << "\t#{user_link}: #{count} (#{(count.to_f*100/total).round(2)}%)"
                                 end
                                 if users.size > 10 and all_data
-                                    users_attachment << "\t#{user_link}: #{count} (#{(count.to_f*100/total).round(2)}%)"
+                                    users_attachment << "\t#{users_id_name[user]}: #{count} (#{(count.to_f*100/total).round(2)}%)"
                                 end
                             end
                         end

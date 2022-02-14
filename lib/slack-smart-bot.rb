@@ -9,6 +9,7 @@ require "open3"
 require "nice_http"
 require "nice_hash"
 require 'cgi'
+require 'yaml'
 
 require_relative "slack/smart-bot/comm"
 require_relative "slack/smart-bot/listen"
@@ -89,7 +90,7 @@ class SlackSmartBot
     config.rules_file[0]='' if config.rules_file[0]=='.'
     config.rules_file='/'+config.rules_file if config.rules_file[0]!='/'
 
-    config.shortcuts_file = "slack-smart-bot_shortcuts_#{config.channel}.rb".gsub(" ", "_")
+    config.shortcuts_file = "slack-smart-bot_shortcuts_#{config.channel}.yaml".gsub(" ", "_")
     if config.channel == config.master_channel
       config.on_master_bot = true
       config.start_bots = true unless config.key?(:start_bots)
@@ -179,23 +180,34 @@ class SlackSmartBot
     @shares = Hash.new()
     @last_status_change = Time.now
 
-    if File.exist?("#{config.path}/shortcuts/#{config.shortcuts_file}")
-      file_sc = IO.readlines("#{config.path}/shortcuts/#{config.shortcuts_file}").join
-      unless file_sc.to_s() == ""
-        @shortcuts = eval(file_sc)
+    if File.exist?("#{config.path}/shortcuts/#{config.shortcuts_file}".gsub('.yaml','.rb')) #backwards compatible
+      file_conf = IO.readlines("#{config.path}/shortcuts/#{config.shortcuts_file}".gsub('.yaml','.rb')).join
+      if file_conf.to_s() == ""
+        @shortcuts = {}
+      else
+        @shortcuts = eval(file_conf)
       end
+      File.open("#{config.path}/shortcuts/#{config.shortcuts_file}", 'w') {|file| file.write(@shortcuts.to_yaml) }
+      File.delete("#{config.path}/shortcuts/#{config.shortcuts_file}".gsub('.yaml','.rb'))
+    elsif File.exist?("#{config.path}/shortcuts/#{config.shortcuts_file}")
+      @shortcuts = YAML.load(File.read("#{config.path}/shortcuts/#{config.shortcuts_file}"))
     end
-    if File.exist?("#{config.path}/shortcuts/shortcuts_global.rb")
+    if File.exist?("#{config.path}/shortcuts/shortcuts_global.rb")  #backwards compatible
       file_sc = IO.readlines("#{config.path}/shortcuts/shortcuts_global.rb").join
+      @shortcuts_global = {}
       unless file_sc.to_s() == ""
         @shortcuts_global = eval(file_sc)
       end
+      File.open("#{config.path}/shortcuts/shortcuts_global.yaml", 'w') {|file| file.write(@shortcuts_global.to_yaml) }
+      File.delete("#{config.path}/shortcuts/shortcuts_global.rb")
+    elsif File.exist?("#{config.path}/shortcuts/shortcuts_global.yaml")
+      @shortcuts_global = YAML.load(File.read("#{config.path}/shortcuts/shortcuts_global.yaml"))
     end
 
     get_routines()
     get_repls()
 
-    if config.on_master_bot and File.exist?(config.file_path.gsub(".rb", "_bots.rb"))
+    if config.on_master_bot and (File.exist?(config.file_path.gsub(".rb", "_bots.rb")) or File.exist?(config.file_path.gsub('.rb', '_bots.yaml')))
       get_bots_created()
       if @bots_created.kind_of?(Hash) and config.start_bots
         @bots_created.each { |key, value|
@@ -270,6 +282,7 @@ class SlackSmartBot
     @channels_id = Hash.new()
     @channels_name = Hash.new()
     @channels_creator = Hash.new()
+    @channels_list = Hash.new()
     get_channels_name_and_id()
     @channel_id = @channels_id[config.channel].dup
     @master_bot_id = @channels_id[config.master_channel].dup

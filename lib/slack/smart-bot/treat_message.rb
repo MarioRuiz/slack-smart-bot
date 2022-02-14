@@ -87,6 +87,7 @@ class SlackSmartBot
         end
       end
       if !dest.nil? and !data.text.nil? and !data.text.to_s.match?(/\A\s*\z/)
+        get_bots_created()
         if data.channel[0] == "D" and !data.text.to_s.match?(/^\s*<@#{config[:nick_id]}>\s+/) and 
           (data.text.to_s.match?(/^\s*(on)?\s*<#\w+\|[^>]*>/i) or data.text.to_s.match?(/^\s*(on)?\s*#\w+/i))
           data.text = "<@#{config[:nick_id]}> " + data.text.to_s
@@ -185,6 +186,7 @@ class SlackSmartBot
         end
       end
       load "#{config.path}/rules/general_commands.rb" if File.exists?("#{config.path}/rules/general_commands.rb") and @datetime_general_commands != File.mtime("#{config.path}/rules/general_commands.rb")
+
       unless typem == :dont_treat or user_info.nil?
         if (Time.now - @last_activity_check) > 60 * 30 #every 30 minutes
           @last_activity_check = Time.now
@@ -242,7 +244,6 @@ class SlackSmartBot
             command += " ruby" if command != "ruby"
             command = "#{command} #{res.body.to_s.force_encoding("UTF-8")}"
           end
-
           if typem == :on_call
             command = "!" + command unless command[0] == "!" or command.match?(/^\s*$/) or command[0] == "^"
 
@@ -338,19 +339,13 @@ class SlackSmartBot
             get_bots_created()
           when /global shortcut added/
             sleep 2
-            if File.exist?("#{config.path}/shortcuts/shortcuts_global.rb")
-              file_sc = IO.readlines("#{config.path}/shortcuts/shortcuts_global.rb").join
-              unless file_sc.to_s() == ""
-                @shortcuts_global = eval(file_sc)
-              end
+            if File.exist?("#{config.path}/shortcuts/shortcuts_global.yaml")
+              @shortcuts_global = YAML.load(File.read("#{config.path}/shortcuts/shortcuts_global.yaml"))
             end
           when /global shortcut deleted/
             sleep 2
-            if File.exist?("#{config.path}/shortcuts/shortcuts_global.rb")
-              file_sc = IO.readlines("#{config.path}/shortcuts/shortcuts_global.rb").join
-              unless file_sc.to_s() == ""
-                @shortcuts_global = eval(file_sc)
-              end
+            if File.exist?("#{config.path}/shortcuts/shortcuts_global.yaml")
+              @shortcuts_global = YAML.load(File.read("#{config.path}/shortcuts/shortcuts_global.yaml"))
             end
           end
         end

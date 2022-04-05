@@ -35,7 +35,7 @@ class SlackSmartBot
         end
       end
       message.sort!
-      respond "<@#{config.nick_id}> is a member of:\n#{message.join("\n")}"
+      respond "*<@#{config.nick_id}> is a member of:*\n\n#{message.join("\n")}"
     end
   end
 end

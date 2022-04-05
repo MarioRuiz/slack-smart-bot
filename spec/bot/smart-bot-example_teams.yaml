@@ -1,0 +1,90 @@
+---
+:karma:
+  :members: {}
+  :channels:
+    members:
+    - private1
+  :info: |-
+    thi sis just an example of message to be dispalyed here
+    our confluene page is https://www.elpais.es
+    contact us on mailto:mario@djjddj.com
+  :status: :updated
+  :user: marioruizs
+  :creator: marioruizs
+  :date: '2022-01-17T14:48:08'
+:sales:
+  :members:
+    lobo:
+    - tcblues
+  :channels:
+    members:
+    - privextended
+    - bot1cm
+    public:
+    - bot2cu
+  :info: |-
+    update karma team : thi sis just an example of message to be dispalyed here
+    our confluene page is https://www.elpais.es
+    contact us on mailto:mario@djjddj.com
+  :status: :updated
+  :user: marioruizs
+  :creator: marioruizs
+  :date: '2022-02-02T15:52:47'
+:smart-bot:
+  :members:
+    cc:
+    - tcblues
+  :channels: {}
+  :info: " <http://www.elmundo.es|elmundo>"
+  :status: :updated
+  :user: marioruizs
+  :creator: marioruizs
+  :date: '2022-01-25T11:16:15'
+:exam3:
+  :members:
+    qa:
+    - smartbotuser1
+    qax:
+    - smartbotuser1
+    - smartbotuser2
+    - marioruizs
+    - tcblues
+    dfafdsafdsfd:
+    - tcblues
+    qaxa:
+    - smartbotuser1
+    - smartbotuser2
+    - marioruizs
+    - tcblues
+  :channels:
+    members:
+    - private-2
+    public:
+    - general
+    private:
+    - private-2
+    - private1
+  :info: " <http://www.elmundo.es|emundo>//www.google.es|google>* fdjaklsdfjsdklfdjlsalfjsdlfjkldsafjdskl
+    fsd fjlksdafj klsdaflk"
+  :status: :updated
+  :user: marioruizs
+  :creator: marioruizs
+  :date: '2022-01-27T10:46:37'
+:blue:
+  :members: {}
+  :channels: {}
+  :info: fd jlkfdjslfjj fjdsklafj
+  :status: :added
+  :user: marioruizs
+  :creator: marioruizs
+  :date: '2022-02-09T13:24:16'
+:ejemplo:
+  :members: {}
+  :channels:
+    members:
+    - bot2cu
+  :info: this is the info
+  :status: :added
+  :user: marioruizs
+  :creator: marioruizs
+  :date: '2022-02-10T10:51:13'

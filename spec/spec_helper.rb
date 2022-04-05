@@ -33,6 +33,7 @@ RSpec.configure do |config|
       FileUtils.rm_rf(Dir["./spec/bot/announcements/*"])
       FileUtils.rm_rf(Dir["./spec/bot/repl/**/*"])
       File.delete("./spec/bot/rules/rules_imported.rb") if File.exists?("./spec/bot/rules/rules_imported.rb")
+      File.delete("./spec/bot/smart-bot-example_teams.rb") if File.exists?("./spec/bot/smart-bot-example_teams.rb")
 
       @settings = {
         nick: "example", # the smart bot name

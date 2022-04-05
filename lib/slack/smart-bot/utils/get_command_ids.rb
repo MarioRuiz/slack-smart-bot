@@ -20,6 +20,9 @@ class SlackSmartBot
     admin = is_admin?(user.name)
 
     commands[:general] = (Dir.entries("#{__dir__}/../commands/general/").select { |e| e.match?(/\.rb/) }).sort.join('|').gsub('.rb','').split('|')
+    general = File.read("#{__dir__}/../commands/general_bot_commands.rb")
+    commands[:general] += general.scan(/^\s*#\s*help\w*:\s+command_id:\s+:(\w+)\s*$/i).flatten
+    commands[:general].uniq!
     
     if typem == :on_bot or typem == :on_master
       commands[:on_bot_general] = (Dir.entries("#{__dir__}/../commands/on_bot/general/").select { |e| e.match?(/\.rb/) }).sort.join('|').gsub('.rb','').split('|')
@@ -39,6 +42,7 @@ class SlackSmartBot
 
     if typem == :on_extended
       commands[:on_extended] = (Dir.entries("#{__dir__}/../commands/on_extended/").select { |e| e.match?(/\.rb/) }).sort.join('|').gsub('.rb','').split('|')
+      commands[:on_extended]+= ['repl', 'see_repls', 'get_repl', 'run_repl', 'delete_repl', 'ruby_code']
     end
 
     if typem == :on_master

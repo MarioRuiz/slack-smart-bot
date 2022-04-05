@@ -29,7 +29,7 @@ class SlackSmartBot
         end
         msg2 = ''
         if @shortcuts.keys.include?(from) and @shortcuts[from].keys.size > 0
-          new_hash = @shortcuts[from].dup
+          new_hash = @shortcuts[from].deep_copy
           @shortcuts[:all].keys.each { |k| new_hash.delete(k) }
           if new_hash.keys.size > 0
             msg2 = "*Available shortcuts for #{from}:*\n"
@@ -39,7 +39,7 @@ class SlackSmartBot
           end
         end
         if @shortcuts_global.keys.include?(from) and @shortcuts_global[from].keys.size > 0
-          new_hash = @shortcuts_global[from].dup
+          new_hash = @shortcuts_global[from].deep_copy
           @shortcuts_global[:all].keys.each { |k| new_hash.delete(k) }
           if new_hash.keys.size > 0
             msg2 = "*Available shortcuts for #{from}:*\n" if msg2 == ''

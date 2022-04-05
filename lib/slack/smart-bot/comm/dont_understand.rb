@@ -11,8 +11,8 @@ class SlackSmartBot
       get_bots_created()
     end
     text = get_help(rules_file, dest, user.name, typem==:on_extended, true)
-
-    ff = text.scan(/\s*`\s*([^`]+)\s*`\s*/i).flatten
+    
+    ff = text.scan(/^\s*`\s*([^`]+)\s*`\s*$/i).flatten
     ff.delete("!THE_COMMAND")
     ff.delete("@NAME_OF_BOT THE_COMMAND")
     ff.delete("NAME_OF_BOT THE_COMMAND")

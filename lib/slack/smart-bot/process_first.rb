@@ -46,7 +46,6 @@ class SlackSmartBot
         rules_file = "/rules/general_rules.rb"
       end
     end
-
     if nick == config[:nick] #if message is coming from the bot
       begin
         case text

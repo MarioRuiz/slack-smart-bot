@@ -26,10 +26,10 @@ class SlackSmartBot
             @bots_created[channel_id][:thread].kill
           end
           @bots_created.delete(channel_id)
-          update_bots_file()
-          respond "Bot on channel: #{channel}, has been killed and deleted.", dest
           send_msg_channel(channel, "Bot has been killed by #{from}")
-          save_status :off, :killed, "The admin killed SmartBot on *<##{channel_id}|#{@channels_name[channel_id]}>*"
+          respond "Bot on channel: #{channel}, has been killed and deleted.", dest
+          save_status :off, :killed, "The admin killed SmartBot on *##{@channels_name[channel_id]}*"
+          update_bots_file()
         else
           respond "You need to be the creator or an admin of that bot channel", dest
         end

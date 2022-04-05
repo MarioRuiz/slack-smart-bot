@@ -32,7 +32,7 @@ class SlackSmartBot
     # help:      _bot stats #sales today_
     # help:      _bot stats #sales from 2020-01-01 monthly_
     # help:      _bot stats exclude routines masters from 2021/01/01 monthly_
-    # help:      _bot stats members #development from 2022/01/01 to 2022/01/31
+    # help:      _bot stats members #development from 2022/01/01 to 2022/01/31_
     # help:    <https://github.com/MarioRuiz/slack-smart-bot#bot-management|more info>
     # help: command_id: :bot_stats
     # help:
@@ -74,6 +74,8 @@ class SlackSmartBot
               end
             end
         end
+        tzone_users = {}
+
         unless wrong
             if on_dm_master or (from_user.id == user) # normal user can only see own stats 
                 if !File.exist?("#{config.stats_path}.#{Time.now.strftime("%Y-%m")}.log")
@@ -99,15 +101,12 @@ class SlackSmartBot
                     # to translate global and enterprise users since sometimes was returning different names/ids
                     #if from[0..3]=='2020' # this was an issue only on that period
                         Dir["#{config.stats_path}.*.log"].sort.each do |file|
-                            if file >= "#{config.stats_path}.#{from_file}.log" or file <= "#{config.stats_path}.#{to_file}.log"
+                            if file >= "#{config.stats_path}.#{from_file}.log" and file <= "#{config.stats_path}.#{to_file}.log"
                                 CSV.foreach(file, headers: true, header_converters: :symbol, converters: :numeric) do |row|
                                     unless users_id_name.key?(row[:user_id])
                                         users_id_name[row[:user_id]] = row[:user_name]
-                                    end
-                                    unless users_name_id.key?(row[:user_name])
                                         users_name_id[row[:user_name]] = row[:user_id]
                                     end
-            
                                 end
                             end
                         end
@@ -115,15 +114,20 @@ class SlackSmartBot
         
                     if user!=''
                         user_info = @users.select{|u| u.id == user or (u.key?(:enterprise_user) and u.enterprise_user.id == user)}[-1]
-                        if users_id_name.key?(user_info.id)
-                            user_name = users_id_name[user_info.id]
+                        if user_info.nil? # for the case the user is populated from outside of slack
+                            user_name = user
+                            user_id = user
                         else
-                            user_name = user_info.name
-                        end
-                        if users_name_id.key?(user_info.name)
-                            user_id = users_name_id[user_info.name]
-                        else
-                            user_id = user_info.id
+                            if users_id_name.key?(user_info.id)
+                                user_name = users_id_name[user_info.id]
+                            else
+                                user_name = user_info.name
+                            end
+                            if users_name_id.key?(user_info.name)
+                                user_id = users_name_id[user_info.name]
+                            else
+                                user_id = user_info.id
+                            end                    
                         end
                     end
                     master_admins = config.masters.dup
@@ -287,11 +291,17 @@ class SlackSmartBot
                                 channels_dest_attachment << "\t##{ch}: #{value} (#{(value.to_f*100/total).round(2)}%)"
                             end
                         end
-
-
+                        
                         users_attachment = []
                         if user==''
                             users = rows.user_id.uniq.sort
+                            rows.user_id.each do |usr|
+                                user_info = @users.select { |u| u.id == usr or (u.key?(:enterprise_user) and u.enterprise_user.id == usr) }[-1]
+                                unless user_info.nil? or user_info.is_app_user or user_info.is_bot
+                                    tzone_users[user_info.tz_label] ||= 0
+                                    tzone_users[user_info.tz_label] += 1
+                                end
+                            end
                             if users.size > 10
                                 message << "*Users* - #{users.size} (Top 10)"
                             else
@@ -303,10 +313,12 @@ class SlackSmartBot
                                 count_user[user] = count
                             end
                             i = 0
+                            total_without_routines = total
                             count_user.sort_by {|k,v| -v}.each do |user, count|
                                 i+=1
                                 if user.include?('routine/')
                                     user_link = users_id_name[user]
+                                    total_without_routines -= count
                                 else
                                     user_link = "<@#{user}>"
                                 end
@@ -317,6 +329,18 @@ class SlackSmartBot
                                     users_attachment << "\t#{users_id_name[user]}: #{count} (#{(count.to_f*100/total).round(2)}%)"
                                 end
                             end
+
+                            if tzone_users.size > 0
+                                message << "*Time Zones*"
+                                total_known = 0
+                                tzone_users.each do |tzone, num|
+                                    message << "\t#{tzone}: #{num} (#{(num.to_f*100/total_without_routines).round(2)}%)"
+                                    total_known+=num
+                                end
+                                total_unknown = total_without_routines - total_known
+                                message << "\tUnknown: #{total_unknown} (#{(total_unknown.to_f*100/total_without_routines).round(2)}%)" if total_unknown > 0
+                            end
+
                         end
                         commands_attachment = []
 

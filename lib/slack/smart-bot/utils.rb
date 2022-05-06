@@ -24,4 +24,6 @@ require_relative 'utils/is_admin'
 require_relative 'utils/get_access_channels'
 require_relative 'utils/update_access_channels'
 require_relative 'utils/get_command_ids'
+require_relative 'utils/get_teams'
+require_relative 'utils/update_teams'
 

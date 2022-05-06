@@ -366,6 +366,128 @@ def general_bot_commands(user, command, dest, files = [])
           poster(permanent, emoticon_text, emoticon_bg, text, minutes)
         end
 
+        # help: ----------------------------------------------
+        # help: `add team TEAM_NAME members #TEAM_CHANNEL CHANNEL_TYPE #CHANNEL1 #CHANNEL99 : INFO`
+        # help: `add team TEAM_NAME MEMBER_TYPE @USER1 @USER99 CHANNEL_TYPE #CHANNEL1 #CHANNEL99 : INFO`
+        # help: `add team TEAM_NAME MEMBER_TYPE1 @USER1 @USER99 MEMBER_TYPE99 @USER1 @USER99 CHANNEL_TYPE1 #CHANNEL1 #CHANNEL99 CHANNEL_TYPE99 #CHANNEL1 #CHANNEL99 : INFO`
+        # help:     It will add a team with the info supplied.
+        # help:     TEAM_NAME, TYPE: one word, a-z, A-Z, 0-9, - and _
+        # help:     In case it is supplied a channel with type 'members' the members of that channel would be considered members of the team. The SmartBot needs to be a member of the channel.
+        # help:  Examples:
+        # help:     _add team sales members #sales support #sales-support public #sales-ff : Contact us if you need anything related to Sales. You can also send us an email at sales@ffxaja.com_
+        # help:     _add team Sales manager @ann qa @peter @berglind dev @john @sam @marta members #sales support #sales-support public #sales-ff : Contact us if you need anything related to Sales. You can also send us an email at sales@ffxaja.com_
+        # help:     _add team devweb qa @jim dev @johnja @cooke @luisa members #devweb support #devweb-support : We take care of the website_
+        # help:     _add team sandex manager @sarah members #sandex : We take care of the sand_
+        # help:    <https://github.com/MarioRuiz/slack-smart-bot#teams|more info>
+        # help: command_id: :add_team
+        # help: 
+      when /\A\s*add\s+team\s+([\w\-]+)\s+([^:]+)\s*:\s+(.+)\s*\z/im, /\A\s*add\s+([\w\-]+)\s+team\s+([^:]+)\s*:\s+(.+)\s*\z/im
+        name = $1.downcase
+        options = $2
+        info = Thread.current[:command_orig].to_s.gsub("\u00A0", " ").scan(/^[^:]+:\s*(.+)\s*$/im).join
+        add_team(user, name, options, info)
+
+        # help: ----------------------------------------------
+        # help: `see teams`
+        # help: `see team TEAM_NAME`
+        # help: `team TEAM_NAME`
+        # help: `TEAM_NAME team`
+        # help: `which team @USER`
+        # help: `which team #CHANNEL`
+        # help: `which team TEXT_TO_SEARCH_ON_INFO`
+        # help: `which team does @USER belongs to?`
+        # help:     It will display all teams or the team specified.
+        # help:     In case a specific team it will show also the availability of the members.
+        # help:  Examples:
+        # help:     _see teams_
+        # help:     _see team Sales_
+        # help:     _Dev team_
+        # help:    <https://github.com/MarioRuiz/slack-smart-bot#teams|more info>
+        # help: command_id: :see_teams
+        # help: 
+      when /\A\s*see\s+teams?\s*([\w\-]+)?\s*\z/i, /\A\s*team\s+([\w\-]+)\s*\z/i, /\A\s*([\w\-]+)\s+team\s*\z/i, /\A\s*see\s+all\s+teams\s*()\z/i
+        name = $1.to_s.downcase
+        see_teams(user, name)
+      when /\A\s*(which|search)\s+teams?\s+(is\s+)?(.+)\??\s*\z/i, /\A\s*which\s+team\s+does\s+()()(.+)\s+belongs\s+to\??\s*\z/i
+        search = $3.to_s.downcase
+        see_teams(user, '', search)
+
+        # help: ----------------------------------------------
+        # help: `update team TEAM_NAME NEW_TEAM_NAME`
+        # help: `update team TEAM_NAME : NEW_INFO`
+        # help: `update team TEAM_NAME add MEMBER_TYPE @USER`
+        # help: `update team TEAM_NAME add CHANNEL_TYPE #CHANNEL`
+        # help: `update team TEAM_NAME delete MEMBER_TYPE @USER`
+        # help: `update team TEAM_NAME delete CHANNEL_TYPE #CHANNEL`
+        # help: `update team TEAM_NAME delete @USER`
+        # help: `update team TEAM_NAME delete #CHANNEL`
+        # help:     It will update a team with the info supplied.
+        # help:     You have to be a member of the team, the creator or a Master admin to be able to update a team.
+        # help:  Examples:
+        # help:     _update team sales salesff_
+        # help:     _update team salesff : Support for customers_        
+        # help:     _update sales team delete @sarah @peter_
+        # help:     _update team sales delete public #sales_
+        # help:     _update team sales delete #sales_support_
+        # help:     _update sales team add public #salesff_
+        # help:     _update sales team add qa @john @ben @ana_
+        # help:    <https://github.com/MarioRuiz/slack-smart-bot#teams|more info>
+        # help: command_id: :update_team
+        # help: 
+      when /\A\s*update\s+team\s+([\w\-]+)\s+([\w\-]+)\s*\z/i, /\A\s*update\s+([\w\-]+)\s+team\s+([\w\-]+)\s*\z/i
+        name = $1.downcase
+        new_name = $2.downcase
+        update_team(user, name, new_name: new_name)
+      when /\A\s*update\s+team\s+([\w\-]+)\s*:\s+(.+)\s*\z/im, /\A\s*update\s+([\w\-]+)\s+team\s*:\s+(.+)\s*\z/im
+        name = $1.downcase
+        new_info = Thread.current[:command_orig].to_s.gsub("\u00A0", " ").scan(/^[^:]+:\s*(.+)\s*$/im).join
+        update_team(user, name, new_info: new_info)
+      when /\A\s*update\s+team\s+([\w\-]+)\s+(delete|remove)\s+(.+)\s*\z/i, /\A\s*update\s+([\w\-]+)\s+team\s+(delete|remove)\s+(.+)\s*\z/i
+        name = $1.downcase
+        delete_opts = $3
+        update_team(user, name, delete_opts: delete_opts)
+      when /\A\s*update\s+team\s+([\w\-]+)\s+add\s+(.+)\s*\z/i, /\A\s*update\s+([\w\-]+)\s+team\s+add\s+(.+)\s*\z/i
+        name = $1.downcase
+        add_opts = $2
+        update_team(user, name, add_opts: add_opts)
+
+        # help: ----------------------------------------------
+        # help: `ping team TEAM_NAME MEMBER_TYPE MESSAGE`
+        # help: `contact team TEAM_NAME MEMBER_TYPE MESSAGE`
+        # help:     ping: It will send the MESSAGE naming all available members of the MEMBER_TYPE supplied.
+        # help:     contact: It will send the MESSAGE naming all members of the MEMBER_TYPE supplied.
+        # help:     In case MEMBER_TYPE is 'all' it will name 10 random members of the team
+        # help:  Examples:
+        # help:     _ping team sales development How is the status on the last feature_
+        # help:     _contact team sales qa Please finish testing of dev02 feature before noon_
+        # help:     _contact team qa all Check the test failures please_
+        # help:    <https://github.com/MarioRuiz/slack-smart-bot#teams|more info>
+        # help: command_id: :ping_team
+        # help: command_id: :contact_team
+        # help: 
+      when /\A\s*(contact|ping)\s+team\s+([\w\-]+)\s+([\w\-]+)\s+(.+)\s*\z/im, /\A\s*(contact|ping)\s+([\w\-]+)\s+team\s+([\w\-]+)\s+(.+)\s*\z/im
+        type = $1.downcase.to_sym
+        name = $2.downcase
+        member_type = $3.downcase
+        message = Thread.current[:command_orig].to_s.gsub("\u00A0", " ").scan(/\A\s*[^\s]+\s*\w+\s+team\s+[\w\-]+\s+[\w\-]+\s+(.+)\s*\z/im).join
+        if message == ''
+          message = Thread.current[:command_orig].to_s.gsub("\u00A0", " ").scan(/\A\s*[^\s]+\s*\w+\s+[\w\-]+\s+team\s+[\w\-]+\s+(.+)\s*\z/im).join
+        end
+        ping_team(user, type, name, member_type, message)
+
+        # help: ----------------------------------------------
+        # help: `delete team TEAM_NAME`
+        # help:     It will delete the supplied team.
+        # help:     You have to be a member of the team, the creator or a Master admin to be able to delete a team.
+        # help:  Examples:
+        # help:     _delete team sales_
+        # help:    <https://github.com/MarioRuiz/slack-smart-bot#teams|more info>
+        # help: command_id: :delete_team
+        # help: 
+      when /\A\s*(delete|remove)\s+team\s+([\w\-]+)\s*\z/i, /\A\s*(delete|remove)\s+([\w\-]+)\s+team\s*\z/i
+        name = $2.downcase
+        delete_team(user, name)
+
     else
       return false
     end

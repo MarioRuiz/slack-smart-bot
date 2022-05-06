@@ -33,6 +33,7 @@ slack-smart-bot can create bots on demand, create shortcuts, run ruby code... ju
   * [Routines](#routines)
   * [Control who has access to a command](#control-who-has-access-to-a-command)
   * [See favorite commands](#see-favorite-commands)
+  * [Teams](#teams)
   * [Tips](#tips)
     + [Send a file](#send-a-file)
     + [Download a file](#download-a-file)
@@ -571,6 +572,43 @@ Examples:
 >**_`favorite commands`_**  
 >**_`my favourite commands`_**  
 >**_`most used commands`_**  
+
+### Teams
+
+You can add, update, see, ping and delete teams. When calling `see TEAM_NAME team` the availability of the members will be displayed.  
+`add team TEAM_NAME PROPERTIES` will add a team with the info supplied. In case it is supplied a channel with type 'members' the members of that channel would be considered members of the team.  
+
+Examples:  
+>**_`add team devweb members #devweb support #devweb-support : We take care of the website`_**  
+>**_`add team devweb qa @jim dev @johnja @cooke @luisa members #devweb support #devweb-support : We take care of the website`_**  
+>**_`add team sandex manager @sarah members #sandex : We take care of the sand`_**  
+
+By calling `update team` you will update a team with the info supplied.  
+
+Examples:  
+>**_`update team sales : Support for customers`_**  
+>**_`update sales team delete @sarah @peter`_**  
+>**_`update sales team add public #salesff`_**  
+>**_`update sales team add qa @john @ben @ana`_**  
+
+It is possible to search teams by user, info, channel or team name. In case calling `see team TEAM_NAME` or `TEAM_NAME team` it will show also the availavility of the members: on vacation, in a meeting, sick leave, away or available.  
+
+Examples:  
+>**_`see teams`_**  
+>**_`see Sales team`_**  
+>**_`which teams #salesff`_**  
+>**_`which teams @sarah`_**  
+>**_`which team does @john belongs to?`_**  
+
+By calling `ping team TEAM_NAME TYPE_MEMBER MESSAGE` will send the MESSAGE naming all available members of the MEMBER_TYPE supplied.  
+If you call `contact team TEAM_NAME TYPE_MEMBER MESSAGE` will send the MESSAGE naming all members of the MEMBER_TYPE supplied.  
+
+Examples:  
+>**_`ping team sales development What's the status  on last deployment?`_**  
+>**_`contact team sales qa Please finish testing of dev02 feature before noon`_**  
+
+Other team commands: **_`delete team TEAM_NAME`_**  
+
 
 ### Tips
 

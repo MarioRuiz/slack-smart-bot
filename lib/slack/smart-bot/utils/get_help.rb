@@ -1,7 +1,9 @@
 class SlackSmartBot
   def get_help(rules_file, dest, from, only_rules, expanded, descriptions: true, only_normal_user: false)
     order = {
-      general: [:bot_help, :hi_bot, :bye_bot, :add_admin, :remove_admin, :see_admins, :poster, :add_announcement, :delete_announcement, :see_announcements, :see_command_ids, :share_messages, :see_shares, :delete_share, :see_favorite_commands, :see_statuses, :allow_access, :see_access, :deny_access],
+      general: [:bot_help, :hi_bot, :bye_bot, :add_admin, :remove_admin, :see_admins, :poster, :add_announcement, :delete_announcement, 
+                :see_announcements, :see_command_ids, :share_messages, :see_shares, :delete_share, :see_favorite_commands, :see_statuses, 
+                :allow_access, :see_access, :deny_access, :add_team, :see_teams, :update_team, :ping_team, :delete_team],
       on_bot_general: [:whats_new, :suggest_command, :bot_status, :use_rules, :stop_using_rules, :bot_stats, :leaderboard],
       on_bot: [:ruby_code, :repl, :get_repl, :run_repl, :delete_repl, :see_repls, :add_shortcut, :delete_shortcut, :see_shortcuts],
       on_bot_admin: [:extend_rules, :stop_using_rules_on, :start_bot, :pause_bot, :add_routine,
@@ -70,6 +72,12 @@ class SlackSmartBot
     if File.exists?(config.path + '/rules/general_commands.rb') and !only_rules
       help[:general_commands_file] += build_help(config.path+'/rules/general_commands.rb', expanded)[user_type].values.join("\n") + "\n"
     end
+    if help.key?(:on_bot)
+      commands_on_extended_from_on_bot = [:repl, :see_repls, :get_repl, :run_repl, :delete_repl, :ruby_code]
+      commands_on_extended_from_on_bot.each do |cm|
+        help[:on_extended][cm] = help[:on_bot][cm] if help[:on_bot].key?(cm)
+      end      
+    end
     help = remove_hash_keys(help, :admin_master) unless user_type == :master
     help = remove_hash_keys(help, :admin) unless user_type == :admin or user_type == :master
     help = remove_hash_keys(help, :on_master) unless channel_type == :master_bot
@@ -125,6 +133,7 @@ class SlackSmartBot
       end
       if channel_type == :master_bot
         txt += help.on_master.create_bot
+        txt += help.on_master.where_smartbot
       end
     end
 
@@ -142,6 +151,16 @@ class SlackSmartBot
         txt += help.on_bot[o]
       end
     end
+    if help.key?(:on_extended) and channel_type == :extended and help[:on_extended].keys.size > 0
+      if descriptions
+        txt += "===================================
+        *General commands on Extended channel only on demand:*\n"
+      end
+      commands_on_extended_from_on_bot.each do |o|
+        txt += help.on_extended[o]
+      end
+    end
+
     if help.key?(:on_bot) and help.on_bot.key?(:admin) and channel_type != :external and channel_type != :extended
       txt += "===================================
         *Admin commands:*\n\n" if descriptions

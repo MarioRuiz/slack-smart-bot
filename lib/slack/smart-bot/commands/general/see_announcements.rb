@@ -51,7 +51,7 @@ class SlackSmartBot
           see_announcements_on_demand = false
         end
         if channel_id == Thread.current[:dest] or see_announcements_on_demand or publish #master admin user or publish_announcements
-          if File.exists?("#{config.path}/announcements/#{channel_id}.csv") and (!@announcements.key?(channel_id) or see_announcements_on_demand) # to force to have the last version that maybe was updated by other SmartBot in case of demand
+          if File.exist?("#{config.path}/announcements/#{channel_id}.csv") and (!@announcements.key?(channel_id) or see_announcements_on_demand) # to force to have the last version that maybe was updated by other SmartBot in case of demand
             t = CSV.table("#{config.path}/announcements/#{channel_id}.csv", headers: ['message_id', 'user_deleted', 'user_created', 'date', 'time', 'type', 'message'])
             @announcements[channel_id] = t
           end

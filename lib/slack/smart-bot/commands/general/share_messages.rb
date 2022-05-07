@@ -24,7 +24,7 @@ class SlackSmartBot
             else
               type = :reaction
             end
-            if File.exists?("#{config.path}/shares/#{from_channel}.csv")
+            if File.exist?("#{config.path}/shares/#{from_channel}.csv")
               t = CSV.table("#{config.path}/shares/#{from_channel}.csv", headers: ['share_id', 'user_deleted', 'user_created', 'date', 'time', 'type', 'to_channel', 'condition'])
               @shares[from_channel] = t
               if t.size>0

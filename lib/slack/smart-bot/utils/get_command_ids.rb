@@ -57,7 +57,7 @@ class SlackSmartBot
       commands[:on_master_master_admin] = (Dir.entries("#{__dir__}/../commands/on_master/admin_master/").select { |e| e.match?(/\.rb/) }).sort.join('|').gsub('.rb','').split('|')
     end
 
-    if File.exists?("#{config.path}/rules/general_commands.rb")
+    if File.exist?("#{config.path}/rules/general_commands.rb")
       general_commands = File.read("#{config.path}/rules/general_commands.rb")
       commands[:general_commands] = general_commands.scan(/^\s*#\s*help\w*:\s+command_id:\s+:(\w+)\s*$/i).flatten
       commands[:general_commands]+= general_commands.scan(/^\s*save_stats\(?\s*:(\w+)\s*,?/i).flatten
@@ -65,13 +65,13 @@ class SlackSmartBot
     end
 
     if typem == :on_extended or typem ==:on_call or typem == :on_bot or typem == :on_master or (typem == :on_dm and Thread.current[:using_channel].to_s != '')
-      if Thread.current.key?(:rules_file) and File.exists?(config.path + Thread.current[:rules_file])
+      if Thread.current.key?(:rules_file) and File.exist?(config.path + Thread.current[:rules_file])
         rules = File.read(config.path + Thread.current[:rules_file])
         commands[:rules] = rules.scan(/^\s*#\s*help\w*:\s+command_id:\s+:(\w+)\s*$/i).flatten
         commands[:rules]+= rules.scan(/^\s*save_stats\(?\s*:(\w+)\s*,?/i).flatten
         commands[:rules].uniq!
 
-        if File.exists?("#{config.path}/rules/general_rules.rb")
+        if File.exist?("#{config.path}/rules/general_rules.rb")
           general_rules = File.read("#{config.path}/rules/general_rules.rb")
           commands[:general_rules] = general_rules.scan(/^\s*#\s*help\w*:\s+command_id:\s+:(\w+)\s*$/i).flatten
           commands[:general_rules]+= general_rules.scan(/^\s*save_stats\(?\s*:(\w+)\s*,?/i).flatten

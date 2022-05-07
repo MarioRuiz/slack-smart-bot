@@ -8,7 +8,7 @@ class SlackSmartBot
       else
         channel = Thread.current[:dest]
       end
-      if File.exists?("#{config.path}/shares/#{@channels_name[channel]}.csv") and !@shares.key?(@channels_name[channel])
+      if File.exist?("#{config.path}/shares/#{@channels_name[channel]}.csv") and !@shares.key?(@channels_name[channel])
         t = CSV.table("#{config.path}/shares/#{@channels_name[channel]}.csv", headers: ['share_id', 'user_deleted', 'user_created', 'date', 'time', 'type', 'to_channel', 'condition'])
         @shares[@channels_name[channel]] = t
       end

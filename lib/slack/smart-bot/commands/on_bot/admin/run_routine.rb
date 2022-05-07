@@ -18,7 +18,7 @@ class SlackSmartBot
       if !config.on_master_bot and dest[0] == "D"
         respond "It's only possible to run routines from MASTER channel from a direct message with the bot.", dest
       elsif @routines.key?(@channel_id) and @routines[@channel_id].key?(name)
-        File.delete "#{config.path}/routines/#{@channel_id}/#{name}_output.txt" if File.exists?("#{config.path}/routines/#{@channel_id}/#{name}_output.txt")
+        File.delete "#{config.path}/routines/#{@channel_id}/#{name}_output.txt" if File.exist?("#{config.path}/routines/#{@channel_id}/#{name}_output.txt")
         if @routines[@channel_id][name][:file_path] != ""
           if @routines[@channel_id][name][:file_path].match?(/\.rb$/i)
             ruby = "ruby "

@@ -25,7 +25,7 @@ class SlackSmartBot
               (@routines[@channel_id][name].key?(:dayweek) and @routines[@channel_id][name][:dayweek].to_s!='weekday' and @routines[@channel_id][name][:dayweek].to_s!='weekend') or
               (@routines[@channel_id][name].key?(:dayweek) and @routines[@channel_id][name][:dayweek].to_s=='weekday' and Date.today.wday>=1 and Date.today.wday<=5) or
               (@routines[@channel_id][name].key?(:dayweek) and @routines[@channel_id][name][:dayweek].to_s=='weekend' and (Date.today.wday==6 or Date.today.wday==0)) 
-              File.delete "#{config.path}/routines/#{@channel_id}/#{name}_output.txt" if File.exists?("#{config.path}/routines/#{@channel_id}/#{name}_output.txt")
+              File.delete "#{config.path}/routines/#{@channel_id}/#{name}_output.txt" if File.exist?("#{config.path}/routines/#{@channel_id}/#{name}_output.txt")
               if @routines[@channel_id][name][:file_path] != ""
                 process_to_run = "#{ruby}#{Dir.pwd}#{@routines[@channel_id][name][:file_path][1..-1]}"
                 process_to_run = ("cd #{project_folder} &&" + process_to_run) if defined?(project_folder)

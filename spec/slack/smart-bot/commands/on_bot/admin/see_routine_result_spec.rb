@@ -1,5 +1,5 @@
 
-RSpec.describe SlackSmartBot, "see_result_routine" do
+RSpec.describe SlackSmartBot, "see_routine_result" do
   describe "on channel bot" do
     channel = :cbot1cm
     user = :uadmin

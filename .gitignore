@@ -26,6 +26,7 @@ tmp.rb
 config_tmp.status
 /status/
 /spec/bot/status/
+/spec/bot/smart-bot-example_teams.yaml
 # Used by dotenv library to load environment variables.
 # .env
 

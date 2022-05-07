@@ -33,7 +33,7 @@ RSpec.describe SlackSmartBot, "kill_bot_on_channel" do
       #expect(buffer(to: :cstatus, from: :ubot).join).to match(/:large_green_circle: The \*SmartBot\* on \*<#CP28CTWSD|external_channel>\* is up and running again./)      
       send_message "kill bot on external_channel", from: user, to: channel
       sleep 3
-      expect(buffer(to: :cstatus, from: :ubot).join).to match(/:red_circle: The admin closed SmartBot on \*<#CP28CTWSD|external_channel>\*/)
+      expect(buffer(to: :cstatus, from: :ubot).join).to match(/:red_circle: The admin killed SmartBot on \*#external_channel\*/)
       expect(bufferc(to: channel, from: :ubot).join).to match(/Bot on channel: external_channel, has been killed and deleted./)
       send_message "hi bot", from: user, to: :cexternal
       expect(buffer(to: :cexternal, from: :ubot).join).to match(/You are on a channel where the SmartBot is just a member/)

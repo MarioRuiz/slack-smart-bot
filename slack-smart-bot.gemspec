@@ -19,7 +19,7 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency 'async-websocket', '~> 0.8.0'
   s.add_runtime_dependency 'amazing_print', '~> 1', '>= 1.3.0'
   s.add_development_dependency 'rspec', '~> 3.9'
-  s.required_ruby_version = '>= 2.5'
+  s.required_ruby_version = '>= 2.6'
   s.post_install_message = "Thanks for installing! Visit us on https://github.com/MarioRuiz/slack-smart-bot"
   s.test_files    = s.files.grep(%r{^(test|spec|features)/})
 end

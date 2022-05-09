@@ -35,11 +35,12 @@ class SlackSmartBot
   # helpadmin:      _add routine example on Tuesdays at 09:00 #SREChannel !run db cleanup_
   # helpadmin:      _add routine example on weekdays at 22:00 suggest command_
   # helpadmin:    <https://github.com/MarioRuiz/slack-smart-bot#routines|more info>
+  # helpadmin: command_id: :add_routine
   # helpadmin:
   def add_routine(dest, from, user, name, type, number_time, period, command_to_run, files, silent, channel, routine_type)
     save_stats(__method__)
     if files.nil? or files.size == 0 or (files.size > 0 and config.masters.include?(from))
-      if config.admins.include?(from)
+      if is_admin?
         if @routines.key?(@channel_id) && @routines[@channel_id].key?(name)
           respond "I'm sorry but there is already a routine with that name.\nCall `see routines` to see added routines", dest
         else

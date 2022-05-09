@@ -15,14 +15,13 @@ class SlackSmartBot
         respond "There is no data stored."
       else
         count_commands = {}
+        
         files.each do |file|
           CSV.foreach(file, headers: true, header_converters: :symbol, converters: :numeric) do |row|
             row[:dest_channel_id] = row[:bot_channel_id] if row[:dest_channel_id].to_s[0] == "D"
-            
-            if ((only_mine and row[:user_name]==user.name) or (!only_mine and !config.admins.include?(row[:user_name]))) and 
+            if ((only_mine and row[:user_name]==user.name) or (!only_mine and !config.masters.include?(row[:user_name]))) and 
               row[:dest_channel_id] == channel and !row[:user_name].include?('routine/') and 
               row[:command] != 'dont_understand'
-
               row[:command] = 'bot_help' if row[:command] == 'bot_rules'
               count_commands[row[:command]] ||= 0
               count_commands[row[:command]] += 1
@@ -41,7 +40,7 @@ class SlackSmartBot
           commands.each do |command|
             unless output.match?(/^\s*command_id:\s+:#{command}\s*$/)
               i+=1
-              output += bot_help(user, user.name, Thread.current[:dest], channel, false, command.gsub('_',' '), config.rules_file, false)
+              output += bot_help(user, user.name, Thread.current[:dest], channel, false, command.gsub('_',' '), config.rules_file, savestats: false, strict: true)
               break if i>=5
             end
           end

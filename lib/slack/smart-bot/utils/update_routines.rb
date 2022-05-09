@@ -1,8 +1,11 @@
 class SlackSmartBot
 
   def update_routines(channel = @channel_id)
+
+    require 'yaml'
+    routines_file = "#{config.path}/routines/routines_#{channel}.yaml"
+
     routines = {}
-    file = File.open("#{config.path}/routines/routines_#{channel}.rb", "w")
     @routines.each do |k,v|
       routines[k]={}
       v.each do |kk,vv|
@@ -10,7 +13,10 @@ class SlackSmartBot
         routines[k][kk][:thread]=""
       end
     end
-    file.write (routines.inspect)
-    file.close
+    File.open(routines_file, 'w') {|file|
+      file.flock(File::LOCK_EX)
+      file.write(routines.to_yaml) 
+      file.flock(File::LOCK_UN)
+    }
   end
 end

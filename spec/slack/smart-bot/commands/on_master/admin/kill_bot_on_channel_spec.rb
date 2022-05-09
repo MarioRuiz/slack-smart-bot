@@ -22,6 +22,10 @@ RSpec.describe SlackSmartBot, "kill_bot_on_channel" do
     after(:all) do
       send_message "bye bot", from: user, to: channel
     end
+    after(:all) do
+      send_message "!kill bot on external_channel", from: user, to: channel
+      send_message "bye bot", from: user, to: channel
+    end
 
     it "kills bot on channel name" do
       send_message "create bot on external_channel", from: user, to: channel
@@ -29,10 +33,10 @@ RSpec.describe SlackSmartBot, "kill_bot_on_channel" do
       #expect(buffer(to: :cstatus, from: :ubot).join).to match(/:large_green_circle: The \*SmartBot\* on \*<#CP28CTWSD|external_channel>\* is up and running again./)      
       send_message "kill bot on external_channel", from: user, to: channel
       sleep 3
-      expect(buffer(to: :cstatus, from: :ubot).join).to match(/:red_circle: The admin closed SmartBot on \*<#CP28CTWSD|external_channel>\*/)
+      expect(buffer(to: :cstatus, from: :ubot).join).to match(/:red_circle: The admin killed SmartBot on \*#external_channel\*/)
       expect(bufferc(to: channel, from: :ubot).join).to match(/Bot on channel: external_channel, has been killed and deleted./)
-      send_message "hi bot", from: user, to: :external_channel
-      expect(buffer(to: :external_channel, from: :ubot).join).to match(/^\s*$/)
+      send_message "hi bot", from: user, to: :cexternal
+      expect(buffer(to: :cexternal, from: :ubot).join).to match(/You are on a channel where the SmartBot is just a member/)
     end
     it "kills bot on channel id" do
       send_message "create bot on external_channel", from: user, to: channel
@@ -40,8 +44,8 @@ RSpec.describe SlackSmartBot, "kill_bot_on_channel" do
       send_message "kill bot on <##{CEXTERNAL}|external_channel>", from: user, to: channel
       sleep 3
       expect(bufferc(to: channel, from: :ubot).join).to match(/Bot on channel: external_channel, has been killed and deleted./)
-      send_message "hi bot", from: user, to: :external_channel
-      expect(buffer(to: :external_channel, from: :ubot).join).to match(/^\s*$/)
+      send_message "hi bot", from: user, to: :cexternal
+      expect(buffer(to: :cexternal, from: :ubot).join).to match(/You are on a channel where the SmartBot is just a member/)
     end
     it "displays error if not a creator or admin of the channel" do
       send_message "kill bot on bot1cm", from: user, to: channel

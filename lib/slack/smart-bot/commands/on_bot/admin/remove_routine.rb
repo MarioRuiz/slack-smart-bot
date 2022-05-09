@@ -10,10 +10,11 @@ class SlackSmartBot
   # helpadmin:    Examples:
   # helpadmin:      _kill routine example_
   # helpadmin:    <https://github.com/MarioRuiz/slack-smart-bot#routines|more info>
+  # helpadmin: command_id: :remove_routine
   # helpadmin:
   def remove_routine(dest, from, name)
     save_stats(__method__)
-    if config.admins.include?(from) #admin user
+    if is_admin?
       if @routines.key?(@channel_id) and @routines[@channel_id].key?(name)
         @routines[@channel_id][name][:thread].exit
         @routines[@channel_id].delete(name)

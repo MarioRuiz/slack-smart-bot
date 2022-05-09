@@ -11,6 +11,7 @@ def general_commands(user, command, dest, files = [])
       # help: `NUMBER cls`
       # help:     It will send a big empty message.
       # help:        NUMBER (optional): number of lines. Default 100. Max 200.
+      # help: command_id: :cls
       # help: 
     when /\A(\d*)\s*(clear|cls|clear\s+screen)\s*\z/i
       save_stats :cls
@@ -28,6 +29,21 @@ def general_commands(user, command, dest, files = [])
         'Anytime', 'It was the least I could do', 'Glad to help', 'Sure', 'Pleasure', 'The pleasure is mine', 'It was nothing', 'Much obliged', "I'm happy to help",
         'Það var ekkert', 'De nada', 'No hay de qué', 'De rien',  'Bitte', 'Prego', 'मेरा सौभाग्य है', '不客氣', 'Παρακαλώ']
       respond "#{responses.sample}#{'!'*rand(4)}"
+
+      # this is a hidden command that it is not listed when calling bot help
+    when /\s*.*happy\s+birthday.*(<@\w+>)\s*.*$/i, /\s*.*(<@\w+>).*happy\s+birthday\s*.*$/i
+      unless Thread.current[:on_thread]
+        save_stats :happy_birthday
+        happy_user = $1
+        reactions = [:tada, :cake, :birthday]
+        sleep 30
+        reactions.sample(rand(3)+1).each {|rt| react rt }
+        sleep (rand(10)+5)*60 # so SmartBot is not the first one
+        responses = ['Happy birthday', "Very happy birthday", "Happy happy happy birthday", "Have a fabulous birthday", 'May all your wishes come true',
+        'Many happy returns of the day', 'I wish you a wonderful birthday', 'Have a great one', 'I hope you have a fantastic day and a fantastic year to come',
+        'To your happiness', "Don't count the candles. Enjoy the party", 'May your day be as awesome as you are', 'The best things in life are yet to come']
+        respond "#{happy_user} #{responses.sample}#{'!'*rand(4)}", :on_thread
+      end
 
     else
       return false

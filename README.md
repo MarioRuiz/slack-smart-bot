@@ -31,8 +31,9 @@ slack-smart-bot can create bots on demand, create shortcuts, run ruby code... ju
   * [Share Messages](#share-messages)
   * [See Statuses](#see-statuses)
   * [Routines](#routines)
-  * [Limit who has access to a command](#limit-who-has-access-to-a-command)
+  * [Control who has access to a command](#control-who-has-access-to-a-command)
   * [See favorite commands](#see-favorite-commands)
+  * [Teams](#teams)
   * [Tips](#tips)
     + [Send a file](#send-a-file)
     + [Download a file](#download-a-file)
@@ -309,6 +310,10 @@ If you are a Master Admin on a Direct Message with the Smart Bot you can call th
 
 You can also get the bot logs of the bot channel you are using by calling `get bot logs`. You need to be a Master Admin user on a DM with the Smart Bot.
 
+You can add, remove and list admins of any channel by using: `add admin @user`, `remove admin @user` and `see admins`. You need to be the creator of the channel, a Master admin or an admin.
+
+To see the full list of available command ids on any channel call: `see command ids`
+
 #### Cloud Bots
 If you want to create a bot that will be running on a different machine: **_`create cloud bot on CHANNEL`_**. Even though the cloud bots are running on different machines, the management can be done through the MASTER CHANNEL. The new cloud bot will be managed by your Master Bot like the others, closing, pausing...
 
@@ -467,6 +472,10 @@ Examples:
 >**_Peter>_** `who is not on vacation?`  
 >**_Peter>_** `who is on vacation? #SalesChannel`  
 >**_Peter>_** `who is on :working-from-home:`  
+<<<<<<< HEAD
+=======
+>**_Peter>_** `who is available?`
+>>>>>>> v1.11.0
 
 ### Routines
 To add specific commands to be run automatically every certain amount of time or a specific time: **_`add routine NAME every NUMBER PERIOD COMMAND`_** or **_`add routine NAME at TIME COMMAND`_**. Also just before the command you can supply the channel where you want to publish the results, if not channel supplied then it would be the SmartBot Channel or on the DM if the command is run from there. Remember the SmartBot needs to have access to the channel where you want to publish.
@@ -495,9 +504,13 @@ Other routine commands:
 * **_`see routines`_**
 * **_`see result routine NAME`_**
 
-### Limit who has access to a command
+### Control who has access to a command
 
-If you want to define who has access to certain commands you can specify it on the settings when starting the Smart Bot:
+You can add, remove and list admins of any channel by using: `add admin @user`, `remove admin @user` and `see admins`. You need to be the creator of the channel, a Master admin or an admin.
+
+To see the full list of available command ids on any channel call: `see command ids`
+
+If you want to define who has access to certain commands in all SmartBot instances, you can specify it on the settings when starting the Smart Bot:
 
 ```ruby
 settings = {
@@ -513,15 +526,22 @@ settings = {
 ```
 You can use the user name or the user id.
 
-If you want to change who has access to a certain command without restarting the Smart Bot you can do it on the rules file:
+If you want to change who has access to a specific command without restarting the Smart Bot you can do it on the rules file, for example:
 
 ```ruby
-config.allow_access.repl = ['marioruiz', 'samcooke']
+        # helpadmin: ----------------------------------------------
+        # helpadmin: `update access`
+        # helpadmin:      It will update the privileges to access commands or rules
+        # helpadmin:      
+      when /\A\s*update\s+access\s*\z/i
+        save_stats(:update_access)
+        if is_admin?(user.name)
+          config.allow_access.repl = ['marioruiz', 'samcooke']
+          respond "updated on <##{@channel_id}>!"
+        else
+          respond 'Only admins can change the access rules'
+        end
 ```
-
-These are the commands that are possible to be limited plus all your SmartBot rules:
-
-`bot_help, bot_rules, bot_status, use_rules, add_shortcut, delete_shortcut, repl, run_repl, get_repl, delete_repl, see_repls, ruby_code, see_shortcuts, create_bot, add_announcement, delete_announcement, see_announcements`
 
 To check from a rule if the user has access to it:
 
@@ -529,6 +549,22 @@ To check from a rule if the user has access to it:
 if has_access?(:your_command_id)
 end
 ```
+
+Also you can allow or deny access for specific commands and users on any specific channel all you need is the Smartbot to be a member of the channel and use these commands on Slack:
+`allow access COMMAND_ID`  
+`allow access COMMAND_ID @user1 @user99`  
+It will allow the specified command to be used on the channel.  
+If @user specified, only those users will have access to the command  
+Only admins of the channel can use this command.  
+
+`deny access COMMAND_ID`  
+It won't allow the specified command to be used on the channel.  
+Only admins of the channel can use this command  
+
+`see access COMMAND_ID`  
+it will show the access rights for the specified command  
+
+The authorization is controlled by `save_stats` so it will be check out when calling `save_stats` or by calling `has_access?(:your_command_id)`
 
 ### See favorite commands
 
@@ -539,6 +575,43 @@ Examples:
 >**_`favorite commands`_**  
 >**_`my favourite commands`_**  
 >**_`most used commands`_**  
+
+### Teams
+
+You can add, update, see, ping and delete teams. When calling `see TEAM_NAME team` the availability of the members will be displayed.  
+`add team TEAM_NAME PROPERTIES` will add a team with the info supplied. In case it is supplied a channel with type 'members' the members of that channel would be considered members of the team.  
+
+Examples:  
+>**_`add team devweb members #devweb support #devweb-support : We take care of the website`_**  
+>**_`add team devweb qa @jim dev @johnja @cooke @luisa members #devweb support #devweb-support : We take care of the website`_**  
+>**_`add team sandex manager @sarah members #sandex : We take care of the sand`_**  
+
+By calling `update team` you will update a team with the info supplied.  
+
+Examples:  
+>**_`update team sales : Support for customers`_**  
+>**_`update sales team delete @sarah @peter`_**  
+>**_`update sales team add public #salesff`_**  
+>**_`update sales team add qa @john @ben @ana`_**  
+
+It is possible to search teams by user, info, channel or team name. In case calling `see team TEAM_NAME` or `TEAM_NAME team` it will show also the availavility of the members: on vacation, in a meeting, sick leave, away or available.  
+
+Examples:  
+>**_`see teams`_**  
+>**_`see Sales team`_**  
+>**_`which teams #salesff`_**  
+>**_`which teams @sarah`_**  
+>**_`which team does @john belongs to?`_**  
+
+By calling `ping team TEAM_NAME TYPE_MEMBER MESSAGE` will send the MESSAGE naming all available members of the MEMBER_TYPE supplied.  
+If you call `contact team TEAM_NAME TYPE_MEMBER MESSAGE` will send the MESSAGE naming all members of the MEMBER_TYPE supplied.  
+
+Examples:  
+>**_`ping team sales development What's the status  on last deployment?`_**  
+>**_`contact team sales qa Please finish testing of dev02 feature before noon`_**  
+
+Other team commands: **_`delete team TEAM_NAME`_**  
+
 
 ### Tips
 

@@ -22,6 +22,12 @@ class SlackSmartBot
     members = get_channel_members(cdest)
     if members.include?(user.id)
       list = {}
+      only_active = false
+      if types == ['available']
+        only_active = true
+        not_on = true
+        types = [':palm_tree:', ':spiral_calendar_pad:', ':face_with_thermometer:']
+      end
       members.each do |member|
         info = get_user_info(member)
         text = info.user.profile.status_text
@@ -29,26 +35,33 @@ class SlackSmartBot
         exp = info.user.profile.expiration
         unless (((!types.empty? and !types.include?(emoji)) or (emoji.to_s == "" and text.to_s == "" and exp.to_s == "")) and !not_on) or
                (not_on and types.include?(emoji)) or info.user.deleted or info.user.is_bot or info.user.is_app_user
-          emoji = ":white_square:" if emoji.to_s == ""
-          list[emoji] ||= []
-          list[emoji] << {
-            type: "context",
-            elements: [
-              {
-                          type: "plain_text",
-                          text: "\t\t",
-                        },
-              {
-                          type: "image",
-                          image_url: info.user.profile.image_24,
-                          alt_text: info.user.name,
-                        },
-              {
-                          type: "mrkdwn",
-                          text: " *#{info.user.profile.real_name}* (#{info.user.name}) #{text} #{exp}",
-                        },
-            ],
-          }
+          if only_active
+            active = (get_presence(member).presence.to_s == 'active')
+          else
+            active = false
+          end
+          if !only_active or (only_active and active)
+            emoji = ":white_square:" if emoji.to_s == ""
+            list[emoji] ||= []
+            list[emoji] << {
+              type: "context",
+              elements: [
+                {
+                            type: "plain_text",
+                            text: "\t\t",
+                          },
+                {
+                            type: "image",
+                            image_url: info.user.profile.image_24,
+                            alt_text: info.user.name,
+                          },
+                {
+                            type: "mrkdwn",
+                            text: " *#{info.user.profile.real_name}* (#{info.user.name}) #{text} #{exp}",
+                          },
+              ],
+            }
+          end
         end
       end
       if list.size > 0
@@ -59,7 +72,7 @@ class SlackSmartBot
                       elements: [
                         {
                             type: "mrkdwn",
-                            text: "*Users* #{emoji} on <##{cdest}>",
+                            text: "#{'*Available* ' if only_active}*Members* #{emoji} on <##{cdest}>",
                           },
                       ],
                     },

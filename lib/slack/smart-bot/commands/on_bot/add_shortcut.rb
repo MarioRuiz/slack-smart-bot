@@ -19,6 +19,7 @@ class SlackSmartBot
   # help:        _shortcut Spanish Account_
   # help:        _Spanish Account_
   # help:    <https://github.com/MarioRuiz/slack-smart-bot#shortcuts|more info>
+  # help: command_id: :add_shortcut
   # help:
   def add_shortcut(dest, user, typem, for_all, shortcut_name, command, command_to_run, global)
     save_stats(__method__)
@@ -63,7 +64,7 @@ class SlackSmartBot
               end
             }
           end
-          if !config.admins.include?(from) and @shortcuts[:all].include?(shortcut_name) and !@shortcuts[from].include?(shortcut_name)
+          if !is_admin?(from) and @shortcuts[:all].include?(shortcut_name) and !@shortcuts[from].include?(shortcut_name)
             respond "Only the creator of the shortcut can modify it", dest
           elsif found_other
             respond "You cannot create a shortcut for all with the same name than other user is using", dest

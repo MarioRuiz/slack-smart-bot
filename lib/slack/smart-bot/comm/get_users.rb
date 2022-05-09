@@ -9,7 +9,7 @@ class SlackSmartBot
       else
         begin
             resp = client.web_client.users_list(limit: 1000, cursor: cursor)
-            if resp.key?(:members) and  resp[:members].is_a(Array) and resp[:members].size > 0
+            if resp.key?(:members) and  resp[:members].is_a?(Array) and resp[:members].size > 0
                 users << resp[:members]
             end
             cursor = resp.get_values(:next_cursor).values[-1]

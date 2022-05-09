@@ -7,11 +7,12 @@ class SlackSmartBot
   # helpadmin:    The bot stops running and also stops all the bots created from this master channel
   # helpadmin:    You can use this command only if you are an admin user and you are on the master channel
   # helpadmin:    <https://github.com/MarioRuiz/slack-smart-bot#bot-management|more info>
+  # helpadmin: command_id: :exit_bot
   # helpadmin:
   def exit_bot(command, from, dest, display_name)
     save_stats(__method__)
     if config.on_master_bot
-      if config.admins.include?(from) #admin user
+      if config.masters.include?(from) #admin user
         if answer.empty?
           ask("are you sure?", command, from, dest)
         else
@@ -22,7 +23,7 @@ class SlackSmartBot
             @bots_created.each { |key, value|
               value[:thread] = ""
               send_msg_channel(key, "Bot has been closed by #{from}")
-              save_status :off, :exited, "The admin closed SmartBot on *<##{key}|#{value.channel_name}>*"
+              save_status :off, :exited, "The admin closed SmartBot on *##{value.channel_name}*"
               sleep 0.5
             }
             update_bots_file()

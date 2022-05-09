@@ -3,6 +3,7 @@ class SlackSmartBot
     @buffered = false if config[:testing]
     begin
       begin
+        command_orig = data.text
         unless data.text.to_s.match(/\A\s*\z/)
           #to remove italic, bold... from data.text since there is no method on slack api
           if remove_blocks and !data.blocks.nil? and data.blocks.size > 0
@@ -86,6 +87,7 @@ class SlackSmartBot
         end
       end
       if !dest.nil? and !data.text.nil? and !data.text.to_s.match?(/\A\s*\z/)
+        get_bots_created()
         if data.channel[0] == "D" and !data.text.to_s.match?(/^\s*<@#{config[:nick_id]}>\s+/) and 
           (data.text.to_s.match?(/^\s*(on)?\s*<#\w+\|[^>]*>/i) or data.text.to_s.match?(/^\s*(on)?\s*#\w+/i))
           data.text = "<@#{config[:nick_id]}> " + data.text.to_s
@@ -183,7 +185,8 @@ class SlackSmartBot
           end
         end
       end
-      load "#{config.path}/rules/general_commands.rb" if File.exists?("#{config.path}/rules/general_commands.rb") and @datetime_general_commands != File.mtime("#{config.path}/rules/general_commands.rb")
+      load "#{config.path}/rules/general_commands.rb" if File.exist?("#{config.path}/rules/general_commands.rb") and @datetime_general_commands != File.mtime("#{config.path}/rules/general_commands.rb")
+
       unless typem == :dont_treat or user_info.nil?
         if (Time.now - @last_activity_check) > 60 * 30 #every 30 minutes
           @last_activity_check = Time.now
@@ -241,7 +244,6 @@ class SlackSmartBot
             command += " ruby" if command != "ruby"
             command = "#{command} #{res.body.to_s.force_encoding("UTF-8")}"
           end
-
           if typem == :on_call
             command = "!" + command unless command[0] == "!" or command.match?(/^\s*$/) or command[0] == "^"
 
@@ -256,24 +258,24 @@ class SlackSmartBot
             elsif @status != :on
               respond "The bot in that channel is not :on", data.channel
             elsif data.user == channel_found.creator or members.include?(data.user)
-              process_first(user_info, command, dest, channel_rules, typem, data.files, data.ts, data.thread_ts, data.routine, data.routine_name, data.routine_type)
+              process_first(user_info, command, dest, channel_rules, typem, data.files, data.ts, data.thread_ts, data.routine, data.routine_name, data.routine_type, command_orig)
             else
               respond "You need to join the channel <##{channel_found.id}> to be able to use the rules.", data.channel
             end
           elsif config.on_master_bot and typem == :on_extended and
                 command.size > 0 and command[0] != "-"
             # to run ruby only from the master bot for the case more than one extended
-            process_first(user_info, command, dest, @channel_id, typem, data.files, data.ts, data.thread_ts, data.routine, data.routine_name, data.routine_type)
+            process_first(user_info, command, dest, @channel_id, typem, data.files, data.ts, data.thread_ts, data.routine, data.routine_name, data.routine_type, command_orig)
           elsif !config.on_master_bot and @bots_created[@channel_id].key?(:extended) and
                 @bots_created[@channel_id][:extended].include?(@channels_name[data.channel]) and
                 command.size > 0 and command[0] != "-"
-            process_first(user_info, command, dest, @channel_id, typem, data.files, data.ts, data.thread_ts, data.routine, data.routine_name, data.routine_type)
+            process_first(user_info, command, dest, @channel_id, typem, data.files, data.ts, data.thread_ts, data.routine, data.routine_name, data.routine_type, command_orig)
           elsif (dest[0] == "D" or @channel_id == data.channel or data.user == config[:nick_id]) and
                 command.size > 0 and command[0] != "-"
-            process_first(user_info, command, dest, data.channel, typem, data.files, data.ts, data.thread_ts, data.routine, data.routine_name, data.routine_type)
+            process_first(user_info, command, dest, data.channel, typem, data.files, data.ts, data.thread_ts, data.routine, data.routine_name, data.routine_type, command_orig)
             # if @botname on #channel_rules: do something
           elsif typem == :on_pub or typem == :on_pg
-            process_first(user_info, command, dest, channel_rules, typem, data.files, data.ts, data.thread_ts, data.routine, data.routine_name, data.routine_type)
+            process_first(user_info, command, dest, channel_rules, typem, data.files, data.ts, data.thread_ts, data.routine, data.routine_name, data.routine_type, command_orig)
           end
         rescue Exception => stack
           @logger.fatal stack
@@ -337,19 +339,13 @@ class SlackSmartBot
             get_bots_created()
           when /global shortcut added/
             sleep 2
-            if File.exist?("#{config.path}/shortcuts/shortcuts_global.rb")
-              file_sc = IO.readlines("#{config.path}/shortcuts/shortcuts_global.rb").join
-              unless file_sc.to_s() == ""
-                @shortcuts_global = eval(file_sc)
-              end
+            if File.exist?("#{config.path}/shortcuts/shortcuts_global.yaml")
+              @shortcuts_global = YAML.load(File.read("#{config.path}/shortcuts/shortcuts_global.yaml"))
             end
           when /global shortcut deleted/
             sleep 2
-            if File.exist?("#{config.path}/shortcuts/shortcuts_global.rb")
-              file_sc = IO.readlines("#{config.path}/shortcuts/shortcuts_global.rb").join
-              unless file_sc.to_s() == ""
-                @shortcuts_global = eval(file_sc)
-              end
+            if File.exist?("#{config.path}/shortcuts/shortcuts_global.yaml")
+              @shortcuts_global = YAML.load(File.read("#{config.path}/shortcuts/shortcuts_global.yaml"))
             end
           end
         end

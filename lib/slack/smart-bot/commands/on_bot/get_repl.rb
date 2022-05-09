@@ -5,6 +5,7 @@ class SlackSmartBot
   # help: `get live SESSION_NAME`
   # help:     Will get the Ruby commands sent on that SESSION_NAME.
   # help:     <https://github.com/MarioRuiz/slack-smart-bot#repl|more info>
+  # help: command_id: :get_repl
   # help:
   def get_repl(dest, user, session_name)
     #todo: add tests
@@ -15,7 +16,7 @@ class SlackSmartBot
       if File.exist?("#{config.path}/repl/#{@channel_id}/#{session_name}.run")
         if @repls.key?(session_name) and (@repls[session_name][:type] == :private or @repls[session_name][:type] == :private_clean) and 
           @repls[session_name][:creator_name]!=user.name and 
-          !config.admins.include?(user.name)
+          !is_admin?(user.name)
           respond "The REPL with session name: #{session_name} is private", dest
         else
           content = "require 'nice_http'\n"

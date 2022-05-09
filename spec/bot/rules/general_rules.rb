@@ -11,6 +11,7 @@ def general_rules(user, command, processed, dest, files = [], rules_file = "")
         # help:     repeats SOMETHING
         # help:  Examples:
         # help:     _echo I am the Smart Bot_
+        # help: command_id: :echo
       when /\A\s*echo\s(.+)\s*\z/im
             save_stats :echo
             respond $1

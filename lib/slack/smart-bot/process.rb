@@ -99,6 +99,8 @@ class SlackSmartBot
           /\Akill\s+bot\s+on\s+#(.+)\s*$/i, /\Akill\s+bot\s+on\s+(.+)\s*$/i
           channel = $1
           kill_bot_on_channel(dest, from, channel)
+        when /\A\s*(where\s+is|which\s+channels|where\s+is\s+a\s+member)\s+(#{@salutations.join("|")})\??\s*$/i
+          where_smartbot(user)
         when /\A\s*(add|create)\s+(silent\s+)?(bgroutine|routine)\s+([\w\.]+)\s+(every)\s+(\d+)\s*(days|hours|minutes|seconds|mins|min|secs|sec|d|h|m|s)\s*(\s#(\w+)\s*)(\s.+)?\s*\z/im,
           /\A\s*(add|create)\s+(silent\s+)?(bgroutine|routine)\s+([\w\.]+)\s+(every)\s+(\d+)\s*(days|hours|minutes|seconds|mins|min|secs|sec|d|h|m|s)\s*(\s<#(C\w+)\|.+>\s*)?(\s.+)?\s*\z/im,
           /\A\s*(add|create)\s+(silent\s+)?(bgroutine|routine)\s+([\w\.]+)\s+(every)\s+(\d+)\s*(days|hours|minutes|seconds|mins|min|secs|sec|d|h|m|s)\s*(\s<#(\w+)\|>\s*)?(\s.+)?\s*\z/im,
@@ -150,29 +152,42 @@ class SlackSmartBot
           see_routines(dest, from, user, all)
         when /\A\s*get\s+bot\s+logs?\s*$/i
           get_bot_logs(dest, from, typem)
-        when /\A\s*send\s+message\s+(on|to|in)\s*([^\s]+)\s+([^\s]+)\s*:\s*(.+)\s*$/i,
-          /\A\s*send\s+message\s+(on|to|in)\s*([^\s]+)\s*():\s*(.+)\s*$/i
-          to = $2
-          thread_ts = $3.to_s
-          message = $4
-          to_channel = to.scan(/<#([^>]+)\|.*>/).join 
-          to_channel = to.scan(/#([^\s]+)/).join if to_channel == ''
-          if to_channel == ''
-            to_user = to.scan(/<@(\w+)>/).join
-            if to_user == ''
-              # message_id
-            else
-              to = to_user
+        when /\A\s*send\s+message\s+(on|to|in)\s*(.+)\s*:\s*(.+)\s*$/im
+          opts = $2
+          message = $3
+          thread_ts = ''
+          to_channel = ''
+          to = []
+
+          opts.split(' ').each do |opt|
+            if opt.match?(/\Ahttps:/i)
+              to_channel, thread_ts = opt.scan(/\/archives\/(\w+)\/(\w\d+)/)[0]
+              to << to_channel
+            elsif opt.match(/<#([^>]+)\|.*>/) #channel
+              to << $1
+            elsif opt.match(/#([^\s]+)/) #channel
+              to << $1
+            elsif opt.match(/<@(\w+)>/)
+              to << $1
             end
-          else
-            to = to_channel
           end
+                    
+          thread_ts.gsub!('.','')
           send_message(dest, from, typem, to, thread_ts, message)
-        when /\A\s*react\s+(on|to|in)\s*([^\s]+)\s+([^\s]+)\s+(.+)\s*$/i
+        when /\A\s*delete\s+message\s+(.+)\s*$/i
+          url = $1
+          delete_message(from, typem, url)
+        when /\A\s*react\s+(on|to|in)\s*([^\s]+)\s+([p\d\.]+)\s+(.+)\s*$/i,
+          /\A\s*react\s+(on|to|in)\s*([^\s]+)\s+()(.+)\s*$/i
           to = $2
           thread_ts = $3.to_s
           emojis = $4
-          to_channel = to.scan(/<#([^>]+)\|.*>/).join
+
+          if to.match?(/\A<?https:/i)
+            to_channel, thread_ts = to.scan(/\/archives\/(\w+)\/(\w\d+)/)[0]
+          else
+            to_channel = to.scan(/<#([^>]+)\|.*>/).join
+          end
           if to_channel == ''
             to_channel = to.scan(/#([^\s]+)/).join
             to_channel = @channels_id[to_channel].to_s
@@ -251,6 +266,10 @@ class SlackSmartBot
 
         when /\A\s*bot\s+stats\s*(.*)\s*$/i
           opts = $1.to_s
+          exclude_members_channel = opts.scan(/exclude\s+members\s+<#(\w+)\|.*>/i).join #todo: add test
+          opts.gsub!(/exclude\s+members\s+<#\w+\|.*>/,'')
+          members_channel =  opts.scan(/members\s+<#(\w+)\|.*>/i).join #todo: add test
+          opts.gsub!(/members\s+<#\w+\|.*>/,'')
           all_opts = opts.downcase.split(' ')
           all_data = all_opts.include?('alldata')
           st_channel = opts.scan(/<#(\w+)\|.*>/).join
@@ -259,6 +278,7 @@ class SlackSmartBot
           st_to = opts.scan(/to\s+(\d\d\d\d[\/\-\.]\d\d[\/\-\.]\d\d)/).join
           st_to = st_to.gsub('.','-').gsub('/','-')
           st_user = opts.scan(/<@([^>]+)>/).join
+          st_user = opts.scan(/@([^\s]+)/).join if st_user == ''
           st_command = opts.scan(/\s+command\s+(\w+)/i).join.downcase
           st_command = opts.scan(/^command\s+(\w+)/i).join.downcase if st_command == ''
           exclude_masters = all_opts.include?('exclude') && all_opts.include?('masters')
@@ -284,7 +304,7 @@ class SlackSmartBot
           if (typem == :on_master or typem == :on_bot) and dest[0]!='D' #routine bot stats to be published on DM
             st_channel = dchannel
           end
-          bot_stats(dest, user, typem, st_channel, st_from, st_to, st_user, st_command, exclude_masters, exclude_routines, exclude_command, monthly, all_data)
+          bot_stats(dest, user, typem, st_channel, st_from, st_to, st_user, st_command, exclude_masters, exclude_routines, exclude_command, monthly, all_data, members_channel, exclude_members_channel)
         when /\A(set|turn)\s+maintenance\s+(on|off)\s*()\z/im, /\A(set|turn)\s+maintenance\s+(on)\s*(.+)\s*\z/im
           status = $2.downcase
           message = $3.to_s

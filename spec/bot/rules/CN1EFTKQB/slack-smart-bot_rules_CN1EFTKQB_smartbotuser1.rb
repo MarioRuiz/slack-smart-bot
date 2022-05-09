@@ -84,6 +84,7 @@ def rules(user, command, processed, dest, files = [], rules_file = "")
         # help: ----------------------------------------------
         # help: `go to sleep`
         # help:   it will sleep the bot for 5 seconds
+        # help: command_id: :go_to_sleep
         # help:
       when /^go\sto\ssleep/i
         unless @questions.keys.include?(from)
@@ -106,6 +107,7 @@ def rules(user, command, processed, dest, files = [], rules_file = "")
 
       # help: `doom`
       # help:     Example of specific rule
+      # help: command_id: :doom
       when /doom/i
         respond "Doom", dest
 

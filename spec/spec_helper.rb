@@ -32,7 +32,8 @@ RSpec.configure do |config|
       FileUtils.rm_rf(Dir["./spec/bot/status/*"])
       FileUtils.rm_rf(Dir["./spec/bot/announcements/*"])
       FileUtils.rm_rf(Dir["./spec/bot/repl/**/*"])
-      File.delete("./spec/bot/rules/rules_imported.rb") if File.exists?("./spec/bot/rules/rules_imported.rb")
+      File.delete("./spec/bot/rules/rules_imported.rb") if File.exist?("./spec/bot/rules/rules_imported.rb")
+      File.delete("./spec/bot/smart-bot-example_teams.yaml") if File.exist?("./spec/bot/smart-bot-example_teams.yaml")
 
       @settings = {
         nick: "example", # the smart bot name
@@ -114,8 +115,13 @@ RSpec.configure do |config|
       send_message "yes", from: :uadmin, to: :cmaster
       expect(buffer(to: :cmaster, from: :ubot).join).to match(/Game over/)
       sleep 10
-      expect(buffer(to: :cstatus, from: :ubot).join).to match(/:red_circle: The admin closed SmartBot on \*<#CN0595D50|bot1cm>\*/)
-      expect(buffer(to: :cstatus, from: :ubot).join).to match(/:red_circle: The admin closed SmartBot on \*<#CN1EFTKQB|bot2cu>\*/)
+      if SIMULATE
+        expect(buffer(to: :cstatus, from: :ubot).join).to match(/:red_circle: The admin closed SmartBot on \*#bot1cm\*/)
+        expect(buffer(to: :cstatus, from: :ubot).join).to match(/:red_circle: The admin closed SmartBot on \*#bot2cu\*/)
+      else
+        expect(buffer(to: :cstatus, from: :ubot).join).to match(/:red_circle: The admin closed SmartBot on \*<#CN0595D50|bot1cm>\*/)
+        expect(buffer(to: :cstatus, from: :ubot).join).to match(/:red_circle: The admin closed SmartBot on \*<#CN1EFTKQB|bot2cu>\*/)
+      end
       clean_buffer()
       send_message "hi bot", from: :uadmin, to: :cmaster
       send_message "hi bot", from: :uadmin, to: :cbot1cm
@@ -161,7 +167,7 @@ RSpec.configure do |config|
   # inherited by the metadata hash of host groups and examples, rather than
   # triggering implicit auto-inclusion in groups with matching metadata.
   config.shared_context_metadata_behavior = :apply_to_host_groups
-
+  config.filter_run_excluding :avoid_travis => ENV['AVOID_TRAVIS'].to_s=='true'
   # The settings below are suggested to provide a good initial experience
   # with RSpec, but feel free to customize to your heart's content.
 =begin

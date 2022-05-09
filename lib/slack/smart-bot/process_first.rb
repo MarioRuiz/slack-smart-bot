@@ -1,5 +1,5 @@
 class SlackSmartBot
-  def process_first(user, text, dest, dchannel, typem, files, ts, thread_ts, routine, routine_name, routine_type)
+  def process_first(user, text, dest, dchannel, typem, files, ts, thread_ts, routine, routine_name, routine_type, command_orig)
     nick = user.name
     rules_file = ""
     text.gsub!(/^!!/,'^') # to treat it just as ^
@@ -46,7 +46,6 @@ class SlackSmartBot
         rules_file = "/rules/general_rules.rb"
       end
     end
-
     if nick == config[:nick] #if message is coming from the bot
       begin
         case text
@@ -197,6 +196,7 @@ class SlackSmartBot
           Thread.current[:routine_name] = routine_name
           Thread.current[:routine_type] = routine_type
           Thread.current[:dchannel] = dchannel
+          Thread.current[:command_orig] = command_orig
           if thread_ts.to_s == ''
             Thread.current[:on_thread] = false
             Thread.current[:thread_ts] = Thread.current[:ts] # to create the thread if necessary

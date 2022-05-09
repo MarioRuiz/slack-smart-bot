@@ -1,36 +1,23 @@
-*Version 1.10.0* Released 2021-Sep-17
+*Version 1.11.0* Released 2022-May-09
 
 *For General users*
-- When on a private conversation with the SmartBot (DM) and not using any channels rule on the conversation, the general_rules will be available.
-- On DM with the SmartBot if you want to use a rule from a specific channel you can use also: `#CHANNEL RULE` or `on #CHANNEL RULE`. For example: `#sales get report for India` 
-- Now when using general commands, the SmartBot will be responding on any channel where is a member, even though is not listening to you. For example: `clear screen`
-- Added command `suggest command` that will return the help content for a random command.
-- New command `leaderboard` returns useful information about the use of the SmartBot.
-- `add COLOR announcement MESSAGE`, `add EMOJI announcement MESSAGE` command stores the message on the announcement list labeled with the color/emoji specified, white by default. Aliases for announcement: statement, declaration, message. Related: `see announcements`, `delete announcement id`
-- `hi bot` and `bye bot` can be called from any channel where the SmartBot is a member.
-- Added general command `see statuses`, `who is on vacation?`, `who is not on vacation?`
-- New general command `see favorite commands`. It will display the favorite commands in that channel. 
-- Now when running the `ruby` command it can be supplied a code block.
-- New general command `share messages /REGEXP/ on #CHANNEL`, `share messages "TEXT" on #CHANNEL`, `see shares', `delete share ID`. It will automatically share new messages published that meet the specified criteria.
+- `run repl` displays results as code in case a value on stdout is returned as Hash or Array (<https://github.com/MarioRuiz/slack-smart-bot/issues/41|#41>).
+- `repl` command displays results when using iterators and printing results (<https://github.com/MarioRuiz/slack-smart-bot/issues/35|#35>).
+- `see command ids` will return the command ids. (<https://github.com/MarioRuiz/slack-smart-bot/issues/43|#43>)
+- `poster MESSAGE`, `poster :EMOTICON_TEXT: MESSAGE`, `poster :EMOTICON_TEXT: :EMOTICON_BACKGROUND: MESSAGE`, `poster MINUTESm MESSAGE` It will create a poster with the message supplied. By default will be autodeleted 1 minute later. (<https://github.com/MarioRuiz/slack-smart-bot/issues/34|#34>)
+- `who is available?` show members of the channel that are on line and not on a meeting or vacation or sick. (<https://github.com/MarioRuiz/slack-smart-bot/issues/52|#52>)
+- You can add, update, see, ping, contact, and delete teams. When calling `see TEAM_NAME team` the availability of the members will be displayed. Call `bot help teams` for more info. (<https://github.com/MarioRuiz/slack-smart-bot/issues/53|#53>)
+- repl improvements (<https://github.com/MarioRuiz/slack-smart-bot/issues/54|#54>)
+- new Master command `where is smartbot?` will return the channels where the SmartBot is a member. (<https://github.com/MarioRuiz/slack-smart-bot/issues/56|#56>)
 
 *For Admin users*
-- respond_thread method will send the respond creating a thread if necessary. It can be used also `respond 'msg', :on_thread`
-- `respond 'msg', :direct` will send a direct message to the person that is executing the rule.
-- You can add general commands that will be responding on any channel where the Smart Bot is a member even though is not 'listening to you'. Add them to '/rules/general_commands.rb
-- when using `respond` you can supply two options: unfurl_links and unfurl_media. By default is a boolean: true
-- added option 'weekdays' and 'weekends' for `create routine` command, for example: `add silent routine suggestions on weekdays at 09:00 suggest command`
-- Added a new config for the SmartBot to log all RTM communication, admits `true` or `false`, by default `false`: `logrtm`
-- Use the command `send message to` and `react to` to impersonate the SmartBot. Only accessible for Master Admins on a DM with the SmartBot.
-- New command to see the result of the last run of a routine: `see result routine NAME`
-- Now it is possible to create *bgroutine* then the results of the routine run won't be published.
-- To display a general message after every command use: `set general message MESSAGE`. Use `set general message off` to stop displaying it.
-- When adding a general message is possible to use interpolation
-- If you are a master admin and you are on master channel then you can call `publish announcements` that will publish the announcements on all channels. The messages stored on a DM won't be published. This is very convenient to be called from a *Routine* for example every weekday at 09:00.
-- Now it is possible to send blocks `respond blocks: my_blocks`. More info about blocks: https://api.slack.com/block-kit
-- When using bgroutines if we want to avoid a file to be sent: 
-        send_file(dest, 'description', "file_path", 'desc', 'text/plain', "text") unless Thread.current[:routine_type] == 'bgroutine'
-- SmartBot will notify about SmartBot status changes if defined the status_channel in config file and the channel exists. By default: smartbot-status
+- When calling `respond` it can be supplied the argument `return_message: true` to get access to the posted message. `msg = respond('my message', return_message: true)` (<https://github.com/MarioRuiz/slack-smart-bot/issues/31|#31>)
+- New command `delete message URL` will delete the SmartBot message supplied. Only for Master Admins (<https://github.com/MarioRuiz/slack-smart-bot/issues/32|#32>).
+- `send message` accept also the url of the message to respond on a thread. Only for Master Admins (<https://github.com/MarioRuiz/slack-smart-bot/issues/39|#39>).
+- `react to` accept also the url of the message. Only for Master Admins (<https://github.com/MarioRuiz/slack-smart-bot/issues/40|#40>).
+- You can add, remove and list admins of any channel by using: `add admin @user`, `remove admin @user` and `see admins`. You need to be the creator of the channel, a Master admin or an admin (<https://github.com/MarioRuiz/slack-smart-bot/issues/42|#42>).
+- `see access COMMAND_ID`, `allow access COMMAND_ID`, `allow access COMMAND_ID @user1 @user99` and `deny access COMMAND_ID`: Allows us to decide which commands are accessible on every channel. (<https://github.com/MarioRuiz/slack-smart-bot/issues/44|#44>).
 
 ------------------------------
 
-*Previous*: <https://github.com/MarioRuiz/slack-smart-bot/blob/dd23939f93ee95aca3c04d33cd1ce197d6efbd37/whats_new.txt|1.9.0>
+*Previous*: <https://github.com/MarioRuiz/slack-smart-bot/blob/dd23939f93ee95aca3c04d33cd1ce197d6efbd37/whats_new.txt|1.10.0>

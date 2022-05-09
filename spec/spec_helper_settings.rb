@@ -19,6 +19,7 @@ UADMIN = "UJP2EK400" #marioruizs
 UADMIN_NAME = "marioruizs"
 USER1 = "UNDE229T9" #user1
 USER2 = "UMYQS8E7L" #user2
+USERX = 'UXXXXXXXX' #userx (deleted/deactivated)
 
 DIRECT = {
     :uadmin=>{:ubot=>"DMV17MUTG"},

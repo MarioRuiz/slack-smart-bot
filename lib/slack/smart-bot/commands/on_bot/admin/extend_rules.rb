@@ -5,13 +5,14 @@ class SlackSmartBot
   # helpadmin: `use rules on CHANNEL_NAME`
   # helpadmin:    It will allow to use the specific rules from this channel on the CHANNEL_NAME
   # helpadmin:    <https://github.com/MarioRuiz/slack-smart-bot#extending-rules-to-other-channels|more info>
+  # helpadmin: command_id: :extend_rules
   # helpadmin:
   def extend_rules(dest, user, from, channel, typem)
     save_stats(__method__)
     unless typem == :on_extended
       if config.on_master_bot
         respond "You cannot use the rules from Master Channel on any other channel.", dest
-      elsif !config.admins.include?(from) #not admin
+      elsif !is_admin? #not admin
         respond "Only admins can extend the rules. Admins on this channel: #{config.admins}", dest
       else
         #todo: add pagination for case more than 1000 channels on the workspace

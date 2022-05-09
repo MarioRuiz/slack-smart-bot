@@ -7,10 +7,11 @@ class SlackSmartBot
   # helpadmin:    Examples:
   # helpadmin:      _pause routine example_
   # helpadmin:    <https://github.com/MarioRuiz/slack-smart-bot#routines|more info>
+  # helpadmin: command_id: :pause_routine
   # helpadmin:
   def pause_routine(dest, from, name)
     save_stats(__method__)
-    if config.admins.include?(from) #admin user
+    if is_admin?
       if !config.on_master_bot and dest[0] == "D"
         respond "It's only possible to pause routines from MASTER channel from a direct message with the bot.", dest
       elsif @routines.key?(@channel_id) and @routines[@channel_id].key?(name)

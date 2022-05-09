@@ -10,10 +10,11 @@ class SlackSmartBot
   # helpadmin:    Examples:
   # helpadmin:      _see routine result example_
   # helpadmin:    <https://github.com/MarioRuiz/slack-smart-bot#routines|more info>
+  # helpadmin: command_id: :see_result_routine
   # helpadmin:
   def see_result_routine(dest, from, name)
     save_stats(__method__)
-    if config.admins.include?(from) #admin user
+    if is_admin?
       if @routines.key?(@channel_id) and @routines[@channel_id].key?(name)
         if File.exist?("#{config.path}/routines/#{@channel_id}/#{name}_output.txt")
           msg = "*Results from routine run #{File.mtime("#{config.path}/routines/#{@channel_id}/#{name}_output.txt")}*\n"

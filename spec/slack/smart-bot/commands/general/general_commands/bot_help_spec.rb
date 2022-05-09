@@ -2,8 +2,8 @@
 RSpec.describe SlackSmartBot, "bot_help" do
   before(:all) do
     @general_command_msg = /General commands on any channel where the Smart Bot is a member/i
-    @general_nlist = /General commands even when the Smart Bot is not listening to you/
-    @general_list = /General commands only when the Smart Bot is listening to you or on demand/
+    @general_nlist = /General commands on Bot channel even when the Smart Bot is not listening to you/
+    @general_list = /General commands on Bot channel only when the Smart Bot is listening to you or on demand/
     @admin = /Admin commands:/
     @master_admin = /Master Admin commands:/
     @direct = /When on a private conversation with the Smart Bot, I'm always listening to you/
@@ -86,8 +86,8 @@ RSpec.describe SlackSmartBot, "bot_help" do
         send_message "bot help expanded", from: :uadmin, to: channel
         sleep 2
         expect(buffer(to: channel, from: :ubot).join).not_to match(/If you want to see the *expanded* version/) # message
-        expect(buffer(to: channel, from: :ubot).join).to match(/add shortcut NAME: COMMAND/) # first command
-        expect(buffer(to: channel, from: :ubot).join).to match(/random command/) # not first command
+        expect(buffer(to: channel, from: :ubot).join).to match(/`bot help`/) # first command
+        expect(buffer(to: channel, from: :ubot).join).to match(/`bot help COMMAND`/) # not first command
         expect(buffer(to: channel, from: :ubot).join).to match(/it will display the help content for a random command/) # first description
         expect(buffer(to: channel, from: :ubot).join).to match(/if used 'rule' then it will display a random rule/) # not first description
         expect(buffer(to: channel, from: :ubot).join).to match(/react to #sales 1622550707.012100/) #first example

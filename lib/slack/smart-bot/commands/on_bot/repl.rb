@@ -17,7 +17,7 @@ class SlackSmartBot
   # help:     If 'clean' specified the repl won't pre execute the code written on the .smart-bot-repl file
   # help:     To avoid a message to be treated, start the message with '-'.
   # help:     Send _quit_, _bye_ or _exit_ to finish the session.
-  # help:     Send puts, print, p or pp if you want to print out something when using `run repl` later.
+  # help:     Send puts, print, p or pp if you want to print out something when using _run repl_ later.
   # help:     After 30 minutes of no communication with the Smart Bot the session will be dismissed.
   # help:     If you declare on your rules file a method called 'project_folder' returning the path for the project folder, the code will be executed from that folder. 
   # help:     By default it will be automatically loaded the gems: string_pattern, nice_hash and nice_http
@@ -30,6 +30,7 @@ class SlackSmartBot
   # help:       _repl delete_logs_
   # help:       _private repl random-ssn_
   # help:     <https://github.com/MarioRuiz/slack-smart-bot#repl|more info>
+  # help: command_id: :repl
   # help:
   def repl(dest, user, session_name, env_vars, rules_file, command, description, type)
     #todo: add more tests
@@ -78,11 +79,14 @@ class SlackSmartBot
           update_repls()        
         end
         react :running
+        @ts_react ||= {}
         if Thread.current[:ts].to_s == ''
-          @ts_react = Thread.current[:thread_ts]
+          @ts_react[session_name] = Thread.current[:thread_ts]
         else
-          @ts_react = Thread.current[:ts]
+          @ts_react[session_name] = Thread.current[:ts]
         end        
+        @ts_repl ||= {}
+        @ts_repl[session_name] = ''
 
         message = "Session name: *#{session_name}*
         From now on I will execute all you write as a Ruby command and I will keep the session open until you send `quit` or `bye` or `exit`. 
@@ -115,14 +119,14 @@ class SlackSmartBot
         end
 
         process_to_run = '
-            ruby -e "' + env_vars.join("\n") + '
+            ' + env_vars.join("\n") + '
             require \"amazing_print\"
             bindme' + serialt + ' = binding
             eval(\"require \'nice_http\'\" , bindme' + serialt + ')
             def ls(obj)
               (obj.methods - Object.methods)
             end
-            
+            file_run_path = \"' +  + File.expand_path(config.path) + '/repl/' + @channel_id + '/' + session_name + '.rb\"
             file_input_repl = File.open(\"' + File.expand_path(config.path) + '/repl/' + @channel_id + '/' + session_name + '.input\", \"r\")
             ' + pre_execute + '
             while true do 
@@ -141,18 +145,40 @@ class SlackSmartBot
                   end
                   error = false
                   begin
-                    resp_repl = eval(code_to_run_repl.gsub(/^\s*(puts|print|p|pp)\s/, \"\"), bindme' + serialt + ')
+                    begin
+                      original_stdout = $stdout
+                      $stdout = StringIO.new 
+                      resp_repl = eval(code_to_run_repl, bindme' + serialt + ')
+                      stdout_repl = $stdout.string
+                    ensure 
+                      $stdout = original_stdout
+                    end
                   rescue Exception => resp_repl
                     error = true
                   end
-                  unless error
+                  if error
+                    open(\"' + File.expand_path(config.path) + '/repl/' + @channel_id + '/' + session_name + '.output\", \"a+\") {|f|
+                      f.puts \"\`\`\`\n#{resp_repl.to_s.gsub(/^.+' + session_name + '\.rb:\d+:/,\"\")}\`\`\`\"
+                    }
+                  else
                     if code_to_run_repl.match?(/^\s*p\s+/i)
+                      resp_repl = stdout_repl unless stdout_repl.to_s == \'\'
+                      if stdout_repl.to_s == \'\'
+                        resp_repl = resp_repl.inspect
+                      else
+                        resp_repl = stdout_repl 
+                      end
                       open(\"' + File.expand_path(config.path) + '/repl/' + @channel_id + '/' + session_name + '.output\", \"a+\") {|f|
-                        f.puts \"\`\`\`\n#{resp_repl.inspect}\n\`\`\`\"
+                        f.puts \"\`\`\`\n#{resp_repl}\`\`\`\"
                       }
                     else
+                      if stdout_repl.to_s == \'\'
+                        resp_repl = resp_repl.ai
+                      else
+                        resp_repl = stdout_repl 
+                      end
                       open(\"' + File.expand_path(config.path) + '/repl/' + @channel_id + '/' + session_name + '.output\", \"a+\") {|f|
-                        f.puts \"\`\`\`\n#{resp_repl.ai}\n\`\`\`\"
+                        f.puts \"\`\`\`\n#{resp_repl}\`\`\`\"
                       }
                     end
                     unless !add_to_run_repl
@@ -163,16 +189,35 @@ class SlackSmartBot
                   end
                 end
               end
-            end"
+            end
         '
         unless rules_file.empty? # to get the project_folder
           begin
             eval(File.new(config.path+rules_file).read) if File.exist?(config.path+rules_file)
           end
         end
-        started = Time.now
-        process_to_run = ("cd #{project_folder} &&" + process_to_run) if defined?(project_folder)
+        process_to_run.gsub!('\"','"')
+        file_run_path = "./tmp/repl/#{@channel_id}/#{session_name}.rb"
+        if defined?(project_folder)
+          Dir.mkdir("#{project_folder}/tmp/") unless Dir.exist?("#{project_folder}/tmp/")
+          Dir.mkdir("#{project_folder}/tmp/repl") unless Dir.exist?("#{project_folder}/tmp/repl")
+          Dir.mkdir("#{project_folder}/tmp/repl/#{@channel_id}/") unless Dir.exist?("#{project_folder}/tmp/repl/#{@channel_id}/")
+          file_run = File.open(file_run_path.gsub('./',"#{project_folder}/"), "w")
+          file_run.write process_to_run
+          file_run.close
+        else
+          Dir.mkdir("./tmp/") unless Dir.exist?("./tmp/")
+          Dir.mkdir("./tmp/repl") unless Dir.exist?("./tmp/repl")
+          Dir.mkdir("./tmp/repl/#{@channel_id}/") unless Dir.exist?("./tmp/repl/#{@channel_id}/")
+          file_run = File.open(file_run_path, "w")
+          file_run.write process_to_run
+          file_run.close
+        end
 
+        process_to_run = "ruby #{file_run_path}"
+
+        started = Time.now
+        process_to_run = ("cd #{project_folder} && " + process_to_run) if defined?(project_folder)
         stdin, stdout, stderr, wait_thr = Open3.popen3(process_to_run)
         timeout = 30 * 60 # 30 minutes
         
@@ -185,7 +230,7 @@ class SlackSmartBot
                   f.puts 'quit'
                 }
                 respond "REPL session finished: #{@repl_sessions[from][:name]}", dest
-                unreact :running, @ts_react
+                unreact :running, @ts_react[@repl_sessions[from].name]
                 pids = `pgrep -P #{@repl_sessions[from][:pid]}`.split("\n").map(&:to_i) #todo: it needs to be adapted for Windows
                 pids.each do |pid|
                   begin
@@ -199,6 +244,10 @@ class SlackSmartBot
             sleep 0.2
             resp_repl = file_output_repl.read
             if resp_repl.to_s!=''
+              if @ts_repl[@repl_sessions[from].name].to_s != ''
+                unreact(:running, @ts_repl[@repl_sessions[from].name]) 
+                @ts_repl[@repl_sessions[from].name] = ''
+              end
               if resp_repl.to_s.lines.count < 60 and resp_repl.to_s.size < 3500
                 respond resp_repl, dest
               else
@@ -211,6 +260,8 @@ class SlackSmartBot
             @logger.fatal excp
           end
         end
+      elsif @repl_sessions.key?(from) and @repl_sessions[from][:command].to_s == ''
+        respond 'You are already in a repl on this SmartBot. You need to quit that one before starting a new one.'
       else
         @repl_sessions[from][:finished] = Time.now
         code = @repl_sessions[from][:command]
@@ -224,7 +275,9 @@ class SlackSmartBot
           code.match?(/open3/i) or code.match?(/bundle/i) or code.match?(/gemfile/i) or code.include?("%x") or
           code.include?("ENV") or code.match?(/=\s*IO/) or code.include?("Dir.") or 
           code.match?(/=\s*File/) or code.match?(/=\s*Dir/) or code.match?(/<\s*File/) or code.match?(/<\s*Dir/) or
-          code.match?(/\w+:\s*File/) or code.match?(/\w+:\s*Dir/)
+          code.match?(/\w+:\s*File/) or code.match?(/\w+:\s*Dir/) or 
+          code.match?(/=?\s*(require|load)(\(|\s)/i)
+
           respond "Sorry I cannot run this due security reasons", dest
         else
           @repl_sessions[from][:input]<<code
@@ -234,7 +287,7 @@ class SlackSmartBot
               f.puts code
             }
             respond "REPL session finished: #{@repl_sessions[from][:name]}", dest
-            unreact :running, @ts_react
+            unreact :running, @ts_react[@repl_sessions[from].name]
             pids = `pgrep -P #{@repl_sessions[from][:pid]}`.split("\n").map(&:to_i) #todo: it needs to be adapted for Windows
             pids.each do |pid|
               begin
@@ -246,6 +299,10 @@ class SlackSmartBot
           when /^\s*-/i
             #ommit
           else
+            if @ts_repl[@repl_sessions[from].name].to_s == ''
+              @ts_repl[@repl_sessions[from].name] = Thread.current[:ts]
+              react :running 
+            end
             open("#{config.path}/repl/#{@channel_id}/#{@repl_sessions[from][:name]}.input", 'a+') {|f|
               f.puts code
             }

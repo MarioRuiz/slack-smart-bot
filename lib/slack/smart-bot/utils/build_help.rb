@@ -9,8 +9,8 @@ class SlackSmartBot
     else
       return help_message
     end
-    files.each do |t|
 
+    files.each do |t|
       if Dir.exist?(t)
         res = build_help(t, expanded)
         help_message[:master][t.scan(/\/(\w+)$/).join.to_sym] = res[:master]

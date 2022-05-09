@@ -8,11 +8,12 @@ class SlackSmartBot
   # helpadmin:    Examples:
   # helpadmin:      _start routine example_
   # helpadmin:    <https://github.com/MarioRuiz/slack-smart-bot#routines|more info>
+  # helpadmin: command_id: :start_routine
   # helpadmin:
 
   def start_routine(dest, from, name)
     save_stats(__method__)
-    if config.admins.include?(from) #admin user
+    if is_admin?
       if !config.on_master_bot and dest[0] == "D"
         respond "It's only possible to start routines from MASTER channel from a direct message with the bot.", dest
       elsif @routines.key?(@channel_id) and @routines[@channel_id].key?(name)

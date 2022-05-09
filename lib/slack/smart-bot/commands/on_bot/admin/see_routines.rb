@@ -6,29 +6,30 @@ class SlackSmartBot
   # helpadmin:    In case of `all` and on the master channel, it will show all the routines from all channels
   # helpadmin:    You can use this command only if you are an admin user
   # helpadmin:    <https://github.com/MarioRuiz/slack-smart-bot#routines|more info>
+  # helpadmin: command_id: :see_routines
   # helpadmin:
   def see_routines(dest, from, user, all)
     save_stats(__method__)
-    if config.admins.include?(from) #admin user
+    if is_admin?
       if all
         routines = {}
         if config.on_master_bot
-          Dir["#{config.path}/routines/routines_*.rb"].each do |rout|
-            file_conf = IO.readlines(rout).join
-            unless file_conf.to_s() == ""
-              routines.merge!(eval(file_conf))
+          Dir["#{config.path}/routines/routines_*.yaml"].each do |rout|
+            routine = YAML.load(File.read(rout))
+            unless routine.is_a?(FalseClass)
+              routines.merge!(routine)
             end
           end
         else
           respond "To see all routines on all channels you need to run the command on the master channel.\nI'll display only the routines on this channel.", dest
-          routines = @routines.dup
+          routines = @routines
         end
       else
         if @rules_imported.key?(user.name) and @rules_imported[user.name].key?(user.name) and dest[0] == "D"
-          file_conf = IO.readlines("#{config.path}/routines/routines_#{@rules_imported[user.name][user.name]}.rb").join
-          routines = eval(file_conf)
+          routines = YAML.load(File.read("#{config.path}/routines/routines_#{@rules_imported[user.name][user.name]}.yaml"))
+          routines = {} if routines.is_a?(FalseClass)
         else
-          routines = @routines.dup
+          routines = @routines
         end
       end
 

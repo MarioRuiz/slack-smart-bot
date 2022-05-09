@@ -99,7 +99,7 @@ def rules(user, command, processed, dest, files = [], rules_file = "")
         save_stats :which_rules
         respond "bot1cm"
         react :thumbsup
-
+        
       when /^test silent (.+)$/i
         tempo = $1
         if Time.now.to_s > tempo
@@ -139,6 +139,7 @@ def rules(user, command, processed, dest, files = [], rules_file = "")
         # help: `go to sleep`
         # help:   it will sleep the bot for 5 seconds
         # help:   that's all
+        # help: command_id: :go_to_sleep
         # help:
       when /^go\sto\ssleep/i
         if answer.empty?

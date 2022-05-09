@@ -10,6 +10,7 @@
 /spec/bot/routines/
 /spec/bot/shortcuts/
 /spec/examples.txt
+/test_smartbot/
 /spec/bot/repl
 /spec/bot/announcements/
 /test/tmp/
@@ -25,6 +26,7 @@ tmp.rb
 config_tmp.status
 /status/
 /spec/bot/status/
+/spec/bot/smart-bot-example_teams.yaml
 # Used by dotenv library to load environment variables.
 # .env
 
@@ -63,3 +65,4 @@ build-iPhoneSimulator/
 
 # unless supporting rvm < 1.11.0 or doing something fancy, ignore this:
 .rvmrc
+Gemfile.lock

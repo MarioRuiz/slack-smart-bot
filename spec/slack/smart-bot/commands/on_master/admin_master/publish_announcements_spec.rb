@@ -1,5 +1,5 @@
 
-RSpec.describe SlackSmartBot, "set_maintenance" do
+RSpec.describe SlackSmartBot, "publish_announcements" do
   before(:all) do
     send_message "add announcement Example of message", from: :user1, to: :cexternal
     expect(buffer(to: :cexternal, from: :ubot).join).to match(/The announcement has been added/i)

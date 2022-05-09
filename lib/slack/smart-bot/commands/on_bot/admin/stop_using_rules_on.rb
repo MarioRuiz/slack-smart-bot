@@ -4,12 +4,13 @@ class SlackSmartBot
   # helpadmin: `stop using rules on CHANNEL_NAME`
   # helpadmin:    it will stop using the extended rules on the specified channel.
   # helpadmin:    <https://github.com/MarioRuiz/slack-smart-bot#extending-rules-to-other-channels|more info>
+  # helpadmin: command_id: :stop_using_rules_on
   # helpadmin:
 
   def stop_using_rules_on(dest, user, from, channel, typem)
     save_stats(__method__)
     unless typem == :on_extended
-      if !config.admins.include?(from) #not admin
+      if !is_admin?
         respond "Only admins can extend or stop using the rules. Admins on this channel: #{config.admins}", dest
       else
         get_bots_created()

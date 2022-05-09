@@ -9,15 +9,16 @@ class SlackSmartBot
   # helpadmin:    Examples:
   # helpadmin:      _run routine example_
   # helpadmin:    <https://github.com/MarioRuiz/slack-smart-bot#routines|more info>
+  # helpadmin: command_id: :run_routine
   # helpadmin:
 
   def run_routine(dest, from, name)
     save_stats(__method__)
-    if config.admins.include?(from) #admin user
+    if is_admin?
       if !config.on_master_bot and dest[0] == "D"
         respond "It's only possible to run routines from MASTER channel from a direct message with the bot.", dest
       elsif @routines.key?(@channel_id) and @routines[@channel_id].key?(name)
-        File.delete "#{config.path}/routines/#{@channel_id}/#{name}_output.txt" if File.exists?("#{config.path}/routines/#{@channel_id}/#{name}_output.txt")
+        File.delete "#{config.path}/routines/#{@channel_id}/#{name}_output.txt" if File.exist?("#{config.path}/routines/#{@channel_id}/#{name}_output.txt")
         if @routines[@channel_id][name][:file_path] != ""
           if @routines[@channel_id][name][:file_path].match?(/\.rb$/i)
             ruby = "ruby "

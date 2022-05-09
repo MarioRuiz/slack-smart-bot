@@ -1,4 +1,4 @@
-*Version 1.11.0-DEV35* Released 2022-May-06
+*Version 1.11.0* Released 2022-May-09
 
 *For General users*
 - `run repl` displays results as code in case a value on stdout is returned as Hash or Array (<https://github.com/MarioRuiz/slack-smart-bot/issues/41|#41>).

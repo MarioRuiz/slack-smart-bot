@@ -46,7 +46,11 @@ class SlackSmartBot
         elsif status_id == :killed or status_id == :exited
           m = ":red_circle: #{message}"
         elsif config.on_master_bot and status_id == :maintenance_on
-          m = ":red_circle: The *SmartBot* is on maintenance so not possible to attend any request."
+          if message.to_s == "Sorry I'm on maintenance so I cannot attend your request." #jal
+            m = ":red_circle: The *SmartBot* is on maintenance so not possible to attend any request."
+          else
+            m = ":red_circle: #{message}"
+          end
         elsif config.on_master_bot and status_id == :maintenance_off
           m = ":large_green_circle: The *SmartBot* is up and running again."
         end

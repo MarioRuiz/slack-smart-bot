@@ -20,4 +20,4 @@
 
 ------------------------------
 
-*Previous*: <https://github.com/MarioRuiz/slack-smart-bot/blob/dd23939f93ee95aca3c04d33cd1ce197d6efbd37/whats_new.txt|1.10.0>
+*Previous*: <https://github.com/MarioRuiz/slack-smart-bot/blob/dd23939f93ee95aca3c04d33cd1ce197d6efbd37/whats_new.txt|1.9.0>

@@ -10,9 +10,6 @@ class SlackSmartBot
       unless ch.is_archived
         @channels_id[ch.name] = ch.id
         @channels_name[ch.id] = ch.name
-        user_info = @users.select{|u| u.id == ch.creator or (u.key?(:enterprise_user) and u.enterprise_user.id == ch.creator)}[-1]
-        @channels_creator[ch.id] = user_info.name unless user_info.nil?
-        @channels_creator[ch.name] = user_info.name unless user_info.nil?
       end
     end
   end

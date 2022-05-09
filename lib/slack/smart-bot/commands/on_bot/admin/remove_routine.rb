@@ -14,7 +14,7 @@ class SlackSmartBot
   # helpadmin:
   def remove_routine(dest, from, name)
     save_stats(__method__)
-    if is_admin?
+    if config.admins.include?(from) #admin user
       if @routines.key?(@channel_id) and @routines[@channel_id].key?(name)
         @routines[@channel_id][name][:thread].exit
         @routines[@channel_id].delete(name)

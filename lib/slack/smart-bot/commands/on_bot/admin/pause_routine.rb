@@ -11,7 +11,7 @@ class SlackSmartBot
   # helpadmin:
   def pause_routine(dest, from, name)
     save_stats(__method__)
-    if is_admin?
+    if config.admins.include?(from) #admin user
       if !config.on_master_bot and dest[0] == "D"
         respond "It's only possible to pause routines from MASTER channel from a direct message with the bot.", dest
       elsif @routines.key?(@channel_id) and @routines[@channel_id].key?(name)

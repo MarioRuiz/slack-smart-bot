@@ -99,7 +99,7 @@ def rules(user, command, processed, dest, files = [], rules_file = "")
         save_stats :which_rules
         respond "bot1cm"
         react :thumbsup
-        
+
       when /^test silent (.+)$/i
         tempo = $1
         if Time.now.to_s > tempo

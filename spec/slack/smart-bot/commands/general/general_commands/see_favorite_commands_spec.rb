@@ -115,9 +115,9 @@ RSpec.describe SlackSmartBot, "see_favorite_commands" do
       it "see favorite commands" do
         channel = :cexternal
         FileUtils.rm_rf(Dir["./spec/bot/stats/*"])
-        send_message "see statuses", from: :user2, to: channel
+        send_message "see statuses", from: :user1, to: channel
 
-        send_message "see favorite commands", from: :user2, to: channel
+        send_message "see favorite commands", from: :user1, to: channel
         resp = buffer(to: channel, from: :ubot).join
         expect(resp).to match(/see statuses/i)
         expect(resp).to match(/favorite commands/i)

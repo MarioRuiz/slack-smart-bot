@@ -16,7 +16,7 @@ class SlackSmartBot
   def set_general_message(from, status, message)
     save_stats(__method__)
     if config.on_master_bot
-      if config.masters.include?(from) #admin user
+      if config.admins.include?(from) #admin user
         if status == 'on'
           config.general_message = message
           respond "General message has been set."

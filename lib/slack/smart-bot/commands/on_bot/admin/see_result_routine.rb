@@ -14,7 +14,7 @@ class SlackSmartBot
   # helpadmin:
   def see_result_routine(dest, from, name)
     save_stats(__method__)
-    if is_admin?
+    if config.admins.include?(from) #admin user
       if @routines.key?(@channel_id) and @routines[@channel_id].key?(name)
         if File.exist?("#{config.path}/routines/#{@channel_id}/#{name}_output.txt")
           msg = "*Results from routine run #{File.mtime("#{config.path}/routines/#{@channel_id}/#{name}_output.txt")}*\n"

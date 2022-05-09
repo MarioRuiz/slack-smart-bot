@@ -10,7 +10,7 @@ class SlackSmartBot
   # helpadmin:
   def start_bot(dest, from)
     save_stats(__method__)
-    if is_admin?
+    if config.admins.include?(from) #admin user
       respond "This bot is running and listening from now on. You can pause again: pause this bot", dest
       @status = :on
       unless config.on_master_bot

@@ -19,7 +19,7 @@ class SlackSmartBot
   def set_maintenance(from, status, message)
     save_stats(__method__)
     if config.on_master_bot
-      if config.masters.include?(from) #admin user
+      if config.admins.include?(from) #admin user
         if message == ''
           config.on_maintenance_message = "Sorry I'm on maintenance so I cannot attend your request."
         else

@@ -11,7 +11,7 @@ class SlackSmartBot
     }
     if config.masters.include?(from)
       user_type = :master # master admin
-    elsif is_admin?(from)
+    elsif config.admins.include?(from)
       user_type = :admin
     else
       user_type = :normal #normal user
@@ -112,29 +112,29 @@ class SlackSmartBot
       \n"
     end
 
-    if help.key?(:general_commands_file)
-      txt += "===================================
-        *General commands on any channel where the Smart Bot is a member:*\n" if descriptions
-      txt += help.general_commands_file
-    end
-
-    if help.key?(:on_bot) and help.on_bot.key?(:general) and channel_type != :external and channel_type != :extended
+    if help.key?(:general) and channel_type != :external and channel_type != :extended
       if descriptions
         if channel_type == :direct
           txt += "===================================
           *General commands:*\n"
         else
           txt += "===================================
-          *General commands on Bot channel even when the Smart Bot is not listening to you:*\n"
+          *General commands even when the Smart Bot is not listening to you:*\n"
         end
       end
-      order.on_bot_general.each do |o|
-        txt += help.on_bot.general[o]
+      order.general.each do |o|
+        txt += help.general[o]
       end
       if channel_type == :master_bot
         txt += help.on_master.create_bot
         txt += help.on_master.where_smartbot
       end
+    end
+
+    if help.key?(:general_commands_file)
+      txt += "===================================
+        *General commands on any channel where the Smart Bot is a member:*\n" if descriptions
+      txt += help.general_commands_file
     end
 
     if help.key?(:on_bot) and channel_type != :external and channel_type != :extended
@@ -144,7 +144,7 @@ class SlackSmartBot
           *General commands on bot, DM or on external call on demand:*\n"
         else
           txt += "===================================
-          *General commands on Bot channel only when the Smart Bot is listening to you or on demand:*\n"
+          *General commands only when the Smart Bot is listening to you or on demand:*\n"
         end
       end
       order.on_bot.each do |o|

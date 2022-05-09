@@ -14,7 +14,7 @@ class SlackSmartBot
     if has_access?(__method__, user)
       if @repls.key?(session_name)
         Dir.mkdir("#{config.path}/repl") unless Dir.exist?("#{config.path}/repl")
-        if is_admin?(user.name) or @repls[session_name].creator_name == user.name
+        if config.admins.include?(user.name) or @repls[session_name].creator_name == user.name
           @repls.delete(session_name)
           update_repls()
           File.rename("#{config.path}/repl/#{@channel_id}/#{session_name}.input", "#{config.path}/repl/#{@channel_id}/#{session_name}_#{Time.now.strftime("%Y%m%d%H%M%S%N")}.deleted")

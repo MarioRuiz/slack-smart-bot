@@ -119,7 +119,7 @@ class SlackSmartBot
         end
 
         process_to_run = '
-            ' + env_vars.join("\n") + '
+            ruby -e "' + env_vars.join("\n") + '
             require \"amazing_print\"
             bindme' + serialt + ' = binding
             eval(\"require \'nice_http\'\" , bindme' + serialt + ')
@@ -145,14 +145,7 @@ class SlackSmartBot
                   end
                   error = false
                   begin
-                    begin
-                      original_stdout = $stdout
-                      $stdout = StringIO.new 
-                      resp_repl = eval(code_to_run_repl, bindme' + serialt + ')
-                      stdout_repl = $stdout.string
-                    ensure 
-                      $stdout = original_stdout
-                    end
+                    resp_repl = eval(code_to_run_repl.gsub(/^\s*(puts|print|p|pp)\s/, \"\"), bindme' + serialt + ')
                   rescue Exception => resp_repl
                     error = true
                   end
@@ -162,23 +155,12 @@ class SlackSmartBot
                     }
                   else
                     if code_to_run_repl.match?(/^\s*p\s+/i)
-                      resp_repl = stdout_repl unless stdout_repl.to_s == \'\'
-                      if stdout_repl.to_s == \'\'
-                        resp_repl = resp_repl.inspect
-                      else
-                        resp_repl = stdout_repl 
-                      end
                       open(\"' + File.expand_path(config.path) + '/repl/' + @channel_id + '/' + session_name + '.output\", \"a+\") {|f|
-                        f.puts \"\`\`\`\n#{resp_repl}\`\`\`\"
+                        f.puts \"\`\`\`\n#{resp_repl.inspect}\n\`\`\`\"
                       }
                     else
-                      if stdout_repl.to_s == \'\'
-                        resp_repl = resp_repl.ai
-                      else
-                        resp_repl = stdout_repl 
-                      end
                       open(\"' + File.expand_path(config.path) + '/repl/' + @channel_id + '/' + session_name + '.output\", \"a+\") {|f|
-                        f.puts \"\`\`\`\n#{resp_repl}\`\`\`\"
+                        f.puts \"\`\`\`\n#{resp_repl.ai}\n\`\`\`\"
                       }
                     end
                     unless !add_to_run_repl
@@ -189,35 +171,16 @@ class SlackSmartBot
                   end
                 end
               end
-            end
+            end"
         '
         unless rules_file.empty? # to get the project_folder
           begin
             eval(File.new(config.path+rules_file).read) if File.exist?(config.path+rules_file)
           end
         end
-        process_to_run.gsub!('\"','"')
-        file_run_path = "./tmp/repl/#{@channel_id}/#{session_name}.rb"
-        if defined?(project_folder)
-          Dir.mkdir("#{project_folder}/tmp/") unless Dir.exist?("#{project_folder}/tmp/")
-          Dir.mkdir("#{project_folder}/tmp/repl") unless Dir.exist?("#{project_folder}/tmp/repl")
-          Dir.mkdir("#{project_folder}/tmp/repl/#{@channel_id}/") unless Dir.exist?("#{project_folder}/tmp/repl/#{@channel_id}/")
-          file_run = File.open(file_run_path.gsub('./',"#{project_folder}/"), "w")
-          file_run.write process_to_run
-          file_run.close
-        else
-          Dir.mkdir("./tmp/") unless Dir.exist?("./tmp/")
-          Dir.mkdir("./tmp/repl") unless Dir.exist?("./tmp/repl")
-          Dir.mkdir("./tmp/repl/#{@channel_id}/") unless Dir.exist?("./tmp/repl/#{@channel_id}/")
-          file_run = File.open(file_run_path, "w")
-          file_run.write process_to_run
-          file_run.close
-        end
-
-        process_to_run = "ruby #{file_run_path}"
-
         started = Time.now
-        process_to_run = ("cd #{project_folder} && " + process_to_run) if defined?(project_folder)
+        process_to_run = ("cd #{project_folder} &&" + process_to_run) if defined?(project_folder)
+
         stdin, stdout, stderr, wait_thr = Open3.popen3(process_to_run)
         timeout = 30 * 60 # 30 minutes
         

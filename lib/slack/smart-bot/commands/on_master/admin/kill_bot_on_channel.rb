@@ -21,7 +21,7 @@ class SlackSmartBot
         respond "There is no channel with that name: #{channel}, please be sure is written exactly the same", dest
       elsif @bots_created.keys.include?(channel_id)
         @bots_created[channel_id] ||= {}
-        if @bots_created[channel_id][:admins].to_s.split(",").include?(from) # todo: consider adding is_admin?
+        if @bots_created[channel_id][:admins].to_s.split(",").include?(from)
           if @bots_created[channel_id][:thread].kind_of?(Thread) and @bots_created[channel_id][:thread].alive?
             @bots_created[channel_id][:thread].kill
           end

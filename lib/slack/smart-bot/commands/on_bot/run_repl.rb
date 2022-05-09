@@ -22,7 +22,7 @@ class SlackSmartBot
       if File.exist?("#{config.path}/repl/#{@channel_id}/#{session_name}.run")
         if @repls.key?(session_name) and (@repls[session_name][:type] == :private or @repls[session_name][:type] == :private_clean) and 
           @repls[session_name][:creator_name]!=user.name and 
-          !is_admin?(user.name)
+          !config.admins.include?(user.name)
           respond "The REPL with session name: #{session_name} is private", dest
         else
           if @repls.key?(session_name) #not temp
@@ -60,15 +60,7 @@ class SlackSmartBot
               respond "*#{session_name}*: Nothing returned."
             else
               if stdout.to_s.lines.count < 60 and stdout.to_s.size < 3500
-                output = ''
-                stdout.each_line do |line|
-                  if line.match?(/^{.+}$/) or line.match?(/^\[.+\]$/)
-                    output += "```\n#{line}```\n"
-                  else
-                    output +=line
-                  end
-                end
-                respond "*#{session_name}*: #{output}"
+                respond "*#{session_name}*: #{stdout}"
               else
                 send_file(dest, "", 'response.rb', "", 'text/plain', "ruby", content: stdout)
               end

@@ -1,7 +1,6 @@
 class SlackSmartBot
   def respond(msg = "", dest = nil, unfurl_links: true, unfurl_media: true, thread_ts: "", web_client: true, blocks: [], dont_share: false, return_message: false, max_chars_per_message: 4000)
     result = true
-    resp = nil
     if (msg.to_s != "" or !msg.to_s.match?(/^A\s*\z/) or !blocks.empty?) and Thread.current[:routine_type].to_s != "bgroutine"
       if !web_client.is_a?(TrueClass) and !web_client.is_a?(FalseClass)
         (!unfurl_links or !unfurl_media) ? web_client = true : web_client = false
@@ -123,14 +122,14 @@ class SlackSmartBot
             end
           elsif dest[0] == "D" or dest[0] == "U" or dest[0] == "W" # Direct message
             msgs.each do |msg|
-              resp = send_msg_user(dest, msg, on_thread, unfurl_links: unfurl_links, unfurl_media: unfurl_media)
+              send_msg_user(dest, msg, on_thread, unfurl_links: unfurl_links, unfurl_media: unfurl_media)
               sleep wait
             end
           elsif dest[0] == "@"
             begin
               user_info = @users.select { |u| u.id == dest[1..-1] or u.name == dest[1..-1] or (u.key?(:enterprise_user) and u.enterprise_user.id == dest[1..-1]) }[-1]
               msgs.each do |msg|
-                resp = send_msg_user(user_info.id, msg, on_thread, unfurl_links: unfurl_links, unfurl_media: unfurl_media)
+                send_msg_user(user_info.id, msg, on_thread, unfurl_links: unfurl_links, unfurl_media: unfurl_media)
                 sleep wait
               end
             rescue Exception => stack
@@ -197,14 +196,14 @@ class SlackSmartBot
             end
           elsif dest[0] == "D" or dest[0] == "U" or dest[0] == "W" # Direct message
             blocks.each_slice(40).to_a.each do |blockstmp|
-              resp = send_msg_user(dest, msg, on_thread, unfurl_links: unfurl_links, unfurl_media: unfurl_media, blocks: blockstmp)
+              send_msg_user(dest, msg, on_thread, unfurl_links: unfurl_links, unfurl_media: unfurl_media, blocks: blockstmp)
               sleep wait
             end
           elsif dest[0] == "@"
             begin
               user_info = @users.select { |u| u.id == dest[1..-1] or (u.key?(:enterprise_user) and u.enterprise_user.id == dest[1..-1]) }[-1]
               blocks.each_slice(40).to_a.each do |blockstmp|
-                resp = send_msg_user(user_info.id, msg, on_thread, unfurl_links: unfurl_links, unfurl_media: unfurl_media, blocks: blockstmp)
+                send_msg_user(user_info.id, msg, on_thread, unfurl_links: unfurl_links, unfurl_media: unfurl_media, blocks: blockstmp)
                 sleep wait
               end
             rescue Exception => stack
@@ -229,7 +228,6 @@ class SlackSmartBot
     if Thread.current.key?(:routine) and Thread.current[:routine]
       File.write("#{config.path}/routines/#{@channel_id}/#{Thread.current[:routine_name]}_output.txt", msg, mode: "a+")
     end
-    result = resp if return_message
     return result
   end
 end

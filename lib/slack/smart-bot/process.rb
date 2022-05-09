@@ -152,27 +152,26 @@ class SlackSmartBot
           see_routines(dest, from, user, all)
         when /\A\s*get\s+bot\s+logs?\s*$/i
           get_bot_logs(dest, from, typem)
-        when /\A\s*send\s+message\s+(on|to|in)\s*([^\s]+)\s+([^\s]+)\s*:\s*(.+)\s*$/im,
-          /\A\s*send\s+message\s+(on|to|in)\s*([^\s]+)\s*():\s*(.+)\s*$/im
-          to = $2
-          thread_ts = $3.to_s
-          message = $4
-          if to.match?(/\Ahttps:/i)
-            to_channel, thread_ts = to.scan(/\/archives\/(\w+)\/(\w\d+)/)[0]
-          else
-            to_channel = to.scan(/<#([^>]+)\|.*>/).join 
-            to_channel = to.scan(/#([^\s]+)/).join if to_channel == ''
-          end
-          if to_channel == ''
-            to_user = to.scan(/<@(\w+)>/).join
-            if to_user == ''
-              # message_id
-            else
-              to = to_user
+        when /\A\s*send\s+message\s+(on|to|in)\s*(.+)\s*:\s*(.+)\s*$/im
+          opts = $2
+          message = $3
+          thread_ts = ''
+          to_channel = ''
+          to = []
+
+          opts.split(' ').each do |opt|
+            if opt.match?(/\Ahttps:/i)
+              to_channel, thread_ts = opt.scan(/\/archives\/(\w+)\/(\w\d+)/)[0]
+              to << to_channel
+            elsif opt.match(/<#([^>]+)\|.*>/) #channel
+              to << $1
+            elsif opt.match(/#([^\s]+)/) #channel
+              to << $1
+            elsif opt.match(/<@(\w+)>/)
+              to << $1
             end
-          else
-            to = to_channel
           end
+                    
           thread_ts.gsub!('.','')
           send_message(dest, from, typem, to, thread_ts, message)
         when /\A\s*delete\s+message\s+(.+)\s*$/i

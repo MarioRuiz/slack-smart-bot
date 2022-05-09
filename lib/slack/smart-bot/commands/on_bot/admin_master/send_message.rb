@@ -3,8 +3,10 @@ class SlackSmartBot
     # helpadmin: ----------------------------------------------
     # helpadmin: `send message to @USER_NAME : MESSAGE`
     # helpadmin: `send message to #CHANNEL_NAME : MESSAGE`
-    # helpadmin: `send message to #CHANNEL_NAME THREAD_ID : MESSAGE`
+    # helpadmin: `send message to THREAD_ID : MESSAGE`
     # helpadmin: `send message to URL : MESSAGE`
+    # helpadmin: `send message to @USER1 @USER99 : MESSAGE`
+    # helpadmin: `send message to #CHANNEL1 #CHANNEL99 : MESSAGE`
     # helpadmin:    It will send the specified message as SmartBot
     # helpadmin:    You can use this command only if you are a Master admin user and if you are in a private conversation with the bot
     # helpadmin: command_id: :send_message
@@ -16,7 +18,12 @@ class SlackSmartBot
           message_orig = Thread.current[:command_orig].to_s.gsub("\u00A0", " ").scan(/[^:]+\s*:\s+(.+)/im).join
           message = message_orig unless message_orig == ''
         end
-        succ = (respond message, to, thread_ts: thread_ts, web_client: true)
+        succ = true
+        to.each do |t|
+          unless t.match?(/^\s*$/)
+            succ = (respond message, t, thread_ts: thread_ts, web_client: true) && succ
+          end
+        end
         if succ
           react :heavy_check_mark
         else

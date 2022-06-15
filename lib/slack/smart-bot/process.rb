@@ -152,7 +152,8 @@ class SlackSmartBot
           see_routines(dest, from, user, all)
         when /\A\s*get\s+bot\s+logs?\s*$/i
           get_bot_logs(dest, from, typem)
-        when /\A\s*send\s+message\s+(on|to|in)\s*(.+)\s*:\s*(.+)\s*$/im
+        when /\A\s*send\s+message\s+(on|to|in)\s+(https?:[^:]+)\s*:\s*(.+)\s*$/im,
+          /\A\s*send\s+message\s+(on|to|in)\s*([^:]+)\s*:\s*(.+)\s*$/im
           opts = $2
           message = $3
           thread_ts = ''

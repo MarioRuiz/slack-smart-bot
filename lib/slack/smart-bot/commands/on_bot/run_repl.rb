@@ -2,28 +2,39 @@ class SlackSmartBot
   # help: ----------------------------------------------
   # help: `run repl SESSION_NAME`
   # help: `run repl SESSION_NAME ENV_VAR=VALUE ENV_VAR=VALUE`
+  # help: `run repl SESSION_NAME PARAMS`
   # help: `run live SESSION_NAME`
   # help: `run irb SESSION_NAME`
   # help:     Will run the repl session specified and return the output. 
   # help:     You can supply the Environmental Variables you need for the Session
+  # help:     PARAMS: Also it is possible to supply code that will be run before the repl code on the same session.
   # help:     It will return only the values that were print out on the repl with puts, print, p or pp
   # help:     Example:
   # help:       _run repl CreateCustomer LOCATION=spain HOST='https://10.30.40.50:8887'_
   # help:     <https://github.com/MarioRuiz/slack-smart-bot#repl|more info>
   # help: command_id: :run_repl
   # help:
-  def run_repl(dest, user, session_name, env_vars, rules_file)
+  def run_repl(dest, user, session_name, env_vars, prerun, rules_file)
     #todo: add tests
     from = user.name
     if has_access?(__method__, user)
       save_stats(__method__)
       Dir.mkdir("#{config.path}/repl") unless Dir.exist?("#{config.path}/repl")
       Dir.mkdir("#{config.path}/repl/#{@channel_id}") unless Dir.exist?("#{config.path}/repl/#{@channel_id}")
+      code = prerun.join("\n")
       if File.exist?("#{config.path}/repl/#{@channel_id}/#{session_name}.run")
         if @repls.key?(session_name) and (@repls[session_name][:type] == :private or @repls[session_name][:type] == :private_clean) and 
           @repls[session_name][:creator_name]!=user.name and 
           !is_admin?(user.name)
           respond "The REPL with session name: #{session_name} is private", dest
+        elsif !prerun.empty? and (code.match?(/System/i) or code.match?(/Kernel/i) or code.include?("File.") or
+          code.include?("`") or code.include?("exec") or code.include?("spawn") or code.include?("IO.") or
+          code.match?(/open3/i) or code.match?(/bundle/i) or code.match?(/gemfile/i) or code.include?("%x") or
+          code.include?("ENV") or code.match?(/=\s*IO/) or code.include?("Dir.") or 
+          code.match?(/=\s*File/) or code.match?(/=\s*Dir/) or code.match?(/<\s*File/) or code.match?(/<\s*Dir/) or
+          code.match?(/\w+:\s*File/) or code.match?(/\w+:\s*Dir/) or 
+          code.match?(/=?\s*(require|load)(\(|\s)/i))
+          respond "Sorry I cannot run this due security reasons", dest
         else
           if @repls.key?(session_name) #not temp
             @repls[session_name][:accessed] = Time.now.to_s
@@ -45,6 +56,10 @@ class SlackSmartBot
           if File.exist?("#{project_folder}/.smart-bot-repl") and 
             ((@repls.key?(session_name) and @repls[session_name][:type] != :private_clean and @repls[session_name][:type] != :public_clean) or !@repls.key?(session_name))
             content += File.read("#{project_folder}/.smart-bot-repl")
+            content += "\n"
+          end
+          unless prerun.empty?
+            content += prerun.join("\n")
             content += "\n"
           end
           content += File.read("#{config.path}/repl/#{@channel_id}/#{session_name}.run").gsub(/^(quit|exit|bye)$/i,'') #todo: remove this gsub, it will never contain it

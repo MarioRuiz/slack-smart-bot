@@ -396,8 +396,8 @@ class SlackSmartBot
         when /\A\s*get\s+(repl|irb|live)\s+([\w\-]+)\s*/i
           session_name = $2
           get_repl(dest, user, session_name)      
-        when /\A\s*run\s+(repl|irb|live)\s+([\w\-]+)()\s*$/i,
-          /^\s*run\s+(repl|irb|live)\s+([\w\-]+)\s+(.+)\s*$/i
+        when /\A\s*run\s+(repl|irb|live)\s+([\w\-]+)()\s*\z/im,
+          /^\s*run\s+(repl|irb|live)\s+([\w\-]+)\s+(.+)\s*$/im
           session_name = $2
           opts = " #{$3}"
           env_vars = opts.scan(/\s+[\w\-]+="[^"]+"/i) + opts.scan(/\s+[\w\-]+='[^']+'/i)  
@@ -408,8 +408,9 @@ class SlackSmartBot
               ev.gsub!("=","']=")
               ev.lstrip!
               env_vars[idx] = "ENV['#{ev}"
-          end
-          run_repl(dest, user, session_name, env_vars.flatten, rules_file)      
+          end #jal
+          prerun = Thread.current[:command_orig].gsub('```', '`').scan(/\s+`(.+)`/m)
+          run_repl(dest, user, session_name, env_vars.flatten, prerun.flatten, rules_file)      
         when /\A\s*(delete|remove)\s+(repl|irb|live)\s+([\w\-]+)\s*$/i
           repl_name = $3
           delete_repl(dest, user, repl_name)

@@ -377,7 +377,7 @@ Running Example:
 >**_Smart-Bot>_** `Session name: *Create10RandomUsers*`  
 >**_Peter>_** `http = NiceHttp.new("https://reqres.in/")`  
 >**_Smart-Bot>_** `#<NiceHttp:0x00007fc6e216e328 @host="reqres.in", @port=443...>`  
->**_Peter>_** `request = { path: '/api/users' }`  
+>**_Peter>_** `request ||= { path: '/api/users' }`  
 >**_Smart-Bot>_** `{ :path => "/api/users" }`  
 >**_Peter>_** `request.data = { name: '1-10:L', job: 'leader|worker' }`  
 >**_Smart-Bot>_** `{ :name => "1-10:L", :job => "leader|worker" }`  
@@ -395,6 +395,9 @@ Running Example:
 >**_Smart-Bot>_** `Running REPL Create10RandomUsers`  
 >**_Smart-Bot>_** `Create10RandomUsers: 10 Random Users Created`  
 
+You can run repls and supply parameters to the repl that will be executed on the same session just before the repl. [More info](https://github.com/MarioRuiz/slack-smart-bot/issues/60)  
+Example:
+>**_Peter>_** ``run repl Create10RandomUsers `request = {path: '/api-dev/users/'}` ``  
 
 Other REPL commands: `see repls`, `run repl SESSION_NAME ENV_VAR=value`, `get repl SESSION_NAME`, `delete repl SESSION_NAME`
 

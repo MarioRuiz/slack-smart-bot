@@ -186,7 +186,7 @@ class SlackSmartBot
         end
       end
       load "#{config.path}/rules/general_commands.rb" if File.exist?("#{config.path}/rules/general_commands.rb") and @datetime_general_commands != File.mtime("#{config.path}/rules/general_commands.rb")
-
+      eval(File.new(config.path + config.rules_file).read) if !defined?(rules) and File.exist?(config.path+config.rules_file) and !config.rules_file.empty?
       unless typem == :dont_treat or user_info.nil?
         if (Time.now - @last_activity_check) > 60 * 30 #every 30 minutes
           @last_activity_check = Time.now

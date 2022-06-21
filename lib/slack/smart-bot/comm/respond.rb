@@ -57,7 +57,7 @@ class SlackSmartBot
           end
           msgs << txt
           msgs.flatten!
-          msgs.delete_if{|e| e.match?(/^\s*$/)}
+          msgs.delete_if{|e| e.match?(/\A\s*\z/)}
           if dest.nil?
             if config[:simulate]
               open("#{config.path}/buffer_complete.log", "a") { |f|

@@ -400,7 +400,7 @@ class SlackSmartBot
         when /\A\s*run\s+(repl|irb|live)\s+([\w\-]+)()\s*\z/im,
           /^\s*run\s+(repl|irb|live)\s+([\w\-]+)\s+(.+)\s*$/im
           session_name = $2
-          if Thread.current[:command_orig].match(/^\s*run\s+(repl|irb|live)\s+([\w\-]+)\s+(.+)\s*$/im)
+          if Thread.current[:command_orig].match(/\s*run\s+(repl|irb|live)\s+([\w\-]+)\s+(.+)\s*$/im)
             opts = " #{$3}"
           else
             opts = ''

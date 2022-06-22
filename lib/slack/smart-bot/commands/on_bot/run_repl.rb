@@ -65,11 +65,16 @@ class SlackSmartBot
           content += File.read("#{config.path}/repl/#{@channel_id}/#{session_name}.run").gsub(/^(quit|exit|bye)$/i, "") #todo: remove this gsub, it will never contain it
           Dir.mkdir("#{project_folder}/tmp") unless Dir.exist?("#{project_folder}/tmp")
           Dir.mkdir("#{project_folder}/tmp/repl") unless Dir.exist?("#{project_folder}/tmp/repl")
-          if Thread.current[:on_thread]
-            content.gsub!(/^\s*puts/, "puts ''\nputs")
-            content.gsub!(/^\s*p\s+/, "puts ''\np ")
-            content.gsub!(/^\s*pp\s+/, "puts ''\npp ")
-            content.gsub!(/^\s*print\s+/, "puts ''\nprint ")
+          if Thread.current[:on_thread] 
+            # to force stdout.each to be performed every 3 seconds
+            content = "Thread.new do
+              while true do
+                puts ''
+                sleep 3
+              end
+            end
+            #{content}
+            "
           end
           random = "5:LN".gen
           File.write("#{project_folder}/tmp/repl/#{session_name}_#{user.name}_#{random}.rb", content, mode: "w+")

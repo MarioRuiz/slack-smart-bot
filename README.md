@@ -610,7 +610,17 @@ Examples:
 >**_`ping team sales development What's the status  on last deployment?`_**  
 >**_`contact team sales qa Please finish testing of dev02 feature before noon`_**  
 
-Other team commands: **_`delete team TEAM_NAME`_**  
+It is also possible to add notes for the team, even you can specify if those notes are private so only the members of the team can see them. You can use different types of notes: memo, note, issue, task, feature, bug. Also you can indicate the topic of the note. To be able to add or delete notes you need to be a member of that team.
+
+Examples:  
+>**_`add memo to sales team : Add tests for Michigan feature`_**  
+>**_`add private note to sales team : Bills will need to be deployed before Friday`_**  
+>**_`add memo to dev team web : Check last version`_**  
+>**_`add private bug to dev team SRE : Logs should not be accessible from outside VPN`_**  
+>**_`add memo sales team : Add tests for Michigan feature`_**  
+>**_`add memo team sales: Add tests for Michigan feature`_**  
+
+Other team commands: **_`delete team TEAM_NAME`_**, **_`delete memo ID from team TEAM_NAME`_**  
 
 
 ### Tips

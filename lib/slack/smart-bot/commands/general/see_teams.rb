@@ -68,7 +68,8 @@ class SlackSmartBot
             user_info = @users.select { |u| u.id == m or (u.key?(:enterprise_user) and u.enterprise_user.id == m) or u.name == m or (u.key?(:enterprise_user) and u.enterprise_user.name == m) }[-1]
             assigned_members.delete(m) if user_info.nil? or user_info.deleted
           end
-
+          channels_members = []
+          all_team_members = assigned_members.dup
           if team.channels.key?("members")
             team_members = []
             team.channels["members"].each do |ch|
@@ -77,6 +78,7 @@ class SlackSmartBot
               if tm.nil?
                 respond ":exclamation: Add the Smart Bot to *##{ch}* channel to be able to get the list of members.", dest
               else
+                channels_members << @channels_id[ch]
                 tm.each do |m|
                   user_info = @users.select { |u| u.id == m or (u.key?(:enterprise_user) and u.enterprise_user.id == m) }[-1]
                   team_members << user_info.name unless user_info.is_app_user or user_info.is_bot
@@ -88,6 +90,7 @@ class SlackSmartBot
             unassigned_members = team_members - assigned_members
             unassigned_members.delete(config.nick)
             not_on_team_channel = assigned_members - team_members
+            all_team_members += team_members
           else
             unassigned_members = []
             not_on_team_channel = []
@@ -212,6 +215,45 @@ class SlackSmartBot
                 end
               end
               message << "        _`#{type}`_:  <##{channel_ids.join("> <#")}>" unless channel_ids.empty?
+            end
+
+            unless !team.key?(:memos) or team.memos.empty? or (team_name.to_s == '' and search.to_s == '')
+              all_memos = {}
+              team.memos.each do |memo|
+                if !memo.priv or 
+                  (memo.priv and (all_team_members.include?(user.name) and (users_link or channels_members.include?(Thread.current[:dest]))))
+                  all_memos[memo.topic] ||= []
+                  case memo.type 
+                    when 'memo'; memo.type = ':memo:'
+                    when 'note'; memo.type = ':abc:'
+                    when 'bug'; memo.type = ':bug:'
+                    when 'task'; memo.type = ':clock1:'
+                    when 'feature'; memo.type = ':sunny:'
+                    when 'issue'; memo.type = ':hammer:'
+                    else memo.type = ':heavy_minus_sign:'
+                  end
+                  all_memos[memo.topic] << memo
+                end
+              end
+              message << "   > *_memos_*" unless all_memos.empty?
+
+              if all_memos.key?(:no_topic)
+                all_memos[:no_topic].each do |memo|
+                  memo.priv ? priv = " `private`" : priv = ''
+                  message << "        #{memo.type} #{memo.date.gsub('-','/')[0..9]}:  #{memo.message} (#{memo.user} #{memo.memo_id})#{priv}"
+                end
+              end
+              all_memos[:no_topic] = []
+              all_memos.each do |topic, mems|
+                unless mems.empty?
+                  message << "        _`#{topic}`_:"
+                  mems.each do |memo|
+                    memo.priv ? priv = " `private`" : priv = ''
+                    message << "            #{memo.type} #{memo.date.gsub('-','/')[0..9]}:  #{memo.message} (#{memo.user} #{memo.memo_id})#{priv}"
+                  end
+                end
+              end
+
             end
 
             unless team.info.empty?

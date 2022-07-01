@@ -393,9 +393,10 @@ def general_bot_commands(user, command, dest, files = [])
         # help: `add TYPE to TEAM_NAME team TOPIC : MESSAGE`
         # help: `add private TYPE to TEAM_NAME team TOPIC : MESSAGE`
         # help:     It will add a memo to the team. The memos will be displayed with the team info.
+        # help:     Only team members can add a memo.
         # help:     TYPE: memo, note, issue, task, feature, bug
         # help:     TOPIC: one word, a-z, A-Z, 0-9, - and _
-        # help:     If private then the memo will be only displayed on a DM and the members channel.
+        # help:     If private then the memo will be only displayed to team members on a DM or the members channel.
         # help:  Examples:
         # help:     _add memo to sales team : Add tests for Michigan feature_
         # help:     _add private note to sales team : Bills will need to be deployed before Friday_
@@ -418,7 +419,7 @@ def general_bot_commands(user, command, dest, files = [])
         # help: ----------------------------------------------
         # help: `delete memo ID from TEAM_NAME team`
         # help:     It will delete the supplied memo ID on the team specified.
-        # help:     aliases for memo: note, issue, task, message
+        # help:     aliases for memo: note, issue, task, feature, bug
         # help:     You have to be a member of the team, the creator or a Master admin to be able to delete a memo.
         # help:  Examples:
         # help:     _delete memo 32 from sales team_

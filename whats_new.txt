@@ -1,4 +1,4 @@
-*Version 1.12.0-DEV07* Released 2022-Jun-30
+*Version 1.12.0-DEV09* Released 2022-Jul-01
 
 *For General users*
 - `run repl` accepts local parameters and precode to be supplied (<https://github.com/MarioRuiz/slack-smart-bot/issues/60|#60>).
@@ -6,7 +6,7 @@
 - Now you can add notes for the team, even you can specify if those notes are private so only the members of the team can see them. You can use different types of notes: memo, note, issue, task, feature, bug. Also you can indicate the topic of the note. To be able to add or delete notes you need to be a member of that team. Example: `add private bug to Moon team SRE : Logs should not be accessible from outside VPN` (<https://github.com/MarioRuiz/slack-smart-bot/issues/64|#64>)
 
 *For Admin users*
-- 
+- Bot Stats is now saving the time_zone of the user (<https://github.com/MarioRuiz/slack-smart-bot/issues/66|#66>)
 ------------------------------
 
 *Previous*: <https://github.com/MarioRuiz/slack-smart-bot/blob/b1a368c3342094e886f53d96dc4d12ecd81ab04b/whats_new.txt|1.11.0>

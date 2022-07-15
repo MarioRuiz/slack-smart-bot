@@ -610,7 +610,7 @@ Examples:
 >**_`ping team sales development What's the status  on last deployment?`_**  
 >**_`contact team sales qa Please finish testing of dev02 feature before noon`_**  
 
-It is also possible to add notes for the team, even you can specify if those notes are private so only the members of the team can see them. You can use different types of notes: memo, note, issue, task, feature, bug. Also you can indicate the topic of the note. To be able to add or delete notes you need to be a member of that team.
+It is also possible to add notes for the team, even you can specify if those notes are private so only the members of the team can see them or even personal so only you will. You can use different types of notes: memo, note, issue, task, feature, bug. Also you can indicate the topic of the note. To be able to add or delete notes you need to be a member of that team.
 
 Examples:  
 >**_`add memo to sales team : Add tests for Michigan feature`_**  

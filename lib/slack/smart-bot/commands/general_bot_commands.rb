@@ -390,13 +390,16 @@ def general_bot_commands(user, command, dest, files = [])
         # help: ----------------------------------------------
         # help: `add TYPE to TEAM_NAME team : MESSAGE`
         # help: `add private TYPE to TEAM_NAME team : MESSAGE`
+        # help: `add personal TYPE to TEAM_NAME team : MESSAGE`
         # help: `add TYPE to TEAM_NAME team TOPIC : MESSAGE`
         # help: `add private TYPE to TEAM_NAME team TOPIC : MESSAGE`
+        # help: `add personal TYPE to TEAM_NAME team TOPIC : MESSAGE`
         # help:     It will add a memo to the team. The memos will be displayed with the team info.
         # help:     Only team members can add a memo.
         # help:     TYPE: memo, note, issue, task, feature, bug
         # help:     TOPIC: one word, a-z, A-Z, 0-9, - and _
         # help:     If private then the memo will be only displayed to team members on a DM or the members channel.
+        # help:     If personal then the memo will be only displayed to the creator on a DM.
         # help:  Examples:
         # help:     _add memo to sales team : Add tests for Michigan feature_
         # help:     _add private note to sales team : Bills will need to be deployed before Friday_
@@ -404,17 +407,18 @@ def general_bot_commands(user, command, dest, files = [])
         # help:     _add private bug to dev team SRE : Logs should not be accessible from outside VPN_
         # help:     _add memo sales team : Add tests for Michigan feature_
         # help:     _add memo team sales: Add tests for Michigan feature_
+        # help:     _add personal memo team sales: Check my vacations_
         # help:    <https://github.com/MarioRuiz/slack-smart-bot#teams|more info>
         # help: command_id: :add_memo_team
         # help: 
-      when /\A\s*add\s+(private\s+)?(memo|note|issue|task|feature|bug)\s+(to\s+)?team\s+([\w\-]+)\s*([^:]+)?\s*:\s+(.+)\s*\z/im,
-           /\A\s*add\s+(private\s+)?(memo|note|issue|task|feature|bug)\s+(to\s+)?([\w\-]+)\s+team\s*([^:]+)?\s*:\s+(.+)\s*\z/im 
-        priv = $1.to_s!=''
+      when /\A\s*add\s+(private\s+|personal\s+)?(memo|note|issue|task|feature|bug)\s+(to\s+)?team\s+([\w\-]+)\s*([^:]+)?\s*:\s+(.+)\s*\z/im,
+           /\A\s*add\s+(private\s+|personal\s+)?(memo|note|issue|task|feature|bug)\s+(to\s+)?([\w\-]+)\s+team\s*([^:]+)?\s*:\s+(.+)\s*\z/im 
+        privacy = $1.to_s.strip.downcase
         type = $2.downcase
         team_name = $4.downcase
         topic = $5.to_s.strip
         message = Thread.current[:command_orig].to_s.gsub("\u00A0", " ").scan(/^[^:]+:\s*(.+)\s*$/im).join
-        add_memo_team(user, priv, team_name, topic, type, message)
+        add_memo_team(user, privacy, team_name, topic, type, message)
 
         # help: ----------------------------------------------
         # help: `delete memo ID from TEAM_NAME team`

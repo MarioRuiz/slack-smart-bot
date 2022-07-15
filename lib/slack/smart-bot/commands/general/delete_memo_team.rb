@@ -30,33 +30,38 @@ class SlackSmartBot
       respond "You have to be a member of the team or a Master admin to be able to delete a memo of the team."
     elsif !@teams[team_name.to_sym].key?(:memos) or @teams[team_name.to_sym][:memos].empty? or !@teams[team_name.to_sym][:memos].memo_id.include?(memo_id.to_i)
       respond "It seems like there is no memo with id #{memo_id}"
-    else
-      if answer.empty?
-        message = @teams[team_name.to_sym][:memos].select{|memo| memo.memo_id == memo_id.to_i}.message.join
-        ask "do you really want to delete the memo #{memo_id} (#{message}) from #{team_name} team? (yes/no)"
+    elsif @teams[team_name.to_sym][:memos].memo_id.include?(memo_id.to_i)
+      memo_selected = @teams[team_name.to_sym][:memos].select { |m| m.memo_id == memo_id.to_i }[-1]
+      if memo_selected.privacy == 'personal' and memo_selected.user != user.name
+        respond "Only the creator can delete a personal memo."
       else
-        case answer
-        when /yes/i, /yep/i, /sure/i
-          answer_delete
-          memos = []
-          message = ''
-          get_teams()
-          @teams[team_name.to_sym][:memos].each do |memo|
-            if memo.memo_id != memo_id.to_i
-              memos << memo 
-            else
-              message = memo.message
-            end
-          end
-          @teams[team_name.to_sym][:memos] = memos
-          update_teams()
-          respond "The memo has been deleted from team #{team_name}: #{message}"
-        when /no/i, /nope/i, /cancel/i
-          answer_delete
-          respond "Ok, the memo was not deleted"
+        if answer.empty?
+          message = @teams[team_name.to_sym][:memos].select { |memo| memo.memo_id == memo_id.to_i }.message.join
+          ask "do you really want to delete the memo #{memo_id} (#{message}) from #{team_name} team? (yes/no)"
         else
-          respond "I don't understand"
-          ask "do you really want to delete the memo from #{team_name} team? (yes/no)"
+          case answer
+          when /yes/i, /yep/i, /sure/i
+            answer_delete
+            memos = []
+            message = ""
+            get_teams()
+            @teams[team_name.to_sym][:memos].each do |memo|
+              if memo.memo_id != memo_id.to_i
+                memos << memo
+              else
+                message = memo.message
+              end
+            end
+            @teams[team_name.to_sym][:memos] = memos
+            update_teams()
+            respond "The memo has been deleted from team #{team_name}: #{message}"
+          when /no/i, /nope/i, /cancel/i
+            answer_delete
+            respond "Ok, the memo was not deleted"
+          else
+            respond "I don't understand"
+            ask "do you really want to delete the memo from #{team_name} team? (yes/no)"
+          end
         end
       end
     end

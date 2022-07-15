@@ -1,5 +1,5 @@
 class SlackSmartBot
-  def add_memo_team(user, priv, team_name, topic, type, message)
+  def add_memo_team(user, privacy, team_name, topic, type, message)
     save_stats(__method__)
 
     get_teams()
@@ -40,7 +40,7 @@ class SlackSmartBot
         memo_id: memo_id,
         topic: topic,
         type: type,
-        priv: priv,
+        privacy: privacy,
         user: user.name,
         date: Time.now.strftime("%Y-%m-%dT%H:%M:%S.000Z")[0..18],
         message: message

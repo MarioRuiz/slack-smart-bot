@@ -220,8 +220,9 @@ class SlackSmartBot
             unless !team.key?(:memos) or team.memos.empty? or (team_name.to_s == '' and search.to_s == '')
               all_memos = {}
               team.memos.each do |memo|
-                if !memo.priv or 
-                  (memo.priv and (all_team_members.include?(user.name) and (users_link or channels_members.include?(Thread.current[:dest]))))
+                if memo.privacy.empty? or 
+                  (memo.privacy == 'private' and (all_team_members.include?(user.name) and (users_link or channels_members.include?(Thread.current[:dest])))) or
+                  (memo.privacy == 'personal' and memo.user == user.name and users_link)
                   all_memos[memo.topic] ||= []
                   case memo.type 
                     when 'memo'; memo.type = ':memo:'
@@ -239,7 +240,11 @@ class SlackSmartBot
 
               if all_memos.key?(:no_topic)
                 all_memos[:no_topic].each do |memo|
-                  memo.priv ? priv = " `private`" : priv = ''
+                  case memo.privacy
+                    when 'private'; priv = " `private`"
+                    when 'personal'; priv = " `personal`"
+                    else priv = ''
+                  end
                   message << "        #{memo.type} #{memo.date.gsub('-','/')[0..9]}:  #{memo.message} (#{memo.user} #{memo.memo_id})#{priv}"
                 end
               end
@@ -248,7 +253,11 @@ class SlackSmartBot
                 unless mems.empty?
                   message << "        _`#{topic}`_:"
                   mems.each do |memo|
-                    memo.priv ? priv = " `private`" : priv = ''
+                    case memo.privacy
+                      when 'private'; priv = " `private`"
+                      when 'personal'; priv = " `personal`"
+                      else priv = ''
+                    end
                     message << "            #{memo.type} #{memo.date.gsub('-','/')[0..9]}:  #{memo.message} (#{memo.user} #{memo.memo_id})#{priv}"
                   end
                 end

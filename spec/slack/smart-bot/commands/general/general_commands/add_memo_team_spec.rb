@@ -75,6 +75,12 @@ RSpec.describe SlackSmartBot, "add_memo_team" do
         expect(bufferc(to: channel, from: :ubot).join).to match(/:memo:\s+\d\d\d\d\/\d\d\/\d\d:\s+some\stext\s\(smartbotuser1\s\d+\)\s+`private`/)
       end
 
+      it "is possible to add a personal memo" do
+        send_message "add personal memo to example team : some text", from: :user1, to: DIRECT.user1.ubot
+        expect(buffer(to: DIRECT.user1.ubot, from: :ubot).join).to match(/The memo has been added to \*example\* team/)
+        expect(bufferc(to: DIRECT.user1.ubot, from: :ubot).join).to match(/:memo:\s+\d\d\d\d\/\d\d\/\d\d:\s+some\stext\s\(smartbotuser1\s\d+\)\s+`personal`/)
+      end
+
       it "is possible to add a topic" do
         send_message "add memo to example team mytopic: some text", from: :user1, to: channel
         expect(buffer(to: channel, from: :ubot).join).to match(/The memo has been added to \*example\* team/)

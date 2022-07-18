@@ -223,42 +223,90 @@ class SlackSmartBot
                 if memo.privacy.empty? or 
                   (memo.privacy == 'private' and (all_team_members.include?(user.name) and (users_link or channels_members.include?(Thread.current[:dest])))) or
                   (memo.privacy == 'personal' and memo.user == user.name and users_link)
-                  all_memos[memo.topic] ||= []
-                  case memo.type 
-                    when 'memo'; memo.type = ':memo:'
-                    when 'note'; memo.type = ':abc:'
-                    when 'bug'; memo.type = ':bug:'
-                    when 'task'; memo.type = ':clock1:'
-                    when 'feature'; memo.type = ':sunny:'
-                    when 'issue'; memo.type = ':hammer:'
-                    else memo.type = ':heavy_minus_sign:'
+                  if memo.type == 'jira' and config.jira.host != ''
+                    http = NiceHttp.new(config.jira.host)
+                    http.headers.authorization = NiceHttpUtils.basic_authentication(user: config.jira.user, password: config.jira.password)
+                    if memo.message.match?(/^\w+\-\d+$/)
+                      resp = http.get("/rest/api/latest/issue/#{memo.message}")
+                      issues = [resp.data.json] if resp.code == 200
+                    else
+                      resp = http.get("/rest/api/latest/search/?jql=#{memo.message}")
+                      issues = resp.data.json().issues if resp.code == 200
+                    end
+                    if resp.code == 200
+                      unless issues.empty?
+                        issues.each do |issue|
+                          jira_memo = { jira: true, status: '', memo_id: memo.memo_id, topic: memo.topic, privacy: memo.privacy, user: memo.user, date: memo.date, message: '', type: memo.type }
+                          jira_memo.message = issue.fields.summary
+                          jira_memo.user = issue.fields.reporter.name
+                          jira_memo.date = issue.fields.created
+                          if memo.topic == :no_topic and !issue.fields.labels.empty?
+                            jira_memo.topic = issue.fields.labels.sort.join('_')                            
+                          end
+                          case issue.fields.issuetype.name
+                            when 'Story'; jira_memo.type = ':abc:'
+                            when 'Bug'; jira_memo.type = ':bug:'
+                            when 'Task'; jira_memo.type = ':clock1:'
+                            when 'New Feature', 'Improvement'; jira_memo.type = ':sunny:'
+                            else jira_memo.type = ':memo:'
+                          end
+                          case issue.fields.status.statusCategory.name
+                            when 'Done'; jira_memo.status = ':heavy_check_mark:'
+                            when 'To Do'; jira_memo.status = ':new:'
+                            when 'In Progress'; jira_memo.status = ':runner:'
+                            else jira_memo.status = ':heavy_minus_sign:'
+                          end
+                          #todo: check if possible to add link to status instead of jira issue
+                          #jira_memo.status = " <#{config.jira.host}/browse/#{issue[:key]}|#{jira_memo.status}> "
+                          jira_memo.status += " <#{config.jira.host}/browse/#{issue[:key]}|#{issue[:key]}> "
+
+                          all_memos[jira_memo.topic] ||= []
+                          all_memos[jira_memo.topic] << jira_memo
+                        end
+                      end
+                    end
+                    http.close
+                  else
+                    memo.jira = false
+                    memo.status = ''
+                    all_memos[memo.topic] ||= []
+                    case memo.type 
+                      when 'memo'; memo.type = ':memo:'
+                      when 'note'; memo.type = ':abc:'
+                      when 'bug'; memo.type = ':bug:'
+                      when 'task'; memo.type = ':clock1:'
+                      when 'feature'; memo.type = ':sunny:'
+                      when 'issue'; memo.type = ':hammer:'
+                      else memo.type = ':heavy_minus_sign:'
+                    end
+                    all_memos[memo.topic] << memo
                   end
-                  all_memos[memo.topic] << memo
+
                 end
               end
               message << "   > *_memos_*" unless all_memos.empty?
 
               if all_memos.key?(:no_topic)
-                all_memos[:no_topic].each do |memo|
+                all_memos[:no_topic].sort_by {|memo| memo[:date]}.each do |memo|
                   case memo.privacy
                     when 'private'; priv = " `private`"
                     when 'personal'; priv = " `personal`"
                     else priv = ''
                   end
-                  message << "        #{memo.type} #{memo.date.gsub('-','/')[0..9]}:  #{memo.message} (#{memo.user} #{memo.memo_id})#{priv}"
+                  message << "        #{memo.type} #{memo.date.gsub('-','/')[0..9]}:  #{memo.status}#{memo.message} (#{memo.user} #{memo.memo_id})#{priv}"
                 end
               end
               all_memos[:no_topic] = []
               all_memos.each do |topic, mems|
                 unless mems.empty?
                   message << "        _`#{topic}`_:"
-                  mems.each do |memo|
+                  mems.sort_by {|m| m[:date]}.each do |memo|
                     case memo.privacy
                       when 'private'; priv = " `private`"
                       when 'personal'; priv = " `personal`"
                       else priv = ''
                     end
-                    message << "            #{memo.type} #{memo.date.gsub('-','/')[0..9]}:  #{memo.message} (#{memo.user} #{memo.memo_id})#{priv}"
+                    message << "            #{memo.type} #{memo.date.gsub('-','/')[0..9]}:  #{memo.status}#{memo.message} (#{memo.user} #{memo.memo_id})#{priv}"
                   end
                 end
               end

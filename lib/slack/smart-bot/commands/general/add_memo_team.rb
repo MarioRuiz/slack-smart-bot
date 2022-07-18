@@ -23,11 +23,44 @@ class SlackSmartBot
       all_team_members += team_members
       all_team_members.uniq!
     end
-
+    if type == 'jira'
+      able_to_connect_jira = false
+      http = NiceHttp.new(config.jira.host)
+      http.headers.authorization = NiceHttpUtils.basic_authentication(user: config.jira.user, password: config.jira.password)
+      message.gsub!(/^\s*</,'')
+      message.gsub!(/\>$/,'')
+      message.gsub!(/\|.+$/,'')
+      message.gsub!(/^#{config.jira.host}/, '')
+      if message.include?('/browse/')
+        message = message.scan(/\/browse\/(.+)/).join
+        resp = http.get("/rest/api/latest/issue/#{message}")
+      else
+        message.gsub!(/^\/issues\/\?jql=/,'')
+        message.gsub!(' ', '%20')
+        resp = http.get("/rest/api/latest/search/?jql=#{message}")
+      end
+      if resp.code == 200
+        able_to_connect_jira = true
+      else
+        error_code = resp.code
+        if resp.code == 400
+          error_message = resp.data.json(:errorMessages)[-1]
+        else
+          error_message = ''
+        end
+      end
+      http.close
+    end
     if !@teams.key?(team_name.to_sym)
       respond "It seems like the team *#{team_name}* doesn't exist\nRelated commands `add team TEAM_NAME PROPERTIES`, `see team TEAM_NAME`, `see teams`"
     elsif !(all_team_members + config.masters).flatten.include?(user.name)
       respond "You have to be a member of the team or a Master admin to be able to add a memo to the team."
+    elsif type=='jira' and !able_to_connect_jira 
+      if error_message == ''
+        respond "You need to supply the correct credentials for JIRA on the SmartBot settings: `jira: { host: HOST, user: USER, password: PASSWORD }` and a correct JQL string or JQL url"
+      else
+        respond "You need to supply a correct JQL string or JQL url: #{error_message}"
+      end
     else
       topic = :no_topic if topic == ''
       @teams[team_name.to_sym][:memos] ||= []

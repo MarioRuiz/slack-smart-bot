@@ -47,7 +47,8 @@ class SlackSmartBot
     config[:general_message] = "" unless config.key?(:general_message)
     config[:logrtm] = false unless config.key?(:logrtm)
     config[:status_channel] = 'smartbot-status' unless config.key?(:status_channel)
-
+    config[:jira] = { host: '', user: '', password: '' } unless config.key?(:jira) and config[:jira].key?(:host) and config[:jira].key?(:user) and config[:jira].key?(:password)
+    config[:jira][:host] = "https://#{config[:jira][:host]}" unless config[:jira][:host] == '' or config[:jira][:host].match?(/^http/)
     if config.path.to_s!='' and config.file.to_s==''
       config.file = File.basename($0)
     end

@@ -610,7 +610,8 @@ Examples:
 >**_`ping team sales development What's the status  on last deployment?`_**  
 >**_`contact team sales qa Please finish testing of dev02 feature before noon`_**  
 
-It is also possible to add notes for the team, even you can specify if those notes are private so only the members of the team can see them or even personal so only you will. You can use different types of notes: memo, note, issue, task, feature, bug. Also you can indicate the topic of the note. To be able to add or delete notes you need to be a member of that team.
+It is also possible to add notes for the team, even you can specify if those notes are private so only the members of the team can see them or even personal so only you will. You can use different types of notes: memo, note, issue, task, feature, bug, jira. Also you can indicate the topic of the note. To be able to add or delete notes you need to be a member of that team. In case of 'jira' type then you can supply an URL or a JQL and it will show all the JIRA issues as memos. To be able to use it you need to specify on the SmartBot settings the credentials for the Basic Authentication on JIRA:
+`jira: {host: HOST, user: USER, password: PASSWORD}`
 
 Examples:  
 >**_`add memo to sales team : Add tests for Michigan feature`_**  
@@ -619,6 +620,7 @@ Examples:
 >**_`add private bug to dev team SRE : Logs should not be accessible from outside VPN`_**  
 >**_`add memo sales team : Add tests for Michigan feature`_**  
 >**_`add memo team sales: Add tests for Michigan feature`_**  
+>**_`add jira to sales team : labels = SalesT AND status != Done`_**
 
 Other team commands: **_`delete team TEAM_NAME`_**, **_`delete memo ID from team TEAM_NAME`_**  
 

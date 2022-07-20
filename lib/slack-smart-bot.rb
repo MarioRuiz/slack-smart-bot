@@ -177,6 +177,7 @@ class SlackSmartBot
     @rules_imported = Hash.new()
     @routines = Hash.new()
     @repls = Hash.new()
+    @run_repls = Hash.new()
     @users = Hash.new()
     @announcements = Hash.new()
     @shares = Hash.new()

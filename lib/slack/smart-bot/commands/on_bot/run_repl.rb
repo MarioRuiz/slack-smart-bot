@@ -76,11 +76,12 @@ class SlackSmartBot
             #{content}
             "
           end
-          random = "5:LN".gen
+          random = "5:LN&".gen
           File.write("#{project_folder}/tmp/repl/#{session_name}_#{user.name}_#{random}.rb", content, mode: "w+")
           process_to_run = "ruby  ./tmp/repl/#{session_name}_#{user.name}_#{random}.rb"
           process_to_run = ("cd #{project_folder} && #{process_to_run}") if defined?(project_folder)
-          respond "Running REPL #{session_name}"
+          respond "Running REPL #{session_name} (id: #{random})"
+          @run_repls[random] = { user: user.name, name: session_name, pid: '' }
           react :running
 
           require "pty"
@@ -92,10 +93,11 @@ class SlackSmartBot
             PTY.spawn(process_to_run) do |stdout, stdin, pid|
               last_result = -1
               last_time = Time.now
+              @run_repls[random].pid = pid
               begin
                 stdout.each do |line|
                   if (Time.now - started) > timeout
-                    respond "run REPL session finished. Max time reached: #{session_name}", dest
+                    respond "run REPL session finished. Max time reached: #{session_name} (id: #{random})", dest
                     pids = `pgrep -P #{pid}`.split("\n").map(&:to_i) #todo: it needs to be adapted for Windows
                     pids.each do |pd|
                       begin
@@ -131,7 +133,7 @@ class SlackSmartBot
                 @logger.warn "run_repl PTY Errno:EIO error"
               end
               if results.empty?
-                respond "*#{session_name}*: Nothing returned."
+                respond "*#{session_name}* (id: #{random}): Nothing returned."
               else
                 if last_result != (results.size - 1)
                   if (results.size - last_result) < 60 and results[(last_result + 1)..-1].join.size < 3500
@@ -146,7 +148,7 @@ class SlackSmartBot
                     if Thread.current[:on_thread]
                       respond output
                     else
-                      respond "*#{session_name}*:\n#{output}"
+                      respond "*#{session_name}* (id: #{random}):\n#{output}"
                     end
                   else
                     send_file(dest, "", "response.rb", "", "text/plain", "ruby", content: results[(last_result + 1)..-1].join)
@@ -157,6 +159,7 @@ class SlackSmartBot
           rescue PTY::ChildExited
             @logger.warn "run_repl PTY The child process exited!"
           end
+          @run_repls.delete(random) if @run_repls.key?(random)
           unreact :running
         end
       else

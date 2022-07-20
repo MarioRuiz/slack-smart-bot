@@ -5,6 +5,7 @@
 - `!!run repl` will respond as soon as any result is released (<https://github.com/MarioRuiz/slack-smart-bot/issues/63|#63>)
 - Now you can add notes for the team, even you can specify if those notes are private so only the members of the team can see them, or even personal. You can use different types of notes: memo, note, issue, task, feature, bug. Also you can indicate the topic of the note. To be able to add or delete notes you need to be a member of that team. Example: `add private bug to Moon team SRE : Logs should not be accessible from outside VPN` (<https://github.com/MarioRuiz/slack-smart-bot/issues/64|#64> <https://github.com/MarioRuiz/slack-smart-bot/issues/67|#67>)
 - It is possible to add a JIRA JQL to the team memos that will automatically create the memos from the JIRA issues (<https://github.com/MarioRuiz/slack-smart-bot/issues/68|#68>)
+- `kill repl RUN_REPL_ID` Will kill a running repl previously executed with `run repl` command. (<https://github.com/MarioRuiz/slack-smart-bot/issues/69|#69>)
 
 *For Admin users*
 - Bot Stats is now saving the time_zone of the user (<https://github.com/MarioRuiz/slack-smart-bot/issues/66|#66>)

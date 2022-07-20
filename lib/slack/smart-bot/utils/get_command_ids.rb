@@ -42,7 +42,7 @@ class SlackSmartBot
 
     if typem == :on_extended
       commands[:on_extended] = (Dir.entries("#{__dir__}/../commands/on_extended/").select { |e| e.match?(/\.rb/) }).sort.join('|').gsub('.rb','').split('|')
-      commands[:on_extended]+= ['repl', 'see_repls', 'get_repl', 'run_repl', 'delete_repl', 'ruby_code']
+      commands[:on_extended]+= ['repl', 'see_repls', 'get_repl', 'run_repl', 'delete_repl', 'kill_repl', 'ruby_code']
     end
 
     if typem == :on_master

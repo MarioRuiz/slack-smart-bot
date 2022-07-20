@@ -399,7 +399,7 @@ You can run repls and supply parameters to the repl that will be executed on the
 Example:
 >**_Peter>_** ``run repl Create10RandomUsers `request = {path: '/api-dev/users/'}` ``  
 
-Other REPL commands: `see repls`, `run repl SESSION_NAME ENV_VAR=value`, `get repl SESSION_NAME`, `delete repl SESSION_NAME`
+Other REPL commands: `see repls`, `run repl SESSION_NAME ENV_VAR=value`, `get repl SESSION_NAME`, `delete repl SESSION_NAME`, `kill repl RUN_REPL_ID`
 
 ### Sending notifications
 You can send notifications from MASTER CHANNEL by using **_`notify MESSAGE`_**. All Bot Channels will be notified.

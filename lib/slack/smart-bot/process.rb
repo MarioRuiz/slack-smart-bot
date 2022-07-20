@@ -421,6 +421,9 @@ class SlackSmartBot
           delete_repl(dest, user, repl_name)
         when /\A\s*see\s+(repls|repl|irb|irbs)\s*$/i
           see_repls(dest, user, typem)
+        when /\A\s*(kill)\s+(repl|irb|live)\s+([\w]+)\s*$/i
+          repl_id = $3
+          kill_repl(dest, user, repl_id)
         else
           processed2 = false
         end #of case

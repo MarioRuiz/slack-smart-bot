@@ -49,6 +49,9 @@ class SlackSmartBot
     config[:status_channel] = 'smartbot-status' unless config.key?(:status_channel)
     config[:jira] = { host: '', user: '', password: '' } unless config.key?(:jira) and config[:jira].key?(:host) and config[:jira].key?(:user) and config[:jira].key?(:password)
     config[:jira][:host] = "https://#{config[:jira][:host]}" unless config[:jira][:host] == '' or config[:jira][:host].match?(/^http/)
+    config[:github] = {token: '' } unless config.key?(:github) and config[:github].key?(:token)
+    config[:github][:host] ||= "https://api.github.com"
+    config[:github][:host] = "https://#{config[:github][:host]}" unless config[:github][:host] == '' or config[:github][:host].match?(/^http/)
     if config.path.to_s!='' and config.file.to_s==''
       config.file = File.basename($0)
     end

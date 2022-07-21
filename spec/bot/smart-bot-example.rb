@@ -9,7 +9,8 @@ settings = {
   file: 'smart-bot-example.rb',
   nick: 'example', 
   nick_id: 'UMSRCRTAR',
-  logrtm: false#,
+  logrtm: false,
+  github: {token: ENV['GITHUB_TOKEN']}#,
   #jira: {host: ENV['JIRA_HOST'], user: 'smartbot', password: ENV['JIRA_PASSWORD']}
 }
 

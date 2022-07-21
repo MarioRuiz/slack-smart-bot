@@ -51,6 +51,30 @@ class SlackSmartBot
       end
       http.close
     end
+    if type=='github'
+      able_to_connect_github = false
+      http = NiceHttp.new(config.github.host)
+      http.headers.authorization = "token #{config.github.token}"
+      message.gsub!(/^\s*</,'')
+      message.gsub!(/\>$/,'')
+      message.gsub!(/\|.+$/,'')
+      message.gsub!(/^#{config.github.host}/, '')
+      message.gsub!('https://github.com','')
+      message.slice!(0) if message[0] == '/'
+      resp = http.get("/repos#{message}")
+      if resp.code == 200
+        able_to_connect_github = true
+      else
+        error_code = resp.code
+        if resp.code == 401
+          error_message = resp.data.json(:message)[-1]
+        else
+          error_message = ''
+        end
+      end
+      http.close
+    end
+
     if !@teams.key?(team_name.to_sym)
       respond "It seems like the team *#{team_name}* doesn't exist\nRelated commands `add team TEAM_NAME PROPERTIES`, `see team TEAM_NAME`, `see teams`"
     elsif !(all_team_members + config.masters).flatten.include?(user.name)

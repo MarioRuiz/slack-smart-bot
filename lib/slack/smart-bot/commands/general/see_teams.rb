@@ -281,10 +281,15 @@ class SlackSmartBot
                           github_memo.message = issue.title
                           github_memo.user = issue.user.login
                           github_memo.date = issue.created_at
-                          if memo.topic == :no_topic and !issue.labels.empty?
-                            github_memo.topic = issue.labels.name.sort.join("_").split(" ").join("_")
+                          if issue.labels.empty?
+                            labels = ''
+                          else
+                            labels = issue.labels.name.sort.join("_").split(" ").join("_") 
                           end
-                          case github_memo.topic
+                          if memo.topic == :no_topic and !issue.labels.empty?
+                            github_memo.topic = labels
+                          end
+                          case labels
                           when /bug/i; github_memo.type = ":bug:"
                           when /docum/i; github_memo.type = ":abc:"
                           when /task/i; github_memo.type = ":clock1:"

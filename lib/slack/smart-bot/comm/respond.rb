@@ -49,10 +49,15 @@ class SlackSmartBot
             txt = ""
             msg.split("\n").each do |m|
               if (m + txt).size > max_chars_per_message
-                msgs << txt.chars.each_slice(max_chars_per_message).map(&:join) unless txt == ""
-                txt = ""
+                unless txt == ""
+                  txt[0] = '.' if txt.match?(/\A\s\s\s/) #first line of message in slack don't show spaces at the begining so we force it by changing first char
+                  t = txt.chars.each_slice(max_chars_per_message).map(&:join)
+                  msgs << t
+                  txt = ""
+                end
               end
               txt += (m + "\n")
+              txt[0] = '.' if txt.match?(/\A\s\s\s/) #first line of message in slack don't show spaces at the begining so we force it by changing first char
             end
           end
           msgs << txt

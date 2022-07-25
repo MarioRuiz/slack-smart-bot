@@ -57,7 +57,7 @@ class SlackSmartBot
         @last_status_change = Time.now
         @last_notified_status_id = status_id
         unless m == ''
-          respond m, config.status_channel
+          respond eval("\"" + m + "\""), config.status_channel
         end
       end
 

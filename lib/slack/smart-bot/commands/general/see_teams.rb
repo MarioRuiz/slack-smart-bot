@@ -296,9 +296,15 @@ class SlackSmartBot
                           when /enhancem/i, /improvement/i; github_memo.type = ":sunny:"
                           else github_memo.type = ":memo:"
                           end
+                          if issue.key?(:events_url)
+                            resp_events = http.get(issue.events_url)
+                            events = resp_events.data.json(:event)
+                            issue.state = "in progress" if events.include?('referenced')
+                          end
                           case issue.state
                           when "closed"; github_memo.status = ":heavy_check_mark:"
                           when "open"; github_memo.status = ":new:"
+                          when "in progress"; github_memo.status = ":runner:"
                           else github_memo.status = ":heavy_minus_sign:"
                           end
                           #todo: check if possible to add link to status instead of github issue

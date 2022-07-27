@@ -616,6 +616,8 @@ In case of 'jira' type then you can supply an URL or a JQL and it will show all 
 In case of 'github' type then you can supply an URL filtering the Github issues you want to add as memos. To be able to use it you need to specify on the SmartBot settings the Github token:
 `github: {token: GITHUB_TOKEN}`  
 
+If you want to change the memo status use the command `set STATUS on memo ID TEAM_NAME team`. For example: `set :runner: on memo 7 Sales team`  
+
 Examples:  
 >**_`add memo to sales team : Add tests for Michigan feature`_**  
 >**_`add private note to sales team : Bills will need to be deployed before Friday`_**  
@@ -623,10 +625,11 @@ Examples:
 >**_`add private bug to dev team SRE : Logs should not be accessible from outside VPN`_**  
 >**_`add memo sales team : Add tests for Michigan feature`_**  
 >**_`add memo team sales: Add tests for Michigan feature`_**  
->**_`add jira to sales team : labels = SalesT AND status != Done`_**
->**_`add github to sales team : https://github.com/PeterBale/SalesBoom/issues?q=is%3Aissue+is%3Aopen+`_**
+>**_`add jira to sales team : labels = SalesT AND status != Done`_**  
+>**_`add github to sales team : https://github.com/PeterBale/SalesBoom/issues?q=is%3Aissue+is%3Aopen+`_**  
+>**_`set :runner: on memo 7 team Sales`_**  
 
-Other team commands: **_`delete team TEAM_NAME`_**, **_`delete memo ID from team TEAM_NAME`_**  
+Other team commands: **_`delete team TEAM_NAME`_**, **_`delete memo ID from team TEAM_NAME`_**, **_`set STATUS on memo ID TEAM_NAME team`_**  
 
 
 ### Tips

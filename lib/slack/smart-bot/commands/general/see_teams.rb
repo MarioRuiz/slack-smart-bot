@@ -257,7 +257,7 @@ class SlackSmartBot
                           end
                           #todo: check if possible to add link to status instead of jira issue
                           #jira_memo.status = " <#{config.jira.host}/browse/#{issue[:key]}|#{jira_memo.status}> "
-                          jira_memo.status += " <#{config.jira.host}/browse/#{issue[:key]}|#{issue[:key]}> "
+                          jira_memo.status += " <#{config.jira.host}/browse/#{issue[:key]}|#{issue[:key]}>"
 
                           all_memos[jira_memo.topic] ||= []
                           all_memos[jira_memo.topic] << jira_memo
@@ -308,7 +308,7 @@ class SlackSmartBot
                           else github_memo.status = ":heavy_minus_sign:"
                           end
                           #todo: check if possible to add link to status instead of github issue
-                          github_memo.status += " <#{issue.html_url}|##{issue.number}> "
+                          github_memo.status += " <#{issue.html_url}|##{issue.number}>"
 
                           all_memos[github_memo.topic] ||= []
                           all_memos[github_memo.topic] << github_memo
@@ -319,7 +319,6 @@ class SlackSmartBot
                   else
                     memo.jira = false
                     memo.github = false
-                    memo.status = ""
                     all_memos[memo.topic] ||= []
                     case memo.type
                     when "memo"; memo.type = ":memo:"
@@ -343,7 +342,7 @@ class SlackSmartBot
                   when "personal"; priv = " `personal`"
                   else priv = ""
                   end
-                  message << "        #{memo.type} #{memo.date.gsub("-", "/")[0..9]}:  #{memo.status}#{memo.message} (#{memo.user} #{memo.memo_id})#{priv}"
+                  message << "        #{memo.type} #{memo.date.gsub("-", "/")[0..9]}:  #{memo.status} #{memo.message} (#{memo.user} #{memo.memo_id})#{priv}"
                 end
               end
               all_memos[:no_topic] = []
@@ -356,7 +355,7 @@ class SlackSmartBot
                     when "personal"; priv = " `personal`"
                     else priv = ""
                     end
-                    message << "            #{memo.type} #{memo.date.gsub("-", "/")[0..9]}:  #{memo.status}#{memo.message} (#{memo.user} #{memo.memo_id})#{priv}"
+                    message << "            #{memo.type} #{memo.date.gsub("-", "/")[0..9]}:  #{memo.status} #{memo.message} (#{memo.user} #{memo.memo_id})#{priv}"
                   end
                 end
               end

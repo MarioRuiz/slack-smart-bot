@@ -434,18 +434,46 @@ def general_bot_commands(user, command, dest, files = [])
         # help: ----------------------------------------------
         # help: `delete memo ID from TEAM_NAME team`
         # help:     It will delete the supplied memo ID on the team specified.
-        # help:     aliases for memo: note, issue, task, feature, bug
+        # help:     aliases for memo: note, issue, task, feature, bug, jira, github
         # help:     You have to be a member of the team, the creator or a Master admin to be able to delete a memo.
         # help:  Examples:
         # help:     _delete memo 32 from sales team_
         # help:    <https://github.com/MarioRuiz/slack-smart-bot#teams|more info>
         # help: command_id: :delete_memo_team
         # help: 
-      when /\A\s*(delete|remove)\s+(memo|note|issue|task|feature|bug)\s+(\d+)\s+from\s+team\s+([\w\-]+)\s*\z/i, 
-        /\A\s*(delete|remove)\s+(memo|note|issue|task|feature|bug)\s+(\d+)\s+from\s+([\w\-]+)\s+team\s*\z/i
+      when /\A\s*(delete|remove)\s+(memo|note|issue|task|feature|bug|jira|github)\s+(\d+)\s+(from|on)\s+team\s+([\w\-]+)\s*\z/i, 
+        /\A\s*(delete|remove)\s+(memo|note|issue|task|feature|bug|jira|github)\s+(\d+)\s+(from|on)\s+([\w\-]+)\s+team\s*\z/i
+        memo_id = $3
+        team_name = $5.downcase
+        delete_memo_team(user, team_name, memo_id)
+
+        # help: ----------------------------------------------
+        # help: `set memo ID on TEAM_NAME team STATUS`
+        # help: `set STATUS on memo ID TEAM_NAME team`
+        # help:     It will assign to the ID specified the emoticon status indicated.
+        # help:     aliases for memo: note, issue, task, feature, bug
+        # help:     This command will be only for memo, note, issue, task, feature, bug. Not for jira or github.
+        # help:     You have to be a member of the team, the creator or a Master admin to be able to set a status.
+        # help:  Examples:
+        # help:     _set memo 32 on sales team :runner:_
+        # help:     _set bug 7 on team sales :heavy_check_mark:_
+        # help:     _set :runner: on memo 6 sales team_
+        # help:    <https://github.com/MarioRuiz/slack-smart-bot#teams|more info>
+        # help: command_id: :set_memo_status
+        # help: 
+      when /\A\s*(set)\s+(memo|note|issue|task|feature|bug)\s+(\d+)\s+on\s+team\s+([\w\-]+)\s+(:\w+:)\s*\z/i, 
+        /\A\s*(set)\s+(memo|note|issue|task|feature|bug)\s+(\d+)\s+on\s+([\w\-]+)\s+team\s+(:\w+:)\s*\z/i
         memo_id = $3
         team_name = $4.downcase
-        delete_memo_team(user, team_name, memo_id)
+        status = $5
+        set_memo_status(user, team_name, memo_id, status)
+
+      when /\A\s*(set)\s+(:\w+:)\s+on\s+(memo|note|issue|task|feature|bug)\s+(\d+)\s+team\s+([\w\-]+)\s*\z/i,
+        /\A\s*(set)\s+(:\w+:)\s+on\s+(memo|note|issue|task|feature|bug)\s+(\d+)\s+([\w\-]+)\s+team\s*\z/i 
+        memo_id = $4
+        team_name = $5.downcase
+        status = $2
+        set_memo_status(user, team_name, memo_id, status)
 
         # help: ----------------------------------------------
         # help: `see teams`

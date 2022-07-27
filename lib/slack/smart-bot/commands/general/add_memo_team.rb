@@ -54,8 +54,7 @@ class SlackSmartBot
       rescue => exception
         @logger.fatal exception
       end
-    end
-    if type == "github"
+    elsif type == "github"
       able_to_connect_github = false
       begin
         http = NiceHttp.new(config.github.host)
@@ -109,6 +108,7 @@ class SlackSmartBot
         user: user.name,
         date: Time.now.strftime("%Y-%m-%dT%H:%M:%S.000Z")[0..18],
         message: message,
+        status: ':new: '
       }
       update_teams()
       respond "The memo has been added to *#{team_name}* team."

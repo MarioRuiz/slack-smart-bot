@@ -74,6 +74,12 @@ class SlackSmartBot
       if !dest.nil? and config.on_master_bot and !data.text.nil? and data.text.match(/^ping from (.+)\s*$/) and data.user == config[:nick_id]
         @pings << $1
       end
+      if config.on_master_bot and @vacations_check != Date.today
+        @vacations_check = Date.today
+        t = Thread.new do
+          check_vacations(only_first_day: true)
+        end
+      end
       typem = :dont_treat
       if data.nil? or data.user.nil? or data.user.to_s==''
         user_info = nil

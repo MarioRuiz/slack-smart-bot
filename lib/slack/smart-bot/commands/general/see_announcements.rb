@@ -59,7 +59,7 @@ class SlackSmartBot
             message = []
             @announcements[channel_id].each do |m|
               if m[:user_deleted] == '' and (type == 'all' or type == '' or type==m[:type])
-                if m[:type].match?(/:\w+:/)
+                if m[:type].match?(/:[\w\-]+:/)
                   emoji = m[:type]
                 elsif m[:type] == 'white'
                   emoji = ':white_square:'

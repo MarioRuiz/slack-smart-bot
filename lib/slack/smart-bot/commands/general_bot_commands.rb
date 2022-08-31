@@ -76,7 +76,7 @@ def general_bot_commands(user, command, dest, files = [])
         # help: command_id: :add_announcement
         # help: 
       when /\A\s*(add|create)\s+(red\s+|green\s+|white\s+|yellow\s+)?(announcement|statement|declaration|message)\s+(.+)\s*\z/i,
-        /\A\s*(add|create)\s+(:\w+:)\s+(announcement|statement|declaration|message)\s+(.+)\s*\z/i
+        /\A\s*(add|create)\s+(:[\w\-]+:)\s+(announcement|statement|declaration|message)\s+(.+)\s*\z/i
         type = $2.to_s.downcase.strip
         type = 'white' if type == ''
         message = $4
@@ -122,10 +122,10 @@ def general_bot_commands(user, command, dest, files = [])
         # help:    <https://github.com/MarioRuiz/slack-smart-bot#announcements|more info>
         # help: command_id: :see_announcements
         # help: 
-      when /\A\s*see\s+(red\s+|green\s+|white\s+|yellow\s+|:\w+:\s+)?(announcements|statements|declarations|messages)()\s*\z/i,
+      when /\A\s*see\s+(red\s+|green\s+|white\s+|yellow\s+|:[\w\-]+:\s+)?(announcements|statements|declarations|messages)()\s*\z/i,
         /\A\s*see\s+(all\s+)?(announcements|statements|declarations|messages)()\s*\z/i,
-        /\A\s*see\s+(red\s+|green\s+|white\s+|yellow\s+|:\w+:\s+)?(announcements|statements|declarations|messages)\s+#([\w\-]+)\s*\z/i,
-        /\A\s*see\s+(red\s+|green\s+|white\s+|yellow\s+|:\w+:\s+)?(announcements|statements|declarations|messages)\s+<#(\w+)\|.*>\s*\z/i
+        /\A\s*see\s+(red\s+|green\s+|white\s+|yellow\s+|:[\w\-]+:\s+)?(announcements|statements|declarations|messages)\s+#([\w\-]+)\s*\z/i,
+        /\A\s*see\s+(red\s+|green\s+|white\s+|yellow\s+|:[\w\-]+:\s+)?(announcements|statements|declarations|messages)\s+<#(\w+)\|.*>\s*\z/i
 
         type = $1.to_s.downcase.strip
         channel = $3.to_s
@@ -461,15 +461,15 @@ def general_bot_commands(user, command, dest, files = [])
         # help:    <https://github.com/MarioRuiz/slack-smart-bot#teams|more info>
         # help: command_id: :set_memo_status
         # help: 
-      when /\A\s*(set)\s+(memo|note|issue|task|feature|bug)\s+(\d+)\s+on\s+team\s+([\w\-]+)\s+(:\w+:)\s*\z/i, 
-        /\A\s*(set)\s+(memo|note|issue|task|feature|bug)\s+(\d+)\s+on\s+([\w\-]+)\s+team\s+(:\w+:)\s*\z/i
+      when /\A\s*(set)\s+(memo|note|issue|task|feature|bug)\s+(\d+)\s+on\s+team\s+([\w\-]+)\s+(:[\w\-]+:)\s*\z/i, 
+        /\A\s*(set)\s+(memo|note|issue|task|feature|bug)\s+(\d+)\s+on\s+([\w\-]+)\s+team\s+(:[\w\-]+:)\s*\z/i
         memo_id = $3
         team_name = $4.downcase
         status = $5
         set_memo_status(user, team_name, memo_id, status)
 
-      when /\A\s*(set)\s+(:\w+:)\s+on\s+(memo|note|issue|task|feature|bug)\s+(\d+)\s+team\s+([\w\-]+)\s*\z/i,
-        /\A\s*(set)\s+(:\w+:)\s+on\s+(memo|note|issue|task|feature|bug)\s+(\d+)\s+([\w\-]+)\s+team\s*\z/i 
+      when /\A\s*(set)\s+(:[\w\-]+:)\s+on\s+(memo|note|issue|task|feature|bug)\s+(\d+)\s+team\s+([\w\-]+)\s*\z/i,
+        /\A\s*(set)\s+(:[\w\-]+:)\s+on\s+(memo|note|issue|task|feature|bug)\s+(\d+)\s+([\w\-]+)\s+team\s*\z/i 
         memo_id = $4
         team_name = $5.downcase
         status = $2
@@ -576,6 +576,85 @@ def general_bot_commands(user, command, dest, files = [])
         name = $2.downcase
         delete_team(user, name)
 
+
+        # help: ----------------------------------------------
+        # help: `add vacation from YYYY/MM/DD to YYYY/MM/DD`
+        # help: `add vacation YYYY/MM/DD`
+        # help: `add sick from YYYY/MM/DD to YYYY/MM/DD`
+        # help: `add sick YYYY/MM/DD`
+        # help:     It will add the supplied period to your plan.
+        # help:     Instead of YYYY/MM/DD you can use 'today' or 'tomorrow' or 'next week'
+        # help:     To see your plan call `see my time off`
+        # help:     If you want to see the vacation plan for the team `see team NAME`
+        # help:     Also you can see the vacation plan for the team for a specific period: `vacations team NAME YYYY/MM/DD`
+        # help:     The SmartBot will automatically set the users status to :palm_tree: or :face_with_thermometer: and the expiration date.
+        # help:  Examples:
+        # help:     _add vacation from 2022/10/01 to 2022/10/22_
+        # help:     _add sick 2022/08/22_
+        # help:     _add sick today_
+        # help:     _add vacation tomorrow_
+        # help:    <https://github.com/MarioRuiz/slack-smart-bot#time-off-management|more info>
+        # help: command_id: :add_vacation
+        # help: 
+      when /\A\s*add\s+(sick|vacation)\s+from\s+(\d\d\d\d\/\d\d\/\d\d)\s+to\s+(\d\d\d\d\/\d\d\/\d\d)\s*\z/i,
+        /\A\s*add\s+(sick|vacation)\s+from\s+(\d\d\d\d-\d\d-\d\d)\s+to\s+(\d\d\d\d-\d\d-\d\d)\s*\z/i,
+        /\A\s*add\s+(sick|vacation)\s+(\d\d\d\d-\d\d-\d\d)()\s*\z/i,
+        /\A\s*add\s+(sick|vacation)\s+(\d\d\d\d\/\d\d\/\d\d)()\s*\z/i,
+        /\A\s*add\s+(sick|vacation)\s+(today|tomorrow|next\sweek)()\s*\z/i
+        type = $1
+        from = $2.downcase
+        to = $3
+        add_vacation(user, type, from, to)
+
+        # help: ----------------------------------------------
+        # help: `remove vacation ID`
+        # help: `remove vacation period ID`
+        # help: `remove sick period ID`
+        # help: `remove time off period ID`
+        # help: `delete vacation ID`
+        # help:     It will remove the specified period from your vacations/sick periods.
+        # help:  Examples:
+        # help:     _remove vacation 20_
+        # help:    <https://github.com/MarioRuiz/slack-smart-bot#time-off-management|more info>
+        # help: command_id: :remove_vacation
+        # help: 
+      when /\A\s*(delete|remove)\s+(vacation|sick|time\s+off)(\s+period)?\s+(\d+)\s*\z/i
+        vacation_id = $4
+        remove_vacation(user, vacation_id)
+
+        # help: ----------------------------------------------
+        # help: `see my vacations`
+        # help: `see my time off`
+        # help: `see vacations @USER`
+        # help:     It will display current and past time off.
+        # help:    <https://github.com/MarioRuiz/slack-smart-bot#time-off-management|more info>
+        # help: command_id: :see_vacations
+        # help: 
+      when /\A\s*see\s+my\s+vacations\s*()\z/i,
+        /\A\s*see\s+my\s+time\s+off\s*()\z/i,
+        /\A\s*see\s+time\s+off\s+<@(\w+)>\s*\z/i,
+        /\A\s*see\s+vacations\s+<@(\w+)>\s*\z/i
+        from_user = $1
+        see_vacations(user, from_user: from_user)
+
+        # help: ----------------------------------------------
+        # help: `vacations team NAME`
+        # help: `time off team NAME`
+        # help: `vacations team NAME YYYY/MM/DD`
+        # help: `time off team NAME YYYY/MM/DD`
+        # help:     It will display the time off plan for the team specified.
+        # help:    <https://github.com/MarioRuiz/slack-smart-bot#time-off-management|more info>
+        # help: command_id: :see_vacations_team
+        # help: 
+      when /\A\s*(see\s+)?(vacations|time\s+off)\s+team\s+([\w\-]+)\s*(\d\d\d\d\/\d\d\/\d\d)?\s*\z/i,
+        /\A\s*(see\s+)?(vacations|time\s+off)\s+([\w\-]+)\s+team\s*(\d\d\d\d\/\d\d\/\d\d)?\s*\z/i,
+        /\A\s*(see\s+)?(vacations|time\s+off)\s+team\s+([\w\-]+)\s*(\d\d\d\d-\d\d-\d\d)?\s*\z/i,
+        /\A\s*(see\s+)?(vacations|time\s+off)\s+([\w\-]+)\s+team\s*(\d\d\d\d-\d\d-\d\d)?\s*\z/i        
+        team_name = $3.downcase
+        date = $4.to_s
+        date = Date.today.strftime("%Y/%m/%d") if date.empty?
+        see_vacations_team(user, team_name, date)
+        
     else
       return false
     end

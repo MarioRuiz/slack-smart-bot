@@ -27,6 +27,7 @@ config_tmp.status
 /status/
 /spec/bot/status/
 /spec/bot/smart-bot-example_teams.yaml
+/spec/bot/smart-bot-example_vacations.yaml
 # Used by dotenv library to load environment variables.
 # .env
 

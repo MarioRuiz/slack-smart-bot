@@ -25,5 +25,8 @@ require_relative 'utils/get_access_channels'
 require_relative 'utils/update_access_channels'
 require_relative 'utils/get_command_ids'
 require_relative 'utils/get_teams'
+require_relative 'utils/get_vacations'
 require_relative 'utils/update_teams'
+require_relative 'utils/update_vacations'
+require_relative 'utils/check_vacations'
 

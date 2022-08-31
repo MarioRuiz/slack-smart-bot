@@ -34,6 +34,7 @@ slack-smart-bot can create bots on demand, create shortcuts, run ruby code... ju
   * [Control who has access to a command](#control-who-has-access-to-a-command)
   * [See favorite commands](#see-favorite-commands)
   * [Teams](#teams)
+  * [Time off management](#time-off-management)
   * [Tips](#tips)
     + [Send a file](#send-a-file)
     + [Download a file](#download-a-file)
@@ -631,6 +632,24 @@ Examples:
 
 Other team commands: **_`delete team TEAM_NAME`_**, **_`delete memo ID from team TEAM_NAME`_**, **_`set STATUS on memo ID TEAM_NAME team`_**  
 
+### Time off management
+
+You will be able to add or remove vacation and sick periods by using `add vacation/sick from YYYY/MM/DD to YYYY/MM/DD`. The SmartBot will automatically set the users status to 🌴 or 🤒 and the expiration date when the user is on vacation or sick. The SmartBot won't be allowed to change the status of workspace admins or owners.  
+
+The vacation plan will be displayed also with the team when calling `see team NAME` for all team members.  
+
+Also, you can see the vacation plan for the team for a specific period: `vacations team NAME YYYY/MM/DD`  
+
+To be able to use this command you need to allow the 'users.profile:write' scope on your Slack App and an admin user of the workspace needs to install the app. Set the user token on the SmartBot settings:  
+
+```ruby
+settings = {
+  token: ENV["SLACK_BOT_TOKEN"],
+  user_token: ENV['SLACK_USER_TOKEN']
+}
+```
+
+Other 'time off' commands: **_`remove time off ID`_**, **_`see my time off`_**, **_`see vacations @USER`_**, **_`time off team NAME`_**  
 
 ### Tips
 

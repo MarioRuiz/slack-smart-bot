@@ -393,6 +393,9 @@ class SlackSmartBot
         messages.each do |msg|
           respond msg, dest, unfurl_links: false, unfurl_media: false
         end
+        unless team_name.to_s.empty?
+          see_vacations_team(user, team_name, Date.today.strftime("%Y/%m/%d"), add_stats: false)
+        end
       end
     end
   end

@@ -2,6 +2,7 @@ require_relative "../../lib/slack-smart-bot"
 
 settings = {
   token: ENV["SSB_TOKEN"], # the API Slack token
+  user_token: ENV['SLACK_USER_TOKEN'],
   testing: true,
   masters: ['marioruizs'],
   master_channel: 'master_channel',

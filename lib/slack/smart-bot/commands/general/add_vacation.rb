@@ -40,7 +40,7 @@ class SlackSmartBot
         end
         vacations[user.name].periods << { vacation_id: vacation_id, type: type.downcase, from: from, to: to }
         update_vacations({user.name => vacations[user.name]})
-        respond "Period has been added."
+        respond "Period has been added   ##{vacation_id}"
         check_vacations(date: Date.today, user: user.name, set_status: true, only_first_day: false)
       end
     end

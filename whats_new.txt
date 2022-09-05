@@ -1,4 +1,4 @@
-*Version 1.12.0-DEV18* Released 2022-Aug-31
+*Version 1.12.0-DEV19* Released 2022-Sep-05
 
 *For General users*
 - `run repl` accepts local parameters and precode to be supplied (<https://github.com/MarioRuiz/slack-smart-bot/issues/60|#60>).

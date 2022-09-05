@@ -175,7 +175,7 @@ class SlackSmartBot
                     
           thread_ts.gsub!('.','')
           send_message(dest, from, typem, to, thread_ts, message)
-        when /\A\s*delete\s+message\s+(.+)\s*$/i
+        when /\A\s*delete\s+message\s+(http.+)\s*$/i
           url = $1
           delete_message(from, typem, url)
         when /\A\s*react\s+(on|to|in)\s*([^\s]+)\s+([p\d\.]+)\s+(.+)\s*$/i,

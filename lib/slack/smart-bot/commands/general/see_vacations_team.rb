@@ -47,7 +47,7 @@ class SlackSmartBot
         all_team_members.uniq!
       end
       unless all_team_members.empty?
-        blocks = [
+        blocks_header = 
           {
                     "type": "context",
                     elements: [
@@ -56,10 +56,10 @@ class SlackSmartBot
                           text: "*Time Off #{team_name} team* from #{date} ",
                         },
                     ],
-                  },
-        ]
+                  }
+        
         from = Date.parse(date, "%Y/%m/%d")
-
+        blocks = []
         all_team_members.each do |m|
           @users = get_users() if @users.empty?
           info = @users.select { |u| u.id == m or (u.key?(:enterprise_user) and u.enterprise_user.id == m) or u.name == m or (u.key?(:enterprise_user) and u.enterprise_user.name == m) }[-1]
@@ -119,8 +119,14 @@ class SlackSmartBot
             }
           end
         end
-
-        respond blocks: blocks
+        first = true
+        blocks.each_slice(10).each do |b|
+          if first 
+            b.unshift(blocks_header)
+            first = false
+          end
+          respond blocks: b
+        end
 
       end
 

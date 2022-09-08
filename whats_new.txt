@@ -1,4 +1,4 @@
-*Version 1.12.0-DEV19* Released 2022-Sep-05
+*Version 1.12.0-DEV21* Released 2022-Sep-08
 
 *For General users*
 - `run repl` accepts local parameters and precode to be supplied (<https://github.com/MarioRuiz/slack-smart-bot/issues/60|#60>).
@@ -12,6 +12,7 @@
 
 *For Admin users*
 - Bot Stats is now saving the time_zone of the user (<https://github.com/MarioRuiz/slack-smart-bot/issues/66|#66>)
+- Announcements won't be published if no activity on channel. (<https://github.com/MarioRuiz/slack-smart-bot/issues/74|#74)
 ------------------------------
 
 *Previous*: <https://github.com/MarioRuiz/slack-smart-bot/blob/b1a368c3342094e886f53d96dc4d12ecd81ab04b/whats_new.txt|1.11.0>

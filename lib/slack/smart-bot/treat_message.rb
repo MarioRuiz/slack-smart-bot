@@ -356,6 +356,10 @@ class SlackSmartBot
           end
         end
       end
+      unless data.nil? or data.channel.nil? or data.channel.empty?
+        @announcements_activity_after[data.channel] ||= 0
+        @announcements_activity_after[data.channel] += 1 
+      end
     rescue Exception => stack
       @logger.fatal stack
     end

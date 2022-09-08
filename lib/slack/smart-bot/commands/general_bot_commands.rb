@@ -582,25 +582,26 @@ def general_bot_commands(user, command, dest, files = [])
         # help: `add vacation YYYY/MM/DD`
         # help: `add sick from YYYY/MM/DD to YYYY/MM/DD`
         # help: `add sick YYYY/MM/DD`
+        # help: `add sick child YYYY/MM/DD`
         # help:     It will add the supplied period to your plan.
         # help:     Instead of YYYY/MM/DD you can use 'today' or 'tomorrow' or 'next week'
         # help:     To see your plan call `see my time off`
         # help:     If you want to see the vacation plan for the team `see team NAME`
         # help:     Also you can see the vacation plan for the team for a specific period: `vacations team NAME YYYY/MM/DD`
-        # help:     The SmartBot will automatically set the users status to :palm_tree: or :face_with_thermometer: and the expiration date.
+        # help:     The SmartBot will automatically set the users status to :palm_tree:, :baby: or :face_with_thermometer: and the expiration date.
         # help:  Examples:
         # help:     _add vacation from 2022/10/01 to 2022/10/22_
         # help:     _add sick 2022/08/22_
-        # help:     _add sick today_
         # help:     _add vacation tomorrow_
+        # help:     _add sick baby today_
         # help:    <https://github.com/MarioRuiz/slack-smart-bot#time-off-management|more info>
         # help: command_id: :add_vacation
         # help: 
-      when /\A\s*add\s+(sick|vacation)\s+from\s+(\d\d\d\d\/\d\d\/\d\d)\s+to\s+(\d\d\d\d\/\d\d\/\d\d)\s*\z/i,
-        /\A\s*add\s+(sick|vacation)\s+from\s+(\d\d\d\d-\d\d-\d\d)\s+to\s+(\d\d\d\d-\d\d-\d\d)\s*\z/i,
-        /\A\s*add\s+(sick|vacation)\s+(\d\d\d\d-\d\d-\d\d)()\s*\z/i,
-        /\A\s*add\s+(sick|vacation)\s+(\d\d\d\d\/\d\d\/\d\d)()\s*\z/i,
-        /\A\s*add\s+(sick|vacation)\s+(today|tomorrow|next\sweek)()\s*\z/i
+      when /\A\s*add\s+(sick|vacation|sick\s+baby|sick\s+child)\s+from\s+(\d\d\d\d\/\d\d\/\d\d)\s+to\s+(\d\d\d\d\/\d\d\/\d\d)\s*\z/i,
+        /\A\s*add\s+(sick|vacation|sick\s+baby|sick\s+child)\s+from\s+(\d\d\d\d-\d\d-\d\d)\s+to\s+(\d\d\d\d-\d\d-\d\d)\s*\z/i,
+        /\A\s*add\s+(sick|vacation|sick\s+baby|sick\s+child)\s+(\d\d\d\d-\d\d-\d\d)()\s*\z/i,
+        /\A\s*add\s+(sick|vacation|sick\s+baby|sick\s+child)\s+(\d\d\d\d\/\d\d\/\d\d)()\s*\z/i,
+        /\A\s*add\s+(sick|vacation|sick\s+baby|sick\s+child)\s+(today|tomorrow|next\sweek)()\s*\z/i
         type = $1
         from = $2.downcase
         to = $3

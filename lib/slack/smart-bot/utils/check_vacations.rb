@@ -29,6 +29,8 @@ class SlackSmartBot
           icon = ':palm_tree:'
         elsif type == 'sick'
           icon = ':face_with_thermometer:'
+        elsif type == 'sick child'
+          icon = ':baby:'
         end
         unless icon.empty?
           expiration_date = Date.parse(expiration,'%Y/%m/%d') + 1 #next day at 0:00

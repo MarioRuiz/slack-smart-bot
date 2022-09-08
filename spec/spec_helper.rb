@@ -34,6 +34,7 @@ RSpec.configure do |config|
       FileUtils.rm_rf(Dir["./spec/bot/repl/**/*"])
       File.delete("./spec/bot/rules/rules_imported.rb") if File.exist?("./spec/bot/rules/rules_imported.rb")
       File.delete("./spec/bot/smart-bot-example_teams.yaml") if File.exist?("./spec/bot/smart-bot-example_teams.yaml")
+      File.delete("./spec/bot/smart-bot-example_vacations.yaml") if File.exist?("./spec/bot/smart-bot-example_vacations.yaml")
 
       @settings = {
         nick: "example", # the smart bot name

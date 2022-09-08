@@ -137,7 +137,7 @@ class SlackSmartBot
               team.members.each do |type, members|
                 message << "        _`#{type}`_:  "
                 members.each do |member|
-                  types = [":palm_tree:", ":spiral_calendar_pad:", ":face_with_thermometer:"]
+                  types = [":palm_tree:", ":spiral_calendar_pad:", ":face_with_thermometer:", ":baby:"]
                   member_info = @users.select { |u| u.name == member }[-1]
                   if !member_info.nil? and !member_info.deleted
                     member_id = member_info.id
@@ -383,7 +383,7 @@ class SlackSmartBot
         if team_name.to_s != ""
           message = "\n\n:palm_tree: On vacation / "
           message += ":spiral_calendar_pad: In a meeting / "
-          message += ":face_with_thermometer: Sick leave / "
+          message += ":face_with_thermometer: :baby: Sick leave / "
           message += ":white_circle: Away / "
           message += ":large_yellow_circle: Available in remote timezone / "
           message += ":large_green_circle: Available"

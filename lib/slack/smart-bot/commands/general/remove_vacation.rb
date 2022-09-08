@@ -16,7 +16,8 @@ class SlackSmartBot
       if vacation.from <= Date.today.strftime("%Y/%m/%d") and vacation.to >= Date.today.strftime("%Y/%m/%d")
         info = get_user_info(vacations.user_id)
         emoji = info.user.profile.status_emoji
-        if (vacation.type == 'vacation' and emoji == ':palm_tree:') or (vacation.type == 'sick' and emoji == ':face_with_thermometer:')
+        if (vacation.type == 'vacation' and emoji == ':palm_tree:') or (vacation.type == 'sick' and emoji == ':face_with_thermometer:') or
+           (vacation.type == 'sick child' and emoji == ':baby:')
           set_status(vacations.user_id, status: '', expiration: '', message: '')
         end
         check_vacations(date: Date.today, user: user.name, set_status: true, only_first_day: false)

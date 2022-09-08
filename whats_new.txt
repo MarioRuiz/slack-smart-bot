@@ -8,7 +8,7 @@
 - `kill repl RUN_REPL_ID` Will kill a running repl previously executed with `run repl` command. (<https://github.com/MarioRuiz/slack-smart-bot/issues/69|#69>)
 - Now you can add a GitHub url to the issues you want to add as memos for teams. (<https://github.com/MarioRuiz/slack-smart-bot/issues/71|#71>)
 - It is possible to add the status of a memo on teams feature. (<https://github.com/MarioRuiz/slack-smart-bot/issues/72|#72>)
-- Added 'Time off' (Vacation/Sick) management. The SmartBot will automatically set your status on the periods specified. It will be possible to see the 'Time off' plan for a specific team and period. (<https://github.com/MarioRuiz/slack-smart-bot/issues/73|#73>)
+- Added 'Time off' (Vacation/Sick/Sick Child) management. The SmartBot will automatically set your status on the periods specified. It will be possible to see the 'Time off' plan for a specific team and period. (<https://github.com/MarioRuiz/slack-smart-bot/issues/73|#73>)
 
 *For Admin users*
 - Bot Stats is now saving the time_zone of the user (<https://github.com/MarioRuiz/slack-smart-bot/issues/66|#66>)

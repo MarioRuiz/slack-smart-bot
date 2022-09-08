@@ -26,7 +26,7 @@ class SlackSmartBot
       if types == ['available']
         only_active = true
         not_on = true
-        types = [':palm_tree:', ':spiral_calendar_pad:', ':face_with_thermometer:']
+        types = [':palm_tree:', ':spiral_calendar_pad:', ':face_with_thermometer:', ':baby:']
       end
       members.each do |member|
         info = get_user_info(member)

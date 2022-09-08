@@ -5,6 +5,9 @@ class SlackSmartBot
     get_vacations()
     from.gsub!('-','/')
     to.gsub!('-','/')
+    if type.match?(/sick\s+baby/i) or type.match?(/sick\s+child/i)
+      type = 'sick child'
+    end
 
     if from=='today'
       from = Date.today.strftime("%Y/%m/%d")

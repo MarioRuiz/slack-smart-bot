@@ -22,6 +22,16 @@ RSpec.describe SlackSmartBot, "add_vacation" do
         expect(bufferc(to: channel, from: :ubot).join).to match(/Period has been added/i)
       end
 
+      it 'is possible to add single sick child time' do
+        send_message "add sick child 2022/08/01", from: user, to: channel
+        expect(bufferc(to: channel, from: :ubot).join).to match(/Period has been added/i)
+      end
+
+      it 'is possible to add single sick baby time' do
+        send_message "add sick baby 2022/08/01", from: user, to: channel
+        expect(bufferc(to: channel, from: :ubot).join).to match(/Period has been added/i)
+      end
+
       it 'is possible to add today time off' do
         send_message "add sick today", from: user, to: channel
         expect(bufferc(to: channel, from: :ubot).join).to match(/Period has been added/i)

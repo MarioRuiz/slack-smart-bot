@@ -42,6 +42,8 @@ class SlackSmartBot
             icon = ':palm_tree:'
           elsif vac.type == 'sick'
             icon = ':face_with_thermometer:'
+          elsif vac.type == 'sick child'
+            icon = ':baby:'
           end
           if vac.from == vac.to
             messages << "     #{icon}    #{vac.from}   ##{vac.vacation_id}"

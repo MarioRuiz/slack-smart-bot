@@ -112,7 +112,6 @@ class SlackSmartBot
       }
       update_teams()
       respond "The memo has been added to *#{team_name}* team."
-      see_teams(user, team_name, add_stats: false)
     end
   end
 end

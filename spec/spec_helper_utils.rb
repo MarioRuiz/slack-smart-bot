@@ -41,7 +41,7 @@ def build_DIRECT()
   users.each do |from|
     users.each do |from|
       DIRECT[from] = {} unless DIRECT.key?(from)
-      resp = http.post(path: "/api/im.open", data: { user: get_key(from) })
+      resp = http.post(path: "/api/conversations.open", data: { users: get_key(from) })
       DIRECT[from][:ubot] = resp.data.json(:id)
     end
   end
@@ -118,7 +118,7 @@ def send_message(message, from: :ubot, to:, file_ruby: "")
       end
 
       unless DIRECT[from].key?(to)
-        resp = http.post(path: "/api/im.open", data: { user: to_key })
+        resp = http.post(path: "/api/conversations.open", data: { users: to_key })
         DIRECT[from][to] = resp.data.json(:id)
       end
       to_key = DIRECT[from][to]

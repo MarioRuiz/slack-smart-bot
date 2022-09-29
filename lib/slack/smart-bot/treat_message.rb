@@ -74,6 +74,12 @@ class SlackSmartBot
       if !dest.nil? and config.on_master_bot and !data.text.nil? and data.text.match(/^ping from (.+)\s*$/) and data.user == config[:nick_id]
         @pings << $1
       end
+      if config.on_master_bot and @vacations_check != Date.today
+        @vacations_check = Date.today
+        t = Thread.new do
+          check_vacations(only_first_day: true)
+        end
+      end
       typem = :dont_treat
       if data.nil? or data.user.nil? or data.user.to_s==''
         user_info = nil
@@ -186,7 +192,7 @@ class SlackSmartBot
         end
       end
       load "#{config.path}/rules/general_commands.rb" if File.exist?("#{config.path}/rules/general_commands.rb") and @datetime_general_commands != File.mtime("#{config.path}/rules/general_commands.rb")
-
+      eval(File.new(config.path + config.rules_file).read) if !defined?(rules) and File.exist?(config.path+config.rules_file) and !config.rules_file.empty?
       unless typem == :dont_treat or user_info.nil?
         if (Time.now - @last_activity_check) > 60 * 30 #every 30 minutes
           @last_activity_check = Time.now
@@ -349,6 +355,10 @@ class SlackSmartBot
             end
           end
         end
+      end
+      unless data.nil? or data.channel.nil? or data.channel.empty?
+        @announcements_activity_after[data.channel] ||= 0
+        @announcements_activity_after[data.channel] += 1 
       end
     rescue Exception => stack
       @logger.fatal stack

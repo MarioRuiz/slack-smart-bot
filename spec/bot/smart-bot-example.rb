@@ -2,6 +2,7 @@ require_relative "../../lib/slack-smart-bot"
 
 settings = {
   token: ENV["SSB_TOKEN"], # the API Slack token
+  user_token: ENV['SLACK_USER_TOKEN'],
   testing: true,
   masters: ['marioruizs'],
   master_channel: 'master_channel',
@@ -9,7 +10,9 @@ settings = {
   file: 'smart-bot-example.rb',
   nick: 'example', 
   nick_id: 'UMSRCRTAR',
-  logrtm: false
+  logrtm: false,
+  github: {token: ENV['GITHUB_TOKEN']}#,
+  #jira: {host: ENV['JIRA_HOST'], user: 'smartbot', password: ENV['JIRA_PASSWORD']}
 }
 
 if ENV['SIMULATE'] == 'true'

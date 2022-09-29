@@ -18,12 +18,13 @@ RSpec.describe SlackSmartBot, "run_repl" do
       expect(buffer(to: channel, from: :ubot).join).to match(/done/i)
     end
     #todo: This test is not running on travis but locally. Investigate the reason
-    it "accepts parameters to be supplied", :avoid_travis do
+    it "accepts code to be pre-executed", :avoid_travis do
       send_message "!repl runreplexe2", from: user, to: channel
+      send_message "param||='lolo'", from: user, to: channel
       send_message "puts \"result:\#{param}\"", from: user, to: channel
       send_message "bye", from: user, to: channel
       clean_buffer()
-      send_message "!run repl runreplexe2 PARAM='xxxx'", from: user, to: channel
+      send_message "!run repl runreplexe2 `param='xxxx'`", from: user, to: channel
       sleep 3
       expect(buffer(to: channel, from: :ubot).join).to match(/xxxx/i)
     end

@@ -76,7 +76,7 @@ def general_bot_commands(user, command, dest, files = [])
         # help: command_id: :add_announcement
         # help: 
       when /\A\s*(add|create)\s+(red\s+|green\s+|white\s+|yellow\s+)?(announcement|statement|declaration|message)\s+(.+)\s*\z/i,
-        /\A\s*(add|create)\s+(:\w+:)\s+(announcement|statement|declaration|message)\s+(.+)\s*\z/i
+        /\A\s*(add|create)\s+(:[\w\-]+:)\s+(announcement|statement|declaration|message)\s+(.+)\s*\z/i
         type = $2.to_s.downcase.strip
         type = 'white' if type == ''
         message = $4
@@ -122,10 +122,10 @@ def general_bot_commands(user, command, dest, files = [])
         # help:    <https://github.com/MarioRuiz/slack-smart-bot#announcements|more info>
         # help: command_id: :see_announcements
         # help: 
-      when /\A\s*see\s+(red\s+|green\s+|white\s+|yellow\s+|:\w+:\s+)?(announcements|statements|declarations|messages)()\s*\z/i,
+      when /\A\s*see\s+(red\s+|green\s+|white\s+|yellow\s+|:[\w\-]+:\s+)?(announcements|statements|declarations|messages)()\s*\z/i,
         /\A\s*see\s+(all\s+)?(announcements|statements|declarations|messages)()\s*\z/i,
-        /\A\s*see\s+(red\s+|green\s+|white\s+|yellow\s+|:\w+:\s+)?(announcements|statements|declarations|messages)\s+#([\w\-]+)\s*\z/i,
-        /\A\s*see\s+(red\s+|green\s+|white\s+|yellow\s+|:\w+:\s+)?(announcements|statements|declarations|messages)\s+<#(\w+)\|.*>\s*\z/i
+        /\A\s*see\s+(red\s+|green\s+|white\s+|yellow\s+|:[\w\-]+:\s+)?(announcements|statements|declarations|messages)\s+#([\w\-]+)\s*\z/i,
+        /\A\s*see\s+(red\s+|green\s+|white\s+|yellow\s+|:[\w\-]+:\s+)?(announcements|statements|declarations|messages)\s+<#(\w+)\|.*>\s*\z/i
 
         type = $1.to_s.downcase.strip
         channel = $3.to_s
@@ -388,6 +388,94 @@ def general_bot_commands(user, command, dest, files = [])
         add_team(user, name, options, info)
 
         # help: ----------------------------------------------
+        # help: `add TYPE to TEAM_NAME team : MESSAGE`
+        # help: `add private TYPE to TEAM_NAME team : MESSAGE`
+        # help: `add personal TYPE to TEAM_NAME team : MESSAGE`
+        # help: `add TYPE to TEAM_NAME team TOPIC : MESSAGE`
+        # help: `add private TYPE to TEAM_NAME team TOPIC : MESSAGE`
+        # help: `add personal TYPE to TEAM_NAME team TOPIC : MESSAGE`
+        # help:     It will add a memo to the team. The memos will be displayed with the team info.
+        # help:     Only team members can add a memo.
+        # help:     TYPE: memo, note, issue, task, feature, bug, jira, github
+        # help:     TOPIC: one word, a-z, A-Z, 0-9, - and _
+        # help:     If private then the memo will be only displayed to team members on a DM or the members channel.
+        # help:     If personal then the memo will be only displayed to the creator on a DM.
+        # help:     In case jira type supplied:
+        # help:       The message should be an JQL URL, JQL string or an issue URL.
+        # help:       To be able to use it you need to specify on the SmartBot settings the credentials.
+        # help:       In case no TOPIC is supplied then it will create automatically the topics from the labels specified on every JIRA issue
+        # help:     In case github type supplied:
+        # help:       The message should be a github URL. You can filter by state (open/closed/all) and labels
+        # help:       To be able to use it you need to specify on the SmartBot settings the github token.
+        # help:       In case no TOPIC is supplied then it will create automatically the topics from the labels specified on every Github issue
+        # help:  Examples:
+        # help:     _add memo to sales team : Add tests for Michigan feature_
+        # help:     _add private note to sales team : Bills will need to be deployed before Friday_
+        # help:     _add memo to dev team web : Check last version_
+        # help:     _add private bug to dev team SRE : Logs should not be accessible from outside VPN_
+        # help:     _add memo sales team : Add tests for Michigan feature_
+        # help:     _add memo team sales: Add tests for Michigan feature_
+        # help:     _add personal memo team sales: Check my vacations_
+        # help:     _add jira to sales team : labels = SalesT AND status != Done_
+        # help:     _add github to sales team : PeterBale/SalesBoom/issues?state=open&labels=bug_
+        # help:     _add github to sales team dev: PeterBale/DevProject/issues/71_
+        # help:    <https://github.com/MarioRuiz/slack-smart-bot#teams|more info>
+        # help: command_id: :add_memo_team
+        # help: 
+      when /\A\s*add\s+(private\s+|personal\s+)?(memo|note|issue|task|feature|bug|jira|github)\s+(to\s+)?team\s+([\w\-]+)\s*([^:]+)?\s*:\s+(.+)\s*\z/im,
+           /\A\s*add\s+(private\s+|personal\s+)?(memo|note|issue|task|feature|bug|jira|github)\s+(to\s+)?([\w\-]+)\s+team\s*([^:]+)?\s*:\s+(.+)\s*\z/im 
+        privacy = $1.to_s.strip.downcase
+        type = $2.downcase
+        team_name = $4.downcase
+        topic = $5.to_s.strip
+        message = Thread.current[:command_orig].to_s.gsub("\u00A0", " ").scan(/^[^:]+:\s*(.+)\s*$/im).join
+        add_memo_team(user, privacy, team_name, topic, type, message)
+
+        # help: ----------------------------------------------
+        # help: `delete memo ID from TEAM_NAME team`
+        # help:     It will delete the supplied memo ID on the team specified.
+        # help:     aliases for memo: note, issue, task, feature, bug, jira, github
+        # help:     You have to be a member of the team, the creator or a Master admin to be able to delete a memo.
+        # help:  Examples:
+        # help:     _delete memo 32 from sales team_
+        # help:    <https://github.com/MarioRuiz/slack-smart-bot#teams|more info>
+        # help: command_id: :delete_memo_team
+        # help: 
+      when /\A\s*(delete|remove)\s+(memo|note|issue|task|feature|bug|jira|github)\s+(\d+)\s+(from|on)\s+team\s+([\w\-]+)\s*\z/i, 
+        /\A\s*(delete|remove)\s+(memo|note|issue|task|feature|bug|jira|github)\s+(\d+)\s+(from|on)\s+([\w\-]+)\s+team\s*\z/i
+        memo_id = $3
+        team_name = $5.downcase
+        delete_memo_team(user, team_name, memo_id)
+
+        # help: ----------------------------------------------
+        # help: `set memo ID on TEAM_NAME team STATUS`
+        # help: `set STATUS on memo ID TEAM_NAME team`
+        # help:     It will assign to the ID specified the emoticon status indicated.
+        # help:     aliases for memo: note, issue, task, feature, bug
+        # help:     This command will be only for memo, note, issue, task, feature, bug. Not for jira or github.
+        # help:     You have to be a member of the team, the creator or a Master admin to be able to set a status.
+        # help:  Examples:
+        # help:     _set memo 32 on sales team :runner:_
+        # help:     _set bug 7 on team sales :heavy_check_mark:_
+        # help:     _set :runner: on memo 6 sales team_
+        # help:    <https://github.com/MarioRuiz/slack-smart-bot#teams|more info>
+        # help: command_id: :set_memo_status
+        # help: 
+      when /\A\s*(set)\s+(memo|note|issue|task|feature|bug)\s+(\d+)\s+on\s+team\s+([\w\-]+)\s+(:[\w\-]+:)\s*\z/i, 
+        /\A\s*(set)\s+(memo|note|issue|task|feature|bug)\s+(\d+)\s+on\s+([\w\-]+)\s+team\s+(:[\w\-]+:)\s*\z/i
+        memo_id = $3
+        team_name = $4.downcase
+        status = $5
+        set_memo_status(user, team_name, memo_id, status)
+
+      when /\A\s*(set)\s+(:[\w\-]+:)\s+on\s+(memo|note|issue|task|feature|bug)\s+(\d+)\s+team\s+([\w\-]+)\s*\z/i,
+        /\A\s*(set)\s+(:[\w\-]+:)\s+on\s+(memo|note|issue|task|feature|bug)\s+(\d+)\s+([\w\-]+)\s+team\s*\z/i 
+        memo_id = $4
+        team_name = $5.downcase
+        status = $2
+        set_memo_status(user, team_name, memo_id, status)
+
+        # help: ----------------------------------------------
         # help: `see teams`
         # help: `see team TEAM_NAME`
         # help: `team TEAM_NAME`
@@ -488,6 +576,86 @@ def general_bot_commands(user, command, dest, files = [])
         name = $2.downcase
         delete_team(user, name)
 
+
+        # help: ----------------------------------------------
+        # help: `add vacation from YYYY/MM/DD to YYYY/MM/DD`
+        # help: `add vacation YYYY/MM/DD`
+        # help: `add sick from YYYY/MM/DD to YYYY/MM/DD`
+        # help: `add sick YYYY/MM/DD`
+        # help: `add sick child YYYY/MM/DD`
+        # help:     It will add the supplied period to your plan.
+        # help:     Instead of YYYY/MM/DD you can use 'today' or 'tomorrow' or 'next week'
+        # help:     To see your plan call `see my time off`
+        # help:     If you want to see the vacation plan for the team `see team NAME`
+        # help:     Also you can see the vacation plan for the team for a specific period: `vacations team NAME YYYY/MM/DD`
+        # help:     The SmartBot will automatically set the users status to :palm_tree:, :baby: or :face_with_thermometer: and the expiration date.
+        # help:  Examples:
+        # help:     _add vacation from 2022/10/01 to 2022/10/22_
+        # help:     _add sick 2022/08/22_
+        # help:     _add vacation tomorrow_
+        # help:     _add sick baby today_
+        # help:    <https://github.com/MarioRuiz/slack-smart-bot#time-off-management|more info>
+        # help: command_id: :add_vacation
+        # help: 
+      when /\A\s*add\s+(sick|vacation|sick\s+baby|sick\s+child)\s+from\s+(\d\d\d\d\/\d\d\/\d\d)\s+to\s+(\d\d\d\d\/\d\d\/\d\d)\s*\z/i,
+        /\A\s*add\s+(sick|vacation|sick\s+baby|sick\s+child)\s+from\s+(\d\d\d\d-\d\d-\d\d)\s+to\s+(\d\d\d\d-\d\d-\d\d)\s*\z/i,
+        /\A\s*add\s+(sick|vacation|sick\s+baby|sick\s+child)\s+(\d\d\d\d-\d\d-\d\d)()\s*\z/i,
+        /\A\s*add\s+(sick|vacation|sick\s+baby|sick\s+child)\s+(\d\d\d\d\/\d\d\/\d\d)()\s*\z/i,
+        /\A\s*add\s+(sick|vacation|sick\s+baby|sick\s+child)\s+(today|tomorrow|next\sweek)()\s*\z/i
+        type = $1
+        from = $2.downcase
+        to = $3
+        add_vacation(user, type, from, to)
+
+        # help: ----------------------------------------------
+        # help: `remove vacation ID`
+        # help: `remove vacation period ID`
+        # help: `remove sick period ID`
+        # help: `remove time off period ID`
+        # help: `delete vacation ID`
+        # help:     It will remove the specified period from your vacations/sick periods.
+        # help:  Examples:
+        # help:     _remove vacation 20_
+        # help:    <https://github.com/MarioRuiz/slack-smart-bot#time-off-management|more info>
+        # help: command_id: :remove_vacation
+        # help: 
+      when /\A\s*(delete|remove)\s+(vacation|sick|time\s+off)(\s+period)?\s+(\d+)\s*\z/i
+        vacation_id = $4
+        remove_vacation(user, vacation_id)
+
+        # help: ----------------------------------------------
+        # help: `see my vacations`
+        # help: `see my time off`
+        # help: `see vacations @USER`
+        # help:     It will display current and past time off.
+        # help:    <https://github.com/MarioRuiz/slack-smart-bot#time-off-management|more info>
+        # help: command_id: :see_vacations
+        # help: 
+      when /\A\s*see\s+my\s+vacations\s*()\z/i,
+        /\A\s*see\s+my\s+time\s+off\s*()\z/i,
+        /\A\s*see\s+time\s+off\s+<@(\w+)>\s*\z/i,
+        /\A\s*see\s+vacations\s+<@(\w+)>\s*\z/i
+        from_user = $1
+        see_vacations(user, from_user: from_user)
+
+        # help: ----------------------------------------------
+        # help: `vacations team NAME`
+        # help: `time off team NAME`
+        # help: `vacations team NAME YYYY/MM/DD`
+        # help: `time off team NAME YYYY/MM/DD`
+        # help:     It will display the time off plan for the team specified.
+        # help:    <https://github.com/MarioRuiz/slack-smart-bot#time-off-management|more info>
+        # help: command_id: :see_vacations_team
+        # help: 
+      when /\A\s*(see\s+)?(vacations|time\s+off)\s+team\s+([\w\-]+)\s*(\d\d\d\d\/\d\d\/\d\d)?\s*\z/i,
+        /\A\s*(see\s+)?(vacations|time\s+off)\s+([\w\-]+)\s+team\s*(\d\d\d\d\/\d\d\/\d\d)?\s*\z/i,
+        /\A\s*(see\s+)?(vacations|time\s+off)\s+team\s+([\w\-]+)\s*(\d\d\d\d-\d\d-\d\d)?\s*\z/i,
+        /\A\s*(see\s+)?(vacations|time\s+off)\s+([\w\-]+)\s+team\s*(\d\d\d\d-\d\d-\d\d)?\s*\z/i        
+        team_name = $3.downcase
+        date = $4.to_s
+        date = Date.today.strftime("%Y/%m/%d") if date.empty?
+        see_vacations_team(user, team_name, date)
+        
     else
       return false
     end

@@ -121,6 +121,7 @@ class SlackSmartBot
         process_to_run = '
             ' + env_vars.join("\n") + '
             require \"amazing_print\"
+            require \"stringio\"
             bindme' + serialt + ' = binding
             eval(\"require \'nice_http\'\" , bindme' + serialt + ')
             def ls(obj)

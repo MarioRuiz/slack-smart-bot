@@ -295,11 +295,27 @@ class SlackSmartBot
                         users_attachment = []
                         if user==''
                             users = rows.user_id.uniq.sort
-                            rows.user_id.each do |usr|
-                                user_info = @users.select { |u| u.id == usr or (u.key?(:enterprise_user) and u.enterprise_user.id == usr) }[-1]
-                                unless user_info.nil? or user_info.is_app_user or user_info.is_bot
-                                    tzone_users[user_info.tz_label] ||= 0
-                                    tzone_users[user_info.tz_label] += 1
+                            if rows[0].key?(:time_zone) #then save_stats is saving the time zone already
+                                rows.time_zone.each do |time_zone|
+                                    unless time_zone == ''
+                                        tzone_users[time_zone] ||= 0
+                                        tzone_users[time_zone] += 1
+                                    end
+                                end
+                            else
+                                rows.user_id.each_with_index do |usr, i|
+                                    if rows[i].values.size >= 12 #then save_stats is saving the time zone already but not all the data
+                                        unless rows[i].values[11] == ''
+                                            tzone_users[rows[i].values[11]] ||= 0
+                                            tzone_users[rows[i].values[11]] += 1    
+                                        end
+                                    else
+                                        user_info = @users.select { |u| u.id == usr or (u.key?(:enterprise_user) and u.enterprise_user.id == usr) }[-1]
+                                        unless user_info.nil? or user_info.is_app_user or user_info.is_bot
+                                            tzone_users[user_info.tz_label] ||= 0
+                                            tzone_users[user_info.tz_label] += 1
+                                        end
+                                    end
                                 end
                             end
                             if users.size > 10

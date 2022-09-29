@@ -34,6 +34,7 @@ slack-smart-bot can create bots on demand, create shortcuts, run ruby code... ju
   * [Control who has access to a command](#control-who-has-access-to-a-command)
   * [See favorite commands](#see-favorite-commands)
   * [Teams](#teams)
+  * [Time off management](#time-off-management)
   * [Tips](#tips)
     + [Send a file](#send-a-file)
     + [Download a file](#download-a-file)
@@ -377,7 +378,7 @@ Running Example:
 >**_Smart-Bot>_** `Session name: *Create10RandomUsers*`  
 >**_Peter>_** `http = NiceHttp.new("https://reqres.in/")`  
 >**_Smart-Bot>_** `#<NiceHttp:0x00007fc6e216e328 @host="reqres.in", @port=443...>`  
->**_Peter>_** `request = { path: '/api/users' }`  
+>**_Peter>_** `request ||= { path: '/api/users' }`  
 >**_Smart-Bot>_** `{ :path => "/api/users" }`  
 >**_Peter>_** `request.data = { name: '1-10:L', job: 'leader|worker' }`  
 >**_Smart-Bot>_** `{ :name => "1-10:L", :job => "leader|worker" }`  
@@ -395,8 +396,11 @@ Running Example:
 >**_Smart-Bot>_** `Running REPL Create10RandomUsers`  
 >**_Smart-Bot>_** `Create10RandomUsers: 10 Random Users Created`  
 
+You can run repls and supply parameters to the repl that will be executed on the same session just before the repl. [More info](https://github.com/MarioRuiz/slack-smart-bot/issues/60)  
+Example:
+>**_Peter>_** ``run repl Create10RandomUsers `request = {path: '/api-dev/users/'}` ``  
 
-Other REPL commands: `see repls`, `run repl SESSION_NAME ENV_VAR=value`, `get repl SESSION_NAME`, `delete repl SESSION_NAME`
+Other REPL commands: `see repls`, `run repl SESSION_NAME ENV_VAR=value`, `get repl SESSION_NAME`, `delete repl SESSION_NAME`, `kill repl RUN_REPL_ID`
 
 ### Sending notifications
 You can send notifications from MASTER CHANNEL by using **_`notify MESSAGE`_**. All Bot Channels will be notified.
@@ -607,8 +611,45 @@ Examples:
 >**_`ping team sales development What's the status  on last deployment?`_**  
 >**_`contact team sales qa Please finish testing of dev02 feature before noon`_**  
 
-Other team commands: **_`delete team TEAM_NAME`_**  
+It is also possible to add notes for the team, even you can specify if those notes are private so only the members of the team can see them or even personal so only you will. You can use different types of notes: memo, note, issue, task, feature, bug, jira, github. Also you can indicate the topic of the note. To be able to add or delete notes you need to be a member of that team.   
+In case of 'jira' type then you can supply an URL or a JQL and it will show all the JIRA issues as memos. To be able to use it you need to specify on the SmartBot settings the credentials for the Basic Authentication on JIRA:
+`jira: {host: HOST, user: USER, password: PASSWORD}`  
+In case of 'github' type then you can supply an URL filtering the Github issues you want to add as memos. To be able to use it you need to specify on the SmartBot settings the Github token:
+`github: {token: GITHUB_TOKEN}`  
 
+If you want to change the memo status use the command `set STATUS on memo ID TEAM_NAME team`. For example: `set :runner: on memo 7 Sales team`  
+
+Examples:  
+>**_`add memo to sales team : Add tests for Michigan feature`_**  
+>**_`add private note to sales team : Bills will need to be deployed before Friday`_**  
+>**_`add memo to dev team web : Check last version`_**  
+>**_`add private bug to dev team SRE : Logs should not be accessible from outside VPN`_**  
+>**_`add memo sales team : Add tests for Michigan feature`_**  
+>**_`add memo team sales: Add tests for Michigan feature`_**  
+>**_`add jira to sales team : labels = SalesT AND status != Done`_**  
+>**_`add github to sales team : https://github.com/PeterBale/SalesBoom/issues?q=is%3Aissue+is%3Aopen+`_**  
+>**_`set :runner: on memo 7 team Sales`_**  
+
+Other team commands: **_`delete team TEAM_NAME`_**, **_`delete memo ID from team TEAM_NAME`_**, **_`set STATUS on memo ID TEAM_NAME team`_**  
+
+### Time off management
+
+You will be able to add or remove vacation and sick periods by using `add vacation/sick from YYYY/MM/DD to YYYY/MM/DD`. The SmartBot will automatically set the users status to 🌴 or 🤒 and the expiration date when the user is on vacation or sick. The SmartBot won't be allowed to change the status of workspace admins or owners.  
+
+The vacation plan will be displayed also with the team when calling `see team NAME` for all team members.  
+
+Also, you can see the vacation plan for the team for a specific period: `vacations team NAME YYYY/MM/DD`  
+
+To be able to use this command you need to allow the 'users.profile:write' scope on your Slack App and an admin user of the workspace needs to install the app. Set the user token on the SmartBot settings:  
+
+```ruby
+settings = {
+  token: ENV["SLACK_BOT_TOKEN"],
+  user_token: ENV['SLACK_USER_TOKEN']
+}
+```
+
+Other 'time off' commands: **_`remove time off ID`_**, **_`see my time off`_**, **_`see vacations @USER`_**, **_`time off team NAME`_**  
 
 ### Tips
 

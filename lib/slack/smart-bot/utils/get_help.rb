@@ -3,9 +3,10 @@ class SlackSmartBot
     order = {
       general: [:bot_help, :hi_bot, :bye_bot, :add_admin, :remove_admin, :see_admins, :poster, :add_announcement, :delete_announcement, 
                 :see_announcements, :see_command_ids, :share_messages, :see_shares, :delete_share, :see_favorite_commands, :see_statuses, 
-                :allow_access, :see_access, :deny_access, :add_team, :see_teams, :update_team, :ping_team, :delete_team],
+                :allow_access, :see_access, :deny_access, :add_team, :add_memo_team, :delete_memo_team, :set_memo_status, :see_teams, :update_team, :ping_team, :delete_team,
+              :add_vacation, :remove_vacation, :see_vacations, :see_vacations_team],
       on_bot_general: [:whats_new, :suggest_command, :bot_status, :use_rules, :stop_using_rules, :bot_stats, :leaderboard],
-      on_bot: [:ruby_code, :repl, :get_repl, :run_repl, :delete_repl, :see_repls, :add_shortcut, :delete_shortcut, :see_shortcuts],
+      on_bot: [:ruby_code, :repl, :get_repl, :run_repl, :delete_repl, :see_repls, :kill_repl, :add_shortcut, :delete_shortcut, :see_shortcuts],
       on_bot_admin: [:extend_rules, :stop_using_rules_on, :start_bot, :pause_bot, :add_routine,
         :see_routines, :start_routine, :pause_routine, :remove_routine, :see_result_routine, :run_routine]
     }
@@ -73,7 +74,7 @@ class SlackSmartBot
       help[:general_commands_file] += build_help(config.path+'/rules/general_commands.rb', expanded)[user_type].values.join("\n") + "\n"
     end
     if help.key?(:on_bot)
-      commands_on_extended_from_on_bot = [:repl, :see_repls, :get_repl, :run_repl, :delete_repl, :ruby_code]
+      commands_on_extended_from_on_bot = [:repl, :see_repls, :get_repl, :run_repl, :delete_repl, :kill_repl, :ruby_code]
       commands_on_extended_from_on_bot.each do |cm|
         help[:on_extended][cm] = help[:on_bot][cm] if help[:on_bot].key?(cm)
       end      

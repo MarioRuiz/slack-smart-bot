@@ -10,6 +10,8 @@ def git_project()
   ""
 end
 
+config.jira = {host: "https://#{ENV['JIRA_HOST']}", user: 'smartbot', password: ENV['JIRA_PASSWORD']} if config.jira.host == ""
+
 #for the case of testing, just run this file adding in the end a call to rules with the parameters you want
 if defined?(respond)
   @testing = false

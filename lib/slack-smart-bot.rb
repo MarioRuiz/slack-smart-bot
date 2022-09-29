@@ -21,7 +21,7 @@ require_relative "slack/smart-bot/utils"
 
 ADMIN_USERS = MASTER_USERS if defined?(MASTER_USERS) # for bg compatibility
 class SlackSmartBot
-  attr_accessor :config, :client
+  attr_accessor :config, :client, :client_user
   attr_reader :master_bot_id, :channel_id
   geml = Gem.loaded_specs.values.select { |x| x.name == "slack-smart-bot" }[0]
   if geml.nil?
@@ -47,7 +47,11 @@ class SlackSmartBot
     config[:general_message] = "" unless config.key?(:general_message)
     config[:logrtm] = false unless config.key?(:logrtm)
     config[:status_channel] = 'smartbot-status' unless config.key?(:status_channel)
-
+    config[:jira] = { host: '', user: '', password: '' } unless config.key?(:jira) and config[:jira].key?(:host) and config[:jira].key?(:user) and config[:jira].key?(:password)
+    config[:jira][:host] = "https://#{config[:jira][:host]}" unless config[:jira][:host] == '' or config[:jira][:host].match?(/^http/)
+    config[:github] = {token: '' } unless config.key?(:github) and config[:github].key?(:token)
+    config[:github][:host] ||= "https://api.github.com"
+    config[:github][:host] = "https://#{config[:github][:host]}" unless config[:github][:host] == '' or config[:github][:host].match?(/^http/)
     if config.path.to_s!='' and config.file.to_s==''
       config.file = File.basename($0)
     end
@@ -118,6 +122,7 @@ class SlackSmartBot
     
     config_log = config.dup
     config_log.delete(:token)
+    config_log.delete(:user_token)
     @logger.info "Initializing bot: #{config_log.inspect}"
 
     File.new("#{config.path}/buffer.log", "w") if config[:testing] and config.on_master_bot
@@ -130,6 +135,18 @@ class SlackSmartBot
       Slack.configure do |conf|
         conf.token = config[:token]
       end
+    end
+    unless (config.simulate and config.key?(:client)) or config.user_token.nil? or config.user_token.empty?
+      begin
+        self.client_user = Slack::Web::Client.new(token: config.user_token)
+        self.client_user.auth_test
+      rescue Exception => e
+        @logger.fatal "*" * 50
+        @logger.fatal "Rescued on creation client_user: #{e.inspect}"
+        self.client_user = nil
+      end
+    else
+      self.client_user = nil
     end
     restarts = 0
     created = false
@@ -176,10 +193,13 @@ class SlackSmartBot
     @rules_imported = Hash.new()
     @routines = Hash.new()
     @repls = Hash.new()
+    @run_repls = Hash.new()
     @users = Hash.new()
     @announcements = Hash.new()
     @shares = Hash.new()
     @last_status_change = Time.now
+    @vacations_check = (Date.today - 1)
+    @announcements_activity_after = Hash.new()
 
     if File.exist?("#{config.path}/shortcuts/#{config.shortcuts_file}".gsub('.yaml','.rb')) #backwards compatible
       file_conf = IO.readlines("#{config.path}/shortcuts/#{config.shortcuts_file}".gsub('.yaml','.rb')).join

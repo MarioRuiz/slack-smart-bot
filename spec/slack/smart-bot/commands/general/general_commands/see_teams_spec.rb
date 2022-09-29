@@ -80,7 +80,86 @@ RSpec.describe SlackSmartBot, "see_teams" do
         send_message "see teams", from: user, to: channel
         expect(buffer(to: channel, from: :ubot).join).not_to match(/userx/i)
       end
+    end
+
+    #some of the tests has been already added to add_memo_team_spec so we don't test those in here
+    describe "memos" do
+      channel = :cexternal
+      user = :uadmin
+      before(:all) do
+        send_message "delete team example", from: user , to: channel
+        send_message "yes", from: user , to: channel
+        send_message "add team example members <##{CEXTERNAL}|external_channel> dev <@#{USER1}> : info", from: user, to: channel
+        expect(bufferc(to: channel, from: :ubot).join).to match(/The \*example\* team has been added/i)
+        send_message "add memo to example team : some text", from: :user1, to: channel
+        expect(bufferc(to: channel, from: :ubot).join).to match(/The memo has been added to \*example\* team/)
+        send_message "add private memo to example team : some private text", from: :user1, to: channel
+        expect(bufferc(to: channel, from: :ubot).join).to match(/The memo has been added to \*example\* team/)
+        send_message "add personal memo to example team : some personal text", from: :user1, to: channel
+        expect(bufferc(to: channel, from: :ubot).join).to match(/The memo has been added to \*example\* team/)
+        send_message "add personal memo to example team : some personal admin text", from: :uadmin, to: channel
+        expect(bufferc(to: channel, from: :ubot).join).to match(/The memo has been added to \*example\* team/)
+      end
+
+      after(:all) do
+        send_message "delete team example", from: user , to: channel
+        send_message "yes", from: user , to: channel
+      end
+
+      it "displays memos" do
+        send_message "team example", from: user, to: channel
+        expect(bufferc(to: channel, from: :ubot).join).to match(/:memo:\s+\d\d\d\d\/\d\d\/\d\d:\s+:new:\s+some\stext\s\(smartbotuser1\s\d+\)/)
+      end
+
+      it "doesn't display memos when calling see teams" do
+        send_message "see teams", from: user, to: channel
+        expect(buffer(to: channel, from: :ubot).join).not_to match(/some\stext\s\(smartbotuser1\s\d+\)/)
+        expect(bufferc(to: channel, from: :ubot).join).not_to match(/some\sprivate\s+text\s\(smartbotuser1\s\d+\)\s+`private`/)
+      end
+
+      it "displays private memos when on members channel" do
+        send_message "team example", from: user, to: channel
+        expect(bufferc(to: channel, from: :ubot).join).to match(/:memo:\s+\d\d\d\d\/\d\d\/\d\d:\s+:new:\s+some\sprivate\s+text\s\(smartbotuser1\s\d+\)\s+`private`/)
+      end
+
+      it "doesn't display personal memos when on members channel" do
+        send_message "team example", from: user, to: channel
+        expect(bufferc(to: channel, from: :ubot).join).not_to match(/`personal`/)
+      end
+
+      it "displays private memos when on DM and a member" do
+        send_message "team example", from: :user1, to: DIRECT.user1.ubot
+        expect(bufferc(to: DIRECT.user1.ubot, from: :ubot).join).to match(/:memo:\s+\d\d\d\d\/\d\d\/\d\d:\s+:new:\s+some\sprivate\s+text\s\(smartbotuser1\s\d+\)\s+`private`/)
+      end
+
+      it "displays personal memos when on DM and the creator but not other personal memos" do
+        send_message "team example", from: :user1, to: DIRECT.user1.ubot
+        expect(buffer(to: DIRECT.user1.ubot, from: :ubot).join).to match(/:memo:\s+\d\d\d\d\/\d\d\/\d\d:\s+:new:\s+some\spersonal\s+text\s\(smartbotuser1\s\d+\)\s+`personal`/)
+        expect(bufferc(to: DIRECT.user1.ubot, from: :ubot).join).not_to match(/some\spersonal\s+admin\s+text/)
+      end
+
+      it "doesn't display private memos when not on members channel" do
+        send_message "team example", from: user, to: :cbot1cm
+        expect(bufferc(to: channel, from: :ubot).join).not_to match(/`private`/)
+      end
+
+      it "doesn't display personal memos when not on members channel" do
+        send_message "team example", from: user, to: :cbot1cm
+        expect(bufferc(to: channel, from: :ubot).join).not_to match(/`personal`/)
+      end
+
+      it "doesn't display private memos when on DM and not a member" do
+        send_message "team example", from: :user2, to: DIRECT.user2.ubot
+        expect(bufferc(to: DIRECT.user2.ubot, from: :ubot).join).not_to match(/`private`/)
+      end
+
+      it "doesn't display personal memos when on DM and not the creator" do
+        send_message "team example", from: :user2, to: DIRECT.user2.ubot
+        expect(buffer(to: DIRECT.user2.ubot, from: :ubot).join).not_to match(/`personal`/)
+        expect(bufferc(to: DIRECT.user2.ubot, from: :ubot).join).not_to match(/some\spersonal\s+admin\s+text/)
+      end
 
     end
+    
   end
 end

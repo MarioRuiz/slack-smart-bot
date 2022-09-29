@@ -1,23 +1,18 @@
-*Version 1.11.0* Released 2022-May-09
+*Version 1.12.0* Released 2022-Sep-28
 
 *For General users*
-- `run repl` displays results as code in case a value on stdout is returned as Hash or Array (<https://github.com/MarioRuiz/slack-smart-bot/issues/41|#41>).
-- `repl` command displays results when using iterators and printing results (<https://github.com/MarioRuiz/slack-smart-bot/issues/35|#35>).
-- `see command ids` will return the command ids. (<https://github.com/MarioRuiz/slack-smart-bot/issues/43|#43>)
-- `poster MESSAGE`, `poster :EMOTICON_TEXT: MESSAGE`, `poster :EMOTICON_TEXT: :EMOTICON_BACKGROUND: MESSAGE`, `poster MINUTESm MESSAGE` It will create a poster with the message supplied. By default will be autodeleted 1 minute later. (<https://github.com/MarioRuiz/slack-smart-bot/issues/34|#34>)
-- `who is available?` show members of the channel that are on line and not on a meeting or vacation or sick. (<https://github.com/MarioRuiz/slack-smart-bot/issues/52|#52>)
-- You can add, update, see, ping, contact, and delete teams. When calling `see TEAM_NAME team` the availability of the members will be displayed. Call `bot help teams` for more info. (<https://github.com/MarioRuiz/slack-smart-bot/issues/53|#53>)
-- repl improvements (<https://github.com/MarioRuiz/slack-smart-bot/issues/54|#54>)
-- new Master command `where is smartbot?` will return the channels where the SmartBot is a member. (<https://github.com/MarioRuiz/slack-smart-bot/issues/56|#56>)
+- `run repl` accepts local parameters and precode to be supplied (<https://github.com/MarioRuiz/slack-smart-bot/issues/60|#60>).
+- `!!run repl` will respond as soon as any result is released (<https://github.com/MarioRuiz/slack-smart-bot/issues/63|#63>)
+- Now you can add notes for the team, even you can specify if those notes are private so only the members of the team can see them, or even personal. You can use different types of notes: memo, note, issue, task, feature, bug. Also you can indicate the topic of the note. To be able to add or delete notes you need to be a member of that team. Example: `add private bug to Moon team SRE : Logs should not be accessible from outside VPN` (<https://github.com/MarioRuiz/slack-smart-bot/issues/64|#64> <https://github.com/MarioRuiz/slack-smart-bot/issues/67|#67>)
+- It is possible to add a JIRA JQL to the team memos that will automatically create the memos from the JIRA issues (<https://github.com/MarioRuiz/slack-smart-bot/issues/68|#68>)
+- `kill repl RUN_REPL_ID` Will kill a running repl previously executed with `run repl` command. (<https://github.com/MarioRuiz/slack-smart-bot/issues/69|#69>)
+- Now you can add a GitHub url to the issues you want to add as memos for teams. (<https://github.com/MarioRuiz/slack-smart-bot/issues/71|#71>)
+- It is possible to add the status of a memo on teams feature. (<https://github.com/MarioRuiz/slack-smart-bot/issues/72|#72>)
+- Added 'Time off' (Vacation/Sick/Sick Child) management. The SmartBot will automatically set your status on the periods specified. It will be possible to see the 'Time off' plan for a specific team and period. (<https://github.com/MarioRuiz/slack-smart-bot/issues/73|#73>)
 
 *For Admin users*
-- When calling `respond` it can be supplied the argument `return_message: true` to get access to the posted message. `msg = respond('my message', return_message: true)` (<https://github.com/MarioRuiz/slack-smart-bot/issues/31|#31>)
-- New command `delete message URL` will delete the SmartBot message supplied. Only for Master Admins (<https://github.com/MarioRuiz/slack-smart-bot/issues/32|#32>).
-- `send message` accept also the url of the message to respond on a thread. Only for Master Admins (<https://github.com/MarioRuiz/slack-smart-bot/issues/39|#39>).
-- `react to` accept also the url of the message. Only for Master Admins (<https://github.com/MarioRuiz/slack-smart-bot/issues/40|#40>).
-- You can add, remove and list admins of any channel by using: `add admin @user`, `remove admin @user` and `see admins`. You need to be the creator of the channel, a Master admin or an admin (<https://github.com/MarioRuiz/slack-smart-bot/issues/42|#42>).
-- `see access COMMAND_ID`, `allow access COMMAND_ID`, `allow access COMMAND_ID @user1 @user99` and `deny access COMMAND_ID`: Allows us to decide which commands are accessible on every channel. (<https://github.com/MarioRuiz/slack-smart-bot/issues/44|#44>).
-
+- Bot Stats is now saving the time_zone of the user (<https://github.com/MarioRuiz/slack-smart-bot/issues/66|#66>)
+- Announcements won't be published if no activity on channel. (<https://github.com/MarioRuiz/slack-smart-bot/issues/74|#74)
 ------------------------------
 
-*Previous*: <https://github.com/MarioRuiz/slack-smart-bot/blob/dd23939f93ee95aca3c04d33cd1ce197d6efbd37/whats_new.txt|1.10.0>
+*Previous*: <https://github.com/MarioRuiz/slack-smart-bot/blob/b1a368c3342094e886f53d96dc4d12ecd81ab04b/whats_new.txt|1.11.0>

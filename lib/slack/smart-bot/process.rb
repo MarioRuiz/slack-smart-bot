@@ -152,7 +152,9 @@ class SlackSmartBot
           see_routines(dest, from, user, all)
         when /\A\s*get\s+bot\s+logs?\s*$/i
           get_bot_logs(dest, from, typem)
-        when /\A\s*send\s+message\s+(on|to|in)\s*(.+)\s*:\s*(.+)\s*$/im
+        when /\A\s*send\s+message\s+(on|to|in)\s+<(https?:[^:]+)>\s*:\s*(.+)\s*$/im,
+          /\A\s*send\s+message\s+(on|to|in)\s+(https?:[^:]+)\s*:\s*(.+)\s*$/im,
+          /\A\s*send\s+message\s+(on|to|in)\s*([^:]+)\s*:\s*(.+)\s*$/im
           opts = $2
           message = $3
           thread_ts = ''
@@ -174,7 +176,7 @@ class SlackSmartBot
                     
           thread_ts.gsub!('.','')
           send_message(dest, from, typem, to, thread_ts, message)
-        when /\A\s*delete\s+message\s+(.+)\s*$/i
+        when /\A\s*delete\s+message\s+(http.+)\s*$/i
           url = $1
           delete_message(from, typem, url)
         when /\A\s*react\s+(on|to|in)\s*([^\s]+)\s+([p\d\.]+)\s+(.+)\s*$/i,
@@ -396,11 +398,15 @@ class SlackSmartBot
         when /\A\s*get\s+(repl|irb|live)\s+([\w\-]+)\s*/i
           session_name = $2
           get_repl(dest, user, session_name)      
-        when /\A\s*run\s+(repl|irb|live)\s+([\w\-]+)()\s*$/i,
-          /^\s*run\s+(repl|irb|live)\s+([\w\-]+)\s+(.+)\s*$/i
+        when /\A\s*run\s+(repl|irb|live)\s+([\w\-]+)()\s*\z/im,
+          /^\s*run\s+(repl|irb|live)\s+([\w\-]+)\s+(.+)\s*$/im
           session_name = $2
-          opts = " #{$3}"
-          env_vars = opts.scan(/\s+[\w\-]+="[^"]+"/i) + opts.scan(/\s+[\w\-]+='[^']+'/i)  
+          if Thread.current[:command_orig].match(/\s*run\s+(repl|irb|live)\s+([\w\-]+)\s+(.+)\s*$/im)
+            opts = " #{$3}"
+          else
+            opts = ''
+          end
+          env_vars = opts.scan(/\s+[\w\-]+="[^"]+"/i) + opts.scan(/\s+[\w\-]+='[^']+'/i)
           opts.scan(/\s+[\w\-]+=[^'"\s]+/i).flatten.each do |ev|
             env_vars << ev.gsub('=',"='") + "'"
           end
@@ -409,12 +415,16 @@ class SlackSmartBot
               ev.lstrip!
               env_vars[idx] = "ENV['#{ev}"
           end
-          run_repl(dest, user, session_name, env_vars.flatten, rules_file)      
+          prerun = Thread.current[:command_orig].gsub('```', '`').scan(/\s+`(.+)`/m)
+          run_repl(dest, user, session_name, env_vars.flatten, prerun.flatten, rules_file)      
         when /\A\s*(delete|remove)\s+(repl|irb|live)\s+([\w\-]+)\s*$/i
           repl_name = $3
           delete_repl(dest, user, repl_name)
         when /\A\s*see\s+(repls|repl|irb|irbs)\s*$/i
           see_repls(dest, user, typem)
+        when /\A\s*(kill)\s+(repl|irb|live)\s+([\w]+)\s*$/i
+          repl_id = $3
+          kill_repl(dest, user, repl_id)
         else
           processed2 = false
         end #of case

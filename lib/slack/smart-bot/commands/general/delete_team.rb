@@ -6,9 +6,29 @@ class SlackSmartBot
       respond "This command cannot be called from a DM"
     else
       get_teams()
+      if @teams.key?(team_name.to_sym)
+        assigned_members = @teams[team_name.to_sym].members.values.flatten
+        assigned_members.uniq!
+        all_team_members = assigned_members.dup
+        team_members = []
+        if @teams[team_name.to_sym].channels.key?("members")
+          @teams[team_name.to_sym].channels["members"].each do |ch|
+            get_channels_name_and_id() unless @channels_id.key?(ch)
+            tm = get_channel_members(@channels_id[ch])
+            tm.each do |m|
+              user_info = @users.select { |u| u.id == m or (u.key?(:enterprise_user) and u.enterprise_user.id == m) }[-1]
+              team_members << user_info.name unless user_info.is_app_user or user_info.is_bot
+            end
+          end
+        end
+        team_members.flatten!
+        team_members.uniq!
+        all_team_members += team_members
+        all_team_members.uniq!
+      end
       if !@teams.key?(team_name.to_sym)
         respond "It seems like the team *#{team_name}* doesn't exist.\nRelated commands `add team TEAM_NAME PROPERTIES`, `see team TEAM_NAME`, `see teams`"
-      elsif !(@teams[team_name.to_sym].members.values + [@teams[team_name.to_sym].creator] + config.masters).flatten.include?(user.name)
+      elsif !(all_team_members + [@teams[team_name.to_sym].creator] + config.masters).flatten.include?(user.name)
         respond "You have to be a member of the team, the creator or a Master admin to be able to delete this team."
       else
         if answer.empty?

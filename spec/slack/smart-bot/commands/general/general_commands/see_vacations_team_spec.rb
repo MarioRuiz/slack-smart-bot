@@ -47,13 +47,13 @@ RSpec.describe SlackSmartBot, "see_vacations_team" do
         send_message "team example", from: user , to: channel
         sleep 2
         expect(buffer(to: channel, from: :ubot).join).to match(/\*Time Off example team\* from #{today}/i)
-        expect(buffer(to: channel, from: :ubot).join).to match(/#{today[-2..-1]} :large_red_square: :white_square:/i)
+        expect(buffer(to: channel, from: :ubot).join).to match(/#{today[-2..-1]} :large_red_square:/i)
       end
 
       it 'displays the time off for team when calling vacations team NAME' do
         send_message "vacations team example", from: user , to: channel
         expect(buffer(to: channel, from: :ubot).join).to match(/\*Time Off example team\* from #{today}/i)
-        expect(buffer(to: channel, from: :ubot).join).to match(/#{today[-2..-1]} :large_red_square: :white_square:/i)
+        expect(buffer(to: channel, from: :ubot).join).to match(/#{today[-2..-1]} :large_red_square:/i)
       end
 
       it 'displays the time off for team when calling vacations team NAME DATE' do

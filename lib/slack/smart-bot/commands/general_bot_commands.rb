@@ -10,7 +10,6 @@ def general_bot_commands(user, command, dest, files = [])
       end
       display_name = user.profile.display_name
     end
-
     case command
 
 
@@ -557,9 +556,9 @@ def general_bot_commands(user, command, dest, files = [])
         type = $1.downcase.to_sym
         name = $2.downcase
         member_type = $3.downcase
-        message = Thread.current[:command_orig].to_s.gsub("\u00A0", " ").scan(/\A\s*[^\s]+\s*\w+\s+team\s+[\w\-]+\s+[\w\-]+\s+(.+)\s*\z/im).join
+        message = Thread.current[:command_orig].to_s.gsub("\u00A0", " ").scan(/\A\s*[\w]+\s+\w+\s+team\s+[\w\-]+\s+(.+)\s*\z/im).join
         if message == ''
-          message = Thread.current[:command_orig].to_s.gsub("\u00A0", " ").scan(/\A\s*[^\s]+\s*\w+\s+[\w\-]+\s+team\s+[\w\-]+\s+(.+)\s*\z/im).join
+          message = Thread.current[:command_orig].to_s.gsub("\u00A0", " ").scan(/\A\s*[\w]+\s+team\s+\w+\s+[\w\-]+\s+(.+)\s*\z/im).join
         end
         ping_team(user, type, name, member_type, message)
 

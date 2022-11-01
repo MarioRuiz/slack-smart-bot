@@ -75,6 +75,7 @@ class SlackSmartBot
             end
         end
         tzone_users = {}
+        job_title_users = {}
 
         unless wrong
             if on_dm_master or (from_user.id == user) # normal user can only see own stats 
@@ -318,6 +319,30 @@ class SlackSmartBot
                                     end
                                 end
                             end
+                            if rows[0].key?(:job_title) #then save_stats is saving the job title already
+                                rows.job_title.each do |job_title|
+                                    unless job_title == ''
+                                        job_title_users[job_title] ||= 0
+                                        job_title_users[job_title] += 1
+                                    end
+                                end
+                            else
+                                rows.user_id.each_with_index do |usr, i|
+                                    if rows[i].values.size >= 13 #then save_stats is saving the job_title already but not all the data
+                                        unless rows[i].values[12] == ''
+                                            job_title_users[rows[i].values[12]] ||= 0
+                                            job_title_users[rows[i].values[12]] += 1    
+                                        end
+                                    else
+                                        user_info = @users.select { |u| u.id == usr or (u.key?(:enterprise_user) and u.enterprise_user.id == usr) }[-1]
+                                        unless user_info.nil? or user_info.is_app_user or user_info.is_bot
+                                            job_title_users[user_info.profile.title] ||= 0
+                                            job_title_users[user_info.profile.title] += 1
+                                        end
+                                    end
+                                end
+                            end
+
                             if users.size > 10
                                 message << "*Users* - #{users.size} (Top 10)"
                             else
@@ -351,6 +376,17 @@ class SlackSmartBot
                                 total_known = 0
                                 tzone_users.each do |tzone, num|
                                     message << "\t#{tzone}: #{num} (#{(num.to_f*100/total_without_routines).round(2)}%)"
+                                    total_known+=num
+                                end
+                                total_unknown = total_without_routines - total_known
+                                message << "\tUnknown: #{total_unknown} (#{(total_unknown.to_f*100/total_without_routines).round(2)}%)" if total_unknown > 0
+                            end
+
+                            if job_title_users.size > 0
+                                message << "*Job Titles*"
+                                total_known = 0
+                                job_title_users.each do |jtitle, num|
+                                    message << "\t#{jtitle}: #{num} (#{(num.to_f*100/total_without_routines).round(2)}%)"
                                     total_known+=num
                                 end
                                 total_unknown = total_without_routines - total_known

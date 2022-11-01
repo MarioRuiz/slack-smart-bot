@@ -381,12 +381,20 @@ class SlackSmartBot
                                 total_unknown = total_without_routines - total_known
                                 message << "\tUnknown: #{total_unknown} (#{(total_unknown.to_f*100/total_without_routines).round(2)}%)" if total_unknown > 0
                             end
-
+                            
                             if job_title_users.size > 0
-                                message << "*Job Titles*"
+                                if job_title_users.size > 10
+                                    message << "*Job Titles* - #{job_title_users.size} (Top 10)"
+                                else
+                                    message << "*Job Titles* - #{job_title_users.size}"
+                                end
                                 total_known = 0
-                                job_title_users.each do |jtitle, num|
-                                    message << "\t#{jtitle}: #{num} (#{(num.to_f*100/total_without_routines).round(2)}%)"
+                                i = 0
+                                job_title_users.sort_by {|k,v| -v}.each do |jtitle, num|
+                                    i += 1
+                                    if i <= 10
+                                        message << "\t#{jtitle}: #{num} (#{(num.to_f*100/total_without_routines).round(2)}%)"
+                                    end
                                     total_known+=num
                                 end
                                 total_unknown = total_without_routines - total_known

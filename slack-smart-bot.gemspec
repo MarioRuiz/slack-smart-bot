@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name        = 'slack-smart-bot'
-  s.version     = '1.12.3'
+  s.version     = '1.12.4'
   s.summary     = "Create a Slack bot that is smart and so easy to expand, create new bots on demand, run ruby code on chat, create shortcuts..."
   s.description = "Create a Slack bot that is smart and so easy to expand, create new bots on demand, run ruby code on chat, create shortcuts... 
   The main scope of this gem is to be used internally in the company so teams can create team channels with their own bot to help them on their daily work, almost everything is suitable to be automated!! 
@@ -19,6 +19,7 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency 'async-websocket', '~> 0.8.0'
   s.add_runtime_dependency 'amazing_print', '~> 1', '>= 1.3.0'
   s.add_development_dependency 'rspec', '~> 3.9'
+  s.add_runtime_dependency 'console', '~> 1.15.0' #due to this bug on Ruby 2.7: https://github.com/socketry/console/issues/37 todo: remove when fixed
   s.required_ruby_version = '>= 2.7'
   s.post_install_message = "Thanks for installing! Visit us on https://github.com/MarioRuiz/slack-smart-bot"
   s.test_files    = s.files.grep(%r{^(test|spec|features)/})

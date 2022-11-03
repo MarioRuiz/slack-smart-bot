@@ -76,6 +76,7 @@ class SlackSmartBot
         end
         tzone_users = {}
         job_title_users = {}
+        users_by_job_title = {}
 
         unless wrong
             if on_dm_master or (from_user.id == user) # normal user can only see own stats 
@@ -320,10 +321,12 @@ class SlackSmartBot
                                 end
                             end
                             if rows[0].key?(:job_title) #then save_stats is saving the job title already
-                                rows.job_title.each do |job_title|
+                                rows.job_title.each_with_index do |job_title, idx|
                                     unless job_title == ''
                                         job_title_users[job_title] ||= 0
                                         job_title_users[job_title] += 1
+                                        users_by_job_title[job_title] ||= []
+                                        users_by_job_title[job_title] << rows.user_name[idx]
                                     end
                                 end
                             else
@@ -332,17 +335,23 @@ class SlackSmartBot
                                         unless rows[i].values[12] == ''
                                             job_title_users[rows[i].values[12]] ||= 0
                                             job_title_users[rows[i].values[12]] += 1    
+                                            users_by_job_title[rows[i].values[12]] ||= []
+                                            users_by_job_title[rows[i].values[12]] << rows.user_name[i]
                                         end
                                     else
                                         user_info = @users.select { |u| u.id == usr or (u.key?(:enterprise_user) and u.enterprise_user.id == usr) }[-1]
                                         unless user_info.nil? or user_info.is_app_user or user_info.is_bot
                                             job_title_users[user_info.profile.title] ||= 0
                                             job_title_users[user_info.profile.title] += 1
+                                            users_by_job_title[user_info.profile.title] ||= []
+                                            users_by_job_title[user_info.profile.title] << rows.user_name[i]
                                         end
                                     end
                                 end
                             end
-
+                            users_by_job_title.each do |job_title, users|
+                                users.uniq!
+                            end
                             if users.size > 10
                                 message << "*Users* - #{users.size} (Top 10)"
                             else
@@ -404,7 +413,21 @@ class SlackSmartBot
                                 total_unknown = total_without_routines - total_known
                                 message << "\tUnknown: #{total_unknown} (#{(total_unknown.to_f*100/total_without_routines).round(2)}%)" if total_unknown > 0
                             end
-
+                            if users_by_job_title.size > 0
+                                if users_by_job_title.size > 10
+                                    message << "*Num Users by Job Title* (Top 10)"
+                                else
+                                    message << "*Num Users by Job Title*"
+                                end
+                                i = 0
+                                users_by_job_title.sort_by {|k,v| -v.size}.each do |jtitle, users|
+                                    i += 1
+                                    if i <= 10
+                                        jtitle = 'Unknown' if jtitle.to_s == ''
+                                        message << "\t#{jtitle}: #{users.size}"
+                                    end
+                                end
+                            end
                         end
                         commands_attachment = []
 

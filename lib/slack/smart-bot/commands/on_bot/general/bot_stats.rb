@@ -349,8 +349,10 @@ class SlackSmartBot
                                     end
                                 end
                             end
+                            total_users_by_job_title = 0
                             users_by_job_title.each do |job_title, users|
                                 users.uniq!
+                                total_users_by_job_title += users.size
                             end
                             if users.size > 10
                                 message << "*Users* - #{users.size} (Top 10)"
@@ -424,7 +426,7 @@ class SlackSmartBot
                                     i += 1
                                     if i <= 10
                                         jtitle = 'Unknown' if jtitle.to_s == ''
-                                        message << "\t#{jtitle}: #{users.size}"
+                                        message << "\t#{jtitle}: #{users.size} (#{(users.size.to_f*100/total_users_by_job_title).round(2)}%)"
                                     end
                                 end
                             end

@@ -12,6 +12,7 @@ CPRIVEXT = "GN6G77CUR" #privextended, private and extended from cbot1cm
 CBOTNOTINVITED = "CNM7T8G8P" #channel_bot_not_invited
 CNOUSER1 = "CPA5GVAF7" #external_channel_no_user1
 CSTATUS = 'C02B4EF3WH4' #smartbot-status
+CSTATS = 'C049BGYNDFU' #smartbot-stats
 
 UBOT = "UMSRCRTAR" #example
 UBOT2 = "UNA5W6PE1" #unormal

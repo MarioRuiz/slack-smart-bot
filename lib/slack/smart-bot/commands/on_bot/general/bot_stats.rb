@@ -16,11 +16,16 @@ class SlackSmartBot
     # help: `bot stats members #CHANNEL`
     # help: `bot stats exclude members #CHANNEL`
     # help: `bot stats today`
+    # help: `bot stats yesterday`
+    # help: `bot stats last month`
+    # help: `bot stats this month`
+    # help: `bot stats last week`
+    # help: `bot stats this week`
     # help: `bot stats exclude COMMAND_ID`
     # help: `bot stats monthly`
     # help: `bot stats alldata`
     # help:    To see the bot stats
-    # helpmaster:    You can use this command only if you are a Master admin user and if you are in a private conversation with the bot
+    # helpmaster:    You can use this command only if you are a Master admin user and if you are in a private conversation with the bot, or you are on the Smartbot-stats channel
     # helpmaster:    You need to set stats to true to generate the stats when running the bot instance.
     # help:    members #CHANNEL will return stats for only members of the channel supplied
     # help:    exclude members #CHANNEL will return stats for only members that are not members of the channel supplied
@@ -44,7 +49,15 @@ class SlackSmartBot
             message = ["You need to set stats to true to generate the stats when running the bot instance."]
         end
         save_stats(__method__)
-        if (from_user.id != user and (config.masters.include?(from_user.name) or @master_admin_users_id.include?(from_user.id)) and (typem==:on_dm or dest[0]=='D'))
+        get_channels_name_and_id() unless @channels_name.keys.include?(dest)
+        master_admin_users_id = @master_admin_users_id.dup
+        if dest == @channels_id[config.stats_channel]
+            #master_admin_users_id << user
+            user = '' # for the case we are on the stats channel
+        end
+        if (from_user.id != user and 
+            (config.masters.include?(from_user.name) or master_admin_users_id.include?(from_user.id) or dest == @channels_id[config.stats_channel]) and #Jal
+                (typem==:on_dm or dest[0]=='D' or dest == @channels_id[config.stats_channel] ))
             on_dm_master = true #master admin user
         else
             on_dm_master = false
@@ -164,7 +177,7 @@ class SlackSmartBot
                                     end
                                     if !exclude_masters or (exclude_masters and !master_admins.include?(row[:user_name]) and 
                                                             !master_admins.include?(row[:user_id]) and
-                                                            !@master_admin_users_id.include?(row[:user_id]))
+                                                            !master_admin_users_id.include?(row[:user_id]))
                                         if !exclude_routines or (exclude_routines and !row[:user_name].match?(/^routine\//) )
                                             if exclude_command == '' or (exclude_command!='' and row[:command]!=exclude_command)
                                                 if st_command == '' or (st_command != '' and row[:command] == st_command)
@@ -322,29 +335,28 @@ class SlackSmartBot
                             end
                             if rows[0].key?(:job_title) #then save_stats is saving the job title already
                                 rows.job_title.each_with_index do |job_title, idx|
-                                    unless job_title == ''
-                                        job_title_users[job_title] ||= 0
-                                        job_title_users[job_title] += 1
-                                        users_by_job_title[job_title] ||= []
-                                        users_by_job_title[job_title] << rows.user_name[idx]
-                                    end
+                                    job_title = job_title.to_s.split.map(&:capitalize).join(' ')
+                                    job_title_users[job_title] ||= 0
+                                    job_title_users[job_title] += 1
+                                    users_by_job_title[job_title] ||= []
+                                    users_by_job_title[job_title] << rows.user_name[idx]
                                 end
                             else
                                 rows.user_id.each_with_index do |usr, i|
                                     if rows[i].values.size >= 13 #then save_stats is saving the job_title already but not all the data
-                                        unless rows[i].values[12] == ''
-                                            job_title_users[rows[i].values[12]] ||= 0
-                                            job_title_users[rows[i].values[12]] += 1    
-                                            users_by_job_title[rows[i].values[12]] ||= []
-                                            users_by_job_title[rows[i].values[12]] << rows.user_name[i]
-                                        end
+                                        job_title = rows[i].values[12].to_s.split.map(&:capitalize).join(' ')                                               
+                                        job_title_users[job_title] ||= 0
+                                        job_title_users[job_title] += 1    
+                                        users_by_job_title[job_title] ||= []
+                                        users_by_job_title[job_title] << rows.user_name[i]
                                     else
                                         user_info = @users.select { |u| u.id == usr or (u.key?(:enterprise_user) and u.enterprise_user.id == usr) }[-1]
                                         unless user_info.nil? or user_info.is_app_user or user_info.is_bot
-                                            job_title_users[user_info.profile.title] ||= 0
-                                            job_title_users[user_info.profile.title] += 1
-                                            users_by_job_title[user_info.profile.title] ||= []
-                                            users_by_job_title[user_info.profile.title] << rows.user_name[i]
+                                            job_title = user_info.profile.title.split.map(&:capitalize).join(' ')
+                                            job_title_users[job_title] ||= 0
+                                            job_title_users[job_title] += 1
+                                            users_by_job_title[job_title] ||= []
+                                            users_by_job_title[job_title] << rows.user_name[i]
                                         end
                                     end
                                 end

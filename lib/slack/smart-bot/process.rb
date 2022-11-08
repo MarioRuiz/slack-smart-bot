@@ -37,7 +37,8 @@ class SlackSmartBot
     end
     if !config.on_maintenance or (config.on_maintenance and command.match?(/\A(set|turn)\s+maintenance\s+off\s*\z/))
       #todo: check :on_pg in this case
-      if typem == :on_master or typem == :on_bot or typem == :on_pg or typem == :on_dm
+      if typem == :on_master or typem == :on_bot or typem == :on_pg or typem == :on_dm or 
+        (command.match?(/\A\s*bot\s+stats\s*(.*)\s*$/i) and dest==@channels_id[config.stats_channel])
     
         case command
 
@@ -102,14 +103,11 @@ class SlackSmartBot
         when /\A\s*(where\s+is|which\s+channels|where\s+is\s+a\s+member)\s+(#{@salutations.join("|")})\??\s*$/i
           where_smartbot(user)
         when /\A\s*(add|create)\s+(silent\s+)?(bgroutine|routine)\s+([\w\.]+)\s+(every)\s+(\d+)\s*(days|hours|minutes|seconds|mins|min|secs|sec|d|h|m|s)\s*(\s#(\w+)\s*)(\s.+)?\s*\z/im,
-          /\A\s*(add|create)\s+(silent\s+)?(bgroutine|routine)\s+([\w\.]+)\s+(every)\s+(\d+)\s*(days|hours|minutes|seconds|mins|min|secs|sec|d|h|m|s)\s*(\s<#(C\w+)\|.+>\s*)?(\s.+)?\s*\z/im,
-          /\A\s*(add|create)\s+(silent\s+)?(bgroutine|routine)\s+([\w\.]+)\s+(every)\s+(\d+)\s*(days|hours|minutes|seconds|mins|min|secs|sec|d|h|m|s)\s*(\s<#(\w+)\|>\s*)?(\s.+)?\s*\z/im,
+          /\A\s*(add|create)\s+(silent\s+)?(bgroutine|routine)\s+([\w\.]+)\s+(every)\s+(\d+)\s*(days|hours|minutes|seconds|mins|min|secs|sec|d|h|m|s)\s*(\s<#(C\w+)\|.*>\s*)?(\s.+)?\s*\z/im,
           /\A\s*(add|create)\s+(silent\s+)?(bgroutine|routine)\s+([\w\.]+)\s+on\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday|weekend|weekday)s?\s+at\s+(\d+:\d+:?\d+?)\s*()(\s#(\w+)\s*)(\s.+)?\s*\z/im,
-          /\A\s*(add|create)\s+(silent\s+)?(bgroutine|routine)\s+([\w\.]+)\s+on\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday|weekend|weekday)s?\s+at\s+(\d+:\d+:?\d+?)\s*()(\s<#(C\w+)\|.+>\s*)?(\s.+)?\s*\z/im,
-          /\A\s*(add|create)\s+(silent\s+)?(bgroutine|routine)\s+([\w\.]+)\s+on\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday|weekend|weekday)s?\s+at\s+(\d+:\d+:?\d+?)\s*()(\s<#(\w+)\|>\s*)?(\s.+)?\s*\z/im,
+          /\A\s*(add|create)\s+(silent\s+)?(bgroutine|routine)\s+([\w\.]+)\s+on\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday|weekend|weekday)s?\s+at\s+(\d+:\d+:?\d+?)\s*()(\s<#(C\w+)\|.*>\s*)?(\s.+)?\s*\z/im,
           /\A\s*(add|create)\s+(silent\s+)?(bgroutine|routine)\s+([\w\.]+)\s+(at)\s+(\d+:\d+:?\d+?)\s*()(\s#(\w+)\s*)(\s.+)?\s*\z/im,
-          /\A\s*(add|create)\s+(silent\s+)?(bgroutine|routine)\s+([\w\.]+)\s+(at)\s+(\d+:\d+:?\d+?)\s*()(\s<#(C\w+)\|.+>\s*)?(\s.+)?\s*\z/im,
-          /\A\s*(add|create)\s+(silent\s+)?(bgroutine|routine)\s+([\w\.]+)\s+(at)\s+(\d+:\d+:?\d+?)\s*()(\s<#(\w+)\|>\s*)?(\s.+)?\s*\z/im          
+          /\A\s*(add|create)\s+(silent\s+)?(bgroutine|routine)\s+([\w\.]+)\s+(at)\s+(\d+:\d+:?\d+?)\s*()(\s<#(C\w+)\|.*>\s*)?(\s.+)?\s*\z/im
           silent = $2.to_s!=''
           routine_type = $3.downcase
           name = $4.downcase
@@ -272,6 +270,12 @@ class SlackSmartBot
           opts.gsub!(/exclude\s+members\s+<#\w+\|.*>/,'')
           members_channel =  opts.scan(/members\s+<#(\w+)\|.*>/i).join #todo: add test
           opts.gsub!(/members\s+<#\w+\|.*>/,'')
+          this_month = opts.match?(/this\s+month/i)
+          last_month = opts.match?(/last\s+month/i)
+          this_year = opts.match?(/this\s+year/i)
+          last_year = opts.match?(/last\s+year/i)
+          this_week = opts.match?(/this\s+week/i)
+          last_week = opts.match?(/last\s+week/i)
           all_opts = opts.downcase.split(' ')
           all_data = all_opts.include?('alldata')
           st_channel = opts.scan(/<#(\w+)\|.*>/).join
@@ -296,14 +300,46 @@ class SlackSmartBot
           monthly = false
           if all_opts.include?('today')
             st_from = st_to = "#{Time.now.strftime("%Y-%m-%d")}"
+          elsif all_opts.include?('yesterday')
+            st_from = st_to = "#{(Time.now-86400).strftime("%Y-%m-%d")}"
           elsif all_opts.include?('monthly')
             monthly = true
           end
+          if this_month
+            st_from = "#{Date.today.strftime("%Y-%m-01")}"
+            st_to = "#{Date.today.strftime("%Y-%m-%d")}"          
+          elsif last_month
+            date = Date.today<<1
+            st_from = "#{date.strftime("%Y-%m-01")}"
+            st_to = "#{(Date.new(date.year, date.month, -1)).strftime("%Y-%m-%d")}"
+          elsif this_year
+            st_from = "#{Date.today.strftime("%Y-01-01")}"
+            st_to = "#{Date.today.strftime("%Y-%m-%d")}"
+          elsif last_year
+            date = Date.today.prev_year
+            st_from = "#{date.strftime("%Y-01-01")}"
+            st_to = "#{(Date.new(date.year, 12, 31)).strftime("%Y-%m-%d")}"
+          elsif this_week
+            date = Date.today
+            wday = date.wday
+            wday = 7 if wday==0
+            wday-=1
+            st_from = "#{(date-wday).strftime("%Y-%m-%d")}"
+            st_to = "#{date.strftime("%Y-%m-%d")}"
+          elsif last_week
+            date = Date.today
+            wday = date.wday
+            wday = 7 if wday==0
+            wday-=1
+            st_from = "#{(date-wday-7).strftime("%Y-%m-%d")}"
+            st_to = "#{(date-wday-1).strftime("%Y-%m-%d")}"
+          end
+
           exclude_command = opts.scan(/exclude\s+([^\s]+)/i).join
           unless @master_admin_users_id.include?(user.id)
             st_user = user.id
           end
-          if (typem == :on_master or typem == :on_bot) and dest[0]!='D' #routine bot stats to be published on DM
+          if (typem == :on_master or typem == :on_bot) and dest[0]!='D' and dest!=@channels_id[config.stats_channel] #routine bot stats to be published on DM
             st_channel = dchannel
           end
           bot_stats(dest, user, typem, st_channel, st_from, st_to, st_user, st_command, exclude_masters, exclude_routines, exclude_command, monthly, all_data, members_channel, exclude_members_channel)

@@ -250,6 +250,7 @@ class SlackSmartBot
             command += " ruby" if command != "ruby"
             command = "#{command} #{res.body.to_s.force_encoding("UTF-8")}"
           end
+
           if typem == :on_call
             command = "!" + command unless command[0] == "!" or command.match?(/^\s*$/) or command[0] == "^"
 
@@ -283,6 +284,7 @@ class SlackSmartBot
           elsif typem == :on_pub or typem == :on_pg
             process_first(user_info, command, dest, channel_rules, typem, data.files, data.ts, data.thread_ts, data.routine, data.routine_name, data.routine_type, command_orig)
           end
+
         rescue Exception => stack
           @logger.fatal stack
         end

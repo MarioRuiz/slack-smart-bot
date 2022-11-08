@@ -29,6 +29,8 @@ def get_key(user)
     key = CPRIVEXT
   when :cstatus 
     key = CSTATUS
+  when :cstats
+    key = CSTATS
   end
   return key
 end

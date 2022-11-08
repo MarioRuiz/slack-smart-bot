@@ -34,7 +34,8 @@ def csettings()
                     CNM7T8G8P: { id: 'CNM7T8G8P', name: 'channel_bot_not_invited', members: ['UJP2EK400']}, #channel_bot_not_invited
                     CPA5GVAF7: { id: 'CPA5GVAF7', name: 'external_channel_no_user1', members: ['UMYQS8E7L']},
                     DNB4GTK2Q: { id: 'DNB4GTK2Q', name: 'DNB4GTK2Q', members: ['UMSRCRTAR','UNDE229T9']},
-                    C02B4EF3WH4: {id: 'C02B4EF3WH4', name: 'smartbot-status', creator: 'UJP2EK400', members: ['UMSRCRTAR','UJP2EK400', 'UNDE229T9']}
+                    C02B4EF3WH4: {id: 'C02B4EF3WH4', name: 'smartbot-status', creator: 'UJP2EK400', members: ['UMSRCRTAR','UJP2EK400', 'UNDE229T9']},
+                    C049BGYNDFU: {id: 'C049BGYNDFU', name: 'smartbot-stats', creator: 'UJP2EK400', members: ['UMSRCRTAR','UJP2EK400', 'UNDE229T9']}
                 }
             }
         }

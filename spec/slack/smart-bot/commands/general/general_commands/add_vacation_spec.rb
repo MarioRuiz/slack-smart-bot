@@ -56,6 +56,19 @@ RSpec.describe SlackSmartBot, "add_vacation" do
         send_message "add sick from 2022/08/01 to 2022/08/03", from: user, to: channel
         expect(bufferc(to: channel, from: :ubot).join).to match(/Period has been added/i)
       end      
+      it "is possible to use I'm on vacation today" do
+        send_message "I'm on vacation today", from: user, to: channel
+        expect(bufferc(to: channel, from: :ubot).join).to match(/Period has been added/i)
+      end
+      it "is possible to use I'm sick today" do
+        send_message "I'm sick today", from: user, to: channel
+        expect(bufferc(to: channel, from: :ubot).join).to match(/Period has been added/i)
+      end
+      it "is possible to use I'll be on vacation next week" do
+        send_message "I'll be on vacation next week", from: user, to: channel
+        expect(bufferc(to: channel, from: :ubot).join).to match(/Period has been added/i)
+      end
+
 
       it 'is not possible to add wrong date' do
         send_message "add sick from 2022/48/01 to 2022/08/03", from: user, to: channel

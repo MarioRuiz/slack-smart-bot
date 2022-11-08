@@ -582,6 +582,8 @@ def general_bot_commands(user, command, dest, files = [])
         # help: `add sick from YYYY/MM/DD to YYYY/MM/DD`
         # help: `add sick YYYY/MM/DD`
         # help: `add sick child YYYY/MM/DD`
+        # help: `I'm sick today`
+        # help: `I'm on vacation today`
         # help:     It will add the supplied period to your plan.
         # help:     Instead of YYYY/MM/DD you can use 'today' or 'tomorrow' or 'next week'
         # help:     To see your plan call `see my time off`
@@ -592,18 +594,21 @@ def general_bot_commands(user, command, dest, files = [])
         # help:     _add vacation from 2022/10/01 to 2022/10/22_
         # help:     _add sick 2022/08/22_
         # help:     _add vacation tomorrow_
+        # help:     _I'll be on vacation next week_
         # help:     _add sick baby today_
         # help:    <https://github.com/MarioRuiz/slack-smart-bot#time-off-management|more info>
         # help: command_id: :add_vacation
         # help: 
-      when /\A\s*add\s+(sick|vacation|sick\s+baby|sick\s+child)\s+from\s+(\d\d\d\d\/\d\d\/\d\d)\s+to\s+(\d\d\d\d\/\d\d\/\d\d)\s*\z/i,
-        /\A\s*add\s+(sick|vacation|sick\s+baby|sick\s+child)\s+from\s+(\d\d\d\d-\d\d-\d\d)\s+to\s+(\d\d\d\d-\d\d-\d\d)\s*\z/i,
-        /\A\s*add\s+(sick|vacation|sick\s+baby|sick\s+child)\s+(\d\d\d\d-\d\d-\d\d)()\s*\z/i,
-        /\A\s*add\s+(sick|vacation|sick\s+baby|sick\s+child)\s+(\d\d\d\d\/\d\d\/\d\d)()\s*\z/i,
-        /\A\s*add\s+(sick|vacation|sick\s+baby|sick\s+child)\s+(today|tomorrow|next\sweek)()\s*\z/i
-        type = $1
-        from = $2.downcase
-        to = $3
+      when /\A\s*(add)\s+(sick|vacation|sick\s+baby|sick\s+child)\s+from\s+(\d\d\d\d\/\d\d\/\d\d)\s+to\s+(\d\d\d\d\/\d\d\/\d\d)\s*\z/i,
+        /\A\s*(add)\s+(sick|vacation|sick\s+baby|sick\s+child)\s+from\s+(\d\d\d\d-\d\d-\d\d)\s+to\s+(\d\d\d\d-\d\d-\d\d)\s*\z/i,
+        /\A\s*(add)\s+(sick|vacation|sick\s+baby|sick\s+child)\s+(\d\d\d\d-\d\d-\d\d)()\s*\z/i,
+        /\A\s*(add)\s+(sick|vacation|sick\s+baby|sick\s+child)\s+(\d\d\d\d\/\d\d\/\d\d)()\s*\z/i,
+        /\A\s*(add)\s+(sick|vacation|sick\s+baby|sick\s+child)\s+(today|tomorrow|next\sweek)()\s*\z/i,
+        /\A\s*(I'm|I\s+am|I'll\s+be|I\s+will\s+be)\s+(sick|on\s+vacation)\s+(today|tomorrow|next\sweek)()\s*\z/i
+        type = $2
+        from = $3.downcase
+        to = $4
+        type = 'vacation' if type.match?(/vacation/)
         add_vacation(user, type, from, to)
 
         # help: ----------------------------------------------

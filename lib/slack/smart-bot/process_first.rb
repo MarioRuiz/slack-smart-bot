@@ -212,7 +212,7 @@ class SlackSmartBot
           else
               Thread.current[:using_channel] = ''
           end
-          if (typem == :on_pub or typem == :on_pg) and (!command.match?(/\A\s*bot\s+stats\s*(.*)\s*$/i) or dest!=@channels_id[config.stats_channel])
+          if (typem == :on_pub or typem == :on_pg) and (!command.match?(/\s*bot\s+stats\s*(.*)\s*$/i) or dest!=@channels_id[config.stats_channel])
             processed = false
           else
             processed = process(user, command, dest, dchannel, rules_file, typem, files, Thread.current[:thread_ts])

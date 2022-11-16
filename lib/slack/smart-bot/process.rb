@@ -342,7 +342,14 @@ class SlackSmartBot
           if (typem == :on_master or typem == :on_bot) and dest[0]!='D' and dest!=@channels_id[config.stats_channel] #routine bot stats to be published on DM
             st_channel = dchannel
           end
-          bot_stats(dest, user, typem, st_channel, st_from, st_to, st_user, st_command, exclude_masters, exclude_routines, exclude_command, monthly, all_data, members_channel, exclude_members_channel)
+          res = opts.scan(/(\w+)\s+\/([^\/]+)\//i)
+          header = []
+          regexp = []
+          res.each do |r|
+            header << r[0]
+            regexp << r[1]
+          end
+          bot_stats(dest, user, typem, st_channel, st_from, st_to, st_user, st_command, exclude_masters, exclude_routines, exclude_command, monthly, all_data, members_channel, exclude_members_channel, header, regexp)
         when /\A(set|turn)\s+maintenance\s+(on|off)\s*()\z/im, /\A(set|turn)\s+maintenance\s+(on)\s*(.+)\s*\z/im
           status = $2.downcase
           message = $3.to_s

@@ -233,6 +233,31 @@ RSpec.describe SlackSmartBot, "bot_stats" do
       expect(bufferc(to: channel, from: :ubot).join).to match(/Unknown:\s+1\s+\(100\.0%\)/)
     end  
 
+    it 'returns error when header is wrong' do
+      send_message "bot stats xxxx /yyy/", from: user, to: channel
+      expect(buffer(to: channel, from: :ubot).join).to match(/Wrong header/i)
+    end
+
+    it 'returns error when wrong regexp' do
+      send_message "bot stats type_message /(xxxyyy/", from: user, to: channel
+      expect(buffer(to: channel, from: :ubot).join).to match(/Wrong regexp/i)
+    end
+
+    it 'filters by header and regexp' do
+      Dir.glob("./spec/bot/stats/*.log").each { |file| File.delete(file) }
+      send_message "bot stats type_message /on_.+/", from: user, to: channel
+      expect(buffer(to: channel, from: :ubot).join).to match(/\*Total calls\*: 1\s+/)
+      expect(buffer(to: channel, from: :ubot).join).to match(/Including only type_message that match \/on_.+\/i/)
+    end
+
+    it 'filters by header and regexp more than one occurrence' do
+      Dir.glob("./spec/bot/stats/*.log").each { |file| File.delete(file) }
+      send_message "bot stats type_message /on_.+/ bot_channel /master/", from: user, to: channel
+      expect(buffer(to: channel, from: :ubot).join).to match(/\*Total calls\*: 1\s+/)
+      expect(buffer(to: channel, from: :ubot).join).to match(/Including only type_message that match \/on_.+\/i/)
+      expect(buffer(to: channel, from: :ubot).join).to match(/Including only bot_channel that match \/master\/i/)
+    end
+    
     #todo: add more tests for options
   end
 

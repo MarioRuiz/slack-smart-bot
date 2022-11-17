@@ -39,7 +39,7 @@ class SlackSmartBot
   # help:      _bot stats #sales today_
   # help:      _bot stats #sales from 2020-01-01 monthly_
   # help:      _bot stats exclude routines masters from 2021/01/01 monthly_
-  # help:      _bot stats members #development from 2022/01/01 to 2022/01/31_\
+  # help:      _bot stats members #development from 2022/01/01 to 2022/01/31_
   # help:      _bot stats type_message /(on_pub|on_pg)/_
   # help:    <https://github.com/MarioRuiz/slack-smart-bot#bot-management|more info>
   # help: command_id: :bot_stats

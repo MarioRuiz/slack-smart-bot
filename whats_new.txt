@@ -1,4 +1,4 @@
-*Version 1.12.7* Released 2022-Nov-08
+*Version 1.12.8* Released 2022-Nov-17
 
 *For General users*
 - `run repl` accepts local parameters and precode to be supplied (<https://github.com/MarioRuiz/slack-smart-bot/issues/60|#60>).
@@ -17,6 +17,7 @@
 - Bot Stats is now saving the job title of the user (<https://github.com/MarioRuiz/slack-smart-bot/issues/77|#77>)
 - Any member of smartbot-stats channel can use the `bot stats` command on the channel (<https://github.com/MarioRuiz/slack-smart-bot/issues/78|#78>)
 - Added options for `bot stats` command: today, yesterday, this week, last week, this year, last year (<https://github.com/MarioRuiz/slack-smart-bot/issues/79|#79>)
+- `bot stats HEADER /regexp/` filter results by stats header following the regexp supplied (<https://github.com/MarioRuiz/slack-smart-bot/issues/81|#81>)
 ------------------------------
 
 *Previous*: <https://github.com/MarioRuiz/slack-smart-bot/blob/b1a368c3342094e886f53d96dc4d12ecd81ab04b/whats_new.txt|1.11.0>

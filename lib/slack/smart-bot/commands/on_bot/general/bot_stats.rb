@@ -202,7 +202,7 @@ class SlackSmartBot
                       unless header.empty?
                         add = true
                         header.each_with_index do |h, i|
-                          if row[h.downcase.to_sym].to_s.match?(Regexp.new(regexp[i])) == false
+                          if !row[h.downcase.to_sym].to_s.match?(/#{regexp[i]}/i)
                             add = false
                             break 
                           end

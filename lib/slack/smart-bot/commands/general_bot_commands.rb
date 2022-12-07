@@ -11,7 +11,35 @@ def general_bot_commands(user, command, dest, files = [])
       display_name = user.profile.display_name
     end
     case command
+      # help: ----------------------------------------------
+      # help: `for INTEGER times every INTEGER minutes COMMAND`
+      # help: `for INTEGER times every INTEGER seconds COMMAND`
+      # help: `INTEGER times every INTEGER minutes COMMAND`
+      # help: `INTEGER times every INTEGER seconds COMMAND`
+      # help:    It will run the command every INTEGER minutes or seconds for INTEGER times.
+      # help:    max 24 times. min every 10 seconds. max every 60 minutes.
+      # help:    Call `quit loop LOOP_ID` to stop the loop.
+      # help:       aliases for minutes: m, minute, minutes
+      # help:       aliases for seconds: s, sc, second, seconds
+      # help:  Examples:
+      # help:       _for 5 times every 1 minute ^ruby puts Time.now_
+      # help:       _10 times every 30s !ruby puts Time.now_
+      # help:       _24 times every 60m !get sales today_
+      # help:    <https://github.com/MarioRuiz/slack-smart-bot#loops|more info>
+      # help: command_id: :create_loop
+      # help:
 
+      # help: ----------------------------------------------
+      # help: `quit loop LOOP_ID`
+      # help:    It will stop the loop with the id LOOP_ID.
+      # help:    Only the user who created the loop or an admin can stop it.
+      # help:       aliases for loop: iterator, iteration
+      # help:       aliases for quit: stop, exit, kill
+      # help:  Examples:
+      # help:       _quit loop 1_
+      # help:       _stop iterator 12_
+      # help:    <https://github.com/MarioRuiz/slack-smart-bot#loops|more info>
+      # help: command_id: :quit_loop
 
       # help: ----------------------------------------------
       # help: `bot help`

@@ -31,6 +31,7 @@ slack-smart-bot can create bots on demand, create shortcuts, run ruby code... ju
   * [Share Messages](#share-messages)
   * [See Statuses](#see-statuses)
   * [Routines](#routines)
+  * [Loops](#loops)
   * [Control who has access to a command](#control-who-has-access-to-a-command)
   * [See favorite commands](#see-favorite-commands)
   * [Teams](#teams)
@@ -504,6 +505,20 @@ Other routine commands:
 * **_`run routine NAME`_**
 * **_`see routines`_**
 * **_`see result routine NAME`_**
+
+### Loops
+You can run any command or rule on a loop by using:  
+**_`for INTEGER times every INTEGER minutes COMMAND`_**  
+**_`for INTEGER times every INTEGER seconds COMMAND`_**  
+Maximum number of times to be used: 24. Minimum every 10 seconds. Maximum every 60 minutes.  
+
+To stop the execution of a loop you can use: **_`quit loop LOOP_ID`_**  
+Examples:  
+>**_`for 5 times every 1 minute ^ruby puts Time.now`_**  
+>**_`10 times every 30s !ruby puts Time.now`_**  
+>**_`24 times every 60m !get sales today`_**  
+>**_`quit loop 1`_**  
+>**_`stop iterator 12`_**  
 
 ### Control who has access to a command
 

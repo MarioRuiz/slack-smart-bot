@@ -202,6 +202,7 @@ class SlackSmartBot
     @last_status_change = Time.now
     @vacations_check = (Date.today - 1)
     @announcements_activity_after = Hash.new()
+    @loops = Hash.new()
 
     if File.exist?("#{config.path}/shortcuts/#{config.shortcuts_file}".gsub('.yaml','.rb')) #backwards compatible
       file_conf = IO.readlines("#{config.path}/shortcuts/#{config.shortcuts_file}".gsub('.yaml','.rb')).join

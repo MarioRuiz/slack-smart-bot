@@ -2,6 +2,60 @@ class SlackSmartBot
   def process_first(user, text, dest, dchannel, typem, files, ts, thread_ts, routine, routine_name, routine_type, command_orig)
     nick = user.name
     rules_file = ""
+    if text.match(/\A\s*(stop|quit|exit|kill)\s+(iterator|iteration|loop)\s+(\d+)\s*\z/i)
+      save_stats :quit_loop, forced: true, data: {dest: dest, typem: typem, user: user, files: false, command: text, routine: routine}
+      num_iteration = $3.to_i
+      if config.admins.include?(user.name) or @loops.key?(user.name)
+        if config.admins.include?(user.name)
+          name_loop = ''
+          @loops.each do |k,v|
+            if v.include?(num_iteration)
+              name_loop = k
+              break
+            end
+          end
+        else
+          name_loop = user.name
+        end
+        if @loops.key?(name_loop) and @loops[name_loop].include?(num_iteration)
+          @loops[name_loop].delete(num_iteration)
+          respond "Loop #{num_iteration} stopped", dest, thread_ts: thread_ts
+        else
+          respond "You don't have any loop with id #{num_iteration}. Only the creator of the loop or an admin can stop the loop.", dest, thread_ts: thread_ts
+        end
+      else
+        respond "Only the creator of the loop or an admin can stop the loop.", dest, thread_ts: thread_ts
+      end
+      @logger.info "command: #{nick}> #{text}"
+      return :next #jal
+    end
+    if text.match(/\A\s*!*^?\s*(for\s*)?(\d+)\s+times\s+every\s+(\d+)\s*(m|minute|minutes|s|sc|second|seconds)\s+(.+)\s*\z/i)
+      save_stats :create_loop, forced: true, data: {dest: dest, typem: typem, user: user, files: false, command: text, routine: routine}
+      # min every 10s, max every 60m, max times 24
+      command_every = text.dup
+      text = $5
+      num_times = $2.to_i
+      type_every = $4.downcase
+      every_seconds = $3.to_i
+      command_every.gsub!(/^\s*!*^?\s*/, '')
+      every_seconds = (every_seconds * 60) if type_every[0] == "m"
+      if num_times > 24 or every_seconds < 10 or every_seconds > 3600
+        respond "You can't do that. Maximum times is 24, minimum every is 10 seconds, maximum every is 60 minutes.", dest, thread_ts: thread_ts
+        return :next #jal
+      end
+      @loops[user.name] ||= []
+      @num_loops ||= 0
+      @num_loops += 1
+      loop_id = @num_loops
+      @loops[user.name] << loop_id
+      respond "Loop #{loop_id} started. To stop the loop use: `#{['stop','quit','exit', 'kill'].sample} #{['iteration','iterator','loop'].sample} #{loop_id}`", dest, thread_ts: thread_ts
+      #todo: command_orig should be reasigned maybe to remove for N times every X seconds. Check.
+    else
+      command_every = ''
+      num_times = 1
+      every_seconds = 0
+    end
+
     text.gsub!(/^!!/, "^") # to treat it just as ^
     shared = []
     if @shares.key?(@channels_name[dest]) and (ts.to_s != "" or config.simulate) and (user.id != config.nick_id or (user.id == config.nick_id and !text.match?(/\A\*?Shares from channel/)))
@@ -177,59 +231,7 @@ class SlackSmartBot
     end
 
     command = text
-    if command.match(/\A\s*(stop|quit|exit|kill)\s+(iterator|iteration|loop)\s+(\d+)\s*\z/i)
-      save_stats :quit_loop, forced: true, data: {dest: dest, typem: typem, user: user, files: false, command: command, routine: routine}
-      num_iteration = $3.to_i
-      if config.admins.include?(user.name) or @loops.key?(user.name)
-        if config.admins.include?(user.name)
-          name_loop = ''
-          @loops.each do |k,v|
-            if v.include?(num_iteration)
-              name_loop = k
-              break
-            end
-          end
-        else
-          name_loop = user.name
-        end
-        if @loops.key?(name_loop) and @loops[name_loop].include?(num_iteration)
-          @loops[name_loop].delete(num_iteration)
-          respond "Loop #{num_iteration} stopped", dest, thread_ts: thread_ts
-        else
-          respond "You don't have any loop with id #{num_iteration}. Only the creator of the loop or an admin can stop the loop.", dest, thread_ts: thread_ts
-        end
-      else
-        respond "Only the creator of the loop or an admin can stop the loop.", dest, thread_ts: thread_ts
-      end
-      @logger.info "command: #{nick}> #{command}"
-      return :next #jal
-    end
-    if command.match(/\A\s*(for\s*)?(\d+)\s+times\s+every\s+(\d+)\s*(m|minute|minutes|s|sc|second|seconds)\s+(.+)\s*\z/i)
-      save_stats :create_loop, forced: true, data: {dest: dest, typem: typem, user: user, files: false, command: command, routine: routine}
-      # min every 10s, max every 60m, max times 24
-      command_every = command.dup
-      command = $5
-      num_times = $2.to_i
-      type_every = $4.downcase
-      every_seconds = $3.to_i
-      every_seconds = (every_seconds * 60) if type_every[0] == "m"
-      if num_times > 24 or every_seconds < 10 or every_seconds > 3600
-        respond "You can't do that. Maximum times is 24, minimum every is 10 seconds, maximum every is 60 minutes.", dest, thread_ts: thread_ts
-        return :next #jal
-      end
-      @loops ||= {}
-      @loops[user.name] ||= []
-      @num_loops ||= 0
-      @num_loops += 1
-      loop_id = @num_loops
-      @loops[user.name] << loop_id
-      respond "Loop #{loop_id} started. To stop the loop use: `#{['stop','quit','exit', 'kill'].sample} #{['iteration','iterator','loop'].sample} #{loop_id}`", dest, thread_ts: thread_ts
-      #todo: command_orig should be reasigned maybe to remove for N times every X seconds. Check.
-    else
-      command_every = ''
-      num_times = 1
-      every_seconds = 0
-    end
+
     num_times.times do |i|
       command_thread = command.dup
       begin
@@ -433,6 +435,7 @@ class SlackSmartBot
               respond eval("\"" + config.general_message + "\"")
             end
             respond "_*Loop #{loop_id}* (#{i+1}/#{num_times}) <@#{user.name}>: #{command_every}_" if command_every!='' and processed
+            @loops[user.name].delete(loop_id) if command_every!='' and !processed and @loops.key?(user.name) and @loops[user.name].include?(loop_id)
           rescue Exception => stack
             @logger.fatal stack
           end

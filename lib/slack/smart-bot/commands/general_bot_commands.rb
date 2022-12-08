@@ -12,6 +12,22 @@ def general_bot_commands(user, command, dest, files = [])
     end
     case command
       # help: ----------------------------------------------
+      # help: `bot help`
+      # help: `bot help COMMAND`
+      # help: `bot rules`
+      # help: `bot rules COMMAND`
+      # help: `bot help expanded`
+      # help: `bot rules expanded`
+      # help: `bot what can I do?`
+      # help:    it will display this help. For a more detailed help call `bot help expanded` or `bot rules expanded`.
+      # help:    if COMMAND supplied just help for that command
+      # help:    you can use the option 'expanded' or the alias 'extended'
+      # help:    `bot rules` will show only the specific rules for this channel.
+      # help:    <https://github.com/MarioRuiz/slack-smart-bot#bot-help|more info>
+      # help: command_id: :bot_help
+      # help:
+
+      # help: ----------------------------------------------
       # help: `for INTEGER times every INTEGER minutes COMMAND`
       # help: `for INTEGER times every INTEGER seconds COMMAND`
       # help: `INTEGER times every INTEGER minutes COMMAND`
@@ -40,23 +56,6 @@ def general_bot_commands(user, command, dest, files = [])
       # help:       _stop iterator 12_
       # help:    <https://github.com/MarioRuiz/slack-smart-bot#loops|more info>
       # help: command_id: :quit_loop
-
-      # help: ----------------------------------------------
-      # help: `bot help`
-      # help: `bot help COMMAND`
-      # help: `bot rules`
-      # help: `bot rules COMMAND`
-      # help: `bot help expanded`
-      # help: `bot rules expanded`
-      # help: `bot what can I do?`
-      # help:    it will display this help. For a more detailed help call `bot help expanded` or `bot rules expanded`.
-      # help:    if COMMAND supplied just help for that command
-      # help:    you can use the option 'expanded' or the alias 'extended'
-      # help:    `bot rules` will show only the specific rules for this channel.
-      # help:    <https://github.com/MarioRuiz/slack-smart-bot#bot-help|more info>
-      # help: command_id: :bot_help
-      # help:
-
 
       # help: ----------------------------------------------
       # help: `Hi Bot`

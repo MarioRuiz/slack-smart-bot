@@ -43,10 +43,10 @@ class SlackSmartBot
           routines_filtered[ch] = rout_ch.dup
           rout_ch.each do |k, v|
             if header == 'name'
-              if k.match(regexp).nil?
+              if k.match(/#{regexp}/i).nil?
                 routines_filtered[ch].delete(k)
               end
-            elsif v[header.to_sym].to_s.match(regexp).nil?
+            elsif v[header.to_sym].to_s.match(/#{regexp}/i).nil?
               routines_filtered[ch].delete(k)
             end
           end

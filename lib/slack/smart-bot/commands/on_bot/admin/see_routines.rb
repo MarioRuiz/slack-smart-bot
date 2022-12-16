@@ -1,14 +1,17 @@
 class SlackSmartBot
   # helpadmin: ----------------------------------------------
   # helpadmin: `see routines`
+  # helpadmin: `see routines HEADER /REGEXP/`
   # helpadmin: `see all routines`
+  # helpadmin: `see all routines HEADER /REGEXP/`
   # helpadmin:    It will show the routines of the channel
-  # helpadmin:    In case of `all` and on the master channel, it will show all the routines from all channels
+  # helpadmin:    In case of 'all' and on the master channel, it will show all the routines from all channels
+  # helpadmin:    If you use HEADER it will show only the routines that match the REGEXP on the header. Available headers: name, creator, status, next_run, last_run, command
   # helpadmin:    You can use this command only if you are an admin user
   # helpadmin:    <https://github.com/MarioRuiz/slack-smart-bot#routines|more info>
   # helpadmin: command_id: :see_routines
   # helpadmin:
-  def see_routines(dest, from, user, all)
+  def see_routines(dest, from, user, all, header, regexp)
     save_stats(__method__)
     if is_admin?
       if all
@@ -33,11 +36,37 @@ class SlackSmartBot
         end
       end
 
+      if header != ''
+        routines_filtered = {}
+
+        routines.each do |ch, rout_ch|
+          routines_filtered[ch] = rout_ch.dup
+          rout_ch.each do |k, v|
+            if header == 'name'
+              if k.match(regexp).nil?
+                routines_filtered[ch].delete(k)
+              end
+            elsif v[header.to_sym].to_s.match(regexp).nil?
+              routines_filtered[ch].delete(k)
+            end
+          end
+        end
+        routines = routines_filtered
+      end
+
       if routines.get_values(:channel_name).size == 0
-        respond "There are no routines added.", dest
+        if header != ''
+          respond "There are no routines added that match the header *#{header}* and the regexp *#{regexp}*.", dest
+        else
+          respond "There are no routines added.", dest
+        end
       else
         routines.each do |ch, rout_ch|
-          respond "Routines on channel *#{rout_ch.get_values(:channel_name).values.flatten.uniq[0]}*", dest
+          if header != ''
+            respond "Routines on channel *#{rout_ch.get_values(:channel_name).values.flatten.uniq[0]}* that match the header *#{header}* and the regexp *#{regexp}*", dest
+          else
+            respond "Routines on channel *#{rout_ch.get_values(:channel_name).values.flatten.uniq[0]}*", dest
+          end
           rout_ch.each do |k, v|
             msg = []
             if v[:dest][0] == 'D'

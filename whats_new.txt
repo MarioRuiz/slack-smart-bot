@@ -1,9 +1,11 @@
-*Version 1.13.0-DEV01* Released 2022-Dec-07
+*Version 1.13.0-DEV03* Released 2022-Dec-16
 
 *For General users*
 - It is possible to run any command on a loop: `for 3 times every 5 minutes !ruby puts Time.now` (<https://github.com/MarioRuiz/slack-smart-bot/issues/83|#83>).
 
 *For Admin users*
+- It is possible to see routines filtering the HEADER supplied using the given REGEXP: `see routines HEADER /REGEXP/` (<https://github.com/MarioRuiz/slack-smart-bot/issues/84|#84>).
+
 ------------------------------
 
 *Previous*: <https://github.com/MarioRuiz/slack-smart-bot/blob/2b93317d7556ceaeb724494f53cfa9e8907c3e52/whats_new.txt|1.12.9>

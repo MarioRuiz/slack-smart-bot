@@ -145,9 +145,11 @@ class SlackSmartBot
         when /\A\s*start\s+routine\s+([\w\.]+)\s*$/i
           name = $1.downcase
           start_routine(dest, from, name)
-        when /\A\s*see\s+(all\s+)?routines\s*$/i
+        when /\A\s*see\s+(all\s+)?routines\s*()$/i, /\A\s*see\s+(all\s+)?routines\s+(name|creator|status|next_run|last_run|command)\s+\/(.+)\/\s*$/i
           all = $1.to_s != ""
-          see_routines(dest, from, user, all)
+          header = $2.to_s.downcase
+          regexp = $3.to_s
+          see_routines(dest, from, user, all, header, regexp)
         when /\A\s*get\s+bot\s+logs?\s*$/i
           get_bot_logs(dest, from, typem)
         when /\A\s*send\s+message\s+(on|to|in)\s+<(https?:[^:]+)>\s*:\s*(.+)\s*$/im,

@@ -60,7 +60,7 @@ def buffer(to:, from:, tries: 20, all: false)
   result = [""]
   while result == [""] and num <= tries
     SIMULATE ? sleep(0.1) : sleep(0.2)
-    b = File.read("./spec/bot/buffer.log")
+    b = File.read("./spec/bot/buffer.log", encoding: "UTF-8")
     if all
       result = b.scan(/^|#{to}\|#{from}\|(.*)/im).flatten 
     else

@@ -401,6 +401,8 @@ You can run repls and supply parameters to the repl that will be executed on the
 Example:
 >**_Peter>_** ``run repl Create10RandomUsers `request = {path: '/api-dev/users/'}` ``  
 
+If you want to add a collaborator while you are on a repl call `add collaborator @USER`. From that moment that user will be able to interact with the repl. You can add all the collaborators you want. When any collaborator wants to jump off the repl, that user can use the `quit` command.  
+
 Other REPL commands: `see repls`, `run repl SESSION_NAME ENV_VAR=value`, `get repl SESSION_NAME`, `delete repl SESSION_NAME`, `kill repl RUN_REPL_ID`
 
 ### Sending notifications

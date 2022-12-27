@@ -1,8 +1,9 @@
-*Version 1.13.0-DEV04* Released 2022-Dec-20
+*Version 1.13.0-DEV05* Released 2022-Dec-27
 
 *For General users*
 - It is possible to run any command on a loop: `for 3 times every 5 minutes !ruby puts Time.now` (<https://github.com/MarioRuiz/slack-smart-bot/issues/83|#83>).
-- You can add collaborators to your REPL by sending _add collaborator @USER_ to the session. (<https://github.com/MarioRuiz/slack-smart-bot/issues/85|#85>).
+- You can add collaborators to your REPL by sending `add collaborator @USER` to the session. (<https://github.com/MarioRuiz/slack-smart-bot/issues/85|#85>).
+- If using the `monthly` option when calling `bot stats` it will show a graph (<https://github.com/MarioRuiz/slack-smart-bot/issues/86|#86>).
 
 *For Admin users*
 - It is possible to see routines filtering the HEADER supplied using the given REGEXP: `see routines HEADER /REGEXP/` (<https://github.com/MarioRuiz/slack-smart-bot/issues/84|#84>).

@@ -297,10 +297,11 @@ class SlackSmartBot
                   message_new_users = "(#{new_users.size * 100 / users_month[k].uniq.size}%)"
                 end
                 all_users += users_month[k]
+                graph = ":large_yellow_square: " * (v.to_f * (10*rows_month.size) / total).round(2)
                 if on_dm_master
-                  message << "\t#{k}: #{v} (#{(v.to_f * 100 / total).round(2)}%) / #{commands_month[k].uniq.size} / #{users_month[k].uniq.size} #{message_new_users}"
+                  message << "\t#{k}: #{graph} #{v} (#{(v.to_f * 100 / total).round(2)}%) / #{commands_month[k].uniq.size} / #{users_month[k].uniq.size} #{message_new_users}"
                 else
-                  message << "\t#{k}: #{v} (#{(v.to_f * 100 / total).round(2)}%) / #{commands_month[k].uniq.size}"
+                  message << "\t#{k}: #{graph} #{v} (#{(v.to_f * 100 / total).round(2)}%) / #{commands_month[k].uniq.size}"
                 end
               end
             end

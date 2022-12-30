@@ -451,7 +451,8 @@ class SlackSmartBot
                 total_known = 0
                 tzone_users.each do |tzone, num|
                   unless tzone.to_s == ""
-                    message << "\t#{tzone}: #{num} (#{(num.to_f * 100 / total_without_routines).round(2)}%)"
+                    abb_tzone = tzone.split.map{|i| i[0,1].upcase}.join
+                    message << "\t#{abb_tzone} _#{tzone}_: #{num} (#{(num.to_f * 100 / total_without_routines).round(2)}%)"
                     total_known += num
                   end
                 end

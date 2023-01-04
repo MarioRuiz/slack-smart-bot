@@ -28,11 +28,11 @@ def general_bot_commands(user, command, dest, files = [])
       # help:
 
       # help: ----------------------------------------------
-      # help: `for INTEGER times every INTEGER minutes COMMAND`
-      # help: `for INTEGER times every INTEGER seconds COMMAND`
-      # help: `INTEGER times every INTEGER minutes COMMAND`
-      # help: `INTEGER times every INTEGER seconds COMMAND`
-      # help:    It will run the command every INTEGER minutes or seconds for INTEGER times.
+      # help: `for NUMBER times every NUMBER minutes COMMAND`
+      # help: `for NUMBER times every NUMBER seconds COMMAND`
+      # help: `NUMBER times every NUMBER minutes COMMAND`
+      # help: `NUMBER times every NUMBER seconds COMMAND`
+      # help:    It will run the command every NUMBER minutes or seconds for NUMBER times.
       # help:    max 24 times. min every 10 seconds. max every 60 minutes.
       # help:    Call `quit loop LOOP_ID` to stop the loop.
       # help:       aliases for minutes: m, minute, minutes

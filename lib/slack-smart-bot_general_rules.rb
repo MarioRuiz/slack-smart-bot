@@ -8,8 +8,8 @@ def general_rules(user, command, processed, dest, files = [], rules_file = "")
 
         # help: ----------------------------------------------
         # help: `echo SOMETHING`
-        # help: `INTEGER echo SOMETHING`
-        # help:     repeats SOMETHING. If INTEGER supplied then that number of times.
+        # help: `NUMBER echo SOMETHING`
+        # help:     repeats SOMETHING. If NUMBER supplied then that number of times.
         # help:  Examples:
         # help:     _echo I am the Smart Bot_
         # help:     _100 echo :heart:_

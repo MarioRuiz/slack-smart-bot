@@ -510,8 +510,8 @@ Other routine commands:
 
 ### Loops
 You can run any command or rule on a loop by using:  
-**_`for INTEGER times every INTEGER minutes COMMAND`_**  
-**_`for INTEGER times every INTEGER seconds COMMAND`_**  
+**_`for NUMBER times every NUMBER minutes COMMAND`_**  
+**_`for NUMBER times every NUMBER seconds COMMAND`_**  
 Maximum number of times to be used: 24. Minimum every 10 seconds. Maximum every 60 minutes.  
 
 To stop the execution of a loop you can use: **_`quit loop LOOP_ID`_**  

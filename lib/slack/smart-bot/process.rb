@@ -160,22 +160,42 @@ class SlackSmartBot
           thread_ts = ''
           to_channel = ''
           to = []
+          stats_from = ''
+          stats_to = ''          
+          stats_channel_filter = ''
+          stats_command_filter = ''
 
           opts.split(' ').each do |opt|
             if opt.match?(/\Ahttps:/i)
               to_channel, thread_ts = opt.scan(/\/archives\/(\w+)\/(\w\d+)/)[0]
               to << to_channel
             elsif opt.match(/<#([^>]+)\|.*>/) #channel
-              to << $1
+              if stats_from == ''
+                to << $1
+              else
+                stats_channel_filter = $1
+              end
             elsif opt.match(/#([^\s]+)/) #channel
-              to << $1
+              if stats_from == ''
+                to << $1
+              else
+                stats_channel_filter = $1
+              end
             elsif opt.match(/<@(\w+)>/)
               to << $1
+            elsif opt.match(/\d{4}[\/\-]\d\d[\/\-]\d\d/)
+              if stats_from == ''
+                stats_from = opt
+              else
+                stats_to = opt
+              end
+            elsif stats_to!=''
+              stats_command_filter = opt
             end
           end
                     
           thread_ts.gsub!('.','')
-          send_message(dest, from, typem, to, thread_ts, message)
+          send_message(dest, from, typem, to, thread_ts, stats_from, stats_to, stats_channel_filter, stats_command_filter, message)
         when /\A\s*delete\s+message\s+(http.+)\s*$/i
           url = $1
           delete_message(from, typem, url)

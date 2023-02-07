@@ -74,9 +74,9 @@ class SlackSmartBot
                   user_created = user_info.profile.display_name unless user_info.nil?
                 end
                 if type == 'all' and channel_id[0]=='D'
-                  message << "\t#{m[:message_id]} #{emoji} *_#{m[:date]}_* #{m[:time]} *:* \t*private*"
+                  message << "\t#{emoji} *private* _(id:#{m[:message_id]} - #{m[:date]} #{m[:time]})_"
                 else
-                  message << "\t#{m[:message_id]} #{emoji} *_#{m[:date]}_* #{m[:time]} #{"#{user_created} " unless channel_id[0]=='D'}*:* \t#{m[:message]}"
+                  message << "\t#{emoji} #{m[:message]} _(id:#{m[:message_id]} - #{m[:date]} #{m[:time]} #{user_created})_"
                 end
               end
             end

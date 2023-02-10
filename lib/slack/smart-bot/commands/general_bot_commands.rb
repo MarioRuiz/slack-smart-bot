@@ -658,16 +658,18 @@ def general_bot_commands(user, command, dest, files = [])
         # help: `see my vacations`
         # help: `see my time off`
         # help: `see vacations @USER`
+        # help: `see my vacations YEAR`
         # help:     It will display current and past time off.
         # help:    <https://github.com/MarioRuiz/slack-smart-bot#time-off-management|more info>
         # help: command_id: :see_vacations
         # help: 
-      when /\A\s*see\s+my\s+vacations\s*()\z/i,
-        /\A\s*see\s+my\s+time\s+off\s*()\z/i,
-        /\A\s*see\s+time\s+off\s+<@(\w+)>\s*\z/i,
-        /\A\s*see\s+vacations\s+<@(\w+)>\s*\z/i
+      when /\A\s*see\s+my\s+vacations\s*()\s*(\d{4})?\s*\z/i,
+        /\A\s*see\s+my\s+time\s+off\s*()\s*(\d{4})?\s*\z/i,
+        /\A\s*see\s+time\s+off\s+<@(\w+)>\s*\s*(\d{4})?\s*\z/i,
+        /\A\s*see\s+vacations\s+<@(\w+)>\s*(\d{4})?\s*\z/i
         from_user = $1
-        see_vacations(user, from_user: from_user)
+        year = $2
+        see_vacations(user, from_user: from_user, year: year)
 
         # help: ----------------------------------------------
         # help: `vacations team NAME`
@@ -686,6 +688,32 @@ def general_bot_commands(user, command, dest, files = [])
         date = $4.to_s
         date = Date.today.strftime("%Y/%m/%d") if date.empty?
         see_vacations_team(user, team_name, date)
+
+
+        # help: ----------------------------------------------
+        # help: `public holidays COUNTRY`
+        # help: `public holidays COUNTRY/STATE DATE`
+        # help:     STATE: optional. If not specified, it will return all the holidays for the country.
+        # help:     DATE: optional. It can be supplied as YYYY or YYYY-MM or YYYY-MM-DD. If not specified, it will return all the holidays for current year.
+        # help: Examples:
+        # help:     _public holidays United States_
+        # help:     _public holidays United States/California_
+        # help:     _public holidays United States/California 2023_
+        # help:     _public holidays Iceland 2023-12_
+        # help:     _public holidays India 2023-12-25_
+        # help: command_id: :public_holidays
+        # help: 
+      when /\A\s*public\s+(holiday?|vacation)s?\s+(in\s+|on\s+)?([a-zA-Z\s]+)()()()()\s*\z/i,
+        /\A\s*public\s+(holiday?|vacation)s?\s+(in\s+|on\s+)?([a-zA-Z\s]+)\/([a-zA-Z\s]+)()()()\s*\z/i,
+        /\A\s*public\s+(holiday?|vacation)s?\s+(in\s+|on\s+)?([a-zA-Z\s]+)\/([a-zA-Z\s]+)\s+(\d{4})[\/\-]?(\d\d)?[\/\-]?(\d\d)?\s*\z/i,
+        /\A\s*public\s+(holiday?|vacation)s?\s+(in\s+|on\s+)?([a-zA-Z\s]+)()\s+(\d{4})[\/\-]?(\d\d)?[\/\-]?(\d\d)?\s*\z/i
+        country = $3
+        state = $4.to_s
+        year = $5.to_s
+        month = $6.to_s
+        day = $7.to_s
+        year = Date.today.year if year.to_s == ''
+        public_holidays(country, state, year, month, day)
         
     else
       return false

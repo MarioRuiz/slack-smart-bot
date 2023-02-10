@@ -1,10 +1,11 @@
 class SlackSmartBot
-  def see_vacations(user, from_user: '', add_stats: true)
+  def see_vacations(user, from_user: '', add_stats: true, year: '')
     save_stats(__method__) if add_stats
 
     get_vacations()
     
     from_user_name = ''
+    year = Date.today.year if year.to_s == ''
 
     if from_user.empty?
       from_user_name = user.name
@@ -22,33 +23,35 @@ class SlackSmartBot
       end
     else
       messages = []
-      messages << "*Time off <@#{from_user}>*" if !from_user.empty?
+      messages << "*Time off <@#{from_user}> #{year}*" if !from_user.empty?
       today = Date.today.strftime("%Y/%m/%d")
       current_added = false
       past_added = false
       @vacations[from_user_name].periods.sort_by { |v| v[:from]}.reverse.each do |vac|
-        if !current_added and vac.to >= today
+        if !current_added and vac.to >= today and year == Date.today.year
           messages << "*Current and future periods*" 
           current_added = true
         end
-        if !past_added and vac.to < today and from_user.empty?
-          messages << "\n*Past periods*" 
+        if !past_added and vac.to < today and from_user.empty? and vac.to[0..3] == year
+          messages << "\n*Past periods #{year}*" 
           past_added = true
         end
         unless !from_user.empty? and vac.to < today
-          if !from_user.empty?
-            icon = ":beach_with_umbrella:"
-          elsif vac.type == 'vacation'
-            icon = ':palm_tree:'
-          elsif vac.type == 'sick'
-            icon = ':face_with_thermometer:'
-          elsif vac.type == 'sick child'
-            icon = ':baby:'
-          end
-          if vac.from == vac.to
-            messages << "     #{icon}    #{vac.from}   ##{vac.vacation_id}"
-          else
-            messages << "     #{icon}    #{vac.from} -> #{vac.to}   ##{vac.vacation_id}"
+          if vac.to[0..3] == year
+            if !from_user.empty?
+              icon = ":beach_with_umbrella:"
+            elsif vac.type == 'vacation'
+              icon = ':palm_tree:'
+            elsif vac.type == 'sick'
+              icon = ':face_with_thermometer:'
+            elsif vac.type == 'sick child'
+              icon = ':baby:'
+            end
+            if vac.from == vac.to
+              messages << "     #{icon}    #{vac.from}   ##{vac.vacation_id}"
+            else
+              messages << "     #{icon}    #{vac.from} -> #{vac.to}   ##{vac.vacation_id}"
+            end
           end
         end
       end

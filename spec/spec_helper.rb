@@ -48,6 +48,7 @@ RSpec.configure do |config|
         start_bots: false,
         stats: true,
         nick_id: 'UMSRCRTAR',
+        public_holidays: {api_key: ENV['CALENDARIFIC_API_KEY']},
       }
       if @settings.simulate
         require_relative 'bot/client.rb'

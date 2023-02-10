@@ -704,6 +704,17 @@ settings = {
 }
 ```
 
+If you want to see the public holidays for a specific country or country/region you can use the command `public holidays COUNTRY/REGION`. Examples: `public holidays Iceland`, `public holidays Spain/Madrid`, `public holidays United States/California 2024`, `public holidays Spain/Catalonia 2024/04`.  
+You need to set up an account on https://www.calendarific.com  
+Add to your Smartbot configuration:
+```ruby
+settings = {
+  public_holidays: { 
+      api_key: API_KEY
+  }
+}
+```
+
 Other 'time off' commands: **_`remove time off ID`_**, **_`see my time off`_**, **_`see vacations @USER`_**, **_`time off team NAME`_**  
 
 ### Tips

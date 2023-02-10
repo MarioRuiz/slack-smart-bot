@@ -54,6 +54,10 @@ class SlackSmartBot
     config[:github] = {token: '' } unless config.key?(:github) and config[:github].key?(:token)
     config[:github][:host] ||= "https://api.github.com"
     config[:github][:host] = "https://#{config[:github][:host]}" unless config[:github][:host] == '' or config[:github][:host].match?(/^http/)
+    config[:public_holidays] = { api_key: '' } unless config.key?(:public_holidays) and config[:public_holidays].key?(:api_key)
+    config[:public_holidays][:host] ||= "https://calendarific.com"
+    config[:public_holidays][:host] = "https://#{config[:public_holidays][:host]}" unless config[:public_holidays][:host] == '' or config[:public_holidays][:host].match?(/^http/)
+    
     if config.path.to_s!='' and config.file.to_s==''
       config.file = File.basename($0)
     end
@@ -74,6 +78,7 @@ class SlackSmartBot
     Dir.mkdir("#{config.path}/announcements") unless Dir.exist?("#{config.path}/announcements")
     Dir.mkdir("#{config.path}/shares") unless Dir.exist?("#{config.path}/shares")
     Dir.mkdir("#{config.path}/rules") unless Dir.exist?("#{config.path}/rules")
+    Dir.mkdir("#{config.path}/vacations") unless Dir.exist?("#{config.path}/vacations")
     File.delete("#{config.path}/config_tmp.status") if File.exist?("#{config.path}/config_tmp.status")
 
     config.masters = MASTER_USERS if config.masters.to_s=='' and defined?(MASTER_USERS)
@@ -202,6 +207,7 @@ class SlackSmartBot
     @last_status_change = Time.now
     @vacations_check = (Date.today - 1)
     @announcements_activity_after = Hash.new()
+    @public_holidays = Hash.new()
     @loops = Hash.new()
 
     if File.exist?("#{config.path}/shortcuts/#{config.shortcuts_file}".gsub('.yaml','.rb')) #backwards compatible

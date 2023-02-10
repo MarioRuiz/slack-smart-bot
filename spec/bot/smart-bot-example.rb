@@ -1,5 +1,5 @@
 require_relative "../../lib/slack-smart-bot"
-
+require_relative './environment.rb' if File.exist?('./spec/bot/environment.rb') or File.exist?('./environment.rb')
 settings = {
   token: ENV["SSB_TOKEN"], # the API Slack token
   user_token: ENV['SLACK_USER_TOKEN'],
@@ -11,6 +11,7 @@ settings = {
   nick: 'example', 
   nick_id: 'UMSRCRTAR',
   logrtm: false,
+  public_holidays: {api_key: ENV['CALENDARIFIC_API_KEY']},
   github: {token: ENV['GITHUB_TOKEN']}#,
   #jira: {host: ENV['JIRA_HOST'], user: 'smartbot', password: ENV['JIRA_PASSWORD']}
 }

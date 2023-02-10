@@ -28,9 +28,11 @@ config_tmp.status
 /spec/bot/status/
 /spec/bot/smart-bot-example_teams.yaml
 /spec/bot/smart-bot-example_vacations.yaml
+/spec/bot/vacations/smart-bot-example_vacations.yaml
+/spec/bot/vacations/
 # Used by dotenv library to load environment variables.
 # .env
-
+environment.rb
 ## Specific to RubyMotion:
 .dat*
 .repl_history

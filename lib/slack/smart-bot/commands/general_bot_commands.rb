@@ -660,6 +660,7 @@ def general_bot_commands(user, command, dest, files = [])
         # help: `see vacations @USER`
         # help: `see my vacations YEAR`
         # help:     It will display current and past time off.
+        # help:     If you call this command on a DM, it will show your vacations for the year on a calendar.
         # help:    <https://github.com/MarioRuiz/slack-smart-bot#time-off-management|more info>
         # help: command_id: :see_vacations
         # help: 
@@ -669,7 +670,7 @@ def general_bot_commands(user, command, dest, files = [])
         /\A\s*see\s+vacations\s+<@(\w+)>\s*(\d{4})?\s*\z/i
         from_user = $1
         year = $2
-        see_vacations(user, from_user: from_user, year: year)
+        see_vacations(user, dest, from_user: from_user, year: year)
 
         # help: ----------------------------------------------
         # help: `vacations team NAME`

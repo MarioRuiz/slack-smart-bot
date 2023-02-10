@@ -74,6 +74,8 @@ def public_holidays(country_name, location, year, month, day, add_stats: true, p
         end
 
         if holidays.is_a?(Array) and holidays.length > 0 and found_location
+          @public_holidays[country_region_id] = {} if !@public_holidays.key?(country_region_id)
+          @public_holidays[country_region_id][year.to_s] = holidays if !@public_holidays[country_region_id].key?(year.to_s)
           date_holiday = ""
           messages = ["*Holidays in #{country_name}#{" #{location.downcase.capitalize}" unless location.empty?} in #{date}*"]
           num_holidays_to_show = 0

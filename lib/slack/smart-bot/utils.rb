@@ -29,4 +29,5 @@ require_relative 'utils/get_vacations'
 require_relative 'utils/update_teams'
 require_relative 'utils/update_vacations'
 require_relative 'utils/check_vacations'
+require_relative 'utils/display_calendar'
 

@@ -715,6 +715,9 @@ settings = {
 }
 ```
 
+When calling `see my time off` on a DM will display a calendar of the year with the days off, including public holidays
+<img src="img/my_timeoff.png" width="650">
+
 Other 'time off' commands: **_`remove time off ID`_**, **_`see my time off`_**, **_`see vacations @USER`_**, **_`time off team NAME`_**  
 
 ### Tips

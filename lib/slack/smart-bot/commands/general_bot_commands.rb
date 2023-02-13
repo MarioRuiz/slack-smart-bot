@@ -715,7 +715,22 @@ def general_bot_commands(user, command, dest, files = [])
         day = $7.to_s
         year = Date.today.year if year.to_s == ''
         public_holidays(country, state, year, month, day)
-        
+
+        # help: ----------------------------------------------
+        # help: `set public holidays to COUNTRY/STATE`
+        # help:     It will set the public holidays for the country and state specified.
+        # help:     If STATE is not specified, it will set the public holidays for the country.
+        # help: Examples:
+        # help:     _set public holidays to Iceland_
+        # help:     _set public holidays to United States/California_
+        # help: command_id: :set_public_holidays
+        # help:
+      when /\A\s*set\s+public\s+(holiday?|vacation)s?\s+to\s+([^\/]+)\/([^\/]+)\s*\z/i,
+        /\A\s*set\s+public\s+(holiday?|vacation)s?\s+to\s+([^\/]+)\s*\z/i
+        country = $2
+        state = $3.to_s
+        set_public_holidays(country, state, user)
+
     else
       return false
     end

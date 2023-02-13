@@ -11,7 +11,10 @@ settings = {
   nick: 'example', 
   nick_id: 'UMSRCRTAR',
   logrtm: false,
-  public_holidays: {api_key: ENV['CALENDARIFIC_API_KEY']},
+  public_holidays: {
+    api_key: ENV['CALENDARIFIC_API_KEY'],
+    default_calendar: 'iceland'
+  },
   github: {token: ENV['GITHUB_TOKEN']}#,
   #jira: {host: ENV['JIRA_HOST'], user: 'smartbot', password: ENV['JIRA_PASSWORD']}
 }

@@ -129,6 +129,7 @@ def public_holidays(country_name, location, year, month, day, add_stats: true, p
         states.delete("All")
         if states.length > 1 and (location == "" or !found_location)
           messages << "*All States found in #{date} #{country_name}*: #{states.sort.join(", ")}"
+          respond messages[-1] if !publish_results
         end
         respond messages.join("\n") unless !publish_results
       end
@@ -136,5 +137,6 @@ def public_holidays(country_name, location, year, month, day, add_stats: true, p
       respond "Sorry, I can't get the public holidays for #{country_name} #{location} in #{date}. Error: #{stack.message}"
       @logger.fatal stack
     end
+    return (found_location==true and !country.nil?) if !publish_results
   end
 end

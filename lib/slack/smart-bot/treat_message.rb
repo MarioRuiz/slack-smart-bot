@@ -290,7 +290,7 @@ class SlackSmartBot
         end
 
       else
-        @logger.warn "Pay attention there is no user on users with id #{data.user}" if user_info.nil?
+        @logger.warn "Pay attention there is no user on users with id #{data.user}" if user_info.nil? and data.user.to_s!=''
         if !config.on_master_bot and !dest.nil? and (data.channel == @master_bot_id or dest[0] == "D") and
           data.text.match?(/^\s*(!|!!|\^)?\s*bot\s+status\s*$/i) and @admin_users_id.include?(data.user)
           respond "ping from #{config.channel}", dest

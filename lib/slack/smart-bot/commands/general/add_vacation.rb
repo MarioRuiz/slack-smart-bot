@@ -36,6 +36,11 @@ class SlackSmartBot
       else
         vacations = @vacations.deep_copy
         vacations[user.name] ||= { user_id: user.id, periods: [] }
+        if !vacations[user.name].key?(:periods)
+          vacations[user.name][:user_id] = user.id
+          vacations[user.name][:periods] = []
+        end
+
         if vacations[user.name].periods.empty?
           vacation_id = 1
         else

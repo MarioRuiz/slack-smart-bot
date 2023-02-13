@@ -15,7 +15,7 @@ class SlackSmartBot
       from_user_name = user_info.name
     end
     from_user = '' if from_user_name == user.name
-    if !@vacations.key?(from_user_name) or @vacations[from_user_name].periods.empty?
+    if !@vacations.key?(from_user_name) or !@vacations[from_user_name].key?(:periods) or @vacations[from_user_name].periods.empty?
       if from_user.empty?
         respond "You didn't add any time off yet. Use `add vacation from YYYY/MM/DD to YYYY/MM/DD`"
       else
@@ -31,7 +31,7 @@ class SlackSmartBot
       current_added = false
       past_added = false
       @vacations[from_user_name].periods.sort_by { |v| v[:from]}.reverse.each do |vac|
-        if !current_added and vac.to >= today and year == Date.today.year
+        if !current_added and vac.to >= today 
           messages << "*Current and future periods*" 
           current_added = true
         end
@@ -69,6 +69,8 @@ class SlackSmartBot
         else
           messages << "Not possible to see past periods for another user"
         end
+      elsif !past_added and dest[0]=='D' and !from_user.empty? and from_user_name != user.name
+        messages << "Not possible to see past periods for another user"
       end
       respond messages.join("\n")
     end

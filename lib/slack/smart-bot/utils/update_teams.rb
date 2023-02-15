@@ -1,16 +1,22 @@
 class SlackSmartBot
   def update_teams(team=nil)
     require 'yaml'
-    unless team.nil?
+    if team.nil?
+      teams = @teams.keys
+    else
       get_teams()
       @teams.merge!(team)
+      teams = team.keys      
     end
-    teams_file = config.file_path.gsub(".rb", "_teams.yaml")
-    File.open(teams_file, 'w') {|file|
-      file.flock(File::LOCK_EX)
-      file.write(@teams.to_yaml) 
-      file.flock(File::LOCK_UN)
-    }
-    @datetime_teams_file = File.mtime(teams_file)
+
+    teams.each do |team|
+      team_file = File.join(config.path, "teams", "t_#{team}.yaml")
+      File.open(team_file, 'w') {|file|
+        file.flock(File::LOCK_EX)
+        file.write(encrypt(@teams[team].to_yaml))
+        file.flock(File::LOCK_UN)
+      }
+      @datetime_teams_file[team_file] = File.mtime(team_file)
+    end
   end
 end

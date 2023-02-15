@@ -18,7 +18,6 @@ class SlackSmartBot
     @datetime_vacations_file ||= {}
     files.each do |file|
       if !defined?(@datetime_vacations_file) or !@datetime_vacations_file.key?(file) or @datetime_vacations_file[file] != File.mtime(file)
-        vacations = @vacations
         vacations_user = YAML.load(decrypt(File.read(file)))
         @vacations[File.basename(file).gsub("v_","").gsub(".yaml","")] = vacations_user
         @datetime_vacations_file[file] = File.mtime(file)

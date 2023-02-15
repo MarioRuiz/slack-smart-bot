@@ -1,21 +1,25 @@
 class SlackSmartBot
   def get_teams
     @teams ||= {}
-    teams_file = config.file_path.gsub(".rb", "_teams.yaml")
-    if File.exist?(teams_file)
-      if !defined?(@datetime_teams_file) or @datetime_teams_file != File.mtime(teams_file)
-        require 'yaml'
-        teams = @teams
-        10.times do
-          teams = YAML.load(File.read(teams_file))
-          if teams.is_a?(Hash)
-            break
-          else
-            sleep (0.1*(rand(2)+1))
-          end
-        end
-        @teams = teams unless teams.is_a?(FalseClass)
-        @datetime_teams_file = File.mtime(teams_file)
+    old_teams_file = config.file_path.gsub(".rb", "_teams.yaml") #to be backward compatible
+    require 'yaml'
+    if File.exist?(old_teams_file)
+      @logger.info 'Migrating teams to new format'
+      teams = YAML.load(File.read(old_teams_file))
+      @logger.info "@teams: #{teams.inspect}}"
+      teams.each do |key, value|
+        File.write(File.join(config.path, "teams", "t_#{key}.yaml"), encrypt(value.to_yaml))
+      end
+      @logger.info "Deleting old_teams_file: #{old_teams_file}"
+      File.delete(old_teams_file)
+    end
+    files = Dir.glob(File.join(config.path, "teams", "t_*.yaml"))
+    @datetime_teams_file ||= {}
+    files.each do |file|
+      if !defined?(@datetime_teams_file) or !@datetime_teams_file.key?(file) or @datetime_teams_file[file] != File.mtime(file)
+        teams_team = YAML.load(decrypt(File.read(file)))
+        @teams[File.basename(file).gsub("t_","").gsub(".yaml","").to_sym] = teams_team
+        @datetime_teams_file[file] = File.mtime(file)
       end
     end
   end

@@ -30,4 +30,7 @@ require_relative 'utils/update_teams'
 require_relative 'utils/update_vacations'
 require_relative 'utils/check_vacations'
 require_relative 'utils/display_calendar'
+require_relative 'utils/encryption_get_key_iv'
+require_relative 'utils/encrypt'
+require_relative 'utils/decrypt'
 

@@ -324,6 +324,7 @@ class SlackSmartBot
     get_shares()
     get_admins_channels()
     get_access_channels()
+    get_vacations()
 
     if @routines.key?(@channel_id)
       @routines[@channel_id].each do |k, v|

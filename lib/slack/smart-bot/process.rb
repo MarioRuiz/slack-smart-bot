@@ -201,6 +201,10 @@ class SlackSmartBot
         when /\A\s*delete\s+message\s+(http.+)\s*$/i
           url = $1
           delete_message(from, typem, url)
+        when /\A\s*update\s+message\s+(http[^\s]+)\s+(.+)\s*\z/mi
+          url = $1
+          text = Thread.current[:command_orig].scan(/\A\s*update\s+message\s+<?http[^\s]+\s+(.+)\s*\z/mi).join
+          update_message(from, typem, url, text)
         when /\A\s*react\s+(on|to|in)\s*([^\s]+)\s+([p\d\.]+)\s+(.+)\s*$/i,
           /\A\s*react\s+(on|to|in)\s*([^\s]+)\s+()(.+)\s*$/i
           to = $2

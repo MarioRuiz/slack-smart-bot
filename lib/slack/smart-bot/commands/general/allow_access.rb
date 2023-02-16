@@ -2,7 +2,7 @@ class SlackSmartBot
   def allow_access(user, command_id, opt)
     save_stats(__method__)
     not_allowed = ["hi_bot", "bye_bot", "allow_access", "deny_access", "get_bot_logs", "add_routine", "pause_bot", "pause_routine", "remove_routine", "run_routine", "start_bot",
-                   "start_routine", "delete_message", "send_message", "kill_bot_on_channel", "exit_bot", "notify_message", "publish_announcements", "set_general_message",
+                   "start_routine", "delete_message", "update_message", "send_message", "kill_bot_on_channel", "exit_bot", "notify_message", "publish_announcements", "set_general_message",
                    "set_maintenance", "bot_help", "bot_rules"]
     if !is_admin?(user.name)
       respond "Only admins of this channel can use this command. Take a look who is an admin of this channel by calling `see admins`"

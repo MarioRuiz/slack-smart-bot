@@ -30,6 +30,8 @@ config_tmp.status
 /spec/bot/smart-bot-example_vacations.yaml
 /spec/bot/vacations/smart-bot-example_vacations.yaml
 /spec/bot/vacations/
+/spec/bot/teams/
+/spec/bot/shares/
 # Used by dotenv library to load environment variables.
 # .env
 environment.rb

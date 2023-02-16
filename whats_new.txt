@@ -12,6 +12,7 @@
 - It is possible to see routines filtering the HEADER supplied using the given REGEXP: `see routines HEADER /REGEXP/` (<https://github.com/MarioRuiz/slack-smart-bot/issues/84|#84>).
 - `send message to users from YYYY/MM/DD to YYYY/MM/DD #CHANNEL COMMAND_ID: MESSAGE` will send a DM to all users that have been using the SmartBot according to the SmartBot Stats. One message every 5sc. #CHANNEL and COMMAND are optional filters. (<https://github.com/MarioRuiz/slack-smart-bot/issues/87|#87>)
 - `update message URL TEXT` It will update the SmartBot message supplied. You can use this command only if you are a Master admin user and if you are in a private conversation with the bot. (<https://github.com/MarioRuiz/slack-smart-bot/issues/33|#33>)
+- Routines now can create threads (<https://github.com/MarioRuiz/slack-smart-bot/issues/36|#36>)
 
 ------------------------------
 

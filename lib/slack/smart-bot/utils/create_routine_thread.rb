@@ -62,11 +62,12 @@ class SlackSmartBot
                   File.write("#{config.path}/routines/#{@channel_id}/#{name}_output.txt", stdout.to_s+stderr.to_s, mode: "a+")
                 end
               else #command
+                message = nil
                 if !@routines[@channel_id][name][:silent] and !config.on_maintenance
                   if @routines[@channel_id][name][:dest]!=@channel_id
-                    respond "routine from <##{@channel_id}> *`#{name}`*: #{@routines[@channel_id][name][:command]}", @routines[@channel_id][name][:dest]
+                    message = respond "routine from <##{@channel_id}> *`#{name}`*: #{@routines[@channel_id][name][:command]}", @routines[@channel_id][name][:dest], return_message: true
                   else
-                    respond "routine *`#{name}`*: #{@routines[@channel_id][name][:command]}", @routines[@channel_id][name][:dest]
+                    message = respond "routine *`#{name}`*: #{@routines[@channel_id][name][:command]}", @routines[@channel_id][name][:dest], return_message: true
                   end
                 end
                 started = Time.now
@@ -78,6 +79,9 @@ class SlackSmartBot
                   routine: true,
                   routine_name: name,
                   routine_type: hroutine[:routine_type] }
+                if !message.nil? and (@routines[@channel_id][name][:command].match?(/^!!/) or @routines[@channel_id][name][:command].match?(/^\^/))
+                  data[:ts] = message.ts
+                end
                 treat_message(data)
               end
               # in case the routine was deleted while running the process

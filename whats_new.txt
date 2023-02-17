@@ -1,4 +1,4 @@
-*Version 1.13.0-DEV11* Released 2023-Feb-16
+*Version 1.13.0-DEV12* Released 2023-Feb-17
 
 *For General users*
 - It is possible to run any command on a loop: `for 3 times every 5 minutes !ruby puts Time.now` (<https://github.com/MarioRuiz/slack-smart-bot/issues/83|#83>).
@@ -13,6 +13,7 @@
 - `send message to users from YYYY/MM/DD to YYYY/MM/DD #CHANNEL COMMAND_ID: MESSAGE` will send a DM to all users that have been using the SmartBot according to the SmartBot Stats. One message every 5sc. #CHANNEL and COMMAND are optional filters. (<https://github.com/MarioRuiz/slack-smart-bot/issues/87|#87>)
 - `update message URL TEXT` It will update the SmartBot message supplied. You can use this command only if you are a Master admin user and if you are in a private conversation with the bot. (<https://github.com/MarioRuiz/slack-smart-bot/issues/33|#33>)
 - Routines now can create threads (<https://github.com/MarioRuiz/slack-smart-bot/issues/36|#36>)
+- `add routine NAME on the DAY_OF_MONTH at TIME COMMAND` (<https://github.com/MarioRuiz/slack-smart-bot/issues/82|#82>)
 
 ------------------------------
 

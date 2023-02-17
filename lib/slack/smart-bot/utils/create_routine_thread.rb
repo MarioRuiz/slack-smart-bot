@@ -99,7 +99,24 @@ class SlackSmartBot
             require "time"
             every_in_seconds = Time.parse(@routines[@channel_id][name][:next_run]) - Time.now
           elsif @routines[@channel_id][name][:at] != "" #coming from start after pause for 'at'
-            if @routines[@channel_id][name].key?(:dayweek) and @routines[@channel_id][name][:dayweek].to_s!=''and 
+            if @routines[@channel_id][name].key?(:daymonth) and @routines[@channel_id][name][:daymonth].to_s!='' # day of month
+              weekly = false
+              daymonth = @routines[@channel_id][name][:daymonth]
+              day = daymonth.to_i
+              if Date.today.day > day
+                  next_month = Date.new(Date.today.year, Date.today.month, 1) >> 1
+              else
+                  next_month = Date.new(Date.today.year, Date.today.month, 1)
+              end
+              next_month_last_day = Date.new(next_month.year, next_month.month, -1)
+              if day > next_month_last_day.day
+                  next_time = Date.new(next_month.year, next_month.month, next_month_last_day.day)
+              else
+                  next_time = Date.new(next_month.year, next_month.month, day)
+              end
+              days = (next_time - Date.today).to_i
+              every_in_seconds = Time.parse(@routines[@channel_id][name][:next_run]) - Time.now
+            elsif @routines[@channel_id][name].key?(:dayweek) and @routines[@channel_id][name][:dayweek].to_s!='' and 
               @routines[@channel_id][name][:dayweek].to_s!='weekend' and @routines[@channel_id][name][:dayweek].to_s!='weekday'
               
               day = @routines[@channel_id][name][:dayweek]
@@ -130,10 +147,25 @@ class SlackSmartBot
             if started.strftime("%H:%M:%S") < @routines[@channel_id][name][:at] and days == 0
               nt = @routines[@channel_id][name][:at].split(":")
               next_run = Time.new(started.year, started.month, started.day, nt[0], nt[1], nt[2])
-            else
+            else 
               if days == 0 and started.strftime("%H:%M:%S") >= @routines[@channel_id][name][:at]
                 if weekly
                     days = 7
+                elsif @routines[@channel_id][name].key?(:daymonth) and @routines[@channel_id][name][:daymonth].to_s!=''
+                  daymonth = @routines[@channel_id][name][:daymonth]
+                  day = daymonth.to_i
+                  if Date.today.day >= day
+                      next_month = Date.new(Date.today.year, Date.today.month, 1) >> 1
+                  else
+                      next_month = Date.new(Date.today.year, Date.today.month, 1)
+                  end
+                  next_month_last_day = Date.new(next_month.year, next_month.month, -1)
+                  if day > next_month_last_day.day
+                      next_time = Date.new(next_month.year, next_month.month, next_month_last_day.day)
+                  else
+                      next_time = Date.new(next_month.year, next_month.month, day)
+                  end
+                  days = (next_time - Date.today).to_i
                 else
                     days = 1
                 end

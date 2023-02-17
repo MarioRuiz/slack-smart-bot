@@ -529,6 +529,7 @@ Examples:
 >**_`add routine clean_custdb on Mondays at 05:00 !clean customers db`_**  
 >**_`add routine clean_custdb on Tuesdays at 09:00 #SREChannel !clean customers db`_**  
 >**_`add silent routine suggestions on weekdays at 09:00 suggest command`_**
+>**_`add routine example on the 31st at 20:00 ^results sales monthly`_**  
 
 Also instead of adding a Command to be executed, you can attach a file, then the routine will be created and the attached file will be executed on the criteria specified. Also you can supply a script adding \`\`\`the code\`\`\` and specifying on the routine name the extension that will have. Only Master Admins are allowed to add files or scripts.
 

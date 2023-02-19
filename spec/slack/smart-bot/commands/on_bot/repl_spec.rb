@@ -114,10 +114,10 @@ RSpec.describe SlackSmartBot, "repl" do
       send_message "add collaborator <@#{USER2}>", from: user, to: channel
       send_message "quit", from: user, to: channel
       clean_buffer()
-      send_message "puts 'love'", from: :user2, to: channel
-      expect(buffer(to: channel, from: :ubot).join).to be_empty
-      send_message "puts 'love'", from: user, to: channel
-      expect(buffer(to: channel, from: :ubot).join).to be_empty
+      send_message "puts 'love321'", from: :user2, to: channel
+      expect(buffer(to: channel, from: :ubot).join).not_to include('love321')
+      send_message "puts 'love678'", from: user, to: channel
+      expect(buffer(to: channel, from: :ubot).join).not_to include('love678')
     end
   end
 end

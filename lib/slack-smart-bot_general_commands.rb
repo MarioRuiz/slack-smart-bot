@@ -34,9 +34,15 @@ def general_commands(user, command, dest, files = [])
         save_stats :blink
         num_times = $1.to_s == '' ? 50 : $1.to_i
         text = $2
+        @blinking ||= []
         if num_times > 200 or num_times < 1
           respond "The number of times must be between 1 and 200"
+        elsif @blinking.include?(user.name)
+          respond "I'm already blinking something for you. Please wait until I finish"
+        elsif @blinking.size >= 3 # rate limit in theory update can be done only once per second
+          respond "I'm already blinking something for too many people. Please wait until I finish at least one of them."
         else
+          @blinking << user.name
           msg = respond(text, return_message: true)
           num_times.times do
             sleep 2
@@ -44,6 +50,7 @@ def general_commands(user, command, dest, files = [])
             sleep 0.5
             update(dest, msg.ts, text)
           end
+          @blinking.delete(user.name)
         end
 
       # this is a hidden command that it is not listed when calling bot help

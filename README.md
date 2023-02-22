@@ -32,7 +32,7 @@ slack-smart-bot can create bots on demand, create shortcuts, run ruby code... ju
   * [See Statuses](#see-statuses)
   * [Routines](#routines) (A)
   * [Loops](#loops)
-  * [Control who has access to a command](#control-who-has-access-to-a-command)
+  * [Control who has access to a command](#control-who-has-access-to-a-command) (A)
   * [See favorite commands](#see-favorite-commands)
   * [Teams](#teams)
   * [Time off management](#time-off-management)

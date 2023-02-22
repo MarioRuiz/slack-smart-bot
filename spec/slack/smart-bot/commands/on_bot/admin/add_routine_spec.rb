@@ -53,6 +53,20 @@ RSpec.describe SlackSmartBot, "add_routine" do
       expect(res[1]).to match(/^Sam$/)
     end
 
+    it "creates the routine at certain time and day of the week" do
+      time = Time.now
+      days = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"]
+      day = days[time.wday]
+      send_message "add routine example on #{day} at #{(time + 10).strftime("%H:%M:%S")} !ruby puts 'Sam'", from: user, to: channel
+      expect(bufferc(to: channel, from: :ubot).join).to match(/Added routine \*`example`\* to the channel/)
+      sleep 1
+      expect(buffer(to: channel, from: :ubot).join).to eq ""
+      sleep (10 - (Time.now - time) + 1)
+      res = buffer(to: channel, from: :ubot)
+      expect(res[0]).to match(/^routine \*`example`\*: !ruby puts 'Sam'$/)
+      expect(res[1]).to match(/^Sam$/)
+    end
+
     it "creates the routine at certain time and day" do
       time = Time.now
       send_message "add routine example on the #{Date.today.day} at #{(time + 10).strftime("%H:%M:%S")} !ruby puts 'Sam'", from: user, to: channel

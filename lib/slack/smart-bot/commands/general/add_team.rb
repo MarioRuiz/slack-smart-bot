@@ -70,6 +70,7 @@ class SlackSmartBot
         team[:creator] = user.name
         team[:date] = Time.now.strftime("%Y-%m-%dT%H:%M:%S.000Z")[0..18]
         new_team = {}
+        team[:name] = name
         new_team[name.to_sym] = team
         update_teams(new_team)
         respond "The *#{name}* team has been added."

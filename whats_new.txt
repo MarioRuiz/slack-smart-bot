@@ -1,4 +1,4 @@
-*Version 1.13.0-DEV12* Released 2023-Feb-17
+*Version 1.13.0-DEV15* Released 2023-Feb-25
 
 *For General users*
 - It is possible to run any command on a loop: `for 3 times every 5 minutes !ruby puts Time.now` (<https://github.com/MarioRuiz/slack-smart-bot/issues/83|#83>).
@@ -7,6 +7,7 @@
 - New `public holidays COUNTRY/REGION` command (<https://github.com/MarioRuiz/slack-smart-bot/issues/88|#88>)
 - When calling `see my vacations` on a DM will display a calendar of the year with the days off, including public holidays (<https://github.com/MarioRuiz/slack-smart-bot/issues/89|#89>)
 - `set public holidays to COUNTRY/REGION` will set the public holidays for the country and region specified. (<https://github.com/MarioRuiz/slack-smart-bot/issues/90|#90>)
+- `see MEMO_TYPE from TEAM_NAME team` will show the memos of the team. (<https://github.com/MarioRuiz/slack-smart-bot/issues/91|#91>)
 
 *For Admin users*
 - It is possible to see routines filtering the HEADER supplied using the given REGEXP: `see routines HEADER /REGEXP/` (<https://github.com/MarioRuiz/slack-smart-bot/issues/84|#84>).

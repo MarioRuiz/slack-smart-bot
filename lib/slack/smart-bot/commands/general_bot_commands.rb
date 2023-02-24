@@ -602,6 +602,27 @@ def general_bot_commands(user, command, dest, files = [])
         name = $2.downcase
         delete_team(user, name)
 
+        # help: ----------------------------------------------
+        # help: `see MEMO_TYPE from TEAM_NAME team`
+        # help: `see MEMO_TYPE from TEAM_NAME team TOPIC`
+        # help: `see all memos from TEAM_NAME team`
+        # help: `see all memos from TEAM_NAME team TOPIC`
+        # help:     It will show the memos of the team.
+        # help:     If TOPIC is supplied it will show the memos of the topic.
+        # help:     MEMO_TYPE: memos, notes, issues, tasks, features, bugs, jira, github. In case of 'all memos' will display all of any type.
+        # help:  Examples:
+        # help:     _see memos from sales team_
+        # help:     _see bugs from sales team_
+        # help:     _see all memos from sales team webdev_
+        # help:    <https://github.com/MarioRuiz/slack-smart-bot#teams|more info>
+        # help: command_id: :see_memos_team
+        # help:
+      when /\A\s*see\s+(memo|note|issue|task|feature|bug|jira|github|all\s+memo)s?\s+(from\s+)?([\w\-]+)\s+team(.*)\s*\z/i,
+        /\A\s*see\s+(memo|note|issue|task|feature|bug|jira|github|all\s+memo)s?\s+(from\s+)?team\s+([\w\-]+)(.*)\s*\z/i
+        type = $1.downcase.to_sym
+        name = $3.downcase
+        topic = $4.strip
+        see_memos_team(user, type: type, name: name, topic: topic)
 
         # help: ----------------------------------------------
         # help: `add vacation from YYYY/MM/DD to YYYY/MM/DD`

@@ -18,7 +18,9 @@ class SlackSmartBot
     files.each do |file|
       if !defined?(@datetime_teams_file) or !@datetime_teams_file.key?(file) or @datetime_teams_file[file] != File.mtime(file)
         teams_team = YAML.load(decrypt(File.read(file)))
-        @teams[File.basename(file).gsub("t_","").gsub(".yaml","").to_sym] = teams_team
+        team_name = File.basename(file).gsub("t_","").gsub(".yaml","")
+        teams_team[:name] = team_name unless teams_team.key?(:name) #to be backward compatible
+        @teams[team_name.to_sym] = teams_team
         @datetime_teams_file[file] = File.mtime(file)
       end
     end

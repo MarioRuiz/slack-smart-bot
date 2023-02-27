@@ -34,6 +34,7 @@ RSpec.describe SlackSmartBot, "see_memos_teams" do
       end
       after(:all) do
         send_message "delete team example", from: user , to: channel
+        send_message "yes", from: user , to: channel
         send_message "delete team example2", from: user , to: channel
         send_message "yes", from: user , to: channel
       end

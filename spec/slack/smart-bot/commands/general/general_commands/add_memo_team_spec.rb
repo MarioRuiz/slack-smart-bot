@@ -16,6 +16,10 @@ RSpec.describe SlackSmartBot, "add_memo_team" do
         send_message "delete team example", from: user , to: channel
         send_message "yes", from: user , to: channel
       end
+      before(:each) do
+        send_message "delete memo 1 from example team", from: user, to: channel
+        send_message "yes", from: user, to: channel
+      end
 
       it "is not possible to add a memo if the team doesn't exist" do
         send_message "add memo to wrongteam team : some text", from: user, to: channel

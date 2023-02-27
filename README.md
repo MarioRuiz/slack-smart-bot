@@ -685,7 +685,7 @@ Examples:
 >**_`add github to sales team : https://github.com/PeterBale/SalesBoom/issues?q=is%3Aissue+is%3Aopen+`_**  
 >**_`set :runner: on memo 7 team Sales`_**  
 >**_`see all memos from Sales team`_**  
->**_`see bugs from Sales dev`_**  
+>**_`see bugs from Sales team dev`_**  
 
 Other team commands: **_`delete team TEAM_NAME`_**, **_`delete memo ID from team TEAM_NAME`_**, **_`set STATUS on memo ID TEAM_NAME team`_**, **_`see MEMO_TYPE from TEAM_NAME team TOPIC`_**  
 

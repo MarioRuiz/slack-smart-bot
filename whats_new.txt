@@ -1,4 +1,4 @@
-*Version 1.13.0-DEV15* Released 2023-Feb-25
+*Version 1.13.0* Released 2023-Mar-01
 
 *For General users*
 - It is possible to run any command on a loop: `for 3 times every 5 minutes !ruby puts Time.now` (<https://github.com/MarioRuiz/slack-smart-bot/issues/83|#83>).

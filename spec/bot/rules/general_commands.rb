@@ -19,6 +19,40 @@ def general_commands(user, command, dest, files = [])
       lines = 200 if lines > 200
       respond (">#{"\n"*lines}<")
 
+    
+        # help: ----------------------------------------------
+        # help: `blink TEXT`
+        # help: `INTEGER blink TEXT`
+        # help:     It will blink the text supplied. One or more lines of text. Emoticons or text format are allowed.
+        # help:        INTEGER (optional): number of times. Default 50. Max 200.
+        # help:  Examples: 
+        # help:    blink Hello World!
+        # help:    blink :moneybag: Pay attention! *Sales* are published!
+        # help:    100 blink :new: *Party is about to start* :i_love_you_hand_sign:
+        # help: command_id: :blink
+        # help: 
+      when /\A\s*(\d+)?\s*blink\s+(.+)\s*\z/im
+        save_stats :blink
+        num_times = $1.to_s == '' ? 50 : $1.to_i
+        text = $2
+        @blinking ||= []
+        if num_times > 200 or num_times < 1
+          respond "The number of times must be between 1 and 200"
+        elsif @blinking.include?(user.name)
+          respond "I'm already blinking something for you. Please wait until I finish"
+        elsif @blinking.size >= 3 # rate limit in theory update can be done only once per second
+          respond "I'm already blinking something for too many people. Please wait until I finish at least one of them."
+        else
+          @blinking << user.name
+          msg = respond(text, return_message: true)
+          num_times.times do
+            sleep 2
+            update(dest, msg.ts, ' ')
+            sleep 0.5
+            update(dest, msg.ts, text)
+          end
+          @blinking.delete(user.name)
+        end
 
       # this is a hidden command that it is not listed when calling bot help
     when /\A\s*(that's\s+)?(thanks|thank\s+you|I\s+love\s+you|nice|cool)\s+(#{@salutations.join("|")})\s*!*\s*/i

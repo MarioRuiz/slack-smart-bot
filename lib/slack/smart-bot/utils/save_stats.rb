@@ -1,6 +1,6 @@
 class SlackSmartBot
-  def save_stats(method, data: {})
-    if has_access?(method, Thread.current[:user])
+  def save_stats(method, data: {}, forced: false)
+    if has_access?(method, Thread.current[:user]) or forced
       if config.stats
         begin
           require "csv"

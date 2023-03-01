@@ -27,6 +27,20 @@ RSpec.describe SlackSmartBot, "add_routine" do
       expect(res[3]).to match(/^routine \*`example`\*: !ruby puts 'Sam'$/)
       expect(res[4]).to match(/^Sam$/)
     end
+
+    it "creates the routine every 2 sc using a rule" do
+      sleep 1
+      clean_buffer()
+      send_message "add routine example every 2s !echo Sam", from: user, to: channel
+      sleep 6
+      res = buffer(to: channel, from: :ubot)
+      expect(res[0]).to match(/Added routine \*`example`\* to the channel/)
+      expect(res[1]).to match(/^routine \*`example`\*: !echo Sam$/)
+      expect(res[2]).to match(/^Sam$/)
+      expect(res[3]).to match(/^routine \*`example`\*: !echo Sam$/)
+      expect(res[4]).to match(/^Sam$/)
+    end
+
     it "creates the routine at certain time" do
       time = Time.now
       send_message "add routine example at #{(time + 10).strftime("%H:%M:%S")} !ruby puts 'Sam'", from: user, to: channel
@@ -37,6 +51,37 @@ RSpec.describe SlackSmartBot, "add_routine" do
       res = buffer(to: channel, from: :ubot)
       expect(res[0]).to match(/^routine \*`example`\*: !ruby puts 'Sam'$/)
       expect(res[1]).to match(/^Sam$/)
+    end
+
+    it "creates the routine at certain time and day of the week" do
+      time = Time.now
+      days = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"]
+      day = days[time.wday]
+      send_message "add routine example on #{day} at #{(time + 10).strftime("%H:%M:%S")} !ruby puts 'Sam'", from: user, to: channel
+      expect(bufferc(to: channel, from: :ubot).join).to match(/Added routine \*`example`\* to the channel/)
+      sleep 1
+      expect(buffer(to: channel, from: :ubot).join).to eq ""
+      sleep (10 - (Time.now - time) + 1)
+      res = buffer(to: channel, from: :ubot)
+      expect(res[0]).to match(/^routine \*`example`\*: !ruby puts 'Sam'$/)
+      expect(res[1]).to match(/^Sam$/)
+    end
+
+    it "creates the routine at certain time and day" do
+      time = Time.now
+      send_message "add routine example on the #{Date.today.day} at #{(time + 10).strftime("%H:%M:%S")} !ruby puts 'Sam'", from: user, to: channel
+      expect(bufferc(to: channel, from: :ubot).join).to match(/Added routine \*`example`\* to the channel/)
+      sleep 1
+      expect(buffer(to: channel, from: :ubot).join).to eq ""
+      sleep (10 - (Time.now - time) + 1)
+      res = buffer(to: channel, from: :ubot)
+      expect(res[0]).to match(/^routine \*`example`\*: !ruby puts 'Sam'$/)
+      expect(res[1]).to match(/^Sam$/)
+    end
+
+    it 'displays error if day is not valid' do
+      send_message "add routine example on the 32 at 12:00 !ruby puts 'Sam'", from: user, to: channel
+      expect(buffer(to: channel, from: :ubot).join).to match(/Wrong day of month specified/)
     end
 
     it "creates the routine every 2 sc and publish on specified channel" do
@@ -118,12 +163,12 @@ RSpec.describe SlackSmartBot, "add_routine" do
     end
 
     it 'creates routine supplying minutes' do
-      started = Time.now+2
+      started = Time.now
       send_message "create routine example every 2 minutes !ruby puts 'Sam'", from: user, to: channel
       expect(bufferc(to: channel, from: :ubot).join).to match(/Added routine \*`example`\* to the channel/)
       send_message 'see routines', from: user, to: channel
       sleep 3
-      expect(buffer(to: channel, from: :ubot).join).to match(/Next Run: #{(started+(2*60)).strftime("%Y-%m-%d %H:%M")}/)
+      expect(buffer(to: channel, from: :ubot).join).to match(/Next Run: #{(started+(2*60)).strftime("%Y-%m-%d %H:%M:%S")}/)
     end
 
     it "creates the routine on weekends" do

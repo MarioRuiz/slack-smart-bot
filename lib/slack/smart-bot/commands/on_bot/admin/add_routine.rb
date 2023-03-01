@@ -11,6 +11,7 @@ class SlackSmartBot
   # helpadmin: `add routine NAME at TIME #CHANNEL COMMAND`
   # helpadmin: `add routine NAME on DAYWEEK at TIME COMMAND`
   # helpadmin: `add routine NAME on DAYWEEK at TIME #CHANNEL COMMAND`
+  # helpadmin: `add routine NAME on the DAY_OF_MONTH at TIME COMMAND`
   # helpadmin: `add routine NAME at TIME`
   # helpadmin: `add silent routine NAME at TIME`
   # helpadmin: `create routine NAME at TIME`
@@ -34,6 +35,7 @@ class SlackSmartBot
   # helpadmin:      _add bgroutine example on Mondays at 05:00 !run customer tests_
   # helpadmin:      _add routine example on Tuesdays at 09:00 #SREChannel !run db cleanup_
   # helpadmin:      _add routine example on weekdays at 22:00 suggest command_
+  # helpadmin:      _add routine example on the 5th at 22:00 suggest command_
   # helpadmin:    <https://github.com/MarioRuiz/slack-smart-bot#routines|more info>
   # helpadmin: command_id: :add_routine
   # helpadmin:
@@ -53,6 +55,7 @@ class SlackSmartBot
             every = ""
             at = ""
             dayweek = ''
+            daymonth = ''
             next_run = Time.now
             case period.downcase
             when "days", "d"
@@ -68,7 +71,28 @@ class SlackSmartBot
               every = "#{number_time} seconds"
               every_in_seconds = number_time.to_i
             else # time
-              if type != 'at' and type!='weekday' and type!='weekend'
+              if type != 'at' and type.match?(/^\d+$/) # day of month
+                day = type.to_i
+                daymonth = type
+                if day > 31
+                  respond "Wrong day of month specified: *#{day}*", dest
+                  return
+                end
+                if Date.today.day > day
+                    next_month = Date.new(Date.today.year, Date.today.month, 1) >> 1
+                else
+                    next_month = Date.new(Date.today.year, Date.today.month, 1)
+                end
+                next_month_last_day = Date.new(next_month.year, next_month.month, -1)
+                if day > next_month_last_day.day
+                    next_time = Date.new(next_month.year, next_month.month, next_month_last_day.day)
+                else
+                    next_time = Date.new(next_month.year, next_month.month, day)
+                end
+                days = (next_time - Date.today).to_i
+                every_in_seconds = days * 24 * 60 * 60 # one day       
+                                
+              elsif type != 'at' and type!='weekday' and type!='weekend'
                 dayweek = type.downcase
 
                 days = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday']
@@ -133,11 +157,11 @@ class SlackSmartBot
             channel_id = dest if channel_id.to_s == ''
             @routines[@channel_id] = {} unless @routines.key?(@channel_id)
             @routines[@channel_id][name] = { channel_name: config.channel, creator: from, creator_id: user.id, status: :on,
-                                             every: every, every_in_seconds: every_in_seconds, at: at, dayweek: dayweek, file_path: file_path, 
+                                             every: every, every_in_seconds: every_in_seconds, at: at, dayweek: dayweek, daymonth: daymonth, file_path: file_path, 
                                              command: command_to_run.to_s.strip, silent: silent,
                                              next_run: next_run.to_s, dest: channel_id, last_run: "", last_elapsed: "", 
                                              running: false, routine_type: routine_type}
-            update_routines
+            update_routines()
             respond "Added routine *`#{name}`* to the channel", dest
             create_routine_thread(name, @routines[@channel_id][name])
           end

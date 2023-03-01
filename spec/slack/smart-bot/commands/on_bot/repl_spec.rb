@@ -6,6 +6,7 @@ RSpec.describe SlackSmartBot, "repl" do
 
     after(:each) do
       send_message "quit", from: user, to: channel
+      send_message "quit", from: :user2, to: channel
     end
 
     after(:all) do
@@ -76,6 +77,47 @@ RSpec.describe SlackSmartBot, "repl" do
       expect(buffer(to: channel, from: :ubot).join).to match(/2222/)
       send_message "a += 3", from: user, to: channel
       expect(buffer(to: channel, from: :ubot).join).to match(/2225/)
+    end
+
+    it "doesn't allow to add collaborator if on another repl" do
+      send_message "!repl", from: user, to: channel
+      send_message "!repl", from: :user2, to: channel
+      send_message "add collaborator <@#{USER2}>", from: user, to: channel
+      expect(buffer(to: channel, from: :ubot).join).to match("Sorry, <@#{USER2}> is already in a repl. Please ask her/him to quit it first")
+    end
+
+    it "adds collaborator" do
+      send_message "!repl", from: user, to: channel
+      send_message "add collaborator <@#{USER2}>", from: user, to: channel
+      expect(buffer(to: channel, from: :ubot).join).to match("Collaborator added. Now <@#{USER2}> can interact with this repl.")
+      send_message "a = 3 + 97", from: user, to: channel
+      sleep 1
+      clean_buffer()
+      send_message "puts a", from: :user2, to: channel
+      expect(buffer(to: channel, from: :ubot).join).to match(/100/)
+    end
+
+    it "removes collaborator" do
+      send_message "!repl", from: user, to: channel
+      send_message "add collaborator <@#{USER2}>", from: user, to: channel
+      send_message "quit", from: :user2, to: channel
+      expect(buffer(to: channel, from: :ubot).join).to match("Collaborator <@#{USER2}> removed.")
+      send_message "a = 3 + 97", from: user, to: channel
+      sleep 1
+      clean_buffer()
+      send_message "puts a", from: :user2, to: channel
+      expect(buffer(to: channel, from: :ubot).join).not_to match(/100/)
+    end
+
+    it "removes session and collaborator when creator quitting" do
+      send_message "!repl", from: user, to: channel
+      send_message "add collaborator <@#{USER2}>", from: user, to: channel
+      send_message "quit", from: user, to: channel
+      clean_buffer()
+      send_message "puts 'love321'", from: :user2, to: channel
+      expect(buffer(to: channel, from: :ubot).join).not_to include('love321')
+      send_message "puts 'love678'", from: user, to: channel
+      expect(buffer(to: channel, from: :ubot).join).not_to include('love678')
     end
   end
 end

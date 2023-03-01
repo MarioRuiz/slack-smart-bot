@@ -60,7 +60,7 @@ class SlackSmartBot
       user = "" # for the case we are on the stats channel
     end
     if (from_user.id != user and
-        (config.masters.include?(from_user.name) or master_admin_users_id.include?(from_user.id) or dest == @channels_id[config.stats_channel]) and #Jal
+        (config.masters.include?(from_user.name) or master_admin_users_id.include?(from_user.id) or dest == @channels_id[config.stats_channel]) and 
         (typem == :on_dm or dest[0] == "D" or dest == @channels_id[config.stats_channel]))
       on_dm_master = true #master admin user
     else
@@ -297,10 +297,11 @@ class SlackSmartBot
                   message_new_users = "(#{new_users.size * 100 / users_month[k].uniq.size}%)"
                 end
                 all_users += users_month[k]
+                graph = ":large_yellow_square: " * (v.to_f * (10*rows_month.size) / total).round(2)
                 if on_dm_master
-                  message << "\t#{k}: #{v} (#{(v.to_f * 100 / total).round(2)}%) / #{commands_month[k].uniq.size} / #{users_month[k].uniq.size} #{message_new_users}"
+                  message << "\t#{k}: #{graph} #{v} (#{(v.to_f * 100 / total).round(2)}%) / #{commands_month[k].uniq.size} / #{users_month[k].uniq.size} #{message_new_users}"
                 else
-                  message << "\t#{k}: #{v} (#{(v.to_f * 100 / total).round(2)}%) / #{commands_month[k].uniq.size}"
+                  message << "\t#{k}: #{graph} #{v} (#{(v.to_f * 100 / total).round(2)}%) / #{commands_month[k].uniq.size}"
                 end
               end
             end
@@ -450,7 +451,8 @@ class SlackSmartBot
                 total_known = 0
                 tzone_users.each do |tzone, num|
                   unless tzone.to_s == ""
-                    message << "\t#{tzone}: #{num} (#{(num.to_f * 100 / total_without_routines).round(2)}%)"
+                    abb_tzone = tzone.split.map{|i| i[0,1].upcase}.join
+                    message << "\t#{abb_tzone} _#{tzone}_: #{num} (#{(num.to_f * 100 / total_without_routines).round(2)}%)"
                     total_known += num
                   end
                 end

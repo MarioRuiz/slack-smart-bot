@@ -38,6 +38,7 @@ class SlackSmartBot
           when /yes/i, /yep/i, /sure/i
             answer_delete
             @teams.delete(team_name.to_sym)
+            File.delete(File.join(config.path, "teams", "t_#{team_name}.yaml"))
             update_teams()
             respond "The team #{team_name} has been deleted."
           when /no/i, /nope/i, /cancel/i

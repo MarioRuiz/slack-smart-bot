@@ -38,15 +38,19 @@ class SlackSmartBot
             respond "routine *`#{name}`*: #{stdout} #{stderr}", @routines[@channel_id][name][:dest]
           end
         else #command
-          respond "routine *`#{name}`*: #{@routines[@channel_id][name][:command]}", @routines[@channel_id][name][:dest]
+          message = respond "routine *`#{name}`*: #{@routines[@channel_id][name][:command]}", @routines[@channel_id][name][:dest], return_message: true
           started = Time.now
-          treat_message({ channel: @routines[@channel_id][name][:dest],
-                         user: @routines[@channel_id][name][:creator_id],
-                         text: @routines[@channel_id][name][:command],
-                         files: nil,
-                         routine_name: name, 
-                         routine_type: @routines[@channel_id][name][:routine_type],
-                         routine: true })
+          data = { channel: @routines[@channel_id][name][:dest],
+            user: @routines[@channel_id][name][:creator_id],
+            text: @routines[@channel_id][name][:command],
+            files: nil,
+            routine_name: name, 
+            routine_type: @routines[@channel_id][name][:routine_type],
+            routine: true }
+          if @routines[@channel_id][name][:command].match?(/^!!/) or @routines[@channel_id][name][:command].match?(/^\^/)
+            data[:ts] = message.ts
+          end  
+          treat_message(data)
         end
         @routines[@channel_id][name][:last_elapsed] = (Time.now - started)
         @routines[@channel_id][name][:last_run] = started.to_s

@@ -11,8 +11,6 @@ def general_bot_commands(user, command, dest, files = [])
       display_name = user.profile.display_name
     end
     case command
-
-
       # help: ----------------------------------------------
       # help: `bot help`
       # help: `bot help COMMAND`
@@ -29,6 +27,35 @@ def general_bot_commands(user, command, dest, files = [])
       # help: command_id: :bot_help
       # help:
 
+      # help: ----------------------------------------------
+      # help: `for NUMBER times every NUMBER minutes COMMAND`
+      # help: `for NUMBER times every NUMBER seconds COMMAND`
+      # help: `NUMBER times every NUMBER minutes COMMAND`
+      # help: `NUMBER times every NUMBER seconds COMMAND`
+      # help:    It will run the command every NUMBER minutes or seconds for NUMBER times.
+      # help:    max 24 times. min every 10 seconds. max every 60 minutes.
+      # help:    Call `quit loop LOOP_ID` to stop the loop.
+      # help:       aliases for minutes: m, minute, minutes
+      # help:       aliases for seconds: s, sc, second, seconds
+      # help:  Examples:
+      # help:       _for 5 times every 1 minute ^ruby puts Time.now_
+      # help:       _10 times every 30s !ruby puts Time.now_
+      # help:       _24 times every 60m !get sales today_
+      # help:    <https://github.com/MarioRuiz/slack-smart-bot#loops|more info>
+      # help: command_id: :create_loop
+      # help:
+
+      # help: ----------------------------------------------
+      # help: `quit loop LOOP_ID`
+      # help:    It will stop the loop with the id LOOP_ID.
+      # help:    Only the user who created the loop or an admin can stop it.
+      # help:       aliases for loop: iterator, iteration
+      # help:       aliases for quit: stop, exit, kill
+      # help:  Examples:
+      # help:       _quit loop 1_
+      # help:       _stop iterator 12_
+      # help:    <https://github.com/MarioRuiz/slack-smart-bot#loops|more info>
+      # help: command_id: :quit_loop
 
       # help: ----------------------------------------------
       # help: `Hi Bot`
@@ -575,6 +602,27 @@ def general_bot_commands(user, command, dest, files = [])
         name = $2.downcase
         delete_team(user, name)
 
+        # help: ----------------------------------------------
+        # help: `see MEMO_TYPE from TEAM_NAME team`
+        # help: `see MEMO_TYPE from TEAM_NAME team TOPIC`
+        # help: `see all memos from TEAM_NAME team`
+        # help: `see all memos from TEAM_NAME team TOPIC`
+        # help:     It will show the memos of the team.
+        # help:     If TOPIC is supplied it will show the memos of the topic.
+        # help:     MEMO_TYPE: memos, notes, issues, tasks, features, bugs, jira, github. In case of 'all memos' will display all of any type.
+        # help:  Examples:
+        # help:     _see memos from sales team_
+        # help:     _see bugs from sales team_
+        # help:     _see all memos from sales team webdev_
+        # help:    <https://github.com/MarioRuiz/slack-smart-bot#teams|more info>
+        # help: command_id: :see_memos_team
+        # help:
+      when /\A\s*see\s+(memo|note|issue|task|feature|bug|jira|github|all\s+memo)s?\s+(from\s+)?([\w\-]+)\s+team(.*)\s*\z/i,
+        /\A\s*see\s+(memo|note|issue|task|feature|bug|jira|github|all\s+memo)s?\s+(from\s+)?team\s+([\w\-]+)(.*)\s*\z/i
+        type = $1.downcase.to_sym
+        name = $3.downcase
+        topic = $4.strip
+        see_memos_team(user, type: type, name: name, topic: topic)
 
         # help: ----------------------------------------------
         # help: `add vacation from YYYY/MM/DD to YYYY/MM/DD`
@@ -631,16 +679,19 @@ def general_bot_commands(user, command, dest, files = [])
         # help: `see my vacations`
         # help: `see my time off`
         # help: `see vacations @USER`
+        # help: `see my vacations YEAR`
         # help:     It will display current and past time off.
+        # help:     If you call this command on a DM, it will show your vacations for the year on a calendar.
         # help:    <https://github.com/MarioRuiz/slack-smart-bot#time-off-management|more info>
         # help: command_id: :see_vacations
         # help: 
-      when /\A\s*see\s+my\s+vacations\s*()\z/i,
-        /\A\s*see\s+my\s+time\s+off\s*()\z/i,
-        /\A\s*see\s+time\s+off\s+<@(\w+)>\s*\z/i,
-        /\A\s*see\s+vacations\s+<@(\w+)>\s*\z/i
+      when /\A\s*see\s+my\s+vacations\s*()\s*(\d{4})?\s*\z/i,
+        /\A\s*see\s+my\s+time\s+off\s*()\s*(\d{4})?\s*\z/i,
+        /\A\s*see\s+time\s+off\s+<@(\w+)>\s*\s*(\d{4})?\s*\z/i,
+        /\A\s*see\s+vacations\s+<@(\w+)>\s*(\d{4})?\s*\z/i
         from_user = $1
-        see_vacations(user, from_user: from_user)
+        year = $2
+        see_vacations(user, dest, from_user: from_user, year: year)
 
         # help: ----------------------------------------------
         # help: `vacations team NAME`
@@ -659,7 +710,48 @@ def general_bot_commands(user, command, dest, files = [])
         date = $4.to_s
         date = Date.today.strftime("%Y/%m/%d") if date.empty?
         see_vacations_team(user, team_name, date)
-        
+
+
+        # help: ----------------------------------------------
+        # help: `public holidays COUNTRY`
+        # help: `public holidays COUNTRY/STATE DATE`
+        # help:     STATE: optional. If not specified, it will return all the holidays for the country.
+        # help:     DATE: optional. It can be supplied as YYYY or YYYY-MM or YYYY-MM-DD. If not specified, it will return all the holidays for current year.
+        # help: Examples:
+        # help:     _public holidays United States_
+        # help:     _public holidays United States/California_
+        # help:     _public holidays United States/California 2023_
+        # help:     _public holidays Iceland 2023-12_
+        # help:     _public holidays India 2023-12-25_
+        # help: command_id: :public_holidays
+        # help: 
+      when /\A\s*public\s+(holiday?|vacation)s?\s+(in\s+|on\s+)?([a-zA-Z\s]+)()()()()\s*\z/i,
+        /\A\s*public\s+(holiday?|vacation)s?\s+(in\s+|on\s+)?([a-zA-Z\s]+)\/([a-zA-Z\s]+)()()()\s*\z/i,
+        /\A\s*public\s+(holiday?|vacation)s?\s+(in\s+|on\s+)?([a-zA-Z\s]+)\/([a-zA-Z\s]+)\s+(\d{4})[\/\-]?(\d\d)?[\/\-]?(\d\d)?\s*\z/i,
+        /\A\s*public\s+(holiday?|vacation)s?\s+(in\s+|on\s+)?([a-zA-Z\s]+)()\s+(\d{4})[\/\-]?(\d\d)?[\/\-]?(\d\d)?\s*\z/i
+        country = $3
+        state = $4.to_s
+        year = $5.to_s
+        month = $6.to_s
+        day = $7.to_s
+        year = Date.today.year if year.to_s == ''
+        public_holidays(country, state, year, month, day)
+
+        # help: ----------------------------------------------
+        # help: `set public holidays to COUNTRY/STATE`
+        # help:     It will set the public holidays for the country and state specified.
+        # help:     If STATE is not specified, it will set the public holidays for the country.
+        # help: Examples:
+        # help:     _set public holidays to Iceland_
+        # help:     _set public holidays to United States/California_
+        # help: command_id: :set_public_holidays
+        # help:
+      when /\A\s*set\s+public\s+(holiday?|vacation)s?\s+to\s+([^\/]+)\/([^\/]+)\s*\z/i,
+        /\A\s*set\s+public\s+(holiday?|vacation)s?\s+to\s+([^\/]+)\s*\z/i
+        country = $2
+        state = $3.to_s
+        set_public_holidays(country, state, user)
+
     else
       return false
     end

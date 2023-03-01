@@ -58,6 +58,7 @@ class SlackSmartBot
               end
               txt += (m + "\n")
               txt[0] = '.' if txt.match?(/\A\s\s\s/) #first line of message in slack don't show spaces at the begining so we force it by changing first char
+              txt[0] = ".   " if txt.match?(/\A\t/)
             end
           end
           msgs << txt

@@ -1,23 +1,21 @@
-*Version 1.12.9* Released 2022-Nov-17
+*Version 1.13.0* Released 2023-Mar-01
 
 *For General users*
-- `run repl` accepts local parameters and precode to be supplied (<https://github.com/MarioRuiz/slack-smart-bot/issues/60|#60>).
-- `!!run repl` will respond as soon as any result is released (<https://github.com/MarioRuiz/slack-smart-bot/issues/63|#63>)
-- Now you can add notes for the team, even you can specify if those notes are private so only the members of the team can see them, or even personal. You can use different types of notes: memo, note, issue, task, feature, bug. Also you can indicate the topic of the note. To be able to add or delete notes you need to be a member of that team. Example: `add private bug to Moon team SRE : Logs should not be accessible from outside VPN` (<https://github.com/MarioRuiz/slack-smart-bot/issues/64|#64> <https://github.com/MarioRuiz/slack-smart-bot/issues/67|#67>)
-- It is possible to add a JIRA JQL to the team memos that will automatically create the memos from the JIRA issues (<https://github.com/MarioRuiz/slack-smart-bot/issues/68|#68>)
-- `kill repl RUN_REPL_ID` Will kill a running repl previously executed with `run repl` command. (<https://github.com/MarioRuiz/slack-smart-bot/issues/69|#69>)
-- Now you can add a GitHub url to the issues you want to add as memos for teams. (<https://github.com/MarioRuiz/slack-smart-bot/issues/71|#71>)
-- It is possible to add the status of a memo on teams feature. (<https://github.com/MarioRuiz/slack-smart-bot/issues/72|#72>)
-- Added 'Time off' (Vacation/Sick/Sick Child) management. The SmartBot will automatically set your status on the periods specified. It will be possible to see the 'Time off' plan for a specific team and period. (<https://github.com/MarioRuiz/slack-smart-bot/issues/73|#73>)
-- More natural language for 'Time off' command: (<https://github.com/MarioRuiz/slack-smart-bot/issues/80|#80>)
+- It is possible to run any command on a loop: `for 3 times every 5 minutes !ruby puts Time.now` (<https://github.com/MarioRuiz/slack-smart-bot/issues/83|#83>).
+- You can add collaborators to your REPL by sending `add collaborator @USER` to the session. (<https://github.com/MarioRuiz/slack-smart-bot/issues/85|#85>).
+- If using the `monthly` option when calling `bot stats` it will show a graph (<https://github.com/MarioRuiz/slack-smart-bot/issues/86|#86>).
+- New `public holidays COUNTRY/REGION` command (<https://github.com/MarioRuiz/slack-smart-bot/issues/88|#88>)
+- When calling `see my vacations` on a DM will display a calendar of the year with the days off, including public holidays (<https://github.com/MarioRuiz/slack-smart-bot/issues/89|#89>)
+- `set public holidays to COUNTRY/REGION` will set the public holidays for the country and region specified. (<https://github.com/MarioRuiz/slack-smart-bot/issues/90|#90>)
+- `see MEMO_TYPE from TEAM_NAME team` will show the memos of the team. (<https://github.com/MarioRuiz/slack-smart-bot/issues/91|#91>)
 
 *For Admin users*
-- Bot Stats is now saving the time_zone of the user (<https://github.com/MarioRuiz/slack-smart-bot/issues/66|#66>)
-- Announcements won't be published if no activity on channel. (<https://github.com/MarioRuiz/slack-smart-bot/issues/74|#74>)
-- Bot Stats is now saving the job title of the user (<https://github.com/MarioRuiz/slack-smart-bot/issues/77|#77>)
-- Any member of smartbot-stats channel can use the `bot stats` command on the channel (<https://github.com/MarioRuiz/slack-smart-bot/issues/78|#78>)
-- Added options for `bot stats` command: today, yesterday, this week, last week, this year, last year (<https://github.com/MarioRuiz/slack-smart-bot/issues/79|#79>)
-- `bot stats HEADER /regexp/` filter results by stats header following the regexp supplied (<https://github.com/MarioRuiz/slack-smart-bot/issues/81|#81>)
+- It is possible to see routines filtering the HEADER supplied using the given REGEXP: `see routines HEADER /REGEXP/` (<https://github.com/MarioRuiz/slack-smart-bot/issues/84|#84>).
+- `send message to users from YYYY/MM/DD to YYYY/MM/DD #CHANNEL COMMAND_ID: MESSAGE` will send a DM to all users that have been using the SmartBot according to the SmartBot Stats. One message every 5sc. #CHANNEL and COMMAND are optional filters. (<https://github.com/MarioRuiz/slack-smart-bot/issues/87|#87>)
+- `update message URL TEXT` It will update the SmartBot message supplied. You can use this command only if you are a Master admin user and if you are in a private conversation with the bot. (<https://github.com/MarioRuiz/slack-smart-bot/issues/33|#33>)
+- Routines now can create threads (<https://github.com/MarioRuiz/slack-smart-bot/issues/36|#36>)
+- `add routine NAME on the DAY_OF_MONTH at TIME COMMAND` (<https://github.com/MarioRuiz/slack-smart-bot/issues/82|#82>)
+
 ------------------------------
 
-*Previous*: <https://github.com/MarioRuiz/slack-smart-bot/blob/b1a368c3342094e886f53d96dc4d12ecd81ab04b/whats_new.txt|1.11.0>
+*Previous*: <https://github.com/MarioRuiz/slack-smart-bot/blob/2b93317d7556ceaeb724494f53cfa9e8907c3e52/whats_new.txt|1.12.9>

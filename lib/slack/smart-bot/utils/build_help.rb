@@ -17,7 +17,7 @@ class SlackSmartBot
         help_message[:admin][t.scan(/\/(\w+)$/).join.to_sym] = res[:admin]
         help_message[:normal][t.scan(/\/(\w+)$/).join.to_sym] = res[:normal]
       else
-        lines = IO.readlines(t)
+        lines = IO.readlines(t, encoding: 'UTF-8')
         data = {master:{}, admin:{}, normal:{}}
         data.master = lines.join #normal user help
         data.admin = lines.reject {|l| l.match?(/^\s*#\s*help\s*master\s*:.+$/i)}.join #not master help

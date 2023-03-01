@@ -5,12 +5,14 @@ class SlackSmartBot
       get_vacations()
       @vacations.merge!(vacation)
     end
-    vacations_file = config.file_path.gsub(".rb", "_vacations.yaml")
+    user = Thread.current[:user]
+    vacations_file = File.join(config.path, "vacations", "v_#{user.name}.yaml")
+
     File.open(vacations_file, 'w') {|file|
       file.flock(File::LOCK_EX)
-      file.write(@vacations.to_yaml) 
+      file.write(encrypt(@vacations[user.name].to_yaml))
       file.flock(File::LOCK_UN)
     }
-    @datetime_vacations_file = File.mtime(vacations_file)
+    @datetime_vacations_file[vacations_file] = File.mtime(vacations_file)
   end
 end

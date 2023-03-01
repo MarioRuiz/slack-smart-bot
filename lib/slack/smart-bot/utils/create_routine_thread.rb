@@ -62,11 +62,12 @@ class SlackSmartBot
                   File.write("#{config.path}/routines/#{@channel_id}/#{name}_output.txt", stdout.to_s+stderr.to_s, mode: "a+")
                 end
               else #command
+                message = nil
                 if !@routines[@channel_id][name][:silent] and !config.on_maintenance
                   if @routines[@channel_id][name][:dest]!=@channel_id
-                    respond "routine from <##{@channel_id}> *`#{name}`*: #{@routines[@channel_id][name][:command]}", @routines[@channel_id][name][:dest]
+                    message = respond "routine from <##{@channel_id}> *`#{name}`*: #{@routines[@channel_id][name][:command]}", @routines[@channel_id][name][:dest], return_message: true
                   else
-                    respond "routine *`#{name}`*: #{@routines[@channel_id][name][:command]}", @routines[@channel_id][name][:dest]
+                    message = respond "routine *`#{name}`*: #{@routines[@channel_id][name][:command]}", @routines[@channel_id][name][:dest], return_message: true
                   end
                 end
                 started = Time.now
@@ -78,6 +79,9 @@ class SlackSmartBot
                   routine: true,
                   routine_name: name,
                   routine_type: hroutine[:routine_type] }
+                if !message.nil? and (@routines[@channel_id][name][:command].match?(/^!!/) or @routines[@channel_id][name][:command].match?(/^\^/))
+                  data[:ts] = message.ts
+                end
                 treat_message(data)
               end
               # in case the routine was deleted while running the process
@@ -95,7 +99,24 @@ class SlackSmartBot
             require "time"
             every_in_seconds = Time.parse(@routines[@channel_id][name][:next_run]) - Time.now
           elsif @routines[@channel_id][name][:at] != "" #coming from start after pause for 'at'
-            if @routines[@channel_id][name].key?(:dayweek) and @routines[@channel_id][name][:dayweek].to_s!=''and 
+            if @routines[@channel_id][name].key?(:daymonth) and @routines[@channel_id][name][:daymonth].to_s!='' # day of month
+              weekly = false
+              daymonth = @routines[@channel_id][name][:daymonth]
+              day = daymonth.to_i
+              if Date.today.day > day
+                  next_month = Date.new(Date.today.year, Date.today.month, 1) >> 1
+              else
+                  next_month = Date.new(Date.today.year, Date.today.month, 1)
+              end
+              next_month_last_day = Date.new(next_month.year, next_month.month, -1)
+              if day > next_month_last_day.day
+                  next_time = Date.new(next_month.year, next_month.month, next_month_last_day.day)
+              else
+                  next_time = Date.new(next_month.year, next_month.month, day)
+              end
+              days = (next_time - Date.today).to_i
+              every_in_seconds = Time.parse(@routines[@channel_id][name][:next_run]) - Time.now
+            elsif @routines[@channel_id][name].key?(:dayweek) and @routines[@channel_id][name][:dayweek].to_s!='' and 
               @routines[@channel_id][name][:dayweek].to_s!='weekend' and @routines[@channel_id][name][:dayweek].to_s!='weekday'
               
               day = @routines[@channel_id][name][:dayweek]
@@ -126,10 +147,25 @@ class SlackSmartBot
             if started.strftime("%H:%M:%S") < @routines[@channel_id][name][:at] and days == 0
               nt = @routines[@channel_id][name][:at].split(":")
               next_run = Time.new(started.year, started.month, started.day, nt[0], nt[1], nt[2])
-            else
+            else 
               if days == 0 and started.strftime("%H:%M:%S") >= @routines[@channel_id][name][:at]
                 if weekly
                     days = 7
+                elsif @routines[@channel_id][name].key?(:daymonth) and @routines[@channel_id][name][:daymonth].to_s!=''
+                  daymonth = @routines[@channel_id][name][:daymonth]
+                  day = daymonth.to_i
+                  if Date.today.day >= day
+                      next_month = Date.new(Date.today.year, Date.today.month, 1) >> 1
+                  else
+                      next_month = Date.new(Date.today.year, Date.today.month, 1)
+                  end
+                  next_month_last_day = Date.new(next_month.year, next_month.month, -1)
+                  if day > next_month_last_day.day
+                      next_time = Date.new(next_month.year, next_month.month, next_month_last_day.day)
+                  else
+                      next_time = Date.new(next_month.year, next_month.month, day)
+                  end
+                  days = (next_time - Date.today).to_i
                 else
                     days = 1
                 end

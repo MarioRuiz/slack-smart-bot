@@ -61,10 +61,12 @@ class SlackSmartBot
           /\A\s*stop\s+using\s+rules\s+(on\s+)(.+)\s*$/i
           channel = $2
           stop_using_rules_on(dest, user, from, channel, typem)
-        when /\A\s*stop\s+using\s+(rules\s+from\s+)?<#\w+\|(.+)>/i, 
+        when /\A\s*stop\s+using\s+rules\s*$()()/i, 
+          /\A\s*stop\s+using\s+(rules\s+from\s+)?<#\w+\|(.+)>/i, 
           /\A\s*stop\s+using\s+(rules\s+from\s+)?<#(\w+)\|>/i, 
           /\A\s*stop\s+using\s+(rules\s+from\s+)?(.+)\s*$/i
           channel = $2
+          channel = @channel_id if channel.to_s == ''
           stop_using_rules(dest, channel, user, dchannel)
         when /\A\s*extend\s+rules\s+(to\s+)<#C\w+\|(.+)>/i, /\A\s*extend\s+rules\s+(to\s+)<#(\w+)\|>/i, 
             /\A\s*extend\s+rules\s+(to\s+)(.+)/i,
@@ -106,6 +108,8 @@ class SlackSmartBot
           /\A\s*(add|create)\s+(silent\s+)?(bgroutine|routine)\s+([\w\.]+)\s+(every)\s+(\d+)\s*(days|hours|minutes|seconds|mins|min|secs|sec|d|h|m|s)\s*(\s<#(C\w+)\|.*>\s*)?(\s.+)?\s*\z/im,
           /\A\s*(add|create)\s+(silent\s+)?(bgroutine|routine)\s+([\w\.]+)\s+on\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday|weekend|weekday)s?\s+at\s+(\d+:\d+:?\d+?)\s*()(\s#(\w+)\s*)(\s.+)?\s*\z/im,
           /\A\s*(add|create)\s+(silent\s+)?(bgroutine|routine)\s+([\w\.]+)\s+on\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday|weekend|weekday)s?\s+at\s+(\d+:\d+:?\d+?)\s*()(\s<#(C\w+)\|.*>\s*)?(\s.+)?\s*\z/im,
+          /\A\s*(add|create)\s+(silent\s+)?(bgroutine|routine)\s+([\w\.]+)\s+on\s+the\s+(\d+)[^\s]*\s+at\s+(\d+:\d+:?\d+?)\s*()(\s#(\w+)\s*)(\s.+)?\s*\z/im,
+          /\A\s*(add|create)\s+(silent\s+)?(bgroutine|routine)\s+([\w\.]+)\s+on\s+the\s+(\d+)[^\s]*\s+at\s+(\d+:\d+:?\d+?)\s*()(\s<#(C\w+)\|.*>\s*)?(\s.+)?\s*\z/im,
           /\A\s*(add|create)\s+(silent\s+)?(bgroutine|routine)\s+([\w\.]+)\s+(at)\s+(\d+:\d+:?\d+?)\s*()(\s#(\w+)\s*)(\s.+)?\s*\z/im,
           /\A\s*(add|create)\s+(silent\s+)?(bgroutine|routine)\s+([\w\.]+)\s+(at)\s+(\d+:\d+:?\d+?)\s*()(\s<#(C\w+)\|.*>\s*)?(\s.+)?\s*\z/im
           silent = $2.to_s!=''
@@ -145,9 +149,11 @@ class SlackSmartBot
         when /\A\s*start\s+routine\s+([\w\.]+)\s*$/i
           name = $1.downcase
           start_routine(dest, from, name)
-        when /\A\s*see\s+(all\s+)?routines\s*$/i
+        when /\A\s*see\s+(all\s+)?routines\s*()$/i, /\A\s*see\s+(all\s+)?routines\s+(name|creator|status|next_run|last_run|command)\s+\/(.+)\/\s*$/i
           all = $1.to_s != ""
-          see_routines(dest, from, user, all)
+          header = $2.to_s.downcase
+          regexp = $3.to_s
+          see_routines(dest, from, user, all, header, regexp)
         when /\A\s*get\s+bot\s+logs?\s*$/i
           get_bot_logs(dest, from, typem)
         when /\A\s*send\s+message\s+(on|to|in)\s+<(https?:[^:]+)>\s*:\s*(.+)\s*$/im,
@@ -158,25 +164,49 @@ class SlackSmartBot
           thread_ts = ''
           to_channel = ''
           to = []
+          stats_from = ''
+          stats_to = ''          
+          stats_channel_filter = ''
+          stats_command_filter = ''
 
           opts.split(' ').each do |opt|
             if opt.match?(/\Ahttps:/i)
               to_channel, thread_ts = opt.scan(/\/archives\/(\w+)\/(\w\d+)/)[0]
               to << to_channel
             elsif opt.match(/<#([^>]+)\|.*>/) #channel
-              to << $1
+              if stats_from == ''
+                to << $1
+              else
+                stats_channel_filter = $1
+              end
             elsif opt.match(/#([^\s]+)/) #channel
-              to << $1
+              if stats_from == ''
+                to << $1
+              else
+                stats_channel_filter = $1
+              end
             elsif opt.match(/<@(\w+)>/)
               to << $1
+            elsif opt.match(/\d{4}[\/\-]\d\d[\/\-]\d\d/)
+              if stats_from == ''
+                stats_from = opt
+              else
+                stats_to = opt
+              end
+            elsif stats_to!=''
+              stats_command_filter = opt
             end
           end
                     
           thread_ts.gsub!('.','')
-          send_message(dest, from, typem, to, thread_ts, message)
+          send_message(dest, from, typem, to, thread_ts, stats_from, stats_to, stats_channel_filter, stats_command_filter, message)
         when /\A\s*delete\s+message\s+(http.+)\s*$/i
           url = $1
           delete_message(from, typem, url)
+        when /\A\s*update\s+message\s+(http[^\s]+)\s+(.+)\s*\z/mi
+          url = $1
+          text = Thread.current[:command_orig].scan(/\A\s*update\s+message\s+<?http[^\s]+\s+(.+)\s*\z/mi).join
+          update_message(from, typem, url, text)
         when /\A\s*react\s+(on|to|in)\s*([^\s]+)\s+([p\d\.]+)\s+(.+)\s*$/i,
           /\A\s*react\s+(on|to|in)\s*([^\s]+)\s+()(.+)\s*$/i
           to = $2

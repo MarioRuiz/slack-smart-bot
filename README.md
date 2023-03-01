@@ -10,36 +10,39 @@ The main scope of this ruby gem is to be used internally in your company so team
 
 slack-smart-bot can create bots on demand, create shortcuts, run ruby code... just on a chat channel, you can access it just from your mobile phone if you want and run those tests you forgot to run, get the results, restart a server... no limits.
 
-![](slack.png)
+<img src="slack-smart-bot.png" width="150" height="150">![](slack.png)
 
 # Table of Contents
 
 - [Installation and configuration](#installation-and-configuration)
 - [Usage](#usage)
-  * [creating the MASTER BOT](#creating-the-master-bot)
+  * [creating the MASTER BOT](#creating-the-master-bot) (A)
   * [How to access the Smart Bot](#how-to-access-the-smart-bot)
   * [Bot Help](#bot-help)
-  * [Bot Management](#bot-management)
-    + [Cloud Bots](#cloud-bots)
-  * [Extending rules to other channels](#extending-rules-to-other-channels)
+  * [Bot Management](#bot-management) (A)
+    + [Cloud Bots](#cloud-bots) (A)
+  * [Extending rules to other channels](#extending-rules-to-other-channels) (A)
   * [Using rules from other channels](#using-rules-from-other-channels)
   * [Running Ruby code on a conversation](#running-ruby-code-on-a-conversation)
     + [REPL](#repl)
-  * [Sending notifications](#sending-notifications)
+  * [Sending notifications](#sending-notifications) (A)
   * [Shortcuts](#shortcuts)
   * [Announcements](#announcements)
   * [Share Messages](#share-messages)
   * [See Statuses](#see-statuses)
-  * [Routines](#routines)
-  * [Control who has access to a command](#control-who-has-access-to-a-command)
+  * [Routines](#routines) (A)
+  * [Loops](#loops)
+  * [Control who has access to a command](#control-who-has-access-to-a-command) (A)
   * [See favorite commands](#see-favorite-commands)
   * [Teams](#teams)
   * [Time off management](#time-off-management)
   * [Tips](#tips)
-    + [Send a file](#send-a-file)
-    + [Download a file](#download-a-file)
+    + [Send a file](#send-a-file) (A)
+    + [Download a file](#download-a-file) (A)
 - [Contributing](#contributing)
 - [License](#license)
+
+(A): Only for Admins
 
 ## Installation and configuration
 
@@ -94,6 +97,8 @@ SmartBot will notify about SmartBot status changes or any SmartBot incident if d
 ## Usage
 
 ### creating the MASTER BOT
+> for admins
+
 Let's guess the file you created was called my_smart_bot.rb so, just run it:
 ```
 nohup ruby my_smart_bot.rb&
@@ -194,6 +199,8 @@ Also you can add general rules that will be available on all Smart Bot channels 
 If you have commands that want to make them available everywhere the Smart Bot is a member then add those commands to `./rules/general_commands.rb`. 
 
 ### How to access the Smart Bot
+> for all users
+
 You can access the bot directly on the MASTER CHANNEL, on a secondary channel where the bot is running and directly by opening a private chat with the bot, in this case the conversation will be just between you and the bot.
 
 On a Smart Bot channel you will be able to run some of the commands just by writing a command, for example: **_`bot help`_**
@@ -258,6 +265,8 @@ Examples:
 >**_Smart-Bot>_** `You're very welcome`  
 
 ### Bot Help
+> for all users
+
 To get a full list of all commands and rules for a specific Smart Bot: **_`bot help`_**. It will show only the specific available commands for the user requesting. By default it will display only a short version of the bot help, call **_`bot help expanded`_** to get a expanded version of all commands.
 
 If you want to search just for a specific command: **_`bot help COMMAND`_** It will display expanded explanations for the command.
@@ -293,6 +302,8 @@ For the examples use _ and for the rules `. This is a good example of a Help sup
 To see what's new just call `What's new`
 
 ### Bot Management
+> for admins
+
 To create a new bot on a channel, run on MASTER CHANNEL: **_`create bot on CHANNEL`_**. The admins of this new bot on that channel will be the MASTER ADMINS, the creator of the bot and the creator of that channel. It will create a new rules file linked to this new bot.
 
 You can kill any bot running on any channel if you are an admin of that bot: **_`kill bot on CHANNEL`_**
@@ -316,11 +327,15 @@ You can add, remove and list admins of any channel by using: `add admin @user`, 
 To see the full list of available command ids on any channel call: `see command ids`
 
 #### Cloud Bots
+> for admins
+
 If you want to create a bot that will be running on a different machine: **_`create cloud bot on CHANNEL`_**. Even though the cloud bots are running on different machines, the management can be done through the MASTER CHANNEL. The new cloud bot will be managed by your Master Bot like the others, closing, pausing...
 
 Cloud Bots are typically used to run commands on specific environments or even different OS or networks.
 
 ### Extending rules to other channels
+> for admins
+
 If you want to extend the use of your specific rules on a Bot Channel to a third channel you can use the command: **_`extend rules to CHANNEL`_**
 
 From that moment everybody part of that channel will be able to run the specific rules from the other channel but just on demand, for example: **_`!run something`_**
@@ -328,6 +343,8 @@ From that moment everybody part of that channel will be able to run the specific
 To stop allowing it: **_`stop using rules on CHANNEL`_**
 
 ### Using rules from other channels
+> for all users
+
 To be able to access the rules from other channel or from a direct conversation with the bot, first of all you need to be a member of that channel. Then on a direct conversation with the Smart Bot or from another bot channel: **_`use rules from CHANNEL`_**
 
 When you want to stop using those rules with the bot: **_`stop using rules from CHANNEL`_**
@@ -335,6 +352,8 @@ When you want to stop using those rules with the bot: **_`stop using rules from 
 Also you can always call the Smart Bot from any channel, even from channels without a running Smart Bot. You can use the External Call on Demand: **_`@NAME_OF_BOT on #CHANNEL_NAME COMMAND`_**. In this case you will call the bot on #CHANNEL_NAME.
 
 ### Running Ruby code on a conversation
+> for all users
+
 You can run Ruby code by using the command: **_`ruby THE_CODE`_**. 
 
 Example:
@@ -344,6 +363,8 @@ Example:
 Also it is possible to attach a Ruby file and the Smart Bot will run and post the output. You need to select Ruby as file format. Or if you prefer it you can call the `ruby` command and on the same message supply a code block.
 
 #### REPL
+> for all users
+
 Easily starts a REPL session so you will be able to create a script directly from the slack conversation. You will be able to share the REPL so they can run it or see the content.
 
 It Will run all we write as a ruby command and will keep the session values until we finish the session sending `quit`, `exit` or `bye` 
@@ -400,9 +421,13 @@ You can run repls and supply parameters to the repl that will be executed on the
 Example:
 >**_Peter>_** ``run repl Create10RandomUsers `request = {path: '/api-dev/users/'}` ``  
 
+If you want to add a collaborator while you are on a repl call `add collaborator @USER`. From that moment that user will be able to interact with the repl. You can add all the collaborators you want. When any collaborator wants to jump off the repl, that user can use the `quit` command.  
+
 Other REPL commands: `see repls`, `run repl SESSION_NAME ENV_VAR=value`, `get repl SESSION_NAME`, `delete repl SESSION_NAME`, `kill repl RUN_REPL_ID`
 
 ### Sending notifications
+> for admins
+
 You can send notifications from MASTER CHANNEL by using **_`notify MESSAGE`_**. All Bot Channels will be notified.
 
 If you want to send a notification message to all channels the bot joined and direct conversations with the bot: **_`notify all MESSAGE`_**
@@ -410,6 +435,8 @@ If you want to send a notification message to all channels the bot joined and di
 And if you want to send a notification message to the specified channel and to its extended channels: **_`notify #CHANNEL MESSAGE`_**
 
 ### Shortcuts
+> for all users
+
 Sometimes your commands or rules are too long and you want to add a shortcut to be executed.
 
 If you have for example a rule like this: **_`run tests on customers android app`_** and you want to add a shortcut: **_`add shortcut run tca: run tests on customers android app`_**
@@ -439,6 +466,8 @@ Example:
 To see available shortcuts: **_`see shortcuts`_** and to delete a particular shortcut: **_`delete shortcut NAME`_**
 
 ### Announcements
+> for all users
+
 You can add any announcement on any channel where the SmartBot is a member by using **_`add COLOR announcement MESSAGE`_** or **_`add EMOJI announcement MESSAGE`_**.
 
 It will store the message on the announcement list labeled with the color/emoji specified, white by default. Possible colors white, green, yellow and red. Aliases for announcement: statement, declaration, message.
@@ -455,6 +484,8 @@ To see the announcements of the channel: **_`see announcements`_**, **_`see COLO
 If you are a master admin and you are on master channel then you can call **_`publish announcements`_** that will publish the announcements on all channels. The messages stored on a DM won't be published. This is very convenient to be called from a *Routine* for example every weekday at 09:00.
 
 ### Share messages
+> for all users
+
 You can automatically share any new message that is posted on the channel and meet the specified criteria by using **_`share messages /REGEXP/ on #CHANNEL`_** or **_`share messages "TEXT" on #CHANNEL`_**.
 
 This command is only available in public channels. The user adding the Share and the SmartBot need to be a member of both channels.
@@ -466,6 +497,8 @@ Examples:
 To see the shares of the channel: **_`see shares`_** and to delete a particular share: **_`delete share ID`_**
 
 ### See statuses
+> for all users
+
 To see a list of statuses of the members in the channel you can call `see statuses`, `who is on vacation?`, `who is not on vacation?`, `who is on EMOJI`, `who is on EMOJI #CHANNEL`
 
 You need to be a member of the channel to be able to get this info.
@@ -479,6 +512,8 @@ Examples:
 >**_Peter>_** `who is available?`
 
 ### Routines
+> for admins
+
 To add specific commands to be run automatically every certain amount of time or a specific time: **_`add routine NAME every NUMBER PERIOD COMMAND`_** or **_`add routine NAME at TIME COMMAND`_**. Also just before the command you can supply the channel where you want to publish the results, if not channel supplied then it would be the SmartBot Channel or on the DM if the command is run from there. Remember the SmartBot needs to have access to the channel where you want to publish.
 
 In case you create a *bgroutine* instead of a normal *routine* then the results of the run won't be published.
@@ -494,6 +529,7 @@ Examples:
 >**_`add routine clean_custdb on Mondays at 05:00 !clean customers db`_**  
 >**_`add routine clean_custdb on Tuesdays at 09:00 #SREChannel !clean customers db`_**  
 >**_`add silent routine suggestions on weekdays at 09:00 suggest command`_**
+>**_`add routine example on the 31st at 20:00 ^results sales monthly`_**  
 
 Also instead of adding a Command to be executed, you can attach a file, then the routine will be created and the attached file will be executed on the criteria specified. Also you can supply a script adding \`\`\`the code\`\`\` and specifying on the routine name the extension that will have. Only Master Admins are allowed to add files or scripts.
 
@@ -505,7 +541,24 @@ Other routine commands:
 * **_`see routines`_**
 * **_`see result routine NAME`_**
 
+### Loops
+> for all users
+
+You can run any command or rule on a loop by using:  
+**_`for NUMBER times every NUMBER minutes COMMAND`_**  
+**_`for NUMBER times every NUMBER seconds COMMAND`_**  
+Maximum number of times to be used: 24. Minimum every 10 seconds. Maximum every 60 minutes.  
+
+To stop the execution of a loop you can use: **_`quit loop LOOP_ID`_**  
+Examples:  
+>**_`for 5 times every 1 minute ^ruby puts Time.now`_**  
+>**_`10 times every 30s !ruby puts Time.now`_**  
+>**_`24 times every 60m !get sales today`_**  
+>**_`quit loop 1`_**  
+>**_`stop iterator 12`_**  
+
 ### Control who has access to a command
+> for admins
 
 You can add, remove and list admins of any channel by using: `add admin @user`, `remove admin @user` and `see admins`. You need to be the creator of the channel, a Master admin or an admin.
 
@@ -568,6 +621,7 @@ it will show the access rights for the specified command
 The authorization is controlled by `save_stats` so it will be check out when calling `save_stats` or by calling `has_access?(:your_command_id)`
 
 ### See favorite commands
+> for all users
 
 It will display the favorite commands in that channel. 
 
@@ -578,6 +632,7 @@ Examples:
 >**_`most used commands`_**  
 
 ### Teams
+> for all users
 
 You can add, update, see, ping and delete teams. When calling `see TEAM_NAME team` the availability of the members will be displayed.  
 `add team TEAM_NAME PROPERTIES` will add a team with the info supplied. In case it is supplied a channel with type 'members' the members of that channel would be considered members of the team.  
@@ -629,10 +684,13 @@ Examples:
 >**_`add jira to sales team : labels = SalesT AND status != Done`_**  
 >**_`add github to sales team : https://github.com/PeterBale/SalesBoom/issues?q=is%3Aissue+is%3Aopen+`_**  
 >**_`set :runner: on memo 7 team Sales`_**  
+>**_`see all memos from Sales team`_**  
+>**_`see bugs from Sales team dev`_**  
 
-Other team commands: **_`delete team TEAM_NAME`_**, **_`delete memo ID from team TEAM_NAME`_**, **_`set STATUS on memo ID TEAM_NAME team`_**  
+Other team commands: **_`delete team TEAM_NAME`_**, **_`delete memo ID from team TEAM_NAME`_**, **_`set STATUS on memo ID TEAM_NAME team`_**, **_`see MEMO_TYPE from TEAM_NAME team TOPIC`_**  
 
 ### Time off management
+> for all users
 
 You will be able to add or remove vacation and sick periods by using `add vacation/sick from YYYY/MM/DD to YYYY/MM/DD`. The SmartBot will automatically set the users status to 🌴 or 🤒 and the expiration date when the user is on vacation or sick. The SmartBot won't be allowed to change the status of workspace admins or owners.  
 
@@ -649,9 +707,24 @@ settings = {
 }
 ```
 
-Other 'time off' commands: **_`remove time off ID`_**, **_`see my time off`_**, **_`see vacations @USER`_**, **_`time off team NAME`_**  
+If you want to see the public holidays for a specific country or country/region you can use the command `public holidays COUNTRY/REGION`. Examples: `public holidays Iceland`, `public holidays Spain/Madrid`, `public holidays United States/California 2024`, `public holidays Spain/Catalonia 2024/04`.  
+You need to set up an account on https://www.calendarific.com  
+Add to your Smartbot configuration:
+```ruby
+settings = {
+  public_holidays: { 
+      api_key: API_KEY
+  }
+}
+```
+
+When calling `see my time off` on a DM will display a calendar of the year with the days off, including public holidays
+<img src="img/my_timeoff.png" width="650">
+
+Other 'time off' commands: **_`remove time off ID`_**, **_`see my time off`_**, **_`see vacations @USER`_**, **_`time off team NAME`_**, **_`set public holidays to COUNTRY/REGION`_**    
 
 ### Tips
+> for admins
 
 #### Send a file
 

@@ -12,6 +12,7 @@ RSpec.describe SlackSmartBot, "see_routines" do
     after(:all) do
       sleep 1
       send_message "delete routine example", from: user, to: channel
+      send_message 'delete routine example2', from: user, to: channel
     end
 
     it "displays the routines if admin user" do
@@ -44,9 +45,96 @@ RSpec.describe SlackSmartBot, "see_routines" do
       sleep 1
       expect(buffer(to: channel, from: :ubot).join).to match(/Only admin users can use this command/)
     end
+
+    it 'There are no routines added that match the header name and the regexp xxxx' do
+      sleep 1
+      send_message "see routines name /xxxx/", from: user, to: channel
+      sleep 2
+      expect(buffer(to: channel, from: :ubot).join).to match(/There are no routines added that match the header \*name\* and the regexp \*xxxx\*/)
+    end
+
+    it 'There are routines added that match the header name and the regexp example' do
+      sleep 2
+      send_message "see routines name /example/", from: user, to: channel
+      sleep 2
+      expect(buffer(to: channel, from: :ubot).join).to match(/Routines on channel \*bot1cm\* that match the header \*name\* and the regexp \*example\*/)
+    end
+
+    it 'There are no routines added that match the header status and the regexp xxxx' do
+      sleep 1
+      send_message "see routines status /xxxx/", from: user, to: channel
+      sleep 2
+      expect(buffer(to: channel, from: :ubot).join).to match(/There are no routines added that match the header \*status\* and the regexp \*xxxx\*/)
+    end
+
+    it 'There are routines added that match the header status and the regexp on' do
+      sleep 2
+      send_message "see routines status /on/", from: user, to: channel
+      sleep 2
+      expect(buffer(to: channel, from: :ubot).join).to match(/Routines on channel \*bot1cm\* that match the header \*status\* and the regexp \*on\*/)
+    end
+
+    it 'There are no routines added that match the header creator and the regexp xxxx' do
+      sleep 1
+      send_message "see routines creator /xxxx/", from: user, to: channel
+      sleep 2
+      expect(buffer(to: channel, from: :ubot).join).to match(/There are no routines added that match the header \*creator\* and the regexp \*xxxx\*/)
+    end
+
+    it 'There are routines added that match the header creator and the regexp mario' do
+      sleep 2
+      send_message "see routines creator /mario/", from: user, to: channel
+      sleep 2
+      expect(buffer(to: channel, from: :ubot).join).to match(/Routines on channel \*bot1cm\* that match the header \*creator\* and the regexp \*mario\*/)
+    end
+
+    it 'There are no routines added that match the header next_run and the regexp xxxx' do
+      sleep 1
+      send_message "see routines next_run /xxxx/", from: user, to: channel
+      sleep 2
+      expect(buffer(to: channel, from: :ubot).join).to match(/There are no routines added that match the header \*next_run\* and the regexp \*xxxx\*/)
+    end
+
+    it 'There are routines added that match the header next_run and the regexp 00:00' do
+      sleep 2
+      send_message "see routines next_run /00:00/", from: user, to: channel
+      sleep 2
+      expect(buffer(to: channel, from: :ubot).join).to match(/Routines on channel \*bot1cm\* that match the header \*next_run\* and the regexp \*00:00\*/)
+    end
+
+    it 'There are no routines added that match the header last_run and the regexp xxxx' do
+      sleep 1
+      send_message "see routines last_run /xxxx/", from: user, to: channel
+      sleep 2
+      expect(buffer(to: channel, from: :ubot).join).to match(/There are no routines added that match the header \*last_run\* and the regexp \*xxxx\*/)
+    end
+
+    it 'There are routines added that match the header last_run and the regexp for Date.today' do
+      send_message "add routine example2 every 60m !ruby puts 'exa2'", from: user, to: channel
+      sleep 2
+      send_message "see routines last_run /#{Date.today}/", from: user, to: channel
+      sleep 2
+      expect(buffer(to: channel, from: :ubot).join).to match(/Routines on channel \*bot1cm\* that match the header \*last_run\* and the regexp \*#{Date.today}\*/)
+    end
+
+    it 'There are no routines added that match the header command and the regexp xxxx' do
+      sleep 1
+      send_message "see routines command /xxxx/", from: user, to: channel
+      sleep 2
+      expect(buffer(to: channel, from: :ubot).join).to match(/There are no routines added that match the header \*command\* and the regexp \*xxxx\*/)
+    end
+
+    it 'There are routines added that match the header command and the regexp ruby' do
+      sleep 2
+      send_message "see routines command /ruby/", from: user, to: channel
+      sleep 2
+      expect(buffer(to: channel, from: :ubot).join).to match(/Routines on channel \*bot1cm\* that match the header \*command\* and the regexp \*ruby\*/)
+    end
+    
     it 'displays no routines when no routines added' do
       sleep 1
       send_message "delete routine example", from: user, to: channel
+      send_message "delete routine example2", from: user, to: channel
       sleep 2
       send_message "see routines", from: user, to: channel
       sleep 2
@@ -80,6 +168,17 @@ RSpec.describe SlackSmartBot, "see_routines" do
       expect(buffer(to: channel, from: :ubot).join).to match(/`*example*`/)
       expect(buffer(to: channel, from: :ubot).join).to match(/Status: on/)
     end
+
+    it "displays routines for 'see all routines name /example/'" do
+      send_message "see all routines name /example/", from: :uadmin, to: channel
+      sleep 2
+      expect(buffer(to: channel, from: :ubot).join).not_to match(/To see all routines on all channels you need to run the command on the master channel./)
+      expect(buffer(to: channel, from: :ubot).join).not_to match(/I'll display only the routines on this channel./)
+      expect(buffer(to: channel, from: :ubot).join).to match(/Routines on channel \*bot1cm\* that match the header \*name\* and the regexp \*example\*/)
+      expect(buffer(to: channel, from: :ubot).join).to match(/`*example*`/)
+      expect(buffer(to: channel, from: :ubot).join).to match(/Status: on/)
+    end
+
   end
 
   describe "on direct message" do

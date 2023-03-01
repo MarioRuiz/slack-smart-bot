@@ -18,7 +18,28 @@ class SlackSmartBot
         respond "It's only possible to start routines from MASTER channel from a direct message with the bot.", dest
       elsif @routines.key?(@channel_id) and @routines[@channel_id].key?(name)
         @routines[@channel_id][name][:status] = :on
-        if @routines[@channel_id][name][:at]!=''
+        if @routines[@channel_id][name].key?(:daymonth) and @routines[@channel_id][name][:daymonth] != ''
+          started = Time.now
+          daymonth = @routines[@channel_id][name][:daymonth]
+          day = daymonth.to_i
+          nt = @routines[@channel_id][name][:at].split(":")
+          if Time.now > Time.new(Time.now.year, Time.now.month, day, nt[0], nt[1], nt[2])
+              next_month = Date.new(Date.today.year, Date.today.month, 1) >> 1
+          else
+              next_month = Date.new(Date.today.year, Date.today.month, 1)
+          end
+          next_month_last_day = Date.new(next_month.year, next_month.month, -1)
+          if day > next_month_last_day.day
+              next_time = Date.new(next_month.year, next_month.month, next_month_last_day.day)
+          else
+              next_time = Date.new(next_month.year, next_month.month, day)
+          end
+          days = (next_time - Date.today).to_i
+          next_run = started + (days * 24 * 60 * 60) # one more day/week
+          next_run = Time.new(next_run.year, next_run.month, next_run.day, nt[0], nt[1], nt[2])
+          @routines[@channel_id][name][:next_run] = next_run.to_s
+          @routines[@channel_id][name][:sleeping] = (next_run - started).ceil
+        elsif @routines[@channel_id][name][:at]!=''
           started = Time.now
           if started.strftime("%H:%M:%S") < @routines[@channel_id][name][:at]
             nt = @routines[@channel_id][name][:at].split(":")

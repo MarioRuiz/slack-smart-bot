@@ -24,6 +24,7 @@ class SlackSmartBot
   # help:     To pre-execute some ruby when starting the session add the code to .smart-bot-repl file on the project root folder defined on project_folder
   # help:     If you want to see the methods of a class or module you created use _ls TheModuleOrClass_
   # help:     You can supply the Environmental Variables you need for the Session
+  # help:     You can add collaborators by sending _add collaborator @USER_ to the session.
   # help:     Examples:
   # help:       _repl CreateCustomer LOCATION=spain HOST='https://10.30.40.50:8887'_
   # help:       _repl CreateCustomer: "It creates a random customer for testing" LOCATION=spain HOST='https://10.30.40.50:8887'_
@@ -61,7 +62,10 @@ class SlackSmartBot
           finished: Time.now,
           input: [],
           on_thread: Thread.current[:on_thread],
-          thread_ts: Thread.current[:thread_ts]
+          thread_ts: Thread.current[:thread_ts],
+          collaborators: [],
+          user_type: :creator,
+          user_creator: from
         }
 
         unless temp_repl
@@ -90,6 +94,7 @@ class SlackSmartBot
 
         message = "Session name: *#{session_name}*
         From now on I will execute all you write as a Ruby command and I will keep the session open until you send `quit` or `bye` or `exit`. 
+        In case you need someone to help you with the session you can add collaborators by sending `add collaborator @USER` to the session.
         I will respond with the result so it is not necessary you send `print`, `puts`, `p` or `pp` unless you want it as the output when calling `run repl`. 
         Use `p` to print a message raw, exacly like it is returned. 
         If you want to avoid a message to be treated by me, start the message with '-'. 
@@ -239,6 +244,9 @@ class SlackSmartBot
                   rescue
                   end
                 end
+                @repl_sessions[from][:collaborators].each do |collaborator|
+                  @repl_sessions.delete(collaborator)
+                end  
                 @repl_sessions.delete(from)
                 break
             end
@@ -280,24 +288,56 @@ class SlackSmartBot
           code.match?(/=?\s*(require|load)(\(|\s)/i)
 
           respond "Sorry I cannot run this due security reasons", dest
-        else
-          @repl_sessions[from][:input]<<code
-          case code
-          when /^\s*(quit|exit|bye|bye bot)\s*$/i
-            open("#{config.path}/repl/#{@channel_id}/#{@repl_sessions[from][:name]}.input", 'a+') {|f|
-              f.puts code
-            }
-            respond "REPL session finished: #{@repl_sessions[from][:name]}", dest
-            unreact :running, @ts_react[@repl_sessions[from].name]
-            pids = `pgrep -P #{@repl_sessions[from][:pid]}`.split("\n").map(&:to_i) #todo: it needs to be adapted for Windows
-            pids.each do |pid|
-              begin
-                Process.kill("KILL", pid)
-              rescue
-              end
+        elsif code.match(/\A\s*add\s+collaborator\s+<@(\w+)>\s*\z/i)
+            collaborator = $1
+            user_info = @users.select{|u| u.id == collaborator or (u.key?(:enterprise_user) and u.enterprise_user.id == collaborator)}[-1]
+            collaborator_name = user_info.name
+            if @repl_sessions.key?(collaborator_name)
+              respond "Sorry, <@#{collaborator}> is already in a repl. Please ask her/him to quit it first.", dest
+            else
+              respond "Collaborator added. Now <@#{collaborator}> can interact with this repl.", dest
+              creator = @repl_sessions[from][:user_creator]
+              @repl_sessions[creator][:collaborators] << collaborator_name
+              @repl_sessions[collaborator_name] = {
+                name: @repl_sessions[from][:name],
+                dest: dest,
+                on_thread: Thread.current[:on_thread],
+                thread_ts: Thread.current[:thread_ts],
+                user_type: :collaborator,
+                user_creator: creator
+              }    
             end
-            @repl_sessions.delete(from)
-          when /^\s*-/i
+        else
+          if @repl_sessions[from][:user_type] == :collaborator
+            @repl_sessions[@repl_sessions[from][:user_creator]][:input] << code
+          else
+            @repl_sessions[from][:input] << code
+          end
+          case code
+          when /^\s*(quit|exit|bye|bye\s+bot)\s*$/i
+            if @repl_sessions[from][:user_type] == :collaborator
+              respond "Collaborator <@#{user.id}> removed.", dest
+              @repl_sessions[@repl_sessions[from][:user_creator]][:collaborators].delete(from)
+              @repl_sessions.delete(from)
+            else
+              open("#{config.path}/repl/#{@channel_id}/#{@repl_sessions[from][:name]}.input", 'a+') {|f|
+                f.puts code
+              }
+              respond "REPL session finished: #{@repl_sessions[from][:name]}", dest
+              unreact :running, @ts_react[@repl_sessions[from].name]
+              pids = `pgrep -P #{@repl_sessions[from][:pid]}`.split("\n").map(&:to_i) #todo: it needs to be adapted for Windows
+              pids.each do |pid|
+                begin
+                  Process.kill("KILL", pid)
+                rescue
+                end
+              end
+              @repl_sessions[from][:collaborators].each do |collaborator|
+                @repl_sessions.delete(collaborator)
+              end
+              @repl_sessions.delete(from)
+            end
+          when /\A\s*-/i
             #ommit
           else
             if @ts_repl[@repl_sessions[from].name].to_s == ''

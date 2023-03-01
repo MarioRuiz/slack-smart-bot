@@ -32,6 +32,7 @@ class SlackSmartBot
         team = @teams[team_name.to_sym].deep_copy
         @teams[new_name.to_sym] = team
         @teams.delete(team_name.to_sym)
+        File.delete(File.join(config.path, "teams", "t_#{team_name}.yaml"))
         message = "The *#{team_name}* team has been renamed #{new_name}."
         team_name = new_name
       elsif new_info != ""

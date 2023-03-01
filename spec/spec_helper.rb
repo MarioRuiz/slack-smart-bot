@@ -33,9 +33,9 @@ RSpec.configure do |config|
       FileUtils.rm_rf(Dir["./spec/bot/announcements/*"])
       FileUtils.rm_rf(Dir["./spec/bot/repl/**/*"])
       File.delete("./spec/bot/rules/rules_imported.rb") if File.exist?("./spec/bot/rules/rules_imported.rb")
-      File.delete("./spec/bot/smart-bot-example_teams.yaml") if File.exist?("./spec/bot/smart-bot-example_teams.yaml")
-      File.delete("./spec/bot/smart-bot-example_vacations.yaml") if File.exist?("./spec/bot/smart-bot-example_vacations.yaml")
-
+      FileUtils.rm_rf Dir.glob("./spec/bot/vacations/*") if Dir.exist?("./spec/bot/vacations")
+      FileUtils.rm_rf Dir.glob("./spec/bot/teams/*") if Dir.exist?("./spec/bot/teams")
+      
       @settings = {
         nick: "example", # the smart bot name
         token: ENV["SSB_TOKEN"], # the API Slack token
@@ -48,6 +48,7 @@ RSpec.configure do |config|
         start_bots: false,
         stats: true,
         nick_id: 'UMSRCRTAR',
+        public_holidays: {api_key: ENV['CALENDARIFIC_API_KEY']},
       }
       if @settings.simulate
         require_relative 'bot/client.rb'

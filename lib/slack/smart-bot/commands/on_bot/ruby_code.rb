@@ -28,7 +28,8 @@ class SlackSmartBot
         respond "Running", dest if code.size > 200
 
         begin
-          code.gsub!(/^\W*$/, "") #to remove special chars from slack when copy/pasting
+          #todo: check. Commented next line because it was causing problems with the code, for the case the line was for example any of these chars: { } [ ] ( ) < > | & ; $ ` " ' \ * ? ~ # = ! ^ -
+          #code.gsub!(/^\W*$/, "") #to remove special chars from slack when copy/pasting
           code.gsub!('$','\$') #to take $ as literal, fex: puts '$lolo' => puts '\$lolo'
           ruby = "ruby -e \"#{code.gsub('"', '\"')}\""
           if defined?(project_folder) and project_folder.to_s != "" and Dir.exist?(project_folder)

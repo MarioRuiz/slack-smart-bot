@@ -10,7 +10,7 @@ class SlackSmartBot
             user_info = @users.select{|u| u.name == @routines[@channel_id][name][:creator]}[-1]
             @routines[@channel_id][name][:creator_id] = user_info.id unless user_info.nil? or user_info.empty?
           end
-          @logger.info "Routine: #{@routines[@channel_id][name].inspect}"
+          @logger.info "Routine #{name}: #{@routines[@channel_id][name].inspect}"
           if @routines[@channel_id][name][:file_path].match?(/\.rb$/i)
             ruby = "ruby "
           else
@@ -188,6 +188,10 @@ class SlackSmartBot
           update_routines()
           sleep(@routines[@channel_id][name][:sleeping]) unless elapsed > every_in_seconds
         else
+          if !@routines[@channel_id][name][:running]
+            @routines[@channel_id][name][:running] = true
+            update_routines()
+          end
           sleep 30
         end
       end

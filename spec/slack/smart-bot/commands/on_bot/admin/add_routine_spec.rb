@@ -167,7 +167,7 @@ RSpec.describe SlackSmartBot, "add_routine" do
       send_message "create routine example every 2 minutes !ruby puts 'Sam'", from: user, to: channel
       expect(bufferc(to: channel, from: :ubot).join).to match(/Added routine \*`example`\* to the channel/)
       send_message 'see routines', from: user, to: channel
-      sleep 3
+      sleep 5
       expect(buffer(to: channel, from: :ubot).join).to match(/Next Run: #{(started+(2*60)).strftime("%Y-%m-%d %H:%M:%S")}/)
     end
 

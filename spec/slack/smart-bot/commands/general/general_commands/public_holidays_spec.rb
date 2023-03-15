@@ -25,7 +25,7 @@ RSpec.describe SlackSmartBot, "public_holidays" do
 
       it "displays the holidays for a country without states" do
         send_message "public holidays Iceland", from: user, to: channel
-        sleep 2
+        sleep 4
         expect(buffer(to: channel, from: :ubot).join).to match(/Holidays in Iceland in #{Date.today.year}/im)
       end
 

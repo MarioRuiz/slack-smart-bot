@@ -355,6 +355,24 @@ class SlackSmartBot
             if File.exist?("#{config.path}/shortcuts/shortcuts_global.yaml")
               @shortcuts_global = YAML.load(File.read("#{config.path}/shortcuts/shortcuts_global.yaml"))
             end
+          when /\AGame\s+over!\z/i
+            sleep 2
+            get_bots_created()
+            if File.exist?("#{config.path}/config_tmp.status")
+              file_cts = IO.readlines("#{config.path}/config_tmp.status").join
+              unless file_cts.to_s() == ""
+                file_cts = eval(file_cts)
+                if file_cts.is_a?(Hash) and file_cts.key?(:exit_bot)
+                  config.exit_bot = file_cts.exit_bot
+                end
+                @status = :exit if config.exit_bot
+              end
+            end
+            if @status == :exit
+              @logger.info 'Game over!'
+              sleep 3
+              exit!
+            end
           end
         end
       end

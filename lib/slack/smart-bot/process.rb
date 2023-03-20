@@ -74,8 +74,9 @@ class SlackSmartBot
             /\A\s*use\s+rules\s+(on\s+)(.+)/i
           channel = $2
           extend_rules(dest, user, from, channel, typem)
-        when /\A\s*exit\s+bot\s*$/i, /\A\s*quit\s+bot\s*$/i, /\A\s*close\s+bot\s*$/i
-          exit_bot(command, from, dest, display_name)
+        when /\A\s*exit\s+bot(\s+silent)?\s*$/i, /\A\s*quit\s+bot(\s+silent)?\s*$/i, /\A\s*close\s+bot(\s+silent)?\s*$/i
+          silent = $1.to_s != ''
+          exit_bot(command, from, dest, display_name, silent: silent)
         when /\A\s*start\s+(this\s+)?bot$/i
           start_bot(dest, from)
         when /\A\s*pause\s+(this\s+)?bot$/i

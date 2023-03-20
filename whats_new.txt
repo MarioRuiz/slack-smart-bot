@@ -1,21 +1,11 @@
-*Version 1.13.2* Released 2023-Mar-15
+*Version 1.14.0-DEV01* Released 2023-Mar-20
 
 *For General users*
-- It is possible to run any command on a loop: `for 3 times every 5 minutes !ruby puts Time.now` (<https://github.com/MarioRuiz/slack-smart-bot/issues/83|#83>).
-- You can add collaborators to your REPL by sending `add collaborator @USER` to the session. (<https://github.com/MarioRuiz/slack-smart-bot/issues/85|#85>).
-- If using the `monthly` option when calling `bot stats` it will show a graph (<https://github.com/MarioRuiz/slack-smart-bot/issues/86|#86>).
-- New `public holidays COUNTRY/REGION` command (<https://github.com/MarioRuiz/slack-smart-bot/issues/88|#88>)
-- When calling `see my vacations` on a DM will display a calendar of the year with the days off, including public holidays (<https://github.com/MarioRuiz/slack-smart-bot/issues/89|#89>)
-- `set public holidays to COUNTRY/REGION` will set the public holidays for the country and region specified. (<https://github.com/MarioRuiz/slack-smart-bot/issues/90|#90>)
-- `see MEMO_TYPE from TEAM_NAME team` will show the memos of the team. (<https://github.com/MarioRuiz/slack-smart-bot/issues/91|#91>)
+- 
 
 *For Admin users*
-- It is possible to see routines filtering the HEADER supplied using the given REGEXP: `see routines HEADER /REGEXP/` (<https://github.com/MarioRuiz/slack-smart-bot/issues/84|#84>).
-- `send message to users from YYYY/MM/DD to YYYY/MM/DD #CHANNEL COMMAND_ID: MESSAGE` will send a DM to all users that have been using the SmartBot according to the SmartBot Stats. One message every 5sc. #CHANNEL and COMMAND are optional filters. (<https://github.com/MarioRuiz/slack-smart-bot/issues/87|#87>)
-- `update message URL TEXT` It will update the SmartBot message supplied. You can use this command only if you are a Master admin user and if you are in a private conversation with the bot. (<https://github.com/MarioRuiz/slack-smart-bot/issues/33|#33>)
-- Routines now can create threads (<https://github.com/MarioRuiz/slack-smart-bot/issues/36|#36>)
-- `add routine NAME on the DAY_OF_MONTH at TIME COMMAND` (<https://github.com/MarioRuiz/slack-smart-bot/issues/82|#82>)
+- New 'silent' option for command `exit bot silent`. It won't notify the SmartBot channels. (<https://github.com/MarioRuiz/slack-smart-bot/issues/93|#93>).
 
 ------------------------------
 
-*Previous*: <https://github.com/MarioRuiz/slack-smart-bot/blob/2b93317d7556ceaeb724494f53cfa9e8907c3e52/whats_new.txt|1.12.9>
+*Previous*: <https://github.com/MarioRuiz/slack-smart-bot/blob/644c0882dec62281d5961d7565f6aba001be8d91/whats_new.txt|1.13.2>

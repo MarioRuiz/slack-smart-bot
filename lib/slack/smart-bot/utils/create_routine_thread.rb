@@ -2,7 +2,7 @@ class SlackSmartBot
 
   def create_routine_thread(name, hroutine)
     t = Thread.new do
-      while @routines.key?(@channel_id) and @routines[@channel_id].key?(name)
+      while @routines.key?(@channel_id) and @routines[@channel_id].key?(name) and @status != :exit
         @routines[@channel_id][name][:thread] = Thread.current
         started = Time.now
         if @status == :on and @routines[@channel_id][name][:status] == :on

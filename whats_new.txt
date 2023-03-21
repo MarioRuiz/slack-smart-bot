@@ -1,10 +1,12 @@
-*Version 1.14.0-DEV01* Released 2023-Mar-20
+*Version 1.14.0-DEV06* Released 2023-Mar-21
 
 *For General users*
-- 
+- `team TEAM_NAME memo ID MESSAGE`, `TEAM_NAME team memo ID MESSAGE` It will add a comment to the memo ID specified on the team specified. (<https://github.com/MarioRuiz/slack-smart-bot/issues/95|#95>).
+- `team TEAM_NAME memo ID`, `TEAM_NAME team memo ID` It will show the memo ID specified on the team specified along with all the comments. (<https://github.com/MarioRuiz/slack-smart-bot/issues/96|#96>)
 
 *For Admin users*
 - New 'silent' option for command `exit bot silent`. It won't notify the SmartBot channels. (<https://github.com/MarioRuiz/slack-smart-bot/issues/93|#93>).
+- Show graph for `bot stats` when specifying option `graph` and grouping by daily, weekly, monthly or yearly. (<https://github.com/MarioRuiz/slack-smart-bot/issues/97|#97>).
 
 ------------------------------
 

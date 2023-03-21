@@ -328,13 +328,23 @@ class SlackSmartBot
             opts.gsub!(/\s+routines$/,'')
             opts.gsub!(/\s+routines\s+/,'')
           end
+          only_graph = all_opts.include?('graph')
+
           monthly = false
+          type_group = ''
           if all_opts.include?('today')
             st_from = st_to = "#{Time.now.strftime("%Y-%m-%d")}"
           elsif all_opts.include?('yesterday')
             st_from = st_to = "#{(Time.now-86400).strftime("%Y-%m-%d")}"
           elsif all_opts.include?('monthly')
             monthly = true
+            type_group = :monthly
+          elsif all_opts.include?('weekly')
+            type_group = :weekly
+          elsif all_opts.include?('daily')
+            type_group = :daily
+          elsif all_opts.include?('yearly')
+            type_group = :yearly
           end
           if this_month
             st_from = "#{Date.today.strftime("%Y-%m-01")}"
@@ -380,7 +390,7 @@ class SlackSmartBot
             header << r[0]
             regexp << r[1]
           end
-          bot_stats(dest, user, typem, st_channel, st_from, st_to, st_user, st_command, exclude_masters, exclude_routines, exclude_command, monthly, all_data, members_channel, exclude_members_channel, header, regexp)
+          bot_stats(dest, user, typem, st_channel, st_from, st_to, st_user, st_command, exclude_masters, exclude_routines, exclude_command, monthly, all_data, members_channel, exclude_members_channel, header, regexp, type_group: type_group, only_graph: only_graph)
         when /\A(set|turn)\s+maintenance\s+(on|off)\s*()\z/im, /\A(set|turn)\s+maintenance\s+(on)\s*(.+)\s*\z/im
           status = $2.downcase
           message = $3.to_s

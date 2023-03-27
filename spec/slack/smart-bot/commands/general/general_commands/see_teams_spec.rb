@@ -104,6 +104,8 @@ RSpec.describe SlackSmartBot, "see_teams" do
       after(:all) do
         send_message "delete team example", from: user , to: channel
         send_message "yes", from: user , to: channel
+        send_message "delete team examplemax", from: user , to: channel
+        send_message "yes", from: user , to: channel
       end
 
       it "displays memos" do
@@ -157,6 +159,16 @@ RSpec.describe SlackSmartBot, "see_teams" do
         send_message "team example", from: :user2, to: DIRECT.user2.ubot
         expect(buffer(to: DIRECT.user2.ubot, from: :ubot).join).not_to match(/`personal`/)
         expect(bufferc(to: DIRECT.user2.ubot, from: :ubot).join).not_to match(/some\spersonal\s+admin\s+text/)
+      end
+
+      it 'displays There are too many memos to show when there are more than 10 memos' do
+        send_message "add team examplemax members <##{CEXTERNAL}|external_channel> dev <@#{USER1}> : info", from: user, to: channel
+        10.times do
+          send_message "add memo to examplemax team : some text", from: :user1, to: channel
+          expect(bufferc(to: channel, from: :ubot).join).to match(/The memo has been added to \*examplemax\* team/)
+        end
+        send_message "team examplemax", from: :user1, to: channel
+        expect(bufferc(to: channel, from: :ubot).join).to match(/There are too many memos to show/)
       end
 
     end

@@ -502,6 +502,41 @@ def general_bot_commands(user, command, dest, files = [])
         set_memo_status(user, team_name, memo_id, status)
 
         # help: ----------------------------------------------
+        # help: `team TEAM_NAME memo ID MESSAGE`
+        # help: `TEAM_NAME team memo ID MESSAGE`
+        # help:     It will add a comment to the memo ID specified on the team specified.
+        # help:     aliases for memo: note, issue, task, feature, bug
+        # help:  Examples:
+        # help:     _sales team memo 32 I have a question, is there any public data published?_
+        # help:     _dev team task 77 putting this on hold until we get more info_
+        # help:    <https://github.com/MarioRuiz/slack-smart-bot#teams|more info>
+        # help: command_id: :add_memo_team_comment
+        # help:
+      when /\A\s*team\s+([\w\-]+)\s+(memo|note|issue|task|feature|bug)\s+(\d+)\s+(.+)\s*\z/im,
+        /\A\s*([\w\-]+)\s+team\s+(memo|note|issue|task|feature|bug)\s+(\d+)\s+(.+)\s*\z/im
+        team_name = $1.downcase
+        memo_id = $3
+        message = $4.to_s.strip
+        add_memo_team_comment(user, team_name, memo_id, message)
+
+        # help: ----------------------------------------------
+        # help: `team TEAM_NAME memo ID`
+        # help: `TEAM_NAME team memo ID`
+        # help:     It will show the memo ID specified on the team specified.
+        # help:     aliases for memo: note, issue, task, feature, bug
+        # help:  Examples:
+        # help:     _sales team memo 32_
+        # help:     _dev team task 77_
+        # help:    <https://github.com/MarioRuiz/slack-smart-bot#teams|more info>
+        # help: command_id: :see_memo_team
+        # help:
+      when /\A\s*team\s+([\w\-]+)\s+(memo|note|issue|task|feature|bug)\s+(\d+)\s*\z/i,
+        /\A\s*([\w\-]+)\s+team\s+(memo|note|issue|task|feature|bug)\s+(\d+)\s*\z/i
+        team_name = $1.downcase
+        memo_id = $3
+        see_memo_team(user, team_name, memo_id)
+
+        # help: ----------------------------------------------
         # help: `see teams`
         # help: `see team TEAM_NAME`
         # help: `team TEAM_NAME`
@@ -617,11 +652,11 @@ def general_bot_commands(user, command, dest, files = [])
         # help:    <https://github.com/MarioRuiz/slack-smart-bot#teams|more info>
         # help: command_id: :see_memos_team
         # help:
-      when /\A\s*see\s+(memo|note|issue|task|feature|bug|jira|github|all\s+memo)s?\s+(from\s+)?([\w\-]+)\s+team(.*)\s*\z/i,
-        /\A\s*see\s+(memo|note|issue|task|feature|bug|jira|github|all\s+memo)s?\s+(from\s+)?team\s+([\w\-]+)(.*)\s*\z/i
-        type = $1.downcase.to_sym
-        name = $3.downcase
-        topic = $4.strip
+      when /\A\s*(see\s+)?(memo|note|issue|task|feature|bug|jira|github|all\s+memo)s?\s+(from\s+)?([\w\-]+)\s+team(.*)\s*\z/i,
+        /\A\s*(see\s+)?(memo|note|issue|task|feature|bug|jira|github|all\s+memo)s?\s+(from\s+)?team\s+([\w\-]+)(.*)\s*\z/i
+        type = $2.downcase.to_sym
+        name = $4.downcase
+        topic = $5.strip
         see_memos_team(user, type: type, name: name, topic: topic)
 
         # help: ----------------------------------------------

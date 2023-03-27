@@ -3,6 +3,10 @@
 [![Gem Version](https://badge.fury.io/rb/slack-smart-bot.svg)](https://rubygems.org/gems/slack-smart-bot)
 [![Build Status](https://travis-ci.com/MarioRuiz/slack-smart-bot.svg?branch=master)](https://github.com/MarioRuiz/slack-smart-bot)
 [![Coverage Status](https://coveralls.io/repos/github/MarioRuiz/slack-smart-bot/badge.svg?branch=master)](https://coveralls.io/github/MarioRuiz/slack-smart-bot?branch=master)
+![Gem](https://img.shields.io/gem/dt/slack-smart-bot)
+![GitHub commit activity](https://img.shields.io/github/commit-activity/y/MarioRuiz/slack-smart-bot)
+![GitHub last commit](https://img.shields.io/github/last-commit/MarioRuiz/slack-smart-bot)
+![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/MarioRuiz/slack-smart-bot)
 
 Create a Slack bot that is really smart and so easy to expand.
 
@@ -382,9 +386,9 @@ By default it will be automatically loaded the gems: `string_pattern`, `nice_has
 
 To pre-execute some ruby when starting the session add the code to `.smart-bot-repl` file on the project root folder defined on `project_folder`. Then that file will be always executed before the REPL started or created. In that case if we want to avoid to run that file before the REPL we can do it adding the word 'clean' before the command `clean repl`.
 
-If you want to see the methods of a class or module you created use `ls TheModuleOrClass`
+If you want to see the methods of a class or module you created use `ls TheModuleOrClass`. To see all documentation of a method: `doc TheModuleOrClass.method_name`. And to see the source code of a method: `code TheModuleOrClass.method_name`. Examples: `ls Sales`, `doc Sales.list`, `code Sales.list`  
 
-You can supply the Environmental Variables you need for the Session
+You can supply the Environmental Variables you need for the Session  
 
 Examples:  
   _repl CreateCustomer LOCATION=spain HOST='https://10.30.40.50:8887'_  
@@ -674,6 +678,8 @@ In case of 'github' type then you can supply an URL filtering the Github issues 
 
 If you want to change the memo status use the command `set STATUS on memo ID TEAM_NAME team`. For example: `set :runner: on memo 7 Sales team`  
 
+You can add also comments to any memo by calling: `team TEAM_NAME memo ID MESSAGE`. To see a specific memo and all the comments: `team TEAM_NAME memo ID`. In case of a Jira or GitHub memo then it will show also the comments in there.  
+
 Examples:  
 >**_`add memo to sales team : Add tests for Michigan feature`_**  
 >**_`add private note to sales team : Bills will need to be deployed before Friday`_**  
@@ -686,6 +692,8 @@ Examples:
 >**_`set :runner: on memo 7 team Sales`_**  
 >**_`see all memos from Sales team`_**  
 >**_`see bugs from Sales team dev`_**  
+>**_`sales team memo 4 Put it on hold until tests for Apple feature are finished`_**  
+>**_`sales team memo 7`_**  
 
 Other team commands: **_`delete team TEAM_NAME`_**, **_`delete memo ID from team TEAM_NAME`_**, **_`set STATUS on memo ID TEAM_NAME team`_**, **_`see MEMO_TYPE from TEAM_NAME team TOPIC`_**  
 

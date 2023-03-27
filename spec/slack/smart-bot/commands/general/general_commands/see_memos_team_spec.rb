@@ -56,17 +56,17 @@ RSpec.describe SlackSmartBot, "see_memos_teams" do
       it 'returns no memos after filtering by memo type and no memos returned' do
         team_name = 'example'
         send_message "see jira team #{team_name}", from: user, to: channel
-        expect(bufferc(to: channel, from: :ubot).join).to match(/There are no memos jira/i)
+        expect(bufferc(to: channel, from: :ubot).join).to match(/There are no memos example team jira/i)
         send_message "see github #{team_name} team", from: user, to: channel
-        expect(buffer(to: channel, from: :ubot).join).to match(/There are no memos github/i)
+        expect(buffer(to: channel, from: :ubot).join).to match(/There are no memos example team github/i)
       end
 
       it 'returns no memos after filtering by topic and no memos returned' do
         team_name = 'example'
         send_message "see bug team #{team_name} wrong_topic", from: user, to: channel
-        expect(bufferc(to: channel, from: :ubot).join).to match(/There are no memos bug wrong_topic/i)
+        expect(bufferc(to: channel, from: :ubot).join).to match(/There are no memos example team bug wrong_topic/i)
         send_message "see bug #{team_name} team wrong_topic", from: user, to: channel
-        expect(buffer(to: channel, from: :ubot).join).to match(/There are no memos bug wrong_topic/i)
+        expect(buffer(to: channel, from: :ubot).join).to match(/There are no memos example team bug wrong_topic/i)
       end
 
       it 'returns all memos when calling see all memos' do

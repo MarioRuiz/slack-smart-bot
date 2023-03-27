@@ -23,6 +23,7 @@ class SlackSmartBot
       all_team_members += team_members
       all_team_members.uniq!
     end
+    search = false
     if type == "jira"
       able_to_connect_jira = false
       begin
@@ -39,6 +40,7 @@ class SlackSmartBot
           message.gsub!(/^\/issues\/\?jql=/, "")
           message.gsub!(" ", "%20")
           resp = http.get("/rest/api/latest/search/?jql=#{message}")
+          search = true
         end
         if resp.code == 200
           able_to_connect_jira = true
@@ -57,6 +59,7 @@ class SlackSmartBot
     elsif type == "github"
       able_to_connect_github = false
       begin
+        search = true if message.include?("?")
         http = NiceHttp.new(config.github.host)
         http.headers.authorization = "token #{config.github.token}"
         message.gsub!(/^\s*</, "")
@@ -65,7 +68,7 @@ class SlackSmartBot
         message.gsub!(/^#{config.github.host}/, "")
         message.gsub!("https://github.com", "")
         message.slice!(0) if message[0] == "/"
-        resp = http.get("/repos#{message}")
+        resp = http.get("/repos/#{message}")
         if resp.code == 200
           able_to_connect_github = true
         else
@@ -108,10 +111,13 @@ class SlackSmartBot
         user: user.name,
         date: Time.now.strftime("%Y-%m-%dT%H:%M:%S.000Z")[0..18],
         message: message,
-        status: ':new: '
+        status: ':new: ',
+        search: search,
+        issues: [],
+        comments: []
       }
       update_teams()
-      respond "The memo has been added to *#{team_name}* team."
+      respond "The memo has been added to *#{team_name}* team. (#{memo_id})"
     end
   end
 end

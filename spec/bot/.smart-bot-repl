@@ -1,2 +1,4 @@
 LOLO = 'beautiful'
 param = ENV['PARAM']
+API_VERSION='2018-01-01'
+require './repl_required_example.rb' if File.exist?('./repl_required_example.rb')

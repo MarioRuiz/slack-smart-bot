@@ -6,15 +6,29 @@ class SlackSmartBot
     if @teams.key?(team_name)
       if @teams[team_name].key?(:memos)
         memo = @teams[team_name].memos.select { |m| m.memo_id == memo_id.to_i }[-1]
+        memo_deleted = false
+        deleted_memos_file = File.join(config.path, "teams", "t_#{team_name}_memos.yaml.deleted")
+        if File.exist?(deleted_memos_file)
+          memos = YAML.load(decrypt(File.read(deleted_memos_file)))
+          memo = memos.select { |m| m.memo_id == memo_id.to_i }[-1]
+          memo_deleted = true if memo
+        end
         if memo
-          messages = see_memos_team(user, type: "all", add_stats: false, name: team_name, memo_id: memo_id)
+          if memo_deleted 
+            messages = ["This memo was deleted from the team #{team_name}.\nOnly the creator (#{memo.user}) of the memo can get access to it."]
+            if memo.user == user.name
+              messages << "Memo #{memo.memo_id} (#{memo.type}): #{memo.message}"
+            end
+          else
+            messages = see_memos_team(user, type: "all", add_stats: false, name: team_name, memo_id: memo_id)
+          end
           if messages.empty?
             messages = ["This memo is private or personal and you don't have access to it on this channel."]
             messages << "Remember in case of a private memo you can only see it in the team members channel."
             messages << "In case of a personal memo you can only see it if you are the creator and you are on a DM."
             respond messages.join("\n")
           else
-            if memo.type == 'jira'
+            if memo.type == 'jira' and !memo_deleted
                 require 'time'
                 http = NiceHttp.new(config.jira.host)
                 http.headers.authorization = NiceHttpUtils.basic_authentication(user: config.jira.user, password: config.jira.password)
@@ -29,7 +43,7 @@ class SlackSmartBot
                     end
                 end
                 http.close
-            elsif memo.type == 'github'
+            elsif memo.type == 'github' and !memo_deleted
                 http = NiceHttp.new(config.github.host)
                 http.headers.authorization = "token #{config.github.token}"
                 resp = http.get("/repos/#{memo.message}/comments")
@@ -44,7 +58,7 @@ class SlackSmartBot
                 end
                 http.close
             end
-            if memo.key?(:comments) and !memo.comments.empty?
+            if memo.key?(:comments) and !memo.comments.empty? and (!memo_deleted or (memo_deleted and memo.user == user.name) )
                 messages << "\n_*Comments:*_"
                 memo.comments.each do |comment|
                     messages << "  *#{comment[:user_name]}* > #{comment[:message]} _(#{comment[:time][0..15]})_"
@@ -58,7 +72,7 @@ class SlackSmartBot
             end
           end
         else
-          respond "Memo *#{memo_id}* does not exist in team *#{team_name}*."
+            respond "Memo *#{memo_id}* does not exist in team *#{team_name}*."
         end
       else
         respond "There are no memos in team *#{team_name}*."

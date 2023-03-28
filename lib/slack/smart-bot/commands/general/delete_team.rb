@@ -38,7 +38,15 @@ class SlackSmartBot
           when /yes/i, /yep/i, /sure/i
             answer_delete
             @teams.delete(team_name.to_sym)
-            File.delete(File.join(config.path, "teams", "t_#{team_name}.yaml"))
+            require 'fileutils'
+            time_deleted = Time.now.strftime('%Y%m%d%H%M%S')
+            FileUtils.mv(File.join(config.path, "teams", "t_#{team_name}.yaml"), 
+                         File.join(config.path, "teams", "t_#{team_name}_#{time_deleted}.yaml.deleted"))
+            deleted_memos_file = File.join(config.path, "teams", "t_#{team_name}_memos.yaml.deleted")
+            if File.exist?(deleted_memos_file)
+              FileUtils.mv(deleted_memos_file, 
+                File.join(config.path, "teams", "t_#{team_name}_memos_#{time_deleted}.yaml.deleted"))
+            end
             update_teams()
             respond "The team #{team_name} has been deleted."
           when /no/i, /nope/i, /cancel/i

@@ -98,11 +98,16 @@ class SlackSmartBot
     else
       topic = :no_topic if topic == ""
       @teams[team_name.to_sym][:memos] ||= []
-      if @teams[team_name.to_sym][:memos].empty?
+      if @teams[team_name.to_sym][:memos].empty? and !@teams[team_name.to_sym].key?(:last_memo_id)
         memo_id = 1
       else
-        memo_id = @teams[team_name.to_sym][:memos].memo_id.flatten.max + 1
+        if @teams[team_name.to_sym].key?(:last_memo_id)
+          memo_id = @teams[team_name.to_sym][:last_memo_id] + 1
+        else
+          memo_id = @teams[team_name.to_sym][:memos].memo_id.flatten.max + 1 #backwards compatibility
+        end
       end
+      @teams[team_name.to_sym][:last_memo_id] = memo_id
       @teams[team_name.to_sym][:memos] << {
         memo_id: memo_id,
         topic: topic,

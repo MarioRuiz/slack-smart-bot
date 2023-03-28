@@ -62,6 +62,26 @@ RSpec.describe SlackSmartBot, "delete_memo_team" do
         expect(bufferc(to: channel, from: :ubot).join).to match(/The memo has been deleted/)        
       end
       
+      it 'displays a memo that has been deleted if it is the user that created it' do
+        send_message "delete memo 1 from example team", from: :user1, to: channel
+        send_message "yes", from: :user1, to: channel
+        expect(bufferc(to: channel, from: :ubot).join).to match(/The memo has been deleted/)        
+        send_message "team example memo 1", from: :user1, to: channel
+        expect(buffer(to: channel, from: :ubot).join).to match(/This memo was deleted from the team example/)
+        expect(buffer(to: channel, from: :ubot).join).to match(/Only the creator \(smartbotuser1\) of the memo can get access to it/)
+        expect(buffer(to: channel, from: :ubot).join).to match(/Memo 1 \(memo\): some text/)
+      end
+
+      it "doesn't display a memo that has been deleted if it is not the user that created it" do
+        send_message "delete memo 1 from example team", from: :user1, to: channel
+        send_message "yes", from: :user1, to: channel
+        expect(bufferc(to: channel, from: :ubot).join).to match(/The memo has been deleted/)        
+        send_message "team example memo 1", from: :user2, to: channel
+        expect(buffer(to: channel, from: :ubot).join).to match(/This memo was deleted from the team example/)
+        expect(buffer(to: channel, from: :ubot).join).to match(/Only the creator \(smartbotuser1\) of the memo can get access to it/)
+        expect(buffer(to: channel, from: :ubot).join).not_to match(/Memo 1 \(memo\): some text/)
+      end
+
     end
   end
 end

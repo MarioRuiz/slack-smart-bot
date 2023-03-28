@@ -5,7 +5,7 @@ RSpec.describe SlackSmartBot, "add_memo_team" do
       channel = :cexternal
       user = :uadmin
 
-      before(:all) do
+      before(:each) do
         send_message "delete team example", from: user , to: channel
         send_message "yes", from: user , to: channel
         send_message "add team example members <##{CEXTERNAL}|external_channel> dev <@#{USER1}> : info", from: user, to: channel
@@ -15,10 +15,6 @@ RSpec.describe SlackSmartBot, "add_memo_team" do
       after(:all) do
         send_message "delete team example", from: user , to: channel
         send_message "yes", from: user , to: channel
-      end
-      before(:each) do
-        send_message "delete memo 1 from example team", from: user, to: channel
-        send_message "yes", from: user, to: channel
       end
 
       it "is not possible to add a memo if the team doesn't exist" do

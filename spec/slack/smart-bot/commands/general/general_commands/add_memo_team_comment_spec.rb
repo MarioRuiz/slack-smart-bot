@@ -5,7 +5,9 @@ RSpec.describe SlackSmartBot, "add_memo_team_comment" do
     describe "on external channel" do
       channel = :cexternal
       user = :uadmin
-      before(:all) do
+      before(:each) do
+        send_message "delete team example", from: user , to: channel
+        send_message "yes", from: user , to: channel
         send_message "add team example dev <@#{USER1}> <@#{USER2}> <@UXXXXXXXX> members <##{CEXTERNAL}|external_channel> contact_us <##{CEXTERNAL}|external_channel> : beautiful info", from: user , to: channel
         send_message "add team example2 dev <@#{USER1}> <@#{USER2}> <@UXXXXXXXX> members <##{CEXTERNAL}|external_channel> contact_us <##{CEXTERNAL}|external_channel> : beautiful info", from: user , to: channel
         send_message "add memo to example team : some memo text", from: :uadmin, to: channel

@@ -57,6 +57,7 @@ class SlackSmartBot
     config[:public_holidays] = { api_key: '' } unless config.key?(:public_holidays) and config[:public_holidays].key?(:api_key)
     config[:public_holidays][:host] ||= "https://calendarific.com"
     config[:public_holidays][:host] = "https://#{config[:public_holidays][:host]}" unless config[:public_holidays][:host] == '' or config[:public_holidays][:host].match?(/^http/)
+    config[:encrypt] ||= true unless config.key?(:encrypt)
     
     if config.path.to_s!='' and config.file.to_s==''
       config.file = File.basename($0)

@@ -15,6 +15,7 @@ settings = {
     api_key: ENV['CALENDARIFIC_API_KEY'],
     default_calendar: 'iceland'
   },
+  encrypt: false,
   github: {token: ENV['GITHUB_TOKEN']}#,
   #jira: {host: ENV['JIRA_HOST'], user: 'smartbot', password: ENV['JIRA_PASSWORD']}
 }

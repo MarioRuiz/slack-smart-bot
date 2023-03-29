@@ -8,7 +8,7 @@ class SlackSmartBot
         memo = @teams[team_name].memos.select { |m| m.memo_id == memo_id.to_i }[-1]
         memo_deleted = false
         deleted_memos_file = File.join(config.path, "teams", "t_#{team_name}_memos.yaml.deleted")
-        if File.exist?(deleted_memos_file)
+        if memo.nil? and File.exist?(deleted_memos_file)
           memos = YAML.load(decrypt(File.read(deleted_memos_file)))
           memo = memos.select { |m| m.memo_id == memo_id.to_i }[-1]
           memo_deleted = true if memo

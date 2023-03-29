@@ -53,7 +53,7 @@ class SlackSmartBot
                 memos_file = File.join(config.path, "teams", "t_#{team_name}_memos.yaml.deleted")
                 File.open(memos_file, 'a+') {|file|
                   file.flock(File::LOCK_EX)
-                  file.write(encrypt([memo].to_yaml.gsub(/^---\s*$/,'')))
+                  file.write("#{encrypt([memo].to_yaml.gsub(/^---\s*$/, ""))}\n\n")
                   file.flock(File::LOCK_UN)
                 }
               end

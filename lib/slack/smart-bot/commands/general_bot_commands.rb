@@ -750,6 +750,10 @@ def general_bot_commands(user, command, dest, files = [])
         # help: ----------------------------------------------
         # help: `public holidays COUNTRY`
         # help: `public holidays COUNTRY/STATE DATE`
+        # help: `calendar COUNTRY`
+        # help: `calendar COUNTRY/STATE DATE`
+        # help:     It will display the public holidays for the country specified.
+        # help:     If calendar then it will show the calendar for the country specified.
         # help:     STATE: optional. If not specified, it will return all the holidays for the country.
         # help:     DATE: optional. It can be supplied as YYYY or YYYY-MM or YYYY-MM-DD. If not specified, it will return all the holidays for current year.
         # help: Examples:
@@ -758,19 +762,28 @@ def general_bot_commands(user, command, dest, files = [])
         # help:     _public holidays United States/California 2023_
         # help:     _public holidays Iceland 2023-12_
         # help:     _public holidays India 2023-12-25_
+        # help:     _calendar United States/California_
         # help: command_id: :public_holidays
+        # help: command_id: :calendar_country
         # help: 
-      when /\A\s*public\s+(holiday?|vacation)s?\s+(in\s+|on\s+)?([a-zA-Z\s]+)()()()()\s*\z/i,
-        /\A\s*public\s+(holiday?|vacation)s?\s+(in\s+|on\s+)?([a-zA-Z\s]+)\/([a-zA-Z\s]+)()()()\s*\z/i,
-        /\A\s*public\s+(holiday?|vacation)s?\s+(in\s+|on\s+)?([a-zA-Z\s]+)\/([a-zA-Z\s]+)\s+(\d{4})[\/\-]?(\d\d)?[\/\-]?(\d\d)?\s*\z/i,
-        /\A\s*public\s+(holiday?|vacation)s?\s+(in\s+|on\s+)?([a-zA-Z\s]+)()\s+(\d{4})[\/\-]?(\d\d)?[\/\-]?(\d\d)?\s*\z/i
-        country = $3
-        state = $4.to_s
-        year = $5.to_s
-        month = $6.to_s
-        day = $7.to_s
+      when /\A\s*(public\s+)?(holiday?|vacation|calendar)s?\s+(in\s+|on\s+)?([a-zA-Z\s]+)()()()()\s*\z/i,
+        /\A\s*(public\s+)?(holiday?|vacation|calendar)s?\s+(in\s+|on\s+)?([a-zA-Z\s]+)\/([a-zA-Z\s]+)()()()\s*\z/i,
+        /\A\s*(public\s+)?(holiday?|vacation|calendar)s?\s+(in\s+|on\s+)?([a-zA-Z\s]+)\/([a-zA-Z\s]+)\s+(\d{4})[\/\-]?(\d\d)?[\/\-]?(\d\d)?\s*\z/i,
+        /\A\s*(public\s+)?(holiday?|vacation|calendar)s?\s+(in\s+|on\s+)?([a-zA-Z\s]+)()\s+(\d{4})[\/\-]?(\d\d)?[\/\-]?(\d\d)?\s*\z/i
+        type = $2.downcase
+        country = $4
+        state = $5.to_s
+        year = $6.to_s
+        month = $7.to_s
+        day = $8.to_s
         year = Date.today.year if year.to_s == ''
-        public_holidays(country, state, year, month, day)
+        if type == 'calendar'
+          save_stats :calendar_country
+          state = "/#{state.downcase}" if state.to_s != ''
+          display_calendar('', year, country_region: "#{country.downcase}#{state}")
+        else
+          public_holidays(country, state, year, month, day)
+        end
 
         # help: ----------------------------------------------
         # help: `set public holidays to COUNTRY/STATE`

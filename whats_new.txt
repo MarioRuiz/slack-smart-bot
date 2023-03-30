@@ -1,10 +1,11 @@
-*Version 1.14.0-DEV17* Released 2023-Mar-28
+*Version 1.14.0-DEV21* Released 2023-Mar-30
 
 *For General users*
 - `team TEAM_NAME memo ID MESSAGE`, `TEAM_NAME team memo ID MESSAGE` It will add a comment to the memo ID specified on the team specified. (<https://github.com/MarioRuiz/slack-smart-bot/issues/95|#95>).
 - `team TEAM_NAME memo ID`, `TEAM_NAME team memo ID` It will show the memo ID specified on the team specified along with all the comments. (<https://github.com/MarioRuiz/slack-smart-bot/issues/96|#96>)
 - When on a repl it is possible to get the documentation and source code of any method: `doc METHOD`, `source METHOD`, `code METHOD`. Examples: `doc Operations.list`, `code World::API::Time.get` (<https://github.com/MarioRuiz/slack-smart-bot/issues/98|#98>)
 - Deleted memos will be accessible by the creator (<https://github.com/MarioRuiz/slack-smart-bot/issues/100|#100>)
+- `calendar COUNTRY`, `calendar COUNTRY/STATE`, `calendar COUNTRY/STATE DATE` will display the calendar of public holidays. (<https://github.com/MarioRuiz/slack-smart-bot/issues/102|#102>)
 
 *For Admin users*
 - New 'silent' option for command `exit bot silent`. It won't notify the SmartBot channels. (<https://github.com/MarioRuiz/slack-smart-bot/issues/93|#93>).

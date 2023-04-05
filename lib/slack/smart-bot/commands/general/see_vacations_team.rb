@@ -60,16 +60,29 @@ class SlackSmartBot
         
         from = Date.parse(date, "%Y/%m/%d")
         blocks = []
+        if config[:public_holidays].key?(:default_calendar)
+          defaulted_country_region = config[:public_holidays][:default_calendar].downcase
+        else
+          defaulted_country_region = ""
+        end
         all_team_members.each do |m|
           @users = get_users() if @users.empty?
           info = @users.select { |u| u.id == m or (u.key?(:enterprise_user) and u.enterprise_user.id == m) or u.name == m or (u.key?(:enterprise_user) and u.enterprise_user.name == m) }[-1]
           unless info.nil?
+            country_region = ""
+            if @vacations.key?(m) and @vacations[m][:public_holidays].to_s != ""
+              country_region = @vacations[m][:public_holidays].downcase
+            elsif config[:public_holidays].key?(:default_calendar) and country_region.empty?
+              country_region = defaulted_country_region
+            end
+
             info = get_user_info(info.id)
             if @vacations.key?(m)
               v = ""
               (from..(from+20)).each do |d|
                 v+="#{d.strftime("%d")} " if d.wday==1 or d==from
                 on_vacation = false
+                @vacations[m].periods ||= []
                 @vacations[m].periods.each do |p|
                   if p.from <= d.strftime("%Y/%m/%d") and p.to >= d.strftime("%Y/%m/%d")
                     if d.wday == 0 or d.wday == 6
@@ -82,7 +95,19 @@ class SlackSmartBot
                   end 
                 end
                 unless on_vacation
-                  if d.wday == 0 or d.wday == 6
+                  if country_region != "" and (!@public_holidays.key?(country_region) or !@public_holidays[country_region].key?(d.year.to_s))
+                    country, location = country_region.split("/")
+                    public_holidays(country.to_s, location.to_s, d.year.to_s, "", "", add_stats: false, publish_results: false)
+                  end
+                  if @public_holidays.key?(country_region) and @public_holidays[country_region].key?(d.year.to_s)
+                    phd = @public_holidays[country_region][d.year.to_s].date.iso
+                  else
+                    phd = []
+                  end    
+                  date_text = d.strftime("%Y-%m-%d")
+                  if phd.include?(date_text)
+                    v += ":large_red_square: "
+                  elsif d.wday == 0 or d.wday == 6
                     v += ":large_yellow_square: "
                   else
                     v+= ":white_square: " 
@@ -92,14 +117,26 @@ class SlackSmartBot
             else
               v = ""
               (from..(from+20)).each do |d|
+                if country_region != "" and (!@public_holidays.key?(country_region) or !@public_holidays[country_region].key?(d.year.to_s))
+                  country, location = country_region.split("/")
+                  public_holidays(country.to_s, location.to_s, d.year.to_s, "", "", add_stats: false, publish_results: false)
+                end
+                if @public_holidays.key?(country_region) and @public_holidays[country_region].key?(d.year.to_s)
+                  phd = @public_holidays[country_region][d.year.to_s].date.iso
+                else
+                  phd = []
+                end    
                 if d.wday==1 or d==from
                   v += "#{d.strftime("%d")} " 
                 end
-                if d.wday == 0 or d.wday == 6
+                date_text = d.strftime("%Y-%m-%d")
+                if phd.include?(date_text)
+                  v += ":large_red_square: "
+                elsif d.wday == 0 or d.wday == 6
                   v += ":large_yellow_square: "
                 else
                   v += ":white_square: "
-                end
+                end  
               end
             end
 
@@ -127,6 +164,13 @@ class SlackSmartBot
           end
           respond blocks: b
         end
+        message = ''
+        if !defaulted_country_region.empty?
+          message = "Defaulted public holidays calendar: #{defaulted_country_region}\n"
+        end
+        message += "To change your public holidays calendar, use the command `set public holidays to COUNTRY/STATE`. "
+        message += "\nExamples: `set public holidays to Iceland`, `set public holidays to Spain/Madrid`"
+        respond message
 
       end
 

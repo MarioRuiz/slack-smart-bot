@@ -73,6 +73,20 @@ RSpec.describe SlackSmartBot, "see_vacations_team" do
         expect(buffer(to: channel, from: :ubot).join).to match(/:large_yellow_square: :large_yellow_square: 18 :white_square: :white_square: :white_square:/i)        
       end
 
+      it 'displays the public holidays for specific person' do
+        send_message "set public holidays to Spain/Madrid", from: :user1 , to: channel
+        sleep 2
+        expect(bufferc(to: channel, from: :ubot).join).to match(/Public holidays for \*Spain\/Madrid\* set/i)
+        send_message "vacations team example 2032/09/30", from: user , to: channel
+        sleep 1
+        expect(buffer(to: channel, from: :ubot).join).to match(/\*Time Off example team\* from 2032\/09\/30/i)
+        expect(buffer(to: channel, from: :ubot).join).to match(/30 :white_square: :large_red_square: :large_orange_square: :large_orange_square: 04 :large_red_square:/i)
+        expect(buffer(to: channel, from: :ubot).join).to match(/11 :white_square: :large_red_square: :white_square:/i)
+        expect(buffer(to: channel, from: :ubot).join).to match(/18 :large_red_square: :large_red_square: :large_red_square:/i)
+        expect(buffer(to: channel, from: :ubot).join).to match(/30 :white_square: :white_square: :large_yellow_square: :large_yellow_square: 04 :white_square: :white_square:/i)
+        expect(buffer(to: channel, from: :ubot).join).to match(/:large_yellow_square: :large_yellow_square: 18 :white_square: :white_square: :white_square:/i)        
+      end
+
 
     end
 

@@ -726,7 +726,9 @@ def general_bot_commands(user, command, dest, files = [])
         /\A\s*see\s+vacations\s+<@(\w+)>\s*(\d{4})?\s*\z/i
         from_user = $1
         year = $2
+        react :running
         see_vacations(user, dest, from_user: from_user, year: year)
+        unreact :running
 
         # help: ----------------------------------------------
         # help: `vacations team NAME`
@@ -744,8 +746,9 @@ def general_bot_commands(user, command, dest, files = [])
         team_name = $3.downcase
         date = $4.to_s
         date = Date.today.strftime("%Y/%m/%d") if date.empty?
+        react :running
         see_vacations_team(user, team_name, date)
-
+        unreact :running
 
         # help: ----------------------------------------------
         # help: `public holidays COUNTRY`

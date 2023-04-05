@@ -3,6 +3,8 @@ class SlackSmartBot
     if has_access?(method, Thread.current[:user]) or forced
       if config.stats
         begin
+          command_ids_not_to_log = ['add_vacation', 'remove_vacation', 'add_memo_team']
+          Thread.current[:command_id] = method.to_s
           require "csv"
           if !File.exist?("#{config.stats_path}.#{Time.now.strftime("%Y-%m")}.log")
             CSV.open("#{config.stats_path}.#{Time.now.strftime("%Y-%m")}.log", "wb") do |csv|
@@ -42,7 +44,7 @@ class SlackSmartBot
             time_zone = user_info.tz_label
             job_title = user_info.profile.title
           end
-
+          command_txt = "#{method} encrypted" if command_ids_not_to_log.include?(method.to_s)
           CSV.open("#{config.stats_path}.#{Time.now.strftime("%Y-%m")}.log", "a+") do |csv|
             csv << [Time.now, config.channel, @channel_id, @channels_name[data.dest], data.dest, data.typem, user_name, user_id, command_txt, method, data.files, time_zone, job_title]
           end

@@ -11,6 +11,10 @@ class SlackSmartBot
       cipher.iv = iv
       encrypted = cipher.update(data) + cipher.final
       encrypted = Base64.encode64(encrypted)
+      if defined?(Thread.current)
+        Thread.current[:encrypted] ||= []
+        Thread.current[:encrypted] << data
+      end
       return encrypted
     else
       return data

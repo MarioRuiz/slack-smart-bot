@@ -26,6 +26,15 @@ class SlackSmartBot
       else
         respond "Only the creator of the loop or an admin can stop the loop.", dest, thread_ts: thread_ts
       end
+      if Thread.current.key?(:encrypted) and Thread.current[:encrypted].size > 0
+        found = false
+        Thread.current[:encrypted].each do |encdata|
+          found = true if !found and text.include?(encdata)
+          text.gsub!(encdata, "********")
+        end
+        text = "********" if !found
+        text+= " (encrypted #{Thread.current[:command_id]})"
+      end
       @logger.info "command: #{nick}> #{text}"
       return :next #jal
     end
@@ -306,7 +315,20 @@ class SlackSmartBot
               end
               processed = (processed || general_bot_commands(user, command_thread, dest, files))
               processed = (processed || general_commands(user, command_thread, dest, files)) if defined?(general_commands)
-              @logger.info "command: #{nick}> #{command_thread}" if processed
+              if processed
+                text_to_log = command_thread.dup
+                
+                if Thread.current.key?(:encrypted) and Thread.current[:encrypted].size > 0
+                  found = false
+                  Thread.current[:encrypted].each do |encdata|
+                    found = true if !found and text_to_log.include?(encdata)
+                    text_to_log.gsub!(encdata, "********")
+                  end
+                  text_to_log = "********" if !found
+                  text_to_log+= " (encrypted #{Thread.current[:command_id]})"
+                end
+                @logger.info "command: #{nick}> #{text_to_log}"
+              end
             end
 
             if !config.on_maintenance and !processed and typem != :on_pub and typem != :on_pg
@@ -319,7 +341,19 @@ class SlackSmartBot
                    ((@listening[nick].key?(dest) and !Thread.current[:on_thread]) or
                     (@listening[nick].key?(thread_ts) and Thread.current[:on_thread]))) or
                   dest[0] == "D" or on_demand)
-                @logger.info "command: #{nick}> #{command_thread}" unless processed
+                  unless processed
+                    text_to_log = command_thread.dup
+                    found = false
+                    if Thread.current.key?(:encrypted) and Thread.current[:encrypted].size > 0
+                      Thread.current[:encrypted].each do |encdata|
+                        found = true if !found and text_to_log.include?(encdata)
+                        text_to_log.gsub!(encdata, "********")
+                      end
+                      text_to_log = "********" if !found
+                      text_to_log+= " (encrypted #{Thread.current[:command_id]})"
+                    end
+                    @logger.info "command: #{nick}> #{text_to_log}"
+                  end
                 #todo: verify this
 
                 if dest[0] == "C" or dest[0] == "G" or (dest[0] == "D" and typem == :on_call)

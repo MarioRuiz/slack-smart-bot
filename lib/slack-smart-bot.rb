@@ -81,6 +81,7 @@ class SlackSmartBot
     Dir.mkdir("#{config.path}/rules") unless Dir.exist?("#{config.path}/rules")
     Dir.mkdir("#{config.path}/vacations") unless Dir.exist?("#{config.path}/vacations")
     Dir.mkdir("#{config.path}/teams") unless Dir.exist?("#{config.path}/teams")
+    Dir.mkdir("#{config.path}/personal_settings") unless Dir.exist?("#{config.path}/personal_settings")
     File.delete("#{config.path}/config_tmp.status") if File.exist?("#{config.path}/config_tmp.status")
 
     config.masters = MASTER_USERS if config.masters.to_s=='' and defined?(MASTER_USERS)
@@ -327,6 +328,7 @@ class SlackSmartBot
     get_admins_channels()
     get_access_channels()
     get_vacations()
+    get_personal_settings()
 
     if @routines.key?(@channel_id)
       @routines[@channel_id].each do |k, v|

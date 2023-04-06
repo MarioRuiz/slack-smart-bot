@@ -3,7 +3,7 @@ class SlackSmartBot
     if has_access?(method, Thread.current[:user]) or forced
       if config.stats
         begin
-          command_ids_not_to_log = ['add_vacation', 'remove_vacation', 'add_memo_team']
+          command_ids_not_to_log = ['add_vacation', 'remove_vacation', 'add_memo_team', 'set_personal_settings']
           Thread.current[:command_id] = method.to_s
           require "csv"
           if !File.exist?("#{config.stats_path}.#{Time.now.strftime("%Y-%m")}.log")

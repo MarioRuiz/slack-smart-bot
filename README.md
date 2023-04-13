@@ -231,28 +231,16 @@ To run a command on demand and add the response on a thread:
   **_`^THE_COMMAND`_**  
   **_`!!THE_COMMAND`_**
 
-Examples run a command on demand:
->**_Peter>_** `!ruby puts Time.now`  
->**_Smart-Bot>_** `2019-10-23 12:43:42 +0000`
+Examples run a command on demand:  
 
->**_Peter>_** `@smart-bot echo Example`  
->**_Smart-Bot>_** `Example`
+<img src="img/commands_on_demand.png" width="400">  
 
->**_Peter>_** `smart-bot see shortcuts`  
->**_Smart-Bot>_** `Available shortcuts for Peter:`  
->`Spanish account: ruby require 'iso/iban'; 10.times {puts ISO::IBAN.random('ES')}`  
->**_Peter>_** `!!echo Example`  
->. . . . . . . . .**_Smart-Bot>_** `Example`  
->**_Peter>_** `^echo Example`  
->. . . . . . . . .**_Smart-Bot>_** `Example`
 
 Also you can always call the Smart Bot from any channel, even from channels without a running Smart Bot. You can use the External Call on Demand: **_`@NAME_OF_BOT on #CHANNEL_NAME COMMAND`_**. In this case you will call the bot on #CHANNEL_NAME. You can supply more than one channel then all the bots will respond. In case you are in a private conversation with the Smart Bot (DM) then you can use directly:  **_`#CHANNEL_NAME COMMAND`_** or **_`on #CHANNEL_NAME COMMAND`_**
 
-Examples:
->**_Peter>_** `@smart-bot on #the_channel ruby puts Time.now`  
->**_Smart-Bot>_** `2019-10-23 12:43:42 +0000`  
->**_Peter>_** `@smart-bot on #the_channel ^ruby puts Time.now`  
->. . . . . . . . .**_Smart-Bot>_** `2019-10-23 12:43:42 +0000`
+Examples:  
+
+<img src="img/commands_on_external_call.png" width="400">  
 
 Examples on DM:
 >**_Peter>_** `#sales show report from India`
@@ -260,14 +248,8 @@ Examples on DM:
 
 If you want the Smart Bot just listen to part of the message you send, add the commands you want using '`' and start the line with '-!', '-!!' or '-^'
 
-Examples:
->**_Peter>_** ``-!This text won't be treated but this one yes `ruby puts 'a'` and also this one `ruby puts 'b'` ``  
->**_Smart-Bot>_** `a`  
->**_Smart-Bot>_** `b`
-
->**_Peter>_** ``-^This text won't be treated but this one yes `ruby puts 'a'` and also this one `ruby puts 'b'` ``  
->. . . . . . . . .**_Smart-Bot>_** `a`  
->. . . . . . . . .**_Smart-Bot>_** `b`
+Examples:  
+<img src="img/commands_inline.png" width="400">  
 
 
 All the commands specified on `./rules/general_commands.rb` will be accessible from any channel where the Smart Bot is present, without the necessity to call it with !, !!, ^ or on demand.
@@ -287,10 +269,9 @@ To show only the specific rules of the Smart Bot defined on the rules file: **_`
 
 Also you can call `suggest command` or `random command` and SmartBot will return the help content for a random command.
 
-Example:
->**_Peter>_** `bot help echo`  
->**_Smart-Bot>_** `echo SOMETHING`  
-    `repeats SOMETHING`
+Example:  
+<img src="img/command_bot_help_echo.png" width="300">  
+
 
 When you call a command that is not recognized, you will get suggestions from the Smart Bot.
 
@@ -368,9 +349,9 @@ Also you can always call the Smart Bot from any channel, even from channels with
 
 You can run Ruby code by using the command: **_`ruby THE_CODE`_**. 
 
-Example:
->**_Peter>_** `!ruby require 'json'; res=[]; 20.times {res.push rand(100)}; my_json={result: res}; puts my_json.to_json`  
->**_Smart-Bot>_** `{"result":[63,66,35,83,44,40,72,25,59,73,75,54,56,91,19,6,68,1,25,3]}`  
+Example:  
+<img src="img/command_ruby.png" width="500">  
+
 
 Also it is possible to attach a Ruby file and the Smart Bot will run and post the output. You need to select Ruby as file format. Or if you prefer it you can call the `ruby` command and on the same message supply a code block.
 
@@ -406,28 +387,16 @@ Examples:
   _repl_
 
 
-Running Example:
->**_Peter>_** `!repl Create10RandomUsers: "This is just an example"`  
->**_Smart-Bot>_** `Session name: *Create10RandomUsers*`  
->**_Peter>_** `http = NiceHttp.new("https://reqres.in/")`  
->**_Smart-Bot>_** `#<NiceHttp:0x00007fc6e216e328 @host="reqres.in", @port=443...>`  
->**_Peter>_** `request ||= { path: '/api/users' }`  
->**_Smart-Bot>_** `{ :path => "/api/users" }`  
->**_Peter>_** `request.data = { name: '1-10:L', job: 'leader|worker' }`  
->**_Smart-Bot>_** `{ :name => "1-10:L", :job => "leader|worker" }`  
->**_Peter>_** `request.data.generate`  
->**_Smart-Bot>_** `{ :name => "kLam", :job => "leader" }`  
->**_Peter>_** `10.times { http.post(request.generate) } `  
->**_Smart-Bot>_** `10`  
->**_Peter>_** `puts "10 Random Users Created"`  
->**_Smart-Bot>_** `10 Random Users Created`  
->**_Peter>_** `quit`  
->**_Smart-Bot>_** `REPL session finished: Create10RandomUsers`  
+Running Example:  
+<img src="img/command_repl1.png" width="600">  
+
+<img src="img/command_repl2.png" width="600">  
 
 
->**_Peter>_** `run repl Create10RandomUsers`  
->**_Smart-Bot>_** `Running REPL Create10RandomUsers`  
->**_Smart-Bot>_** `Create10RandomUsers: 10 Random Users Created`  
+Runnning on demand the repl we created:  
+
+<img src="img/command_run_repl.png" width="400">  
+
 
 You can run repls and supply parameters to the repl that will be executed on the same session just before the repl. [More info](https://github.com/MarioRuiz/slack-smart-bot/issues/60)  
 Example:
@@ -456,13 +425,11 @@ If you have for example a rule like this: **_`run tests on customers android app
 From that moment you will be able to run the command: **_`run tca`_**
 
 That shortcut will be available for you, in case you want to make it available for everybody on the channel: 
-Example:
->**_Peter>_** `!add shortcut for all spanish bank account: ruby require 'iso/iban'; 3.times {puts ISO::IBAN.random('ES')}`  
->**_Smart-Bot>_** `shortcut added`  
->**_John>_** `!spanish bank account`  
->**_Smart-Bot>_** `ES4664553191352006861448`  
-`ES4799209592433480943244`  
-`ES8888795057132445752702`  
+
+Example:  
+
+<img src="img/command_add_sc.png" width="500">  
+
 
 In case you want to use a shortcut as a inline shortcut inside a command you can do it by adding a $:
 Example:
@@ -491,7 +458,9 @@ Examples:
 >**_Peter>_** `add announcement Party will start at 20:00 :tada:`  
 >**_Peter>_** `add :heavy_exclamation_mark: message Pay attention all DB are on maintenance until 20:00 GMT`  
 
-To see the announcements of the channel: **_`see announcements`_**, **_`see COLOR announcements`_**, **_`see EMOJI announcements`_** and to delete a particular announcement: **_`delete announcement ID`_**
+To see the announcements of the channel: **_`see announcements`_**, **_`see COLOR announcements`_**, **_`see EMOJI announcements`_** and to delete a particular announcement: **_`delete announcement ID`_**  
+
+<img src="img/command_see_announcements.png" width="500">  
 
 If you are a master admin and you are on master channel then you can call **_`publish announcements`_** that will publish the announcements on all channels. The messages stored on a DM won't be published. This is very convenient to be called from a *Routine* for example every weekday at 09:00.
 
@@ -521,7 +490,9 @@ Examples:
 >**_Peter>_** `who is not on vacation?`  
 >**_Peter>_** `who is on vacation? #SalesChannel`  
 >**_Peter>_** `who is on :working-from-home:`  
->**_Peter>_** `who is available?`
+>**_Peter>_** `who is available?`  
+
+<img src="img/command_see_statuses.png" width="400">  
 
 ### Routines
 > for admins
@@ -556,7 +527,7 @@ Other routine commands:
 ### Loops
 > for all users
 
-You can run any command or rule on a loop by using:  
+You can run *any command* or rule on a loop by using:  
 **_`for NUMBER times every NUMBER minutes COMMAND`_**  
 **_`for NUMBER times every NUMBER seconds COMMAND`_**  
 Maximum number of times to be used: 24. Minimum every 10 seconds. Maximum every 60 minutes.  
@@ -568,6 +539,8 @@ Examples:
 >**_`24 times every 60m !get sales today`_**  
 >**_`quit loop 1`_**  
 >**_`stop iterator 12`_**  
+
+<img src="img/command_loop.png" width="400">  
 
 ### Control who has access to a command
 > for admins
@@ -703,7 +676,11 @@ Examples:
 >**_`sales team memo 4 Put it on hold until tests for Apple feature are finished`_**  
 >**_`sales team memo 7`_**  
 
+<img src="img/command_see_team.png" width="600">  
+
+
 Other team commands: **_`delete team TEAM_NAME`_**, **_`delete memo ID from team TEAM_NAME`_**, **_`set STATUS on memo ID TEAM_NAME team`_**, **_`see MEMO_TYPE from TEAM_NAME team TOPIC`_**  
+
 
 ### Time off management
 > for all users
@@ -736,7 +713,7 @@ settings = {
 
 When calling `see my time off` on a DM will display a calendar of the year with the days off, including public holidays  
 
-<img src="img/my_timeoff.png" width="650">
+<img src="img/command_my_timeoff.png" width="650">
 
 Other 'time off' commands: **_`remove time off ID`_**, **_`see my time off`_**, **_`see vacations @USER`_**, **_`time off team NAME`_**, **_`set public holidays to COUNTRY/REGION`_**    
 

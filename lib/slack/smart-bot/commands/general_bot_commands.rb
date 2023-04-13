@@ -809,6 +809,7 @@ class SlackSmartBot
           # help: `set personal settings SETTINGS_ID VALUE`
           # help: `delete personal settings SETTINGS_ID`
           # help: `get personal settings SETTINGS_ID`
+          # help: `get personal settings`
           # help:     It will set/delete/get the personal settings supplied for the user.
           # help: Examples:
           # help:     _set personal settings ai.open_ai.access_token Xd33-343sAAddd42-3JJkjC0_
@@ -817,7 +818,8 @@ class SlackSmartBot
           # help: command_id: :get_personal_settings
           # help:
         when /\A\s*(set)\s+personal\s+(setting|config)s?\s+([\w\.]+)(\s*=?\s*)(.+)\s*\z/i,
-          /\A\s*(delete|get)\s+personal\s+(setting|config)s?\s+([\w\.]+)()()\s*\z/i
+          /\A\s*(delete|get)\s+personal\s+(setting|config)s?\s+([\w\.]+)()()\s*\z/i,
+          /\A\s*(get)\s+personal\s+(setting|config)s?()()()\s*\z/i
           settings_type = $1.downcase.to_sym
           settings_id = $3.downcase
           settings_value = $5.to_s

@@ -5,10 +5,18 @@ class SlackSmartBot
       get_personal_settings()
       @personal_settings[user.name] ||= {}
       if type == :get
-        if @personal_settings[user.name].key?(settings_id)
-          respond "Personal settings for *#{settings_id}* is: *#{@personal_settings[user.name][settings_id]}*."
+        if settings_id.to_s == ''
+          personal_settings_txt = ""
+          @personal_settings[user.name].each do |key, value|
+            personal_settings_txt << "`#{key}`:  #{value}\n"
+          end
+          respond "Personal settings for *#{user.name}* are:\n#{personal_settings_txt}"
         else
-          respond "Personal settings for *#{settings_id}* not found."
+          if @personal_settings[user.name].key?(settings_id)
+            respond "Personal settings for *#{settings_id}* is: *#{@personal_settings[user.name][settings_id]}*."
+          else
+            respond "Personal settings for *#{settings_id}* not found."
+          end
         end
       elsif type == :delete
         if @personal_settings[user.name].key?(settings_id)

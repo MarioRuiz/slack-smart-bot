@@ -734,7 +734,8 @@ settings = {
 }
 ```
 
-When calling `see my time off` on a DM will display a calendar of the year with the days off, including public holidays
+When calling `see my time off` on a DM will display a calendar of the year with the days off, including public holidays  
+
 <img src="img/my_timeoff.png" width="650">
 
 Other 'time off' commands: **_`remove time off ID`_**, **_`see my time off`_**, **_`see vacations @USER`_**, **_`time off team NAME`_**, **_`set public holidays to COUNTRY/REGION`_**    
@@ -772,7 +773,8 @@ If ?? is used, it will start from zero the session. If not all the previous prom
 You can share a message and use it as input for the supplied prompt.  
 
 <img src="img/chat_gpt.png" width="650">  
-<img src="img/chat_gpt_share.png" width="650">  
+
+<img src="img/chat_gpt_share.png" width="300">  
 
 #### Image Generation
 `??i PROMPT`  
@@ -782,7 +784,7 @@ It will generate an image based on the PROMPT indicated.
 If `??i` is used, it will start from zero the session. If not all the previous prompts from the session will be used to generate the image.  
 if using `?ir` will generate a new image using the session prompts.  
 
-<img src="img/image_generation.png" width="650">  
+<img src="img/image_generation.png" width="400">  
 
 #### Image Variations
 
@@ -792,7 +794,7 @@ It will generate a variation of the last image generated in the session.
 In the case of NUMBER, it will generate NUMBER of variations of the last image generated. NUMBER needs to be between 1 and 9.  
 If an image is attached then it will generate temporary variations of the attached image.  
 
-<img src="img/image_variations.png" width="650">  
+<img src="img/image_variations.png" width="400">  
 
 #### Image Editing
 
@@ -800,7 +802,7 @@ If an image is attached then it will generate temporary variations of the attach
 It will edit the attached image with the supplied PROMPT. The supplied image needs to be an image with a transparent area.  
 The PROMPT need to explain the final result of the image.  
 
-<img src="img/image_editing.png" width="650">  
+<img src="img/image_editing.png" width="400">  
 
 #### Whisper
 

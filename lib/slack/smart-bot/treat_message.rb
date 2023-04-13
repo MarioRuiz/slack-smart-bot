@@ -71,6 +71,16 @@ class SlackSmartBot
       if !data.files.nil? and data.files.size == 1 and data.text.to_s == "" and data.files[0].filetype == "ruby"
         data.text = "ruby"
       end
+
+      #open ai chat gpt and shared messages as an input
+      if data.text.match?(/\A\s*(^|!!|!)?\s*(\?|\?\?)\s*/im) and !data.attachments.nil? and data.attachments.size > 0 and !data.attachments[0].text.nil? and data.attachments[0].text != ''
+        data.attachments.each_with_index do |att, i|
+          if !att.text.nil? and att.text != ''
+            data.text += "\n#{att.text}"
+          end
+        end
+      end
+      
       if !dest.nil? and config.on_master_bot and !data.text.nil? and data.text.match(/^ping from (.+)\s*$/) and data.user == config[:nick_id]
         @pings << $1
       end

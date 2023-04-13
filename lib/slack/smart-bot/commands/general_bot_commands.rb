@@ -824,6 +824,96 @@ class SlackSmartBot
           settings_id = $3.downcase
           settings_value = $5.to_s
           personal_settings(user, settings_type, settings_id, settings_value)
+
+        # help: ----------------------------------------------
+        # help: `?w`
+        # help: `?w PROMPT`
+        # help:     OpenAI: It will transcribe the audio file attached and performed the PROMPT indicated if supplied.
+        # help: Examples:
+        # help:     _?w_
+        # help:     _?w translate to spanish_
+        # help:     _?w summarize_
+        # help:     _?w translate to english and summarize_
+        # help: command_id: :open_ai_whisper
+        # help:
+        when /\A\s*\?w()\s*\z/im, /\A\s*\?w\s+(.+)\s*\z/im
+          message = $1.to_s.downcase
+          open_ai_whisper(message,files)
+
+        # help: ----------------------------------------------
+        # help: `?m`
+        # help: `?m MODEL`
+        # help:     OpenAI: It will return the list of models available or the details of the model indicated.
+        # help: Examples:
+        # help:     _?m_
+        # help:     _?m gpt-3.5-turbo_
+        # help: command_id: :open_ai_models
+        # help:
+        when /\A\s*\?m()\s*\z/im, /\A\s*\?m\s+(.+)\s*\z/im
+          model = $1.to_s.downcase
+          open_ai_models(model)     
+
+        # help: ----------------------------------------------
+        # help: `??i PROMPT`
+        # help: `?i PROMPT`
+        # help: `?ir`
+        # help: `?iv`
+        # help: `?ivNUMBER`
+        # help: `?ie PROMPT`
+        # help:     OpenAI: i PROMPT -> It will generate an image based on the PROMPT indicated. 
+        # help:             If ??i is used, it will start from zero the session. If not all the previous prompts from the session will be used to generate the image.
+        # help:     OpenAI: ir -> It will generate a new image using the session prompts.
+        # help:     OpenAI: iv -> It will generate a variation of the last image generated.
+        # help:             ivNUMBER -> It will generate the NUMBER of variations of the last image generated. NUMBER need to be between 1 and 9.
+        # help:             If an image attached then it will generate the variations of the attached image.
+        # help:     OpenAI: ie PROMPT -> It will edit the attached image with the supplied PROMPT. The supplied image need to be an image with a transparent area.
+        # help:             The PROMPT need to explain the final result of the image.
+        # help: Examples:
+        # help:     _??i man jumping from a red bridge_
+        # help:     _?i wearing a red hat and blue shirt_
+        # help:     _?ir_
+        # help:     _?iv5_
+        # help:     _?ie woman eating a blue apple_
+        # help: command_id: :open_ai_generate_image
+        # help: command_id: :open_ai_variations_image
+        # help: command_id: :open_ai_edit_image
+        # help:
+        when /\A\s*()\?i()\s\s*(.+)\s*\z/im, /\A\s*(\?\?)i()\s\s*(.+)\s*\z/im, /\A\s*()\?i(r)()\s*\z/im, 
+          /\A\s*()\?i(v)()\s*\z/im, /\A\s*()\?i(v\d+)()\s*\z/im,
+          /\A\s*()\?i(e)\s+(.+)\s*\z/im,
+          /\A\s*()\?i(e)()\s*\z/im,
+          /\A\s*(\?\?)i()()\s*\z/im
+          delete_history = $1.to_s != ""
+          image_opt = $2.to_s.downcase
+          message = $3.to_s
+          if image_opt == '' or image_opt == 'r'
+            open_ai_generate_image(message, delete_history, repeat: image_opt=='r')
+          elsif image_opt.match?(/v\d*/i)
+            variations = image_opt.match(/v(\d*)/i)[1].to_i
+            open_ai_variations_image(message, variations, files)
+          elsif image_opt == 'e'
+            open_ai_edit_image(message, files)
+          end
+              
+        # help: ----------------------------------------------
+        # help: `??`
+        # help: `?? PROMPT`
+        # help: `? PROMPT`
+        # help:     OpenAI: Chat GPT will generate a response based on the PROMPT indicated.
+        # help:             If ?? is used, it will start from zero the session. If not all the previous prompts from the session will be used to generate the response.
+        # help:             You can share a message and use it as input for the supplied PROMPT.
+        # help: Examples:
+        # help:     _??_
+        # help:     _?? How much is two plus two_
+        # help:     _? multiply it by pi number_
+        # help: command_id: :open_ai_chat
+        # help:
+        when /\A\s*(\?\?)\s*()\z/im, /\A\s*(\?\?)\s*(.+)\s*\z/im, /\A\s*()\?\s*(.+)\s*\z/im
+          delete_history = $1.to_s != ''
+          message = $2.to_s
+          #@logger.info "data: #{data}" #Jal
+          open_ai_chat(message, delete_history)
+
           
       else
         return false

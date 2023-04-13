@@ -14,7 +14,7 @@ The main scope of this ruby gem is to be used internally in your company so team
 
 slack-smart-bot can create bots on demand, create shortcuts, run ruby code... just on a chat channel, you can access it just from your mobile phone if you want and run those tests you forgot to run, get the results, restart a server... no limits.
 
-<img src="slack-smart-bot.png" width="150" height="150">![](slack.png)
+<img src="./img/smart-bot.png" width="150" height="150">![](./img/slack.png)
 
 # Table of Contents
 
@@ -40,6 +40,14 @@ slack-smart-bot can create bots on demand, create shortcuts, run ruby code... ju
   * [See favorite commands](#see-favorite-commands)
   * [Teams](#teams)
   * [Time off management](#time-off-management)
+  * [OpenAI](#openai)
+    + [OpenAI Set up](#openai-setup)
+    + [Chat GPT](#chatgpt)
+    + [Image Generation](#image-generation)
+    + [Image Variations](#image-variations)
+    + [Image Editing](#image-editing)
+    + [Whisper](#whisper)
+    + [Models](#models)
   * [Tips](#tips)
     + [Send a file](#send-a-file) (A)
     + [Download a file](#download-a-file) (A)
@@ -730,6 +738,84 @@ When calling `see my time off` on a DM will display a calendar of the year with 
 <img src="img/my_timeoff.png" width="650">
 
 Other 'time off' commands: **_`remove time off ID`_**, **_`see my time off`_**, **_`see vacations @USER`_**, **_`time off team NAME`_**, **_`set public holidays to COUNTRY/REGION`_**    
+
+
+### OpenAI
+> for all users  
+#### OpenAI setup
+To be able to use this SmartBot general command you need to ask for an API token: https://platform.openai.com/account/api-keys  
+
+Then specify in the SmartBot config the keys:  
+
+```ruby
+ai: {
+  open_ai: {
+               access_token: 'OPENAI_ACCESS_TOKEN',
+              organization_id: 'OPENAI_ORGANIZATION_ID',
+              gpt_model: 'gpt-3.5-turbo',
+              whisper_model : 'whisper-1',
+              image_size: '256x256'
+  }
+}
+```
+
+Or if you want you can set your personal access token just to be used by you by calling on a DM with the SmartBot the command: `set personal settings ai.open_ai.access_token ACCESS_TOKEN`  
+Also you can specify personal settings for `gpt_model`, `whisper_model` or `image_size`, instead of using the default values.  
+
+#### ChatGPT
+
+`??`  
+`?? PROMPT`  
+`? PROMPT`  
+Chat GPT will generate a response based on the PROMPT indicated.  
+If ?? is used, it will start from zero the session. If not all the previous prompts from the session will be used to generate the response.  
+You can share a message and use it as input for the supplied prompt.  
+
+<img src="img/chat_gpt.png" width="650">  
+<img src="img/chat_gpt_share.png" width="650">  
+
+#### Image Generation
+`??i PROMPT`  
+ `?i PROMPT`  
+ `?ir`  
+It will generate an image based on the PROMPT indicated.  
+If `??i` is used, it will start from zero the session. If not all the previous prompts from the session will be used to generate the image.  
+if using `?ir` will generate a new image using the session prompts.  
+
+<img src="img/image_generation.png" width="650">  
+
+#### Image Variations
+
+`?iv`  
+`?ivNUMBER`  
+It will generate a variation of the last image generated in the session.  
+In the case of NUMBER, it will generate NUMBER of variations of the last image generated. NUMBER needs to be between 1 and 9.  
+If an image is attached then it will generate temporary variations of the attached image.  
+
+<img src="img/image_variations.png" width="650">  
+
+#### Image Editing
+
+`?ie PROMPT`  
+It will edit the attached image with the supplied PROMPT. The supplied image needs to be an image with a transparent area.  
+The PROMPT need to explain the final result of the image.  
+
+<img src="img/image_editing.png" width="650">  
+
+#### Whisper
+
+`?w PROMPT`  
+`?w`  
+It will transcribe the audio file attached and perform the PROMPT indicated if supplied.  
+
+<img src="img/whisper.png" width="650">  
+
+#### Models
+
+`?m`  
+`?m MODEL`  
+It will return the list of models available or the details of the model indicated.  
+
 
 ### Tips
 > for admins

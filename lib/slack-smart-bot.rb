@@ -18,6 +18,7 @@ require_relative "slack/smart-bot/process_first"
 require_relative "slack/smart-bot/commands"
 require_relative "slack/smart-bot/process"
 require_relative "slack/smart-bot/utils"
+require_relative "slack/smart-bot/ai"
 
 ADMIN_USERS = MASTER_USERS if defined?(MASTER_USERS) # for bg compatibility
 class SlackSmartBot
@@ -58,6 +59,14 @@ class SlackSmartBot
     config[:public_holidays][:host] ||= "https://calendarific.com"
     config[:public_holidays][:host] = "https://#{config[:public_holidays][:host]}" unless config[:public_holidays][:host] == '' or config[:public_holidays][:host].match?(/^http/)
     config[:encrypt] ||= true unless config.key?(:encrypt)
+    config[:ai] ||= {} unless config.key?(:ai)
+    config[:ai][:open_ai] ||= {
+      access_token: '',
+      organization_id: ''
+    } unless config[:ai].key?(:open_ai)
+    config[:ai][:open_ai][:whisper_model] ||= 'whisper-1'
+    config[:ai][:open_ai][:image_size] ||= '256x256'
+    config[:ai][:open_ai][:gpt_model] ||= 'gpt-3.5-turbo'
     
     if config.path.to_s!='' and config.file.to_s==''
       config.file = File.basename($0)

@@ -20,6 +20,7 @@ class SlackSmartBot
       commands = []
       commands_search = []
       if help_command.to_s != ""
+        help_command.gsub!("?", "\\?") # for open ai commands
         help_message.gsub(/====+/,'-'*30).split(/^\s*-------*$/).each do |h|
           if strict
             if h.match?(/`#{help_command}`/i) or h.match?(/^\s*command_id:\s+:#{help_command.gsub(' ', '_')}\s*$/)

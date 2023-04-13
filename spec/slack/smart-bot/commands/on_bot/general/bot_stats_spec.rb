@@ -257,7 +257,54 @@ RSpec.describe SlackSmartBot, "bot_stats" do
       expect(buffer(to: channel, from: :ubot).join).to match(/Including only type_message that match \/on_.+\/i/)
       expect(buffer(to: channel, from: :ubot).join).to match(/Including only bot_channel that match \/master\/i/)
     end
-    
+
+    it 'returns error when more than 60 days and daily' do
+      send_message "bot stats daily last year", from: user, to: channel
+      expect(buffer(to: channel, from: :ubot).join).to match(/You can only see daily stats for a maximum of 60 days/i)
+    end
+
+    it 'returns error when more than 60 weeks and weekly' do
+      send_message "bot stats weekly from 2019/01/01", from: user, to: channel
+      expect(buffer(to: channel, from: :ubot).join).to match(/You can only see weekly stats for a maximum of 60 weeks/i)
+    end
+
+    it 'returns just graph when specified' do
+      send_message "bot stats graph", from: user, to: channel
+      expect(buffer(to: channel, from: :ubot).join).to match(/Total calls\*:/)
+      expect(buffer(to: channel, from: :ubot).join).to match(/Totals monthly/) #by default is monthly in case not specified
+      expect(buffer(to: channel, from: :ubot).join).not_to match(/You are the/)
+      expect(buffer(to: channel, from: :ubot).join).to match(/SmartBots/)
+      expect(buffer(to: channel, from: :ubot).join).to match(/From Channel/)
+      expect(buffer(to: channel, from: :ubot).join).not_to match(/Users\*\s\-/)
+      expect(buffer(to: channel, from: :ubot).join).not_to match(/Commands/)
+      expect(buffer(to: channel, from: :ubot).join).not_to match(/Message type/)
+      expect(buffer(to: channel, from: :ubot).join).not_to match(/Last activity/)
+    end
+
+    it 'returns monthly' do
+      send_message "bot stats monthly graph", from: user, to: channel
+      expect(buffer(to: channel, from: :ubot).join).to match(/Totals monthly/)
+      expect(buffer(to: channel, from: :ubot).join).to match(/^\s*#{Date.today.strftime('%Y-%m:')}/)
+    end
+
+    it 'returns weekly' do
+      send_message "bot stats weekly graph", from: user, to: channel
+      expect(buffer(to: channel, from: :ubot).join).to match(/Totals weekly/)
+      expect(buffer(to: channel, from: :ubot).join).to match(/^\s*#{Date.today.strftime('%Y-%W:')}/)
+    end
+
+    it 'returns daily' do
+      send_message "bot stats daily graph", from: user, to: channel
+      expect(buffer(to: channel, from: :ubot).join).to match(/Totals daily/)
+      expect(buffer(to: channel, from: :ubot).join).to match(/^\s*#{Date.today.strftime('%Y-%m-%d:')}/)
+    end
+
+    it 'returns yearly' do
+      send_message "bot stats yearly graph", from: user, to: channel
+      expect(buffer(to: channel, from: :ubot).join).to match(/Totals yearly/)
+      expect(buffer(to: channel, from: :ubot).join).to match(/^\s*#{Date.today.strftime('%Y:')}/)
+    end
+
     #todo: add more tests for options
   end
 

@@ -71,6 +71,16 @@ class SlackSmartBot
       if !data.files.nil? and data.files.size == 1 and data.text.to_s == "" and data.files[0].filetype == "ruby"
         data.text = "ruby"
       end
+
+      #open ai chat gpt and shared messages as an input
+      if data.text.match?(/\A\s*(^|!!|!)?\s*(\?|\?\?)\s*/im) and !data.attachments.nil? and data.attachments.size > 0 and !data.attachments[0].text.nil? and data.attachments[0].text != ''
+        data.attachments.each_with_index do |att, i|
+          if !att.text.nil? and att.text != ''
+            data.text += "\n#{att.text}"
+          end
+        end
+      end
+      
       if !dest.nil? and config.on_master_bot and !data.text.nil? and data.text.match(/^ping from (.+)\s*$/) and data.user == config[:nick_id]
         @pings << $1
       end
@@ -354,6 +364,24 @@ class SlackSmartBot
             sleep 2
             if File.exist?("#{config.path}/shortcuts/shortcuts_global.yaml")
               @shortcuts_global = YAML.load(File.read("#{config.path}/shortcuts/shortcuts_global.yaml"))
+            end
+          when /\AGame\s+over!\z/i
+            sleep 2
+            get_bots_created()
+            if File.exist?("#{config.path}/config_tmp.status")
+              file_cts = IO.readlines("#{config.path}/config_tmp.status").join
+              unless file_cts.to_s() == ""
+                file_cts = eval(file_cts)
+                if file_cts.is_a?(Hash) and file_cts.key?(:exit_bot)
+                  config.exit_bot = file_cts.exit_bot
+                end
+                @status = :exit if config.exit_bot
+              end
+            end
+            if @status == :exit
+              @logger.info 'Game over!'
+              sleep 3
+              exit!
             end
           end
         end

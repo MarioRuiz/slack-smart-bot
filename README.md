@@ -3,6 +3,10 @@
 [![Gem Version](https://badge.fury.io/rb/slack-smart-bot.svg)](https://rubygems.org/gems/slack-smart-bot)
 [![Build Status](https://travis-ci.com/MarioRuiz/slack-smart-bot.svg?branch=master)](https://github.com/MarioRuiz/slack-smart-bot)
 [![Coverage Status](https://coveralls.io/repos/github/MarioRuiz/slack-smart-bot/badge.svg?branch=master)](https://coveralls.io/github/MarioRuiz/slack-smart-bot?branch=master)
+![Gem](https://img.shields.io/gem/dt/slack-smart-bot)
+![GitHub commit activity](https://img.shields.io/github/commit-activity/y/MarioRuiz/slack-smart-bot)
+![GitHub last commit](https://img.shields.io/github/last-commit/MarioRuiz/slack-smart-bot)
+![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/MarioRuiz/slack-smart-bot)
 
 Create a Slack bot that is really smart and so easy to expand.
 
@@ -10,7 +14,7 @@ The main scope of this ruby gem is to be used internally in your company so team
 
 slack-smart-bot can create bots on demand, create shortcuts, run ruby code... just on a chat channel, you can access it just from your mobile phone if you want and run those tests you forgot to run, get the results, restart a server... no limits.
 
-<img src="slack-smart-bot.png" width="150" height="150">![](slack.png)
+<img src="./img/smart-bot.png" width="150" height="150">![](./img/slack.png)
 
 # Table of Contents
 
@@ -36,6 +40,14 @@ slack-smart-bot can create bots on demand, create shortcuts, run ruby code... ju
   * [See favorite commands](#see-favorite-commands)
   * [Teams](#teams)
   * [Time off management](#time-off-management)
+  * [OpenAI](#openai)
+    + [OpenAI Set up](#openai-setup)
+    + [Chat GPT](#chatgpt)
+    + [Image Generation](#image-generation)
+    + [Image Variations](#image-variations)
+    + [Image Editing](#image-editing)
+    + [Whisper](#whisper)
+    + [Models](#models)
   * [Tips](#tips)
     + [Send a file](#send-a-file) (A)
     + [Download a file](#download-a-file) (A)
@@ -382,9 +394,9 @@ By default it will be automatically loaded the gems: `string_pattern`, `nice_has
 
 To pre-execute some ruby when starting the session add the code to `.smart-bot-repl` file on the project root folder defined on `project_folder`. Then that file will be always executed before the REPL started or created. In that case if we want to avoid to run that file before the REPL we can do it adding the word 'clean' before the command `clean repl`.
 
-If you want to see the methods of a class or module you created use `ls TheModuleOrClass`
+If you want to see the methods of a class or module you created use `ls TheModuleOrClass`. To see all documentation of a method: `doc TheModuleOrClass.method_name`. And to see the source code of a method: `code TheModuleOrClass.method_name`. Examples: `ls Sales`, `doc Sales.list`, `code Sales.list`  
 
-You can supply the Environmental Variables you need for the Session
+You can supply the Environmental Variables you need for the Session  
 
 Examples:  
   _repl CreateCustomer LOCATION=spain HOST='https://10.30.40.50:8887'_  
@@ -674,6 +686,8 @@ In case of 'github' type then you can supply an URL filtering the Github issues 
 
 If you want to change the memo status use the command `set STATUS on memo ID TEAM_NAME team`. For example: `set :runner: on memo 7 Sales team`  
 
+You can add also comments to any memo by calling: `team TEAM_NAME memo ID MESSAGE`. To see a specific memo and all the comments: `team TEAM_NAME memo ID`. In case of a Jira or GitHub memo then it will show also the comments in there.  
+
 Examples:  
 >**_`add memo to sales team : Add tests for Michigan feature`_**  
 >**_`add private note to sales team : Bills will need to be deployed before Friday`_**  
@@ -686,6 +700,8 @@ Examples:
 >**_`set :runner: on memo 7 team Sales`_**  
 >**_`see all memos from Sales team`_**  
 >**_`see bugs from Sales team dev`_**  
+>**_`sales team memo 4 Put it on hold until tests for Apple feature are finished`_**  
+>**_`sales team memo 7`_**  
 
 Other team commands: **_`delete team TEAM_NAME`_**, **_`delete memo ID from team TEAM_NAME`_**, **_`set STATUS on memo ID TEAM_NAME team`_**, **_`see MEMO_TYPE from TEAM_NAME team TOPIC`_**  
 
@@ -718,10 +734,90 @@ settings = {
 }
 ```
 
-When calling `see my time off` on a DM will display a calendar of the year with the days off, including public holidays
+When calling `see my time off` on a DM will display a calendar of the year with the days off, including public holidays  
+
 <img src="img/my_timeoff.png" width="650">
 
 Other 'time off' commands: **_`remove time off ID`_**, **_`see my time off`_**, **_`see vacations @USER`_**, **_`time off team NAME`_**, **_`set public holidays to COUNTRY/REGION`_**    
+
+
+### OpenAI
+> for all users  
+#### OpenAI setup
+To be able to use this SmartBot general command you need to ask for an API token: https://platform.openai.com/account/api-keys  
+
+Then specify in the SmartBot config the keys:  
+
+```ruby
+ai: {
+  open_ai: {
+               access_token: 'OPENAI_ACCESS_TOKEN',
+              organization_id: 'OPENAI_ORGANIZATION_ID',
+              gpt_model: 'gpt-3.5-turbo',
+              whisper_model : 'whisper-1',
+              image_size: '256x256'
+  }
+}
+```
+
+Or if you want you can set your personal access token just to be used by you by calling on a DM with the SmartBot the command: `set personal settings ai.open_ai.access_token ACCESS_TOKEN`  
+Also you can specify personal settings for `gpt_model`, `whisper_model` or `image_size`, instead of using the default values.  
+
+#### ChatGPT
+
+`??`  
+`?? PROMPT`  
+`? PROMPT`  
+Chat GPT will generate a response based on the PROMPT indicated.  
+If ?? is used, it will start from zero the session. If not all the previous prompts from the session will be used to generate the response.  
+You can share a message and use it as input for the supplied prompt.  
+
+<img src="img/chat_gpt.png" width="650">  
+
+<img src="img/chat_gpt_share.png" width="300">  
+
+#### Image Generation
+`??i PROMPT`  
+ `?i PROMPT`  
+ `?ir`  
+It will generate an image based on the PROMPT indicated.  
+If `??i` is used, it will start from zero the session. If not all the previous prompts from the session will be used to generate the image.  
+if using `?ir` will generate a new image using the session prompts.  
+
+<img src="img/image_generation.png" width="400">  
+
+#### Image Variations
+
+`?iv`  
+`?ivNUMBER`  
+It will generate a variation of the last image generated in the session.  
+In the case of NUMBER, it will generate NUMBER of variations of the last image generated. NUMBER needs to be between 1 and 9.  
+If an image is attached then it will generate temporary variations of the attached image.  
+
+<img src="img/image_variations.png" width="400">  
+
+#### Image Editing
+
+`?ie PROMPT`  
+It will edit the attached image with the supplied PROMPT. The supplied image needs to be an image with a transparent area.  
+The PROMPT need to explain the final result of the image.  
+
+<img src="img/image_editing.png" width="400">  
+
+#### Whisper
+
+`?w PROMPT`  
+`?w`  
+It will transcribe the audio file attached and perform the PROMPT indicated if supplied.  
+
+<img src="img/whisper.png" width="650">  
+
+#### Models
+
+`?m`  
+`?m MODEL`  
+It will return the list of models available or the details of the model indicated.  
+
 
 ### Tips
 > for admins

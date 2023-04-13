@@ -9,13 +9,17 @@ class SlackSmartBot
         else
             country_region = "#{country}/#{state}"
         end
-        respond "Public holidays for *#{country_region}* set."
+        if state == ''
+          respond "Public holidays for *#{country_region}* set. If available States, try with the country and state to be more precise."
+        else
+          respond "Public holidays for *#{country_region}* set."
+        end
         get_vacations()
         @vacations[user.name] ||= {}
         @vacations[user.name][:public_holidays] = country_region
         update_vacations()
     else
-        respond "Be sure the country and state are correct."
+        respond "Be sure the country and state are correct. If not displayed available states, try with the country only."
     end
   end
 end

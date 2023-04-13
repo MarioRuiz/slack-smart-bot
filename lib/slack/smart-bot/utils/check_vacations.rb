@@ -10,6 +10,7 @@ class SlackSmartBot
     users.each do |user|
       type = nil
       expiration = nil
+      @vacations[user].periods ||= []
       @vacations[user].periods.each do |p|
         if only_first_day and p.from == date.strftime("%Y/%m/%d")
           type = p.type

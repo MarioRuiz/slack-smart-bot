@@ -23,6 +23,8 @@ class SlackSmartBot
   # help:     By default it will be automatically loaded the gems: string_pattern, nice_hash and nice_http
   # help:     To pre-execute some ruby when starting the session add the code to .smart-bot-repl file on the project root folder defined on project_folder
   # help:     If you want to see the methods of a class or module you created use _ls TheModuleOrClass_
+  # help:     To see the code of a method: _code TheModuleOrClass.my_method_
+  # help:     To see the documentation of a method: _doc TheModuleOrClass.my_method_
   # help:     You can supply the Environmental Variables you need for the Session
   # help:     You can add collaborators by sending _add collaborator @USER_ to the session.
   # help:     Examples:
@@ -91,118 +93,14 @@ class SlackSmartBot
         end
         @ts_repl ||= {}
         @ts_repl[session_name] = ""
+        process_to_run = repl_client(from, session_name, type, serialt, env_vars)
 
-        message = "Session name: *#{session_name}*
-        From now on I will execute all you write as a Ruby command and I will keep the session open until you send `quit` or `bye` or `exit`. 
-        In case you need someone to help you with the session you can add collaborators by sending `add collaborator @USER` to the session.
-        I will respond with the result so it is not necessary you send `print`, `puts`, `p` or `pp` unless you want it as the output when calling `run repl`. 
-        Use `p` to print a message raw, exacly like it is returned. 
-        If you want to avoid a message to be treated by me, start the message with '-'. 
-        After 30 minutes of no communication with the Smart Bot the session will be dismissed.
-        If you want to see the methods of a class or module you created use _ls TheModuleOrClass_
-        You can supply the Environmental Variables you need for the Session
-        Example:
-          _repl CreateCustomer LOCATION=spain HOST='https://10.30.40.50:8887'_
-        "
-        respond message, dest
-
-        File.write("#{config.path}/repl/#{@channel_id}/#{@repl_sessions[from][:name]}.input", "", mode: "a+")
-        File.write("#{config.path}/repl/#{@channel_id}/#{@repl_sessions[from][:name]}.output", "", mode: "a+")
-        File.write("#{config.path}/repl/#{@channel_id}/#{@repl_sessions[from][:name]}.run", "", mode: "a+")
-
-        if type != :private_clean and type != :public_clean
-          pre_execute = '
-            if File.exist?(\"./.smart-bot-repl\")
-              begin
-                eval(File.read(\"./.smart-bot-repl\"), bindme' + serialt + ")
-              rescue Exception => resp_repl
-              end
-            end
-          "
-        else
-          pre_execute = ""
-        end
-
-        process_to_run = "
-            " + env_vars.join("\n") + '
-            require \"amazing_print\"
-            require \"stringio\"
-            bindme' + serialt + ' = binding
-            eval(\"require \'nice_http\'\" , bindme' + serialt + ')
-            def ls(obj)
-              (obj.methods - Object.methods)
-            end
-            file_run_path = \"' + +File.expand_path(config.path) + "/repl/" + @channel_id + "/" + session_name + '.rb\"
-            file_input_repl = File.open(\"' + File.expand_path(config.path) + "/repl/" + @channel_id + "/" + session_name + '.input\", \"r\")
-            ' + pre_execute + '
-            while true do 
-              sleep 0.2 
-              code_to_run_repl = file_input_repl.read
-              if code_to_run_repl.to_s!=\"\"
-                add_to_run_repl = true
-                if code_to_run_repl.to_s.match?(/^quit$/i) or 
-                  code_to_run_repl.to_s.match?(/^exit$/i) or 
-                  code_to_run_repl.to_s.match?(/^bye bot$/i) or
-                  code_to_run_repl.to_s.match?(/^bye$/i)
-                  exit
-                else
-                  if code_to_run_repl.match?(/^\s*ls\s+(.+)/)
-                    add_to_run_repl = false
-                  end
-                  error = false
-                  begin
-                    begin
-                      original_stdout = $stdout
-                      $stdout = StringIO.new 
-                      resp_repl = eval(code_to_run_repl, bindme' + serialt + ')
-                      stdout_repl = $stdout.string
-                    ensure 
-                      $stdout = original_stdout
-                    end
-                  rescue Exception => resp_repl
-                    error = true
-                  end
-                  if error
-                    open(\"' + File.expand_path(config.path) + "/repl/" + @channel_id + "/" + session_name + '.output\", \"a+\") {|f|
-                      f.puts \"\`\`\`\n#{resp_repl.to_s.gsub(/^.+' + session_name + '\.rb:\d+:/,\"\")}\`\`\`\"
-                    }
-                  else
-                    if code_to_run_repl.match?(/^\s*p\s+/i)
-                      resp_repl = stdout_repl unless stdout_repl.to_s == \'\'
-                      if stdout_repl.to_s == \'\'
-                        resp_repl = resp_repl.inspect
-                      else
-                        resp_repl = stdout_repl 
-                      end
-                      open(\"' + File.expand_path(config.path) + "/repl/" + @channel_id + "/" + session_name + '.output\", \"a+\") {|f|
-                        f.puts \"\`\`\`\n#{resp_repl}\`\`\`\"
-                      }
-                    else
-                      if stdout_repl.to_s == \'\'
-                        resp_repl = resp_repl.ai
-                      else
-                        resp_repl = stdout_repl 
-                      end
-                      open(\"' + File.expand_path(config.path) + "/repl/" + @channel_id + "/" + session_name + '.output\", \"a+\") {|f|
-                        f.puts \"\`\`\`\n#{resp_repl}\`\`\`\"
-                      }
-                    end
-                    unless !add_to_run_repl
-                      open(\"' + File.expand_path(config.path) + "/repl/" + @channel_id + "/" + session_name + '.run\", \"a+\") {|f|
-                        f.puts code_to_run_repl
-                      }
-                    end
-                  end
-                end
-              end
-            end
-        '
         unless rules_file.empty? # to get the project_folder
           begin
             eval(File.new(config.path + rules_file).read) if File.exist?(config.path + rules_file)
           end
         end
-        process_to_run.gsub!('\"', '"')
+
         file_run_path = "./tmp/repl/#{@channel_id}/#{session_name}.rb"
         if defined?(project_folder)
           Dir.mkdir("#{project_folder}/tmp/") unless Dir.exist?("#{project_folder}/tmp/")
@@ -257,7 +155,8 @@ class SlackSmartBot
                 unreact(:running, @ts_repl[@repl_sessions[from].name])
                 @ts_repl[@repl_sessions[from].name] = ""
               end
-              if resp_repl.to_s.lines.count < 60 and resp_repl.to_s.size < 3500
+              if (resp_repl.to_s.lines.count < 60 and resp_repl.to_s.size < 3500) or 
+                resp_repl.match?(/^\s*[_\*]*`\w+`/im)
                 respond resp_repl, dest
               else
                 resp_repl.gsub!(/^\s*```/, "")

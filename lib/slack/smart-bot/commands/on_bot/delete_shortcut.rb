@@ -14,8 +14,8 @@ class SlackSmartBot
     unless typem == :on_extended
       from = user.name
       if has_access?(__method__, user)
-        deleted = false
-
+        deleted = false        
+        shortcut.strip!
         if global
           if !config.on_master_bot or typem != :on_master
             respond "It is only possible to delete global shortcuts from Master channel"

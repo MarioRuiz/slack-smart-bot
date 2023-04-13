@@ -26,6 +26,7 @@ class SlackSmartBot
     unless typem == :on_extended
       from = user.name
       if has_access?(__method__, user)
+        shortcut_name.strip!
         if global 
           if !config.on_master_bot or typem != :on_master
             respond "It is only possible to add global shortcuts from Master channel"

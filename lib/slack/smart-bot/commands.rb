@@ -61,21 +61,33 @@ require_relative "commands/general/poster"
 require_relative "commands/general/see_access"
 require_relative "commands/general/allow_access"
 require_relative "commands/general/deny_access"
-require_relative "commands/general/add_team"
-require_relative "commands/general/add_memo_team"
-require_relative "commands/general/set_memo_status"
-require_relative "commands/general/delete_memo_team"
-require_relative "commands/general/see_memos_team"
-require_relative "commands/general/see_teams"
-require_relative "commands/general/update_team"
-require_relative "commands/general/ping_team"
-require_relative "commands/general/delete_team"
+require_relative "commands/general/teams/add_team"
+require_relative "commands/general/teams/memos/add_memo_team"
+require_relative "commands/general/teams/memos/set_memo_status"
+require_relative "commands/general/teams/memos/delete_memo_team"
+require_relative "commands/general/teams/memos/see_memos_team"
+require_relative "commands/general/teams/see_teams"
+require_relative "commands/general/teams/update_team"
+require_relative "commands/general/teams/ping_team"
+require_relative "commands/general/teams/delete_team"
 require_relative "commands/general/add_vacation"
 require_relative "commands/general/remove_vacation"
 require_relative "commands/general/see_vacations"
-require_relative "commands/general/see_vacations_team"
+require_relative "commands/general/teams/see_vacations_team"
 require_relative "commands/general/public_holidays"
 require_relative "commands/general/set_public_holidays"
 require_relative "commands/general/personal_settings"
-require_relative "commands/general/add_memo_team_comment"
-require_relative "commands/general/see_memo_team"
+require_relative "commands/general/teams/memos/add_memo_team_comment"
+require_relative "commands/general/teams/memos/see_memo_team"
+require_relative 'commands/general/ai/open_ai/open_ai_chat'
+require_relative 'commands/general/ai/open_ai/open_ai_generate_image'
+require_relative 'commands/general/ai/open_ai/open_ai_variations_image'
+require_relative 'commands/general/ai/open_ai/open_ai_edit_image'
+require_relative 'commands/general/ai/open_ai/open_ai_models'
+require_relative 'commands/general/ai/open_ai/open_ai_whisper'
+
+class SlackSmartBot
+    include SlackSmartBot::Commands::General::AI::OpenAI
+    include SlackSmartBot::Commands::General::Teams
+    include SlackSmartBot::Commands::General::Teams::Memos
+end

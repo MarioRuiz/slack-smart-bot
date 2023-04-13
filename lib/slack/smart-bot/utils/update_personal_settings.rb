@@ -10,7 +10,7 @@ class SlackSmartBot
 
     File.open(personal_settings_file, 'w') {|file|
       file.flock(File::LOCK_EX)
-      file.write(encrypt(@personal_settings[user.name].to_yaml))
+      file.write(Utils::Encryption.encrypt(@personal_settings[user.name].to_yaml, config))
       file.flock(File::LOCK_UN)
     }
     @datetime_personal_settings_file[personal_settings_file] = File.mtime(personal_settings_file)

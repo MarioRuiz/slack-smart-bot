@@ -9,7 +9,7 @@ class SlackSmartBot
       vacations = YAML.load(File.read(old_vacations_file))
       @vacations = vacations unless vacations.is_a?(FalseClass)
       @vacations.each do |key, value|
-        File.write(File.join(config.path, "vacations", "v_#{key}.yaml"), encrypt(value.to_yaml))
+        File.write(File.join(config.path, "vacations", "v_#{key}.yaml"), Utils::Encryption.encrypt(value.to_yaml, config))
       end
       @logger.info "Deleting old_vacations_file: #{old_vacations_file}"
       File.delete(old_vacations_file)
@@ -18,7 +18,7 @@ class SlackSmartBot
     @datetime_vacations_file ||= {}
     files.each do |file|
       if !defined?(@datetime_vacations_file) or !@datetime_vacations_file.key?(file) or @datetime_vacations_file[file] != File.mtime(file)
-        vacations_user = YAML.load(decrypt(File.read(file)))
+        vacations_user = YAML.load(Utils::Encryption.decrypt(File.read(file), config))
         @vacations[File.basename(file).gsub("v_","").gsub(".yaml","")] = vacations_user
         @datetime_vacations_file[file] = File.mtime(file)
       end

@@ -619,6 +619,8 @@ Examples:
 ### Teams
 > for all users
 
+[![SmartBot Teams](https://img.youtube.com/vi/u8B4aGDXH9M/0.jpg)](https://www.youtube.com/watch?v=u8B4aGDXH9M)  
+
 You can add, update, see, ping and delete teams. When calling `see TEAM_NAME team` the availability of the members will be displayed.  
 `add team TEAM_NAME PROPERTIES` will add a team with the info supplied. In case it is supplied a channel with type 'members' the members of that channel would be considered members of the team.  
 
@@ -731,7 +733,7 @@ ai: {
                access_token: 'OPENAI_ACCESS_TOKEN',
               organization_id: 'OPENAI_ORGANIZATION_ID',
               gpt_model: 'gpt-3.5-turbo',
-              whisper_model : 'whisper-1',
+              whisper_model: 'whisper-1',
               image_size: '256x256'
   }
 }

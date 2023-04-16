@@ -358,6 +358,8 @@ Also it is possible to attach a Ruby file and the Smart Bot will run and post th
 #### REPL
 > for all users
 
+[![SmartBot REPLs](https://img.youtube.com/vi/URMI3BdD7J8/0.jpg)](https://www.youtube.com/watch?v=URMI3BdD7J8)  
+
 Easily starts a REPL session so you will be able to create a script directly from the slack conversation. You will be able to share the REPL so they can run it or see the content.
 
 It Will run all we write as a ruby command and will keep the session values until we finish the session sending `quit`, `exit` or `bye` 

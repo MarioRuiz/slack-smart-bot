@@ -86,6 +86,7 @@ class SlackSmartBot
             bye_bot(dest, user.name, display_name)
 
           # help: ----------------------------------------------
+          # help: >*<https://github.com/MarioRuiz/slack-smart-bot#announcements|ANNOUNCEMENTS>*
           # help: `add announcement MESSAGE`
           # help: `add red announcement MESSAGE`
           # help: `add green announcement MESSAGE`
@@ -162,6 +163,7 @@ class SlackSmartBot
 
 
           # help: ----------------------------------------------
+          # help: >*<https://github.com/MarioRuiz/slack-smart-bot#share-messages|SHARE MESSAGES>*
           # help: `share messages /REGEXP/ on #CHANNEL`
           # help: `share messages "TEXT" on #CHANNEL`
           # xhelp: `share messages :EMOJI: on #CHANNEL`
@@ -395,6 +397,7 @@ class SlackSmartBot
           end
 
           # help: ----------------------------------------------
+          # help: >*<https://github.com/MarioRuiz/slack-smart-bot#teams|TEAMS>*
           # help: `add team TEAM_NAME members #TEAM_CHANNEL CHANNEL_TYPE #CHANNEL1 #CHANNEL99 : INFO`
           # help: `add team TEAM_NAME MEMBER_TYPE @USER1 @USER99 CHANNEL_TYPE #CHANNEL1 #CHANNEL99 : INFO`
           # help: `add team TEAM_NAME MEMBER_TYPE1 @USER1 @USER99 MEMBER_TYPE99 @USER1 @USER99 CHANNEL_TYPE1 #CHANNEL1 #CHANNEL99 CHANNEL_TYPE99 #CHANNEL1 #CHANNEL99 : INFO`
@@ -662,6 +665,7 @@ class SlackSmartBot
           see_memos_team(user, type: type, name: name, topic: topic)
 
           # help: ----------------------------------------------
+          # help: >*<https://github.com/MarioRuiz/slack-smart-bot#time-off-management|TIME OFF MANAGEMENT>*
           # help: `add vacation from YYYY/MM/DD to YYYY/MM/DD`
           # help: `add vacation YYYY/MM/DD`
           # help: `add sick from YYYY/MM/DD to YYYY/MM/DD`
@@ -826,6 +830,7 @@ class SlackSmartBot
           personal_settings(user, settings_type, settings_id, settings_value)
 
         # help: ----------------------------------------------
+        # help: >*<https://github.com/MarioRuiz/slack-smart-bot#openai|OpenAI>*
         # help: `?w`
         # help: `?w PROMPT`
         # help:     OpenAI: It will transcribe the audio file attached and performed the PROMPT indicated if supplied.

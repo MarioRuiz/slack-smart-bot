@@ -1,6 +1,7 @@
 class SlackSmartBot
 
   # help: ----------------------------------------------
+  # help: >*<https://github.com/MarioRuiz/slack-smart-bot#shortcuts|SHORTCUTS>*
   # help: `add shortcut NAME: COMMAND`
   # help: `add sc NAME: COMMAND`
   # help: `add shortcut for all NAME: COMMAND`

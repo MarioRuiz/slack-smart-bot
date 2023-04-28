@@ -79,6 +79,7 @@ class SlackSmartBot
         end
         output.each do |h|
           msg = h.gsub(/^\s*command_id:\s+:\w+\s*$/,'')
+          msg.gsub!(/^\s*>.+$/,'') if help_command.to_s != ''
           unless msg.match?(/\A\s*\z/)
             respond msg, dest, unfurl_links: false, unfurl_media: false
           end

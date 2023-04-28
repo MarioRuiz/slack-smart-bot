@@ -1,5 +1,6 @@
 class SlackSmartBot
   # help: ----------------------------------------------
+  # help: >*<https://github.com/MarioRuiz/slack-smart-bot#repl|REPLs>*
   # help: `repl`
   # help: `live`
   # help: `irb`

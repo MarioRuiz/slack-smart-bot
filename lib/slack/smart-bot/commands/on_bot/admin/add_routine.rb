@@ -1,5 +1,6 @@
 class SlackSmartBot
   # helpadmin: ----------------------------------------------
+  # helpadmin: >*<https://github.com/MarioRuiz/slack-smart-bot#routines|ROUTINES>*
   # helpadmin: `add routine NAME every NUMBER PERIOD COMMAND`
   # helpadmin: `add routine NAME every NUMBER PERIOD #CHANNEL COMMAND`
   # helpadmin: `add routine NAME every NUMBER PERIOD`

@@ -15,7 +15,7 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency 'slack-ruby-client', '~> 2', '>= 2.0.0'
   s.add_runtime_dependency 'nice_http', '~> 1.9'
   s.add_runtime_dependency 'method_source', '~> 1.0'
-  s.add_runtime_dependency 'ruby-openai', '~> 3', '>= 3.7.0'
+  s.add_runtime_dependency 'ruby-openai', '~> 4', '>= 4.0.0'
   s.add_runtime_dependency 'nice_hash', '~> 1', '>= 1.18.4'
   s.add_runtime_dependency 'string_pattern', '~> 2', '>=2.2.3'
   s.add_runtime_dependency 'async-websocket', '~> 0.8.0'

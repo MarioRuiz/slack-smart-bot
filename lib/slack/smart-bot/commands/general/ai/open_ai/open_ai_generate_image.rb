@@ -6,10 +6,10 @@ class SlackSmartBot
           def open_ai_generate_image(message, delete_history = false, repeat: false)
             save_stats(__method__)
             get_personal_settings()
-            @ai_open_ai, message_connect = SlackSmartBot::AI::OpenAI.connect(@ai_open_ai, config, @personal_settings, reconnect: delete_history)
+            @ai_open_ai, message_connect = SlackSmartBot::AI::OpenAI.connect(@ai_open_ai, config, @personal_settings, reconnect: delete_history, service: :dall_e)
             respond message_connect if message_connect
             user = Thread.current[:user]
-            if !@ai_open_ai[user.name].nil? and !@ai_open_ai[user.name][:client].nil?
+            if !@ai_open_ai[user.name].nil? and !@ai_open_ai[user.name][:dall_e][:client].nil?
               @ai_open_ai_image ||= {}
               @ai_open_ai_image[user.name] ||= []
               react :art
@@ -21,10 +21,11 @@ class SlackSmartBot
                   respond "*OpenAI*: Sorry, I need to generate an image first. Use `?i PROMPT` to generate an image."
                 else
                   @ai_open_ai_image[user.name] << message unless repeat
-                  success, res = SlackSmartBot::AI::OpenAI.send_image_generation(@ai_open_ai[user.name][:client], @ai_open_ai_image[user.name].join("\n"), @ai_open_ai[user.name][:image_size])
+                  success, res = SlackSmartBot::AI::OpenAI.send_image_generation(@ai_open_ai[user.name][:dall_e][:client], @ai_open_ai_image[user.name].join("\n"), @ai_open_ai[user.name][:image_size])
                   if success
                     urls = res
                     urls = [urls] if urls.is_a?(String)
+                    urls.delete({})
                     if urls.nil? or urls.empty?
                       respond "*OpenAI*: Sorry, I'm having some problems. OpenAI was not able to generate an image."
                     else

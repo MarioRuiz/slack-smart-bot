@@ -9,10 +9,10 @@ class SlackSmartBot
             @ai_open_ai, message_connect = SlackSmartBot::AI::OpenAI.connect(@ai_open_ai, config, @personal_settings)
             respond message_connect if message_connect
             user = Thread.current[:user]
-            if !@ai_open_ai[user.name].nil? and !@ai_open_ai[user.name][:client].nil?
+            if !@ai_open_ai[user.name].nil? and !@ai_open_ai[user.name][:chat_gpt][:client].nil?
                 react :running
                 begin
-                  res = SlackSmartBot::AI::OpenAI.models(@ai_open_ai[user.name][:client], model)
+                  res = SlackSmartBot::AI::OpenAI.models(@ai_open_ai[user.name][:chat_gpt][:client], model)
                   if model == ''
                     message = ["*OpenAI*"]
                     message << "If you want to use a model, you can use on a DM with the SmartBot the command"
@@ -25,6 +25,7 @@ class SlackSmartBot
                     respond "*OpenAI* Info about #{model} model:\n```#{res.strip}```"
                   end
                 rescue => exception
+                  @logger.warn "Error in open_ai_models: #{exception}"
                   respond "*OpenAI*: Sorry, I'm having some problems. OpenAI probably is not available. Please try again later."
                 end
                 unreact :running

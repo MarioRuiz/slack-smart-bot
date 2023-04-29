@@ -11,11 +11,12 @@ class SlackSmartBot
             temperature: 0.7,
           },
         )
-        if !response.body.json(:message).empty? and response.body.json(:content).empty?
-          result = response.body.json(:message)
+        response = response.to_json
+        if !response.json(:message).empty? and response.json(:content).empty?
+          result = response.json(:message)
           return false, result
         else
-          result = response.body.json(:content)
+          result = response.json(:content)
           return true, result
         end
       end

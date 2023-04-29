@@ -10,10 +10,11 @@ class SlackSmartBot
             file: File.open(file, "rb"),
           },
         )
-        if !response.body.json(:message).empty?
-          return false, response.body.json(:message)
+        response = response.to_json
+        if !response.json(:message).empty?
+          return false, response.json(:message)
         else
-          return true, response.body.json(:text)
+          return true, response.json(:text)
         end
       end
     end

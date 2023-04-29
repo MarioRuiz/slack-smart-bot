@@ -6,10 +6,10 @@ class SlackSmartBot
           def open_ai_variations_image(message, variations, files)
             save_stats(__method__)
             get_personal_settings()
-            @ai_open_ai, message_connect = SlackSmartBot::AI::OpenAI.connect(@ai_open_ai, config, @personal_settings)
+            @ai_open_ai, message_connect = SlackSmartBot::AI::OpenAI.connect(@ai_open_ai, config, @personal_settings, service: :dall_e)
             respond message_connect if message_connect
             user = Thread.current[:user]
-            if !@ai_open_ai[user.name].nil? and !@ai_open_ai[user.name][:client].nil?
+            if !@ai_open_ai[user.name].nil? and !@ai_open_ai[user.name][:dall_e][:client].nil?
               if variations > 9
                 respond "*OpenAI*: I'm sorry, I can only generate up to 9 variations at a time. Please try again."
               else
@@ -28,9 +28,9 @@ class SlackSmartBot
                       require "nice_http"
                       http = NiceHttp.new(host: "https://files.slack.com", headers: { "Authorization" => "Bearer #{config.token}" })
                       res = http.get(files[0].url_private_download, save_data: image)
-                      success, res = SlackSmartBot::AI::OpenAI.send_image_variation(@ai_open_ai[user.name].client, image, variations, size: @ai_open_ai[user.name][:image_size])
+                      success, res = SlackSmartBot::AI::OpenAI.send_image_variation(@ai_open_ai[user.name][:dall_e].client, image, variations, size: @ai_open_ai[user.name][:image_size])
                     else
-                      success, res = SlackSmartBot::AI::OpenAI.send_image_variation(@ai_open_ai[user.name].client, image, variations, size: @ai_open_ai[user.name][:image_size])
+                      success, res = SlackSmartBot::AI::OpenAI.send_image_variation(@ai_open_ai[user.name][:dall_e].client, image, variations, size: @ai_open_ai[user.name][:image_size])
                     end
                     if success
                       urls = res

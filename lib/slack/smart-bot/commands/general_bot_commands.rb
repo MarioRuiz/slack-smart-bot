@@ -916,7 +916,6 @@ class SlackSmartBot
         when /\A\s*(\?\?)\s*()\z/im, /\A\s*(\?\?)\s*(.+)\s*\z/im, /\A\s*()\?\s*(.+)\s*\z/im
           delete_history = $1.to_s != ''
           message = $2.to_s
-          #@logger.info "data: #{data}" #Jal
           open_ai_chat(message, delete_history)
 
           

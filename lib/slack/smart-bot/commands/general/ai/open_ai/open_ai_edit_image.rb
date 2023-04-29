@@ -6,10 +6,10 @@ class SlackSmartBot
           def open_ai_edit_image(message, files)
             save_stats(__method__)
             get_personal_settings()
-            @ai_open_ai, message_connect = SlackSmartBot::AI::OpenAI.connect(@ai_open_ai, config, @personal_settings)
+            @ai_open_ai, message_connect = SlackSmartBot::AI::OpenAI.connect(@ai_open_ai, config, @personal_settings, service: :dall_e)
             respond message_connect if message_connect
             user = Thread.current[:user]
-            if !@ai_open_ai[user.name].nil? and !@ai_open_ai[user.name][:client].nil?
+            if !@ai_open_ai[user.name].nil? and !@ai_open_ai[user.name][:dall_e][:client].nil?
               @ai_open_ai_image ||= {}
               @ai_open_ai_image[user.name] ||= []
               react :art
@@ -22,7 +22,7 @@ class SlackSmartBot
                   image = "#{config.path}/tmp/#{user.name}_#{@ai_open_ai_image[user.name].object_id}.png"
                   http = NiceHttp.new(host: "https://files.slack.com", headers: { "Authorization" => "Bearer #{config.token}" })
                   res = http.get(files[0].url_private_download, save_data: image)
-                  success, res = SlackSmartBot::AI::OpenAI.send_image_edit(@ai_open_ai[user.name].client, image, message, size: @ai_open_ai[user.name][:image_size])
+                  success, res = SlackSmartBot::AI::OpenAI.send_image_edit(@ai_open_ai[user.name][:dall_e].client, image, message, size: @ai_open_ai[user.name][:image_size])
 
                   if success
                     urls = res

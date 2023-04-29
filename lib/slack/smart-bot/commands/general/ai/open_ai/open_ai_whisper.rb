@@ -6,10 +6,10 @@ class SlackSmartBot
           def open_ai_whisper(message, files)
             save_stats(__method__)
             get_personal_settings()
-            @ai_open_ai, message_connect = SlackSmartBot::AI::OpenAI.connect(@ai_open_ai, config, @personal_settings)
+            @ai_open_ai, message_connect = SlackSmartBot::AI::OpenAI.connect(@ai_open_ai, config, @personal_settings, service: :whisper)
             respond message_connect if message_connect
             user = Thread.current[:user]
-            if !@ai_open_ai[user.name].nil? and !@ai_open_ai[user.name][:client].nil?
+            if !@ai_open_ai[user.name].nil? and !@ai_open_ai[user.name][:whisper][:client].nil?
               react :speech_balloon 
               begin
                 if files.nil? or files.size != 1
@@ -19,10 +19,10 @@ class SlackSmartBot
                   audio = "#{config.path}/tmp/#{user.name}_audio.wav"
                   http = NiceHttp.new(host: "https://files.slack.com", headers: { "Authorization" => "Bearer #{config.token}" })
                   res = http.get(files[0].url_private_download, save_data: audio)
-                  success, res = SlackSmartBot::AI::OpenAI.whisper_transcribe(@ai_open_ai[user.name][:client], @ai_open_ai[user.name].whisper_model, audio)
+                  success, res = SlackSmartBot::AI::OpenAI.whisper_transcribe(@ai_open_ai[user.name][:whisper][:client], @ai_open_ai[user.name].whisper_model, audio)
                   if success
                     if message.to_s != ''
-                      success, res = SlackSmartBot::AI::OpenAI.send_gpt_chat(@ai_open_ai[user.name][:client], @ai_open_ai[user.name].gpt_model, "#{message}:\n#{res}")
+                      success, res = SlackSmartBot::AI::OpenAI.send_gpt_chat(@ai_open_ai[user.name][:whisper][:client], @ai_open_ai[user.name].gpt_model, "#{message}:\n#{res}")
                       type_whisper = message
                     else
                       type_whisper = "Transcribe"

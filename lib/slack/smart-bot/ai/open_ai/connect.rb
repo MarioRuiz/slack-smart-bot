@@ -1,43 +1,106 @@
 class SlackSmartBot
   module AI
     module OpenAI
-      def self.connect(ai_open_ai, general_config, personal_settings, reconnect: false)
+      def self.connect(ai_open_ai, general_config, personal_settings, reconnect: false, service: :chat_gpt)
         require "openai"
         user = Thread.current[:user]
         ai_open_ai = {} if ai_open_ai.nil?
+        ai_open_ai_user = {}
 
         # ._ai to avoid to call .ai method from amazing_print
-        ai_open_ai[user.name] ||= { client: nil, gpt_model: general_config._ai.open_ai.gpt_model, whisper_model: general_config._ai.open_ai.whisper_model, image_size: general_config._ai.open_ai.image_size }
+        ai_open_ai_user = { 
+          host: general_config._ai.open_ai.host, 
+          access_token: general_config._ai.open_ai.access_token,
+          gpt_model: general_config._ai.open_ai.gpt_model, 
+          whisper_model: general_config._ai.open_ai.whisper_model, 
+          image_size: general_config._ai.open_ai.image_size,
+          chat_gpt: {
+            client: nil,
+            host: general_config._ai.open_ai.chat_gpt.host,
+            access_token: general_config._ai.open_ai.chat_gpt.access_token
+          },
+          dall_e: {
+            client: nil,
+            host: general_config._ai.open_ai.dall_e.host,
+            access_token: general_config._ai.open_ai.dall_e.access_token
+          },
+          whisper: {
+            client: nil,
+            host: general_config._ai.open_ai.whisper.host,
+            access_token: general_config._ai.open_ai.whisper.access_token
+          }
+        }
+        if personal_settings.key?(user.name) and personal_settings[user.name].key?("ai.open_ai.host") and
+           personal_settings[user.name]["ai.open_ai.host"] != ""
+          ai_open_ai_user[:host] = personal_settings[user.name]["ai.open_ai.host"]
+          ai_open_ai_user[:chat_gpt][:host] = ai_open_ai_user[:host]
+          ai_open_ai_user[:dall_e][:host] = ai_open_ai_user[:host]
+          ai_open_ai_user[:whisper][:host] = ai_open_ai_user[:host]
+        end
+
+        if personal_settings.key?(user.name) and personal_settings[user.name].key?("ai.open_ai.access_token") and
+           personal_settings[user.name]["ai.open_ai.access_token"] != ""
+          ai_open_ai_user[:access_token] = personal_settings[user.name]["ai.open_ai.access_token"]
+          ai_open_ai_user[:chat_gpt][:access_token] = ai_open_ai_user[:access_token]
+          ai_open_ai_user[:dall_e][:access_token] = ai_open_ai_user[:access_token]
+          ai_open_ai_user[:whisper][:access_token] = ai_open_ai_user[:access_token]
+        end
+
         if personal_settings.key?(user.name) and personal_settings[user.name].key?("ai.open_ai.gpt_model") and
            personal_settings[user.name]["ai.open_ai.gpt_model"] != ""
-          ai_open_ai[user.name][:gpt_model] = personal_settings[user.name]["ai.open_ai.gpt_model"]
-        elsif general_config.key?(:ai) and general_config[:ai].key?(:open_ai) and general_config[:ai][:open_ai].key?(:gpt_model) and
-              general_config[:ai][:open_ai][:gpt_model] != ""
-          ai_open_ai[user.name][:gpt_model] = general_config[:ai][:open_ai][:gpt_model]
+          ai_open_ai_user[:gpt_model] = personal_settings[user.name]["ai.open_ai.gpt_model"]
         end
         if personal_settings.key?(user.name) and personal_settings[user.name].key?("ai.open_ai.whisper_model") and
            personal_settings[user.name]["ai.open_ai.whisper_model"] != ""
-          ai_open_ai[user.name][:whisper_model] = personal_settings[user.name]["ai.open_ai.whisper_model"]
-        elsif general_config.key?(:ai) and general_config[:ai].key?(:open_ai) and general_config[:ai][:open_ai].key?(:whisper_model) and
-              general_config[:ai][:open_ai][:whisper_model] != ""
-          ai_open_ai[user.name][:whisper_model] = general_config[:ai][:open_ai][:whisper_model]
+          ai_open_ai_user[:whisper_model] = personal_settings[user.name]["ai.open_ai.whisper_model"]
         end
         if personal_settings.key?(user.name) and personal_settings[user.name].key?("ai.open_ai.image_size") and
            personal_settings[user.name]["ai.open_ai.image_size"] != ""
-          ai_open_ai[user.name][:image_size] = personal_settings[user.name]["ai.open_ai.image_size"]
-        elsif general_config.key?(:ai) and general_config[:ai].key?(:open_ai) and general_config[:ai][:open_ai].key?(:image_size) and
-              general_config[:ai][:open_ai][:image_size] != ""
-          ai_open_ai[user.name][:image_size] = general_config[:ai][:open_ai][:image_size]
+          ai_open_ai_user[:image_size] = personal_settings[user.name]["ai.open_ai.image_size"]
         end
-        if ai_open_ai.key?(user.name) and ai_open_ai[user.name] != nil and ai_open_ai[user.name].key?(:client) and
-           ai_open_ai[user.name][:client] != nil and !reconnect
-          # do nothing
-        elsif personal_settings.key?(user.name) and personal_settings[user.name].key?("ai.open_ai.access_token") and
-              personal_settings[user.name]["ai.open_ai.access_token"].to_s != ""
-          ai_open_ai[user.name].client = ::OpenAI::Client.new(access_token: personal_settings[user.name]["ai.open_ai.access_token"].to_s)
-        elsif general_config.key?(:ai) and general_config[:ai].key?(:open_ai) and general_config[:ai][:open_ai].key?(:access_token) and
-              general_config[:ai][:open_ai][:access_token] != ""
-          ai_open_ai[user.name].client = ::OpenAI::Client.new(access_token: general_config[:ai][:open_ai][:access_token])
+
+        if personal_settings.key?(user.name) and personal_settings[user.name].key?("ai.open_ai.chat_gpt.host") and
+           personal_settings[user.name]["ai.open_ai.chat_gpt.host"] != ""
+          ai_open_ai_user[:chat_gpt][:host] = personal_settings[user.name]["ai.open_ai.chat_gpt.host"]
+        end
+        if personal_settings.key?(user.name) and personal_settings[user.name].key?("ai.open_ai.dall_e.host") and
+           personal_settings[user.name]["ai.open_ai.dall_e.host"] != ""
+          ai_open_ai_user[:dall_e][:host] = personal_settings[user.name]["ai.open_ai.dall_e.host"]
+        end
+        if personal_settings.key?(user.name) and personal_settings[user.name].key?("ai.open_ai.whisper.host") and
+           personal_settings[user.name]["ai.open_ai.whisper.host"] != ""
+          ai_open_ai_user[:whisper][:host] = personal_settings[user.name]["ai.open_ai.whisper.host"]
+        end
+
+        if personal_settings.key?(user.name) and personal_settings[user.name].key?("ai.open_ai.chat_gpt.access_token") and
+           personal_settings[user.name]["ai.open_ai.chat_gpt.access_token"] != ""
+          ai_open_ai_user[:chat_gpt][:access_token] = personal_settings[user.name]["ai.open_ai.chat_gpt.access_token"]
+        end
+        if personal_settings.key?(user.name) and personal_settings[user.name].key?("ai.open_ai.dall_e.access_token") and
+           personal_settings[user.name]["ai.open_ai.dall_e.access_token"] != ""
+          ai_open_ai_user[:dall_e][:access_token] = personal_settings[user.name]["ai.open_ai.dall_e.access_token"]
+        end
+        if personal_settings.key?(user.name) and personal_settings[user.name].key?("ai.open_ai.whisper.access_token") and
+           personal_settings[user.name]["ai.open_ai.whisper.access_token"] != ""
+          ai_open_ai_user[:whisper][:access_token] = personal_settings[user.name]["ai.open_ai.whisper.access_token"]
+        end
+
+     
+        host = ai_open_ai_user[service].host
+        access_token = ai_open_ai_user[service].access_token
+        
+        ai_open_ai[user.name] ||= ai_open_ai_user.deep_copy
+        
+        if ai_open_ai.key?(user.name) and ai_open_ai[user.name] != nil and ai_open_ai[user.name][service].key?(:client) and
+           ai_open_ai[user.name][service][:client] != nil and !reconnect
+          # do nothing, we already have a client and we don't want to reconnect
+        elsif access_token.to_s != ""
+          ai_open_ai[user.name][service] = ai_open_ai_user[service].deep_copy
+          if host == ""
+            ai_open_ai[user.name][service][:client] = ::OpenAI::Client.new(uri_base: "https://api.openai.com/", access_token: access_token)
+          else
+            ai_open_ai[user.name][service][:client] = ::OpenAI::Client.new(uri_base: host, access_token: access_token)
+          end
         else
           ai_open_ai[user.name] = nil
           message = ["You need to set the OpenAI access token in the config file or in the personal settings."]

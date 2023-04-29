@@ -64,9 +64,14 @@ class SlackSmartBot
       access_token: '',
       organization_id: ''
     } unless config[:ai].key?(:open_ai)
+    config[:ai][:open_ai][:host] ||= ''
     config[:ai][:open_ai][:whisper_model] ||= 'whisper-1'
     config[:ai][:open_ai][:image_size] ||= '256x256'
     config[:ai][:open_ai][:gpt_model] ||= 'gpt-3.5-turbo'
+    config[:ai][:open_ai][:chat_gpt] ||= { host: config._ai.open_ai.host, access_token: config._ai.open_ai.access_token }
+    config[:ai][:open_ai][:dall_e] ||= { host: config._ai.open_ai.host, access_token: config._ai.open_ai.access_token }
+    config[:ai][:open_ai][:whisper] ||= { host: config._ai.open_ai.host, access_token: config._ai.open_ai.access_token }
+    
     
     if config.path.to_s!='' and config.file.to_s==''
       config.file = File.basename($0)
@@ -91,6 +96,8 @@ class SlackSmartBot
     Dir.mkdir("#{config.path}/vacations") unless Dir.exist?("#{config.path}/vacations")
     Dir.mkdir("#{config.path}/teams") unless Dir.exist?("#{config.path}/teams")
     Dir.mkdir("#{config.path}/personal_settings") unless Dir.exist?("#{config.path}/personal_settings")
+    Dir.mkdir("#{config.path}/openai") unless Dir.exist?("#{config.path}/openai")
+
     File.delete("#{config.path}/config_tmp.status") if File.exist?("#{config.path}/config_tmp.status")
 
     config.masters = MASTER_USERS if config.masters.to_s=='' and defined?(MASTER_USERS)
@@ -337,6 +344,7 @@ class SlackSmartBot
     get_admins_channels()
     get_access_channels()
     get_vacations()
+    get_openai_sessions()
     get_personal_settings()
 
     if @routines.key?(@channel_id)

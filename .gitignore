@@ -9,6 +9,7 @@
 /spec/bot/logs/
 /spec/bot/routines/
 /spec/bot/shortcuts/
+/spec/bot/openai/
 /spec/examples.txt
 /test_smartbot/
 /spec/bot/repl

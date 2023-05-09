@@ -10,11 +10,11 @@
 
 Create a Slack bot that is really smart and so easy to expand.
 
-The main scope of this ruby gem is to be used internally in your company so teams can create team channels with their own bot to help them on their daily work, almost everything is suitable to be automated!!
+The main scope of this ruby gem is to be used internally in your company so teams can create team channels with their own bot to help them on their daily work, almost everything is suitable to be automated!!  
 
-slack-smart-bot can create bots on demand, create shortcuts, run ruby code... just on a chat channel, you can access it just from your mobile phone if you want and run those tests you forgot to run, get the results, restart a server... no limits.
+slack-smart-bot can create bots on demand, create shortcuts, run ruby code, chatGPT, DALL-E, Whisper... just on a chat channel, you can access it just from your mobile phone if you want and run those tests you forgot to run, get the results, restart a server, or have a chatGPT session...... no limits.
 
-<img src="./img/smart-bot.png" width="150" height="150">![](./img/slack.png)
+<img src="./img/smart-bot.png" width="150" height="150"><img src="./img/slack.png" width="300"><img src="./img/openai.png" width="300">  
 
 # Table of Contents
 
@@ -731,22 +731,38 @@ Then specify in the SmartBot config the keys:
 
 ```ruby
 ai: {
+  # for all open_ai services
   open_ai: {
-               access_token: 'OPENAI_ACCESS_TOKEN',
-              organization_id: 'OPENAI_ORGANIZATION_ID',
-              gpt_model: 'gpt-3.5-turbo',
-              whisper_model: 'whisper-1',
-              image_size: '256x256'
+      host: 'HOST', # optional
+      access_token: 'OPENAI_ACCESS_TOKEN',
+      gpt_model: 'gpt-3.5-turbo', #optional
+      whisper_model: 'whisper-1', #optional
+      image_size: '256x256', #optional
+      # Optional. For chatGPT. If supplied it will be used instead of the ones defined for all open_ai services
+      chat_gpt: { 
+        host: 'HOST',
+        access_token: 'OPENAI_ACCESS_TOKEN'
+      },
+      # Optional. For DALL-E. If supplied it will be used instead of the ones defined for all open_ai services
+      dall_e: {
+        host: 'HOST',
+        access_token: 'OPENAI_ACCESS_TOKEN'
+      },
+      # Optional. For Whisper. If supplied it will be used instead of the ones defined for all open_ai services
+      whisper: {
+        host: 'HOST',
+        access_token: 'OPENAI_ACCESS_TOKEN'
+      }
   }
 }
 ```
 
 Or if you want you can set your personal access token just to be used by you by calling on a DM with the SmartBot the command: `set personal settings ai.open_ai.access_token ACCESS_TOKEN`  
-Also you can specify personal settings for `gpt_model`, `whisper_model` or `image_size`, instead of using the default values.  
+Also, you can specify personal settings for `host`, `gpt_model`, `whisper_model` or `image_size`, instead of using the default values.  
+For using different hosts or tokens for each service you can use the `chat_gpt`, `dall_e` or `whisper` keys.  
 
 #### ChatGPT
 
-`??`  
 `?? PROMPT`  
 `? PROMPT`  
 Chat GPT will generate a response based on the PROMPT indicated.  
@@ -755,7 +771,19 @@ You can share a message and use it as input for the supplied prompt.
 
 <img src="img/chat_gpt.png" width="650">  
 
-<img src="img/chat_gpt_share.png" width="300">  
+<img src="img/chat_gpt_share.png" width="600">  
+
+
+When using ?? a temporary chatGPT session will be created. If you want to start a session with a given name use `chatGPT SESSION_NAME`.  
+You can supply also a specific GPT model to be used.  
+To get all prompts from a specific session name use `chatGPT get SESSION_NAME`.  
+To list all sessions use `chatGPT list sessions`.  
+When starting a new session, if you ask SmartBot to answer on a Thread by using !! or ^, then it won't be necessary to send ? before the prompt. In this case, every single message you send will be considered a prompt to be treated. After 30 minutes of inactivity SmartBot will stop listening to the thread. You will need to continue the session after that. If you want to avoid a message to be treated then start it with a hyphen '-'.  
+To add a collaborator when on a thread, you can use directly `add collaborator @USER`  
+
+<img src="img/chat_gpt_session.png" width="650">  
+
+Other chatGPT commands: `chatGPT SESSION_NAME MODEL_NAME`, `chatGPT delete SESSION_NAME`, `chatGPT get SESSION_NAME`, `chatGPT list sessions`  
 
 #### Image Generation
 `??i PROMPT`  

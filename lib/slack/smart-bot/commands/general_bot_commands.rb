@@ -1,4 +1,4 @@
-xxclass SlackSmartBot
+class SlackSmartBot
 
   # add here the general commands you will be using in any channel where The SmartBot is part of. Not necessary to use ! or ^, it will answer directly.
   def general_bot_commands(user, command, dest, files = [])

@@ -1,20 +1,11 @@
-*Version 1.14.1* Released 2023-Apr-13
+*Version 1.15.0-DEV06* Released 2023-May-09
 
 *For General users*
-- `team TEAM_NAME memo ID MESSAGE`, `TEAM_NAME team memo ID MESSAGE` It will add a comment to the memo ID specified on the team specified. (<https://github.com/MarioRuiz/slack-smart-bot/issues/95|#95>).
-- `team TEAM_NAME memo ID`, `TEAM_NAME team memo ID` It will show the memo ID specified on the team specified along with all the comments. (<https://github.com/MarioRuiz/slack-smart-bot/issues/96|#96>)
-- When on a repl it is possible to get the documentation and source code of any method: `doc METHOD`, `source METHOD`, `code METHOD`. Examples: `doc Operations.list`, `code World::API::Time.get` (<https://github.com/MarioRuiz/slack-smart-bot/issues/98|#98>)
-- Deleted memos will be accessible by the creator (<https://github.com/MarioRuiz/slack-smart-bot/issues/100|#100>)
-- `calendar COUNTRY`, `calendar COUNTRY/STATE`, `calendar COUNTRY/STATE DATE` will display the calendar of public holidays. (<https://github.com/MarioRuiz/slack-smart-bot/issues/102|#102>)
-- Display public holidays for every member on vacation team calendar (<https://github.com/MarioRuiz/slack-smart-bot/issues/103|#103>)
-- OpenAI integration for personal results. ChatGPT, Whisper, Image generation, Image Variations and Image Edition (<https://github.com/MarioRuiz/slack-smart-bot/issues/101|#101>)
-- New `set personal settings` command (<https://github.com/MarioRuiz/slack-smart-bot/issues/105|#105>)
+- OpenAI adds specific hosts and access tokens for services. (<https://github.com/MarioRuiz/slack-smart-bot/issues/107|#107>).
+- chatGPT command improvements. (<https://github.com/MarioRuiz/slack-smart-bot/issues/108|#108>)
 
 *For Admin users*
-- New 'silent' option for command `exit bot silent`. It won't notify the SmartBot channels. (<https://github.com/MarioRuiz/slack-smart-bot/issues/93|#93>).
-- Show graph for `bot stats` when specifying option `graph` and grouping by daily, weekly, monthly or yearly. (<https://github.com/MarioRuiz/slack-smart-bot/issues/97|#97>).
-- config.encrypt (Boolean) By default will be set to true. (<https://github.com/MarioRuiz/slack-smart-bot/issues/99|#99>)
 
 ------------------------------
 
-*Previous*: <https://github.com/MarioRuiz/slack-smart-bot/blob/644c0882dec62281d5961d7565f6aba001be8d91/whats_new.txt|1.13.2>
+*Previous*: <https://github.com/MarioRuiz/slack-smart-bot/blob/3a4b369d6d32316690e873309eb0758511a2c513/whats_new.txt|1.14.2>

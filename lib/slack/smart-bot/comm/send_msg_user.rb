@@ -10,7 +10,7 @@ class SlackSmartBot
         if id_user[0] == "D"
           if config[:simulate]
             open("#{config.path}/buffer_complete.log", "a") { |f|
-              f.puts "|#{id_user}|#{config[:nick_id]}|#{config[:nick]}|#{msg}~~~"
+              f.puts "|#{id_user}|#{Thread.current[:thread_ts]}|#{config[:nick_id]}|#{config[:nick]}|#{msg}~~~"
             }
           else
             if web_client
@@ -30,13 +30,13 @@ class SlackSmartBot
           if config[:testing] and config.on_master_bot and !@buffered
             @buffered = true
             open("#{config.path}/buffer.log", "a") { |f|
-              f.puts "|#{id_user}|#{config[:nick_id]}|#{config[:nick]}|#{msg}#{blocks.join}"
+              f.puts "|#{id_user}|#{Thread.current[:thread_ts]}|#{config[:nick_id]}|#{config[:nick]}|#{msg}#{blocks.join}"
             }
           end
         else
           if config[:simulate]
             open("#{config.path}/buffer_complete.log", "a") { |f|
-              f.puts "|#{DIRECT[id_user.to_sym].ubot}|#{config[:nick_id]}|#{config[:nick]}|#{msg}#{blocks.join}~~~"
+              f.puts "|#{DIRECT[id_user.to_sym].ubot}|#{Thread.current[:thread_ts]}|#{config[:nick_id]}|#{config[:nick]}|#{msg}#{blocks.join}~~~"
             }
           else  
             im = client.web_client.conversations_open(users: id_user)
@@ -57,7 +57,7 @@ class SlackSmartBot
           if config[:testing] and config.on_master_bot and !@buffered
             @buffered = true
             open("#{config.path}/buffer.log", "a") { |f|
-              f.puts "|#{im["channel"]["id"]}|#{config[:nick_id]}|#{config[:nick]}|#{msg}#{blocks.join}"
+              f.puts "|#{im["channel"]["id"]}|#{Thread.current[:thread_ts]}|#{config[:nick_id]}|#{config[:nick]}|#{msg}#{blocks.join}"
             }
           end
         end

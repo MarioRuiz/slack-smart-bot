@@ -51,7 +51,7 @@ end
 
 build_DIRECT() unless SIMULATE
 
-def buffer(to:, from:, tries: 20, all: false)
+def buffer(to:, from:, tries: 20, all: false, thread_ts: '')
   SIMULATE ? sleep(0.2) : sleep(0.5)
   to = get_key(to)
   from = get_key(from)
@@ -62,10 +62,11 @@ def buffer(to:, from:, tries: 20, all: false)
     SIMULATE ? sleep(0.1) : sleep(0.2)
     b = File.read("./spec/bot/buffer.log", encoding: "UTF-8")
     if all
-      result = b.scan(/^|#{to}\|#{from}\|(.*)/im).flatten 
+      result = b.scan(/^\|#{to}\|#{thread_ts}\|#{from}\|(.*)/im).flatten 
     else
-      result = b.scan(/^|#{to}\|#{from}\|.*\|([^\|]+)$/).flatten
+      result = b.scan(/^\|#{to}\|#{thread_ts}\|#{from}\|.*\|([^\|]+)$/).flatten
     end
+
     result.delete(nil)
     result.each do |r|
       r.gsub!(/\s*\z/m, "")
@@ -77,8 +78,8 @@ def buffer(to:, from:, tries: 20, all: false)
   return result
 end
 
-def bufferc(to:, from:, tries: 20)
-  result = buffer(to: to, from: from, tries: tries)
+def bufferc(to:, from:, tries: 20, thread_ts: '')
+  result = buffer(to: to, from: from, tries: tries, thread_ts: thread_ts)
   clean_buffer()
   return result
 end
@@ -91,7 +92,7 @@ def clean_buffer()
   File.new("./spec/bot/buffer.log", "w")
 end
 
-def send_message(message, from: :ubot, to:, file_ruby: "")
+def send_message(message, from: :ubot, to:, file_ruby: "", thread_ts: nil)
   to_key = get_key(to)
   if SIMULATE
     if to_key[0] == "U" or to_key[0] == "W" #message from user to user (Direct Message)
@@ -139,7 +140,7 @@ def send_message(message, from: :ubot, to:, file_ruby: "")
         from_name = from.to_s
       end
       open("./spec/bot/buffer_complete.log", "a") { |f|
-        f.puts "|#{to_key}|#{get_key(from)}|#{from_name}|#{message}~~~"
+        f.puts "|#{to_key}|#{thread_ts}|#{get_key(from)}|#{from_name}|#{message}~~~"
       }
     else
       http.post(path: "/api/chat.postMessage", data: {

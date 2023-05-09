@@ -56,7 +56,7 @@ class SlackSmartBot
       if config[:testing] and config.on_master_bot and !@buffered
         @buffered = true
         open("#{config.path}/buffer.log", "a") { |f|
-          f.puts "|#{data.channel}|#{data.user}|#{data.user_name}|#{data.text}"
+          f.puts "|#{data.channel}|#{data.thread_ts}|#{data.user}|#{data.user_name}|#{data.text}"
         }
       end
       if data.key?(:dest) and data.dest.to_s!='' # for run routines and publish on different channels
@@ -216,7 +216,7 @@ class SlackSmartBot
         begin
           #user_info.id = data.user #todo: remove this line when slack issue with Wxxxx Uxxxx fixed
           data.user = user_info.id  #todo: remove this line when slack issue with Wxxxx Uxxxx fixed
-          if data.thread_ts.nil?
+          if data.thread_ts.to_s.empty?
             qdest = dest
           else
             qdest = data.thread_ts

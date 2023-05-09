@@ -15,7 +15,7 @@ class SlackSmartBot
         end
         if config[:simulate]
           open("#{config.path}/buffer_complete.log", "a") { |f|
-            f.puts "|#{channel_id}|#{config[:nick_id]}|#{config[:nick]}|#{msg}~~~"
+            f.puts "|#{channel_id}|#{Thread.current[:thread_ts]}|#{config[:nick_id]}|#{config[:nick]}|#{msg}~~~"
           }
         else  
           if Thread.current[:on_thread]
@@ -27,7 +27,7 @@ class SlackSmartBot
         if config[:testing] and config.on_master_bot and !@buffered
           @buffered = true
           open("#{config.path}/buffer.log", "a") { |f|
-            f.puts "|#{channel_id}|#{config[:nick_id]}|#{config[:nick]}|#{msg}"
+            f.puts "|#{channel_id}|#{Thread.current[:thread_ts]}|#{config[:nick_id]}|#{config[:nick]}|#{msg}"
           }
         end
       rescue Exception => stack

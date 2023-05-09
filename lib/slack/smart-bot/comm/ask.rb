@@ -17,7 +17,7 @@ class SlackSmartBot
       if dest.nil?
         if config[:simulate]
           open("#{config.path}/buffer_complete.log", "a") { |f|
-            f.puts "|#{@channel_id}|#{config[:nick_id]}|#{config[:nick]}|#{message}~~~"
+            f.puts "|#{@channel_id}|#{Thread.current[:thread_ts]}|#{config[:nick_id]}|#{config[:nick]}|#{message}~~~"
           }
         else  
           if Thread.current[:on_thread]
@@ -29,13 +29,13 @@ class SlackSmartBot
         if config[:testing] and config.on_master_bot and !@buffered
           @buffered = true
           open("#{config.path}/buffer.log", "a") { |f|
-            f.puts "|#{@channel_id}|#{config[:nick_id]}|#{config[:nick]}|#{message}"
+            f.puts "|#{@channel_id}|#{Thread.current[:thread_ts]}|#{config[:nick_id]}|#{config[:nick]}|#{message}"
           }
         end
       elsif dest[0] == "C" or dest[0] == "G" # channel
         if config[:simulate]
           open("#{config.path}/buffer_complete.log", "a") { |f|
-            f.puts "|#{dest}|#{config[:nick_id]}|#{config[:nick]}|#{message}~~~"
+            f.puts "|#{dest}|#{Thread.current[:thread_ts]}|#{config[:nick_id]}|#{config[:nick]}|#{message}~~~"
           }
         else  
           if Thread.current[:on_thread]
@@ -47,7 +47,7 @@ class SlackSmartBot
         if config[:testing] and config.on_master_bot and !@buffered
           @buffered = true
           open("#{config.path}/buffer.log", "a") { |f|
-            f.puts "|#{dest}|#{config[:nick_id]}|#{config[:nick]}|#{message}"
+            f.puts "|#{dest}|#{Thread.current[:thread_ts]}|#{config[:nick_id]}|#{config[:nick]}|#{message}"
           }
         end
       elsif dest[0] == "D" #private message

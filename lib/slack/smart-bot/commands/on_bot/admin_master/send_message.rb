@@ -50,6 +50,7 @@ class SlackSmartBot
           users_failed = []
 
           user_ids.each do |u|
+            @buffered = false if config.testing
             succ = (respond message, u, thread_ts: thread_ts, web_client: true)
             if succ
               users_success << u
@@ -65,6 +66,7 @@ class SlackSmartBot
         else
           to.each do |t|
             unless t.match?(/^\s*$/)
+              @buffered = false if config.testing
               succ = (respond message, t, thread_ts: thread_ts, web_client: true) && succ
             end
           end

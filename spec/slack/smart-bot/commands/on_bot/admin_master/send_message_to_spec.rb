@@ -45,7 +45,7 @@ RSpec.describe SlackSmartBot, "send_message_to" do
 
       it "send message to thread using url" do
         send_message "send message to  https://mario-ruiz.slack.com/archives/CN0595D50/p1632411703000500: message example", from: user, to: channel
-        expect(bufferc(to: :cbot1cm, from: :ubot).join).to match(/:on_thread:message example/)
+        expect(bufferc(to: :cbot1cm, from: :ubot, thread_ts: '1632411703.000500').join).to match(/message example/)
       end
 
     # helpadmin: `send message to users from YYYY/MM/DD to YYYY/MM/DD #CHANNEL COMMAND_ID: MESSAGE`

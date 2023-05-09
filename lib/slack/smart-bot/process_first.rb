@@ -300,6 +300,15 @@ class SlackSmartBot
               command_thread = command2
               on_demand = true
             end
+            
+            if !config.on_maintenance and @listening.key?(nick) and @listening[nick].key?(Thread.current[:thread_ts]) and !Thread.current[:thread_ts].empty? and
+              ((@active_chat_gpt_sessions.key?(nick) and @active_chat_gpt_sessions[nick].key?(Thread.current[:thread_ts])) or 
+              (@chat_gpt_collaborating.key?(nick) and @chat_gpt_collaborating[nick].key?(Thread.current[:thread_ts])))
+              @listening[nick][Thread.current[:thread_ts]] = Time.now
+              command_thread = "? #{command_thread}" #chatgpt
+            end
+        
+
             unless config.on_maintenance or @status != :on
               if typem == :on_pub or typem == :on_pg or typem == :on_extended
                 if command_thread.match(/\A\s*(#{@salutations.join("|")})\s+(rules|help)\s*(.+)?$/i) or command_thread.match(/\A(#{@salutations.join("|")}),? what can I do/i)

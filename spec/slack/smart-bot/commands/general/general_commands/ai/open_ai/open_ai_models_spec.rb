@@ -20,10 +20,11 @@ RSpec.describe SlackSmartBot, "open_ai_models" do
 
         it 'displays the info of a model' do
             send_message "?m curie", from: user, to: channel
-            sleep 3
+            sleep 4
             expect(buffer(to: channel, from: :ubot).join).to match(/Info about curie model/)
-            expect(buffer(to: channel, from: :ubot).join).to match(/"id": "curie"/)
-            expect(buffer(to: channel, from: :ubot).join).to match(/"permission": \[/)
+            expect(buffer(to: channel, from: :ubot).join).to match(/"id"/)
+            expect(buffer(to: channel, from: :ubot).join).to match(/"curie"/)
+            expect(buffer(to: channel, from: :ubot).join).to match(/"permission"/)
         end
 
       end

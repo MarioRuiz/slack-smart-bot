@@ -228,6 +228,10 @@ class SlackSmartBot
     @announcements_activity_after = Hash.new()
     @public_holidays = Hash.new()
     @loops = Hash.new()
+    @ai_gpt ||= {}
+    @active_chat_gpt_sessions = Hash.new()
+    @chat_gpt_collaborating = Hash.new()
+    @open_ai = Hash.new()
 
     if File.exist?("#{config.path}/shortcuts/#{config.shortcuts_file}".gsub('.yaml','.rb')) #backwards compatible
       file_conf = IO.readlines("#{config.path}/shortcuts/#{config.shortcuts_file}".gsub('.yaml','.rb')).join

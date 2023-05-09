@@ -37,6 +37,7 @@ RSpec.configure do |config|
       FileUtils.rm_rf Dir.glob("./spec/bot/vacations/*") if Dir.exist?("./spec/bot/vacations")
       FileUtils.rm_rf Dir.glob("./spec/bot/teams/*") if Dir.exist?("./spec/bot/teams")
       FileUtils.rm_rf Dir.glob("./spec/bot/personal_settings/*") if Dir.exist?("./spec/bot/personal_settings")
+      FileUtils.rm_rf Dir.glob("./spec/bot/openai/*") if Dir.exist?("./spec/bot/openai")
       
       @settings = {
         nick: "example", # the smart bot name

@@ -36,4 +36,6 @@ require_relative 'utils/encryption/encryption_get_key_iv'
 require_relative 'utils/encryption/encrypt'
 require_relative 'utils/encryption/decrypt'
 require_relative 'utils/get_team_members'
+require_relative 'utils/get_openai_sessions'
+require_relative 'utils/update_openai_sessions'
 

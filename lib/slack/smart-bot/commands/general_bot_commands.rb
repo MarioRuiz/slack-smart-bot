@@ -1,4 +1,4 @@
-class SlackSmartBot
+xxclass SlackSmartBot
 
   # add here the general commands you will be using in any channel where The SmartBot is part of. Not necessary to use ! or ^, it will answer directly.
   def general_bot_commands(user, command, dest, files = [])
@@ -12,6 +12,7 @@ class SlackSmartBot
         end
         display_name = user.profile.display_name
       end
+
       case command
         # help: ----------------------------------------------
         # help: `bot help`
@@ -623,9 +624,9 @@ class SlackSmartBot
           type = $1.downcase.to_sym
           name = $2.downcase
           member_type = $3.downcase
-          message = Thread.current[:command_orig].to_s.gsub("\u00A0", " ").scan(/\A\s*[\w]+\s+\w+\s+team\s+[\w\-]+\s+(.+)\s*\z/im).join
+          message = Thread.current[:command_orig].to_s.gsub("\u00A0", " ").gsub(/\A\^/,'').gsub(/\A!!/,'').gsub(/\A!/,'').scan(/\A\s*[\w]+\s+\w+\s+team\s+[\w\-]+\s+(.+)\s*\z/im).join
           if message == ''
-            message = Thread.current[:command_orig].to_s.gsub("\u00A0", " ").scan(/\A\s*[\w]+\s+team\s+\w+\s+[\w\-]+\s+(.+)\s*\z/im).join
+            message = Thread.current[:command_orig].to_s.gsub("\u00A0", " ").gsub(/\A\^/,'').gsub(/\A!!/,'').gsub(/\A!/,'').scan(/\A\s*[\w]+\s+team\s+\w+\s+[\w\-]+\s+(.+)\s*\z/im).join
           end
           ping_team(user, type, name, member_type, message)
 
@@ -901,23 +902,71 @@ class SlackSmartBot
           end
               
         # help: ----------------------------------------------
-        # help: `??`
         # help: `?? PROMPT`
         # help: `? PROMPT`
+        # help: `chatGPT SESSION_NAME`
+        # help: `chatGPT SESSION_NAME MODEL_NAME`
+        # help: `chatGPT start SESSION_NAME`
+        # help: `chatGPT delete SESSION_NAME`
+        # help: `chatGPT continue SESSION_NAME`
+        # help: `chatGPT get SESSION_NAME`
+        # help: `chatGPT list sessions`
         # help:     OpenAI: Chat GPT will generate a response based on the PROMPT indicated.
-        # help:             If ?? is used, it will start from zero the session. If not all the previous prompts from the session will be used to generate the response.
+        # help:             SESSION_NAME: is the name of the session to use. Only a-Z, 0-9, hyphens, and underscore are allowed.
+        # help:             When using 'chatGPT SESSION_NAME' in case the name doesn't exist it will create a new session with the name indicated, if exists it will continue the session.
+        # help:             When starting a new session, if you ask SmartBot to answer on a Thread by using !! or ^, then it won't be necessary to send ? before the prompt. 
+        # help:                In this case, every single message you send will be considered a prompt to be treated. 
+        # help:                After 30 minutes of inactivity SmartBot will stop listening to the thread. You will need to continue the session after that.
+        # help:                If you want to avoid a message to be treated then start it with a hyphen '-'.
+        # help:                To add a collaborator when on a thread, you can use directly `add collaborator @USER`
+        # help:             If ?? is used, it will start from zero the temporary session. If not all the previous prompts from the session will be used to generate the response.
+        # help:             If ??s is used or 'chatGPT start', it will start a new session with the name indicated.
+        # help:             If ??d is used or 'chatGPT delete', it will delete the session indicated.
+        # help:             If ??c is used or 'chatGPT continue', it will continue the session indicated.
+        # help:             If ??g is used or 'chatGPT get', it will get all the prompts from the session indicated.
+        # help:             If ??l is used or 'chatGPT list sessions', it will list all the saved sessions.
         # help:             You can share a message and use it as input for the supplied PROMPT.
         # help: Examples:
-        # help:     _??_
         # help:     _?? How much is two plus two_
         # help:     _? multiply it by pi number_
+        # help:     _^chatGPT SpanishTeacher_
+        # help:     _??d SpanishTeacher_
+        # help:     _!!chatgpt data_analyst gpt-3.5-turbo_
         # help: command_id: :open_ai_chat
+        # help: command_id: :open_ai_chat_delete_session
+        # help: command_id: :open_ai_chat_list_sessions
+        # help: command_id: :open_ai_chat_get_prompts
+        # help: command_id: :open_ai_chat_add_collaborator
         # help:
-        when /\A\s*(\?\?)\s*()\z/im, /\A\s*(\?\?)\s*(.+)\s*\z/im, /\A\s*()\?\s*(.+)\s*\z/im
-          delete_history = $1.to_s != ''
-          message = $2.to_s
-          open_ai_chat(message, delete_history)
+        when /\A\s*\?\s+(add\s+collaborator)\s+<@(\w+)>()\s*\z/im,
+          /\A\s*chatgpt\s+(list\s+sessions)()()\s*\z/im, /\A\s*\?\?(l)()()\s*\z/im,
+          /\A\s*\?\?(s|d|c|g)\s+([\w\-0-9]+)()\s*\z/im,
+          /\A\s*chatgpt\s+(start|delete|continue|get)\s+([\w\-0-9]+)()\s*\z/im,
+          /\A\s*(chatgpt)\s+([\w\-0-9]+)()\s*\z/im,
+          /\A\s*(chatgpt)\s+([\w\-0-9]+)\s+([\w\-0-9\.]+)\s*\z/im,
+          /\A\s*(\?\?)\s*()()\z/im, /\A\s*(\?\?)\s*(.+)()\s*\z/im, /\A\s*()\?\s*(.+)()\s*\z/im
 
+          type = $1.to_s.downcase
+          text = $2.to_s
+          model = $3.to_s
+          delete_history = type == '??'
+          type.strip!
+          if type == 's' or type == 'start' or type == 'chatgpt'
+            type = :start
+          elsif type == 'd' or type == 'delete'
+            type = :delete
+          elsif type == 'c' or type == 'continue'
+            type = :continue
+          elsif type == 'g' or type == 'get'
+            type = :get
+          elsif type == 'l' or type.match?(/list\s+sessions/)
+            type = :list
+          elsif type.match?(/add\s+collaborator/)
+            type = :add_collaborator
+          else
+            type = :temporary
+          end        
+          open_ai_chat(text, delete_history, type, model: model)
           
       else
         return false

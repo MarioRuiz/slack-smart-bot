@@ -18,7 +18,9 @@ class SlackSmartBot
                     last_activity: Time.now.strftime("%Y-%m-%d %H:%M:%S"),
                     collaborators: [],
                     num_prompts: session_orig[:num_prompts],
-                    model: session_orig[:model]
+                    model: session_orig[:model],
+                    shared: [],
+                    public: false
                 }
                 new_session_name = session_name if new_session_name == ''
                 session_names = @open_ai[user.name][:chat_gpt][:sessions].keys

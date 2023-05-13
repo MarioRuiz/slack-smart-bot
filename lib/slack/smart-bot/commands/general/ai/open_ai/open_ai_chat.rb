@@ -3,7 +3,7 @@ class SlackSmartBot
     module General
       module AI
         module OpenAI
-          def open_ai_chat(message, delete_history, type, model: '')
+          def open_ai_chat(message, delete_history, type, model: '', description: '')
             get_personal_settings()
             user = Thread.current[:user].dup
             @active_chat_gpt_sessions[user.name] ||= {}
@@ -37,7 +37,9 @@ class SlackSmartBot
                   last_activity: Time.now.strftime("%Y-%m-%d %H:%M:%S"),
                   collaborators: [],
                   num_prompts: 0,
-                  model: model
+                  model: model,
+                  public: false,
+                  shared: []
                 }
               elsif type == :continue
                 @open_ai[user.name][:chat_gpt][:sessions][session_name][:model] = model if model != ''
@@ -58,6 +60,7 @@ class SlackSmartBot
               else
                 @active_chat_gpt_sessions[user.name][Thread.current[:dest]] = session_name
               end
+              @open_ai[user.name][:chat_gpt][:sessions][session_name][:description] = description if description != ''
             elsif type == :temporary and 
               (!@chat_gpt_collaborating.key?(user.name) or !@chat_gpt_collaborating[user.name].key?(Thread.current[:thread_ts]))
               if Thread.current[:on_thread] and 

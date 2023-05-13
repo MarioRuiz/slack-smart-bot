@@ -61,17 +61,29 @@ class SlackSmartBot
     config[:encrypt] ||= true unless config.key?(:encrypt)
     config[:ai] ||= {} unless config.key?(:ai)
     config[:ai][:open_ai] ||= {
-      access_token: '',
-      organization_id: ''
+      access_token: ''
     } unless config[:ai].key?(:open_ai)
     config[:ai][:open_ai][:host] ||= ''
-    config[:ai][:open_ai][:whisper_model] ||= 'whisper-1'
-    config[:ai][:open_ai][:image_size] ||= '256x256'
-    config[:ai][:open_ai][:gpt_model] ||= 'gpt-3.5-turbo'
-    config[:ai][:open_ai][:chat_gpt] ||= { host: config._ai.open_ai.host, access_token: config._ai.open_ai.access_token }
-    config[:ai][:open_ai][:dall_e] ||= { host: config._ai.open_ai.host, access_token: config._ai.open_ai.access_token }
-    config[:ai][:open_ai][:whisper] ||= { host: config._ai.open_ai.host, access_token: config._ai.open_ai.access_token }
-    
+    config[:ai][:open_ai][:chat_gpt] ||= { }
+    config[:ai][:open_ai][:dall_e] ||= { }
+    config[:ai][:open_ai][:whisper] ||= { }
+
+    config[:ai][:open_ai][:chat_gpt][:host] ||= config._ai.open_ai.host
+    config[:ai][:open_ai][:chat_gpt][:access_token] ||= config._ai.open_ai.access_token
+    config[:ai][:open_ai][:chat_gpt][:model] ||= 'gpt-3.5-turbo'
+    config[:ai][:open_ai][:chat_gpt][:api_type] ||= :openai
+    config[:ai][:open_ai][:chat_gpt][:api_version] ||= ''
+
+    config[:ai][:open_ai][:dall_e][:host] ||= config._ai.open_ai.host
+    config[:ai][:open_ai][:dall_e][:access_token] ||= config._ai.open_ai.access_token
+    config[:ai][:open_ai][:dall_e][:model] ||= ''
+    config[:ai][:open_ai][:dall_e][:api_type] ||= :openai
+    config[:ai][:open_ai][:dall_e][:image_size] ||= '256x256'
+
+    config[:ai][:open_ai][:whisper][:host] ||= config._ai.open_ai.host
+    config[:ai][:open_ai][:whisper][:access_token] ||= config._ai.open_ai.access_token
+    config[:ai][:open_ai][:whisper][:api_type] ||= :openai
+    config[:ai][:open_ai][:whisper][:model] ||= 'whisper-1'
     
     if config.path.to_s!='' and config.file.to_s==''
       config.file = File.basename($0)

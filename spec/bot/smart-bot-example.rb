@@ -18,8 +18,13 @@ settings = {
   },
   ai: {
     open_ai: {
-      access_token: ENV['OPENAI_ACCESS_TOKEN'],
-      organization_id: ENV['OPENAI_ORGANIZATION_ID']
+      chat_gpt: {
+        host: ENV['OPENAI_AZURE_HOST'],
+        access_token: ENV['OPENAI_AZURE_ACCESS_TOKEN'],
+        api_version: '2023-03-15-preview',
+        api_type: :openai_azure,
+        model: 'gpt-35-turbo-0301'
+      }
     }
   },
   encrypt: true,
@@ -28,6 +33,7 @@ settings = {
 }
 
 if ENV['SIMULATE'] == 'true'
+  settings.ai.open_ai = { access_token: ENV['OPENAI_ACCESS_TOKEN'] }
   settings.simulate = true
   settings.path = './spec/bot/'
   require_relative 'client.rb'

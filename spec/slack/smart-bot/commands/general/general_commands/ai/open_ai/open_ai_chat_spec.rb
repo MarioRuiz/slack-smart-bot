@@ -13,7 +13,7 @@ RSpec.describe SlackSmartBot, "open_ai_chat" do
         send_message "?? hola", from: user, to: channel
         sleep 3
         send_message "delete personal settings ai.open_ai.access_token", from: user, to: channel
-        expect(buffer(to: channel, from: :ubot).join).to match(/Incorrect API key provided/i)
+        expect(buffer(to: channel, from: :ubot).join).to match(/(Incorrect API key provided|invalid_api_key)/i)
         prompt = "how much is 3 plus 3"
         send_message "?? #{prompt}", from: user, to: channel
         sleep 3

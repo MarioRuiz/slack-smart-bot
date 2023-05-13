@@ -53,6 +53,7 @@ class SlackSmartBot
                   started: Time.now.strftime("%Y-%m-%d %H:%M:%S"),
                   last_activity: Time.now.strftime("%Y-%m-%d %H:%M:%S"),
                   collaborators: [],
+                  num_prompts: 0,
                   model: model
                 }
               elsif type == :continue
@@ -121,13 +122,15 @@ class SlackSmartBot
               end
             elsif type == :list
               save_stats(:open_ai_chat_list_sessions)
-              if @open_ai.key?(user.name) and @open_ai[user.name].key?(:chat_gpt) and @open_ai[user.name][:chat_gpt].key?(:sessions)
+              if @open_ai.key?(user.name) and @open_ai[user.name].key?(:chat_gpt) and @open_ai[user.name][:chat_gpt].key?(:sessions) and
+                @open_ai[user.name][:chat_gpt][:sessions].size > 0
+                
                 sessions = @open_ai[user.name][:chat_gpt][:sessions].keys.sort
                 sessions.delete("")
                 list_sessions = []
                 sessions.each do |session_name|
                   session = @open_ai[user.name][:chat_gpt][:sessions][session_name]
-                  list_sessions << "*`#{session_name}`*: started: *#{session.started}*, last activity: *#{session.last_activity}*#{", collaborators: *#{session.collaborators.join(', ')}*" unless !session.key?(:collaborators) or session.collaborators.empty?}."
+                  list_sessions << "*`#{session_name}`*: *#{session.num_prompts}* prompts#{", collaborators: *#{session.collaborators.join(', ')}*" unless !session.key?(:collaborators) or session.collaborators.empty?}. _(#{session.started.gsub('-','/')[0..15]} - #{session.last_activity.gsub('-','/')[0..15]})_"
                 end
                 respond "*GPT*: Your sessions are:\n#{list_sessions.join("\n")}"
               else
@@ -137,15 +140,18 @@ class SlackSmartBot
             elsif type == :get
               save_stats(:open_ai_chat_get_prompts)
               session_name = message
+              get_openai_sessions(session_name)
               if @open_ai[user.name][:chat_gpt][:sessions].key?(session_name)
-                get_openai_sessions(session_name)
-                respond "*GPT*: Session *#{session_name}*."
                 prompts = @ai_gpt[user.name][session_name].join("\n")
                 prompts.gsub!(/^Me>\s*/,"\nMe> ")
                 prompts.gsub!(/^chatGPT>\s*/,"\nchatGPT> ")
                 if prompts.length > 3000
+                  respond "*GPT*: Session *#{session_name}*."
                   send_file(Thread.current[:dest], "", "prompts.txt", "", "text/plain", "text", content: prompts)
+                elsif prompts.empty?
+                  respond "*GPT*: Session *#{session_name}* has no prompts."
                 else
+                  respond "*GPT*: Session *#{session_name}*."
                   if prompts.include?("`")
                     respond prompts
                   else
@@ -176,6 +182,7 @@ class SlackSmartBot
               save_stats(__method__)
               @open_ai[user_creator][:chat_gpt][:sessions][session_name][:last_activity] = Time.now.strftime("%Y-%m-%d %H:%M:%S") unless session_name == ''
               @ai_open_ai, message_connect = SlackSmartBot::AI::OpenAI.connect(@ai_open_ai, config, @personal_settings, reconnect: delete_history, service: :chat_gpt)
+
               respond message_connect if message_connect
               if !@ai_open_ai[user_creator].nil? and !@ai_open_ai[user_creator][:chat_gpt][:client].nil?
                 @ai_gpt[user_creator] ||= {}
@@ -189,24 +196,34 @@ class SlackSmartBot
                     get_openai_sessions(session_name, user_name: user_creator)
                     @ai_gpt[user_creator][session_name] = [] if delete_history
                     model = @open_ai[user_creator][:chat_gpt][:sessions][session_name][:model].to_s unless session_name == ''
-                    model = @ai_open_ai[user_creator].gpt_model if model.nil? or model.empty?
+                    model = @ai_open_ai[user_creator].chat_gpt.model if model.nil? or model.empty?
                     if message == ''
                       res = ''
                     else
-                      @ai_gpt[user_creator][session_name] << "Me> #{message}"#.force_encoding("UTF-8")
+                      @open_ai[user_creator][:chat_gpt][:sessions][session_name][:num_prompts] += 1 if session_name != ''
+                      @ai_gpt[user_creator][session_name] << "Me> #{message}"
                       prompts = @ai_gpt[user_creator][session_name].join("\n\n")
                       prompts.gsub!(/^Me>\s*/,'')
                       prompts.gsub!(/^chatGPT>\s*/,'')
-                      success, res = SlackSmartBot::AI::OpenAI.send_gpt_chat(@ai_open_ai[user_creator][:chat_gpt][:client], model, prompts)
+                      success, res = SlackSmartBot::AI::OpenAI.send_gpt_chat(@ai_open_ai[user_creator][:chat_gpt][:client], model, prompts, @ai_open_ai[user_creator].chat_gpt)
                       if success
-                        @ai_gpt[user_creator][session_name] << "chatGPT> #{res}"#.force_encoding("UTF-8")
+                        @ai_gpt[user_creator][session_name] << "chatGPT> #{res}"
                       end
                     end
                     if session_name == ''
                       temp_session_name = @ai_gpt[user_creator][''].first[0..35].gsub('Me> ','')
                       respond "*GPT* Temporary session: _<#{temp_session_name}...>_ model: #{model}\n#{res.strip}"
+                      if res.strip == ''
+                        respond "It seems like GPT is not responding. Please try again later or use another model, as it might be overloaded."
+                      end
+                      #to avoid logging the prompt or the response
+                      if config.encrypt
+                        Thread.current[:encrypted] ||= []
+                        Thread.current[:encrypted] << message
+                      end
                     elsif res.strip == ''
                       respond "*GPT* Session _<#{session_name}>_ model: #{model}"
+                      respond "It seems like GPT is not responding. Please try again later or use another model, as it might be overloaded." if message != ''
                     else
                       respond "*GPT* Session _<#{session_name}>_ model: #{model}\n#{res.strip}"
                     end

@@ -22,7 +22,7 @@ class SlackSmartBot
                   image = "#{config.path}/tmp/#{user.name}_#{@ai_open_ai_image[user.name].object_id}.png"
                   http = NiceHttp.new(host: "https://files.slack.com", headers: { "Authorization" => "Bearer #{config.token}" })
                   res = http.get(files[0].url_private_download, save_data: image)
-                  success, res = SlackSmartBot::AI::OpenAI.send_image_edit(@ai_open_ai[user.name][:dall_e].client, image, message, size: @ai_open_ai[user.name][:image_size])
+                  success, res = SlackSmartBot::AI::OpenAI.send_image_edit(@ai_open_ai[user.name][:dall_e].client, image, message, size: @ai_open_ai[user.name][:dall_e][:image_size])
 
                   if success
                     urls = res

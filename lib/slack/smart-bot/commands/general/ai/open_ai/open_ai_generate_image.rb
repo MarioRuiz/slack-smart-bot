@@ -21,7 +21,7 @@ class SlackSmartBot
                   respond "*OpenAI*: Sorry, I need to generate an image first. Use `?i PROMPT` to generate an image."
                 else
                   @ai_open_ai_image[user.name] << message unless repeat
-                  success, res = SlackSmartBot::AI::OpenAI.send_image_generation(@ai_open_ai[user.name][:dall_e][:client], @ai_open_ai_image[user.name].join("\n"), @ai_open_ai[user.name][:image_size])
+                  success, res = SlackSmartBot::AI::OpenAI.send_image_generation(@ai_open_ai[user.name][:dall_e][:client], @ai_open_ai_image[user.name].join("\n"), @ai_open_ai[user.name][:dall_e][:image_size])
                   if success
                     urls = res
                     urls = [urls] if urls.is_a?(String)

@@ -725,7 +725,7 @@ Other 'time off' commands: **_`remove time off ID`_**, **_`see my time off`_**, 
 ### OpenAI
 > for all users  
 #### OpenAI setup
-To be able to use this SmartBot general command you need to ask for an API token: https://platform.openai.com/account/api-keys  
+To be able to use this SmartBot general command you need to ask for an API token: https://platform.openai.com/account/api-keys or supply a Host and api_key for Azure OpenAI.    
 
 Then specify in the SmartBot config the keys:  
 
@@ -733,35 +733,41 @@ Then specify in the SmartBot config the keys:
 ai: {
   # for all open_ai services
   open_ai: {
+      #default host and token for all openAI services
       host: 'HOST', # optional
       access_token: 'OPENAI_ACCESS_TOKEN',
-      gpt_model: 'gpt-3.5-turbo', #optional
-      whisper_model: 'whisper-1', #optional
-      image_size: '256x256', #optional
       # Optional. For chatGPT. If supplied it will be used instead of the ones defined for all open_ai services
       chat_gpt: { 
         host: 'HOST',
-        access_token: 'OPENAI_ACCESS_TOKEN'
+        access_token: 'OPENAI_ACCESS_TOKEN', #or OPENAI_API_KEY from Azure
+        api_type: :openai_azure, #Default type will be :openai (possible values are :openai, :openai_azure) 
+                             #If supplied :openai_azure then it is necessary to supply host
+        api_version: '2023-03-15-preview', # Default api version for :openai_azure
+        model: 'gpt-3.5-turbo',
       },
       # Optional. For DALL-E. If supplied it will be used instead of the ones defined for all open_ai services
       dall_e: {
         host: 'HOST',
-        access_token: 'OPENAI_ACCESS_TOKEN'
+        access_token: 'OPENAI_ACCESS_TOKEN',
+        image_size: '256x256',
       },
       # Optional. For Whisper. If supplied it will be used instead of the ones defined for all open_ai services
       whisper: {
         host: 'HOST',
-        access_token: 'OPENAI_ACCESS_TOKEN'
+        access_token: 'OPENAI_ACCESS_TOKEN',
+        model: 'whisper-1',
       }
   }
 }
 ```
 
 Or if you want you can set your personal access token just to be used by you by calling on a DM with the SmartBot the command: `set personal settings ai.open_ai.access_token ACCESS_TOKEN`  
-Also, you can specify personal settings for `host`, `gpt_model`, `whisper_model` or `image_size`, instead of using the default values.  
+Also, you can specify personal settings for `host`, `chat_gpt.model`, `whisper.model` or `dall_e.image_size`, instead of using the default values.  
 For using different hosts or tokens for each service you can use the `chat_gpt`, `dall_e` or `whisper` keys.  
 
 #### ChatGPT
+
+[![SmartBot ChatGPT](https://img.youtube.com/vi/zri_R6sLtBA/0.jpg)](https://www.youtube.com/watch?v=zri_R6sLtBA)  
 
 `?? PROMPT`  
 `? PROMPT`  

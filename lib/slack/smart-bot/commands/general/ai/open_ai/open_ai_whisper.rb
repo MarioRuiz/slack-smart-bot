@@ -19,10 +19,10 @@ class SlackSmartBot
                   audio = "#{config.path}/tmp/#{user.name}_audio.wav"
                   http = NiceHttp.new(host: "https://files.slack.com", headers: { "Authorization" => "Bearer #{config.token}" })
                   res = http.get(files[0].url_private_download, save_data: audio)
-                  success, res = SlackSmartBot::AI::OpenAI.whisper_transcribe(@ai_open_ai[user.name][:whisper][:client], @ai_open_ai[user.name].whisper_model, audio)
+                  success, res = SlackSmartBot::AI::OpenAI.whisper_transcribe(@ai_open_ai[user.name][:whisper][:client], @ai_open_ai[user.name].whisper.model, audio)
                   if success
                     if message.to_s != ''
-                      success, res = SlackSmartBot::AI::OpenAI.send_gpt_chat(@ai_open_ai[user.name][:whisper][:client], @ai_open_ai[user.name].gpt_model, "#{message}:\n#{res}")
+                      success, res = SlackSmartBot::AI::OpenAI.send_gpt_chat(@ai_open_ai[user.name][:whisper][:client], @ai_open_ai[user.name].chat_gpt.model, "#{message}:\n#{res}", @ai_open_ai[user.name].chat_gpt)
                       type_whisper = message
                     else
                       type_whisper = "Transcribe"

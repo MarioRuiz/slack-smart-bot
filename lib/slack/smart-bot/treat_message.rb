@@ -291,7 +291,7 @@ class SlackSmartBot
                 command.size > 0 and command[0] != "-"
             process_first(user_info, command, dest, data.channel, typem, data.files, data.ts, data.thread_ts, data.routine, data.routine_name, data.routine_type, command_orig)
             # if @botname on #channel_rules: do something
-          elsif typem == :on_pub or typem == :on_pg
+          elsif (typem == :on_pub or typem == :on_pg) and command.size > 0 and command[0] != "-"
             process_first(user_info, command, dest, channel_rules, typem, data.files, data.ts, data.thread_ts, data.routine, data.routine_name, data.routine_type, command_orig)
           end
 

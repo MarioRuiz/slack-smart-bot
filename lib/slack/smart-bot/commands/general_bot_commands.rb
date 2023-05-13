@@ -907,10 +907,7 @@ class SlackSmartBot
         # help: `chatGPT SESSION_NAME`
         # help: `chatGPT SESSION_NAME MODEL_NAME`
         # help: `chatGPT start SESSION_NAME`
-        # help: `chatGPT delete SESSION_NAME`
         # help: `chatGPT continue SESSION_NAME`
-        # help: `chatGPT get SESSION_NAME`
-        # help: `chatGPT list sessions`
         # help:     OpenAI: Chat GPT will generate a response based on the PROMPT indicated.
         # help:             SESSION_NAME: is the name of the session to use. Only a-Z, 0-9, hyphens, and underscore are allowed.
         # help:             When using 'chatGPT SESSION_NAME' in case the name doesn't exist it will create a new session with the name indicated, if exists it will continue the session.
@@ -921,27 +918,68 @@ class SlackSmartBot
         # help:                To add a collaborator when on a thread, you can use directly `add collaborator @USER`
         # help:             If ?? is used, it will start from zero the temporary session. If not all the previous prompts from the session will be used to generate the response.
         # help:             If ??s is used or 'chatGPT start', it will start a new session with the name indicated.
-        # help:             If ??d is used or 'chatGPT delete', it will delete the session indicated.
         # help:             If ??c is used or 'chatGPT continue', it will continue the session indicated.
-        # help:             If ??g is used or 'chatGPT get', it will get all the prompts from the session indicated.
-        # help:             If ??l is used or 'chatGPT list sessions', it will list all the saved sessions.
         # help:             You can share a message and use it as input for the supplied PROMPT.
         # help: Examples:
         # help:     _?? How much is two plus two_
         # help:     _? multiply it by pi number_
-        # help:     _^chatGPT SpanishTeacher_
-        # help:     _??d SpanishTeacher_
+        # help:     _^chatgpt SpanishTeacher_
         # help:     _!!chatgpt data_analyst gpt-3.5-turbo_
         # help: command_id: :open_ai_chat
-        # help: command_id: :open_ai_chat_delete_session
-        # help: command_id: :open_ai_chat_list_sessions
-        # help: command_id: :open_ai_chat_get_prompts
         # help: command_id: :open_ai_chat_add_collaborator
         # help:
+
+        # help: ----------------------------------------------
+        # help: `chatGPT get SESSION_NAME`
+        # help: `??g SESSION_NAME`
+        # help:     OpenAI: SmartBot will get all the prompts from the ChatGPT session indicated.
+        # help: Examples:
+        # help:     _chatgpt get SpanishTeacher_
+        # help:     _??g SpanishTeacher_
+        # help: command_id: :open_ai_chat_get_prompts
+        # help:
+
+        # help: ----------------------------------------------
+        # help: `chatGPT delete SESSION_NAME`
+        # help: `??d SESSION_NAME`
+        # help:     OpenAI: SmartBot will delete the ChatGPT session indicated.
+        # help: Examples:
+        # help:     _chatgpt delete SpanishTeacher_
+        # help:     _??d SpanishTeacher_
+        # help: command_id: :open_ai_chat_delete_session
+        # help:
+
+        # help: ----------------------------------------------
+        # help: `chatGPT list sessions`
+        # help: `??l`
+        # help:     OpenAI: SmartBot will list all the ChatGPT sessions.
+        # help: Examples:
+        # help:     _chatgpt list sessions_
+        # help:     _??l_
+        # help: command_id: :open_ai_chat_list_sessions
+        # help:
+
+        #chatgpt get
+        when /\A\s*\?\?(g)\s+([\w\-0-9]+)()\s*\z/im,
+          /\A\s*chatgpt\s+(get)\s+([\w\-0-9]+)()\s*\z/im
+          session_name = $2.to_s
+          open_ai_chat_get_prompts(session_name)
+
+        #chatgpt delete
+        when /\A\s*\?\?(d)\s+([\w\-0-9]+)()\s*\z/im,
+          /\A\s*chatgpt\s+(delete)\s+([\w\-0-9]+)()\s*\z/im
+          session_name = $2.to_s
+          open_ai_chat_delete_session(session_name)
+
+        #chatgpt list
+        when /\A\s*chatgpt\s+(list\s+sessions)()()\s*\z/im, 
+          /\A\s*\?\?(l)()()\s*\z/im
+          open_ai_chat_list_sessions()
+
+        # chatgpt chat
         when /\A\s*\?\s+(add\s+collaborator)\s+<@(\w+)>()\s*\z/im,
-          /\A\s*chatgpt\s+(list\s+sessions)()()\s*\z/im, /\A\s*\?\?(l)()()\s*\z/im,
-          /\A\s*\?\?(s|d|c|g)\s+([\w\-0-9]+)()\s*\z/im,
-          /\A\s*chatgpt\s+(start|delete|continue|get)\s+([\w\-0-9]+)()\s*\z/im,
+          /\A\s*\?\?(s|c)\s+([\w\-0-9]+)()\s*\z/im,
+          /\A\s*chatgpt\s+(start|continue)\s+([\w\-0-9]+)()\s*\z/im,
           /\A\s*(chatgpt)\s+([\w\-0-9]+)()\s*\z/im,
           /\A\s*(chatgpt)\s+([\w\-0-9]+)\s+([\w\-0-9\.]+)\s*\z/im,
           /\A\s*(\?\?)\s*()()\z/im, /\A\s*(\?\?)\s*(.+)()\s*\z/im, /\A\s*()\?\s*(.+)()\s*\z/im
@@ -953,20 +991,18 @@ class SlackSmartBot
           type.strip!
           if type == 's' or type == 'start' or type == 'chatgpt'
             type = :start
-          elsif type == 'd' or type == 'delete'
-            type = :delete
           elsif type == 'c' or type == 'continue'
             type = :continue
-          elsif type == 'g' or type == 'get'
-            type = :get
-          elsif type == 'l' or type.match?(/list\s+sessions/)
-            type = :list
           elsif type.match?(/add\s+collaborator/)
             type = :add_collaborator
           else
             type = :temporary
           end        
-          open_ai_chat(text, delete_history, type, model: model)
+          if type == :add_collaborator
+            open_ai_chat_add_collaborator(text)
+          else
+            open_ai_chat(text, delete_history, type, model: model)
+          end
           
       else
         return false

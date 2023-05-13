@@ -80,6 +80,10 @@ require_relative "commands/general/personal_settings"
 require_relative "commands/general/teams/memos/add_memo_team_comment"
 require_relative "commands/general/teams/memos/see_memo_team"
 require_relative 'commands/general/ai/open_ai/open_ai_chat'
+require_relative 'commands/general/ai/open_ai/open_ai_chat_get_prompts'
+require_relative 'commands/general/ai/open_ai/open_ai_chat_delete_session'
+require_relative 'commands/general/ai/open_ai/open_ai_chat_list_sessions'
+require_relative 'commands/general/ai/open_ai/open_ai_chat_add_collaborator'
 require_relative 'commands/general/ai/open_ai/open_ai_generate_image'
 require_relative 'commands/general/ai/open_ai/open_ai_variations_image'
 require_relative 'commands/general/ai/open_ai/open_ai_edit_image'

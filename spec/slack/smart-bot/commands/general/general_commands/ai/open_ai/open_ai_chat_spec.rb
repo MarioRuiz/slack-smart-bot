@@ -31,10 +31,6 @@ RSpec.describe SlackSmartBot, "open_ai_chat" do
         skip("no api key") unless ENV["OPENAI_ACCESS_TOKEN"].to_s != ""
       end
 
-      before(:each) do
-        
-      end
-
       it "restarts temporary session when ??" do
         send_message "??", from: user, to: channel
         sleep 3
@@ -69,18 +65,6 @@ RSpec.describe SlackSmartBot, "open_ai_chat" do
         sleep 3
         expect(buffer(to: channel, from: :ubot, thread_ts: thread).join).to match(/Temporary Session: _<#{prompt}...>_ model:/i)
         expect(bufferc(to: channel, from: :ubot, thread_ts: thread).join).to match(/(8|eight)/)
-      end
-
-      it 'is not possible to add collaborators to temporary sessions' do
-        prompt = "how much is 3 plus 3"
-        thread = "opeanai#{'3:L&'.gen}"
-        send_message "^?? #{prompt}", from: user, to: channel, thread_ts: thread
-        sleep 3
-        expect(buffer(to: channel, from: :ubot, thread_ts: thread).join).to match(/Temporary session: _<#{prompt}...>_ model:/i)
-        expect(bufferc(to: channel, from: :ubot, thread_ts: thread).join).to match(/(6|six)/)
-        send_message "add collaborator <@#{USER2}>", from: user, to: channel, thread_ts: thread
-        sleep 3
-        expect(buffer(to: channel, from: :ubot, thread_ts: thread).join).to match(/You can add collaborators for the chatGPT session only when started on a thread and using a session name/i)
       end
 
       it 'is creating the session name indicated' do
@@ -162,26 +146,6 @@ RSpec.describe SlackSmartBot, "open_ai_chat" do
         expect(bufferc(to: channel, from: :ubot).join).to match(/I just loaded \*mySession6\*/)
       end
 
-      it 'is adding a collaborator' do
-        thread = "openai#{'3:L&'.gen}"
-        send_message "^chatgpt mySession7", from: user, to: channel, thread_ts: thread
-        sleep 3
-        expect(bufferc(to: channel, from: :ubot, thread_ts: thread).join).to match(/Session _<mySession7>_ model:/i)
-        send_message "how much is 3 plus 5", from: user, to: channel, thread_ts: thread
-        sleep 3
-        expect(buffer(to: channel, from: :ubot, thread_ts: thread).join).to match(/Session _<mySession7>_ model:/i)
-        expect(bufferc(to: channel, from: :ubot, thread_ts: thread).join).to match(/(8|eight)/)
-        send_message "hola", from: :user2, to: channel, thread_ts: thread
-        expect(buffer(to: channel, from: :ubot, thread_ts: thread).join).to eq ""
-        send_message "add collaborator <@#{USER2}>", from: user, to: channel, thread_ts: thread
-        sleep 3
-        expect(bufferc(to: channel, from: :ubot, thread_ts: thread).join).to match(/Now <@smartbotuser2> is a collaborator of this session only when on a thread/i)
-        send_message "and plus 2", from: :user2, to: channel, thread_ts: thread
-        sleep 3
-        expect(buffer(to: channel, from: :ubot, thread_ts: thread).join).to match(/Session _<mySession7>_ model:/i)
-        expect(bufferc(to: channel, from: :ubot, thread_ts: thread).join).to match(/(10|ten)/)
-      end
-
       it 'is skipping line when using hyphen' do
         thread = "openai#{'3:L&'.gen}"
         send_message "^chatgpt mySession8", from: user, to: channel, thread_ts: thread
@@ -194,74 +158,6 @@ RSpec.describe SlackSmartBot, "open_ai_chat" do
         send_message "-and minus 2", from: user, to: channel, thread_ts: thread
         sleep 3
         expect(buffer(to: channel, from: :ubot, thread_ts: thread).join).to eq ""
-      end
-
-      it 'is deleting a session' do
-        send_message "chatgpt delete wrongSession", from: user, to: channel
-        sleep 1
-        expect(bufferc(to: channel, from: :ubot).join).to match(/You don't have a session with that name/i)
-        send_message "chatgpt mySession9", from: user, to: channel
-        sleep 3
-        expect(bufferc(to: channel, from: :ubot).join).to match(/Session _<mySession9>_ model:/i)
-        send_message "chatgpt delete mySession9", from: user, to: channel
-        sleep 3
-        expect(bufferc(to: channel, from: :ubot).join).to match(/Session \*mySession9\* deleted/i)
-        send_message "chatgpt mySession9", from: user, to: channel
-        sleep 3
-        expect(buffer(to: channel, from: :ubot).join).to match(/Session _<mySession9>_ model:/i)
-        expect(bufferc(to: channel, from: :ubot).join).not_to match(/I just loaded/i)
-        send_message "??d mySession9", from: user, to: channel
-        sleep 3
-        expect(bufferc(to: channel, from: :ubot).join).to match(/Session \*mySession9\* deleted/i)
-      end
-
-      it 'returns the prompts from session when calling get' do
-        send_message "chatgpt mySession10", from: user, to: channel
-        sleep 3
-        expect(bufferc(to: channel, from: :ubot).join).to match(/Session _<mySession10>_ model:/i)
-        send_message "?how much is 3 plus 7", from: user, to: channel
-        sleep 3
-        expect(bufferc(to: channel, from: :ubot).join).to match(/(10|ten)/)
-        send_message "?and plus 2", from: user, to: channel
-        sleep 3
-        expect(bufferc(to: channel, from: :ubot).join).to match(/(12|twelve)/)
-        send_message "chatgpt get mySession10", from: user, to: channel
-        sleep 3
-        expect(buffer(to: channel, from: :ubot).join).to match(/Me> how much is 3 plus 7/i)
-        expect(buffer(to: channel, from: :ubot).join).to match(/chatGPT> .*(10|ten).*/i)
-        expect(buffer(to: channel, from: :ubot).join).to match(/Me> and plus 2/i)
-        expect(bufferc(to: channel, from: :ubot).join).to match(/chatGPT> .*(12|twelve).*/i)
-        send_message "??g mySession10", from: user, to: channel
-        sleep 3
-        expect(buffer(to: channel, from: :ubot).join).to match(/Me> how much is 3 plus 7/i)
-        expect(buffer(to: channel, from: :ubot).join).to match(/chatGPT> .*(10|ten).*/i)
-        expect(buffer(to: channel, from: :ubot).join).to match(/Me> and plus 2/i)
-        expect(bufferc(to: channel, from: :ubot).join).to match(/chatGPT> .*(12|twelve).*/i)
-        send_message "chatgpt get wrong_name", from: user, to: channel
-        sleep 1
-        expect(bufferc(to: channel, from: :ubot).join).to match(/You don't have a session with that name/i)
-      end
-
-      it 'is listing the session names' do
-        send_message "chatgpt mySession11", from: user, to: channel
-        sleep 3
-        expect(bufferc(to: channel, from: :ubot).join).to match(/Session _<mySession11>_ model:/i)
-        send_message "chatgpt mySession12", from: user, to: channel
-        sleep 3
-        expect(bufferc(to: channel, from: :ubot).join).to match(/Session _<mySession12>_ model:/i)
-        send_message "chatgpt mySession13", from: user, to: channel
-        sleep 3
-        expect(bufferc(to: channel, from: :ubot).join).to match(/Session _<mySession13>_ model:/i)
-        send_message "chatgpt list sessions", from: user, to: channel
-        sleep 1
-        expect(buffer(to: channel, from: :ubot).join).to match(/`mySession11`/i)
-        expect(buffer(to: channel, from: :ubot).join).to match(/`mySession12`/i)
-        expect(buffer(to: channel, from: :ubot).join).to match(/`mySession13`/i)
-        send_message "??l", from: user, to: channel
-        sleep 1
-        expect(buffer(to: channel, from: :ubot).join).to match(/`mySession11`/i)
-        expect(buffer(to: channel, from: :ubot).join).to match(/`mySession12`/i)
-        expect(buffer(to: channel, from: :ubot).join).to match(/`mySession13`/i)
       end
 
     end

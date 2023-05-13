@@ -15,7 +15,8 @@ RSpec.describe SlackSmartBot, "open_ai_models" do
             expect(buffer(to: channel, from: :ubot).join).to match(/gpt/)
             expect(buffer(to: channel, from: :ubot).join).to match(/set personal settings ai.open_ai.chat_gpt.model MODEL_NAME/)
             expect(buffer(to: channel, from: :ubot).join).to match(/set personal settings ai.open_ai.whisper.model MODEL_NAME/)   
-            expect(buffer(to: channel, from: :ubot).join).to match(/If you want to use a model, you can use on a DM with the SmartBot the command/)         
+            expect(buffer(to: channel, from: :ubot).join).to match(/If you want to use a model by default, you can use on a DM with the SmartBot the command/)
+            expect(buffer(to: channel, from: :ubot).join).to match(/To start a chatGPT session using a specific model: `\^chatgpt SESSION_NAME MODEL_NAME`/)
         end
 
         it 'displays the info of a model' do

@@ -21,24 +21,7 @@ class SlackSmartBot
               @active_chat_gpt_sessions[user.name][Thread.current[:dest]] = ''
             end
 
-            if type == :add_collaborator
-              save_stats(:open_ai_chat_add_collaborator)
-              if session_name!='' and @active_chat_gpt_sessions[user.name].key?(Thread.current[:thread_ts])
-                cname = message
-                collaborator = @users.select{|u| u.id == cname or (u.key?(:enterprise_user) and u.enterprise_user.id == cname)}[-1]
-                unless @open_ai[user.name][:chat_gpt][:sessions][session_name][:collaborators].include?(collaborator.name)
-                  @open_ai[user.name][:chat_gpt][:sessions][session_name][:collaborators] << collaborator.name
-                end
-                @listening[collaborator.name] ||= {}
-                @listening[collaborator.name][Thread.current[:thread_ts]] = Time.now
-                @chat_gpt_collaborating[collaborator.name] ||= {}
-                @chat_gpt_collaborating[collaborator.name][Thread.current[:thread_ts]] ||= { user_creator: user.name, session_name: session_name }
-                respond "Now <@#{collaborator.name}> is a collaborator of this session only when on a thread.\nIn case you don't want to send a message as a prompt, just start the message with hyphen (-)."                
-              else
-                respond "You can add collaborators for the chatGPT session only when started on a thread and using a session name."
-              end
-
-            elsif type == :start or type == :continue
+            if type == :start or type == :continue
               session_name = message
               @active_chat_gpt_sessions[user.name] ||= {}
               @active_chat_gpt_sessions[user.name][Thread.current[:thread_ts]] = session_name
@@ -91,77 +74,6 @@ class SlackSmartBot
                 @active_chat_gpt_sessions[user.name] ||= {}
                 @active_chat_gpt_sessions[user.name][Thread.current[:thread_ts]] ||= ""
               end
-
-            elsif type == :delete
-              #todo: add confirmation message
-              save_stats(:open_ai_chat_delete_session)
-              session_name = message
-              @open_ai[user.name] ||= {}
-              @open_ai[user.name][:chat_gpt] ||= {}
-              @open_ai[user.name][:chat_gpt][:sessions] ||= {}
-              if @open_ai[user.name][:chat_gpt][:sessions].key?(session_name)
-                delete_threads = []
-                @active_chat_gpt_sessions[user.name].each do |thread_ts, sname|
-                  delete_threads << thread_ts if sname == session_name
-                end
-                delete_threads.each do |thread_ts|
-                  @active_chat_gpt_sessions[user.name].delete(thread_ts)
-                  @listening[user.name].delete(thread_ts)
-                  @open_ai[user.name][:chat_gpt][:sessions][session_name][:collaborators].each do |collaborator|
-                    @listening[collaborator].delete(thread_ts) if @listening.key?(collaborator)
-                    @chat_gpt_collaborating[collaborator].delete(thread_ts) if @chat_gpt_collaborating.key?(collaborator)
-                  end
-                end
-
-                @open_ai[user.name][:chat_gpt][:sessions].delete(session_name)
-
-                update_openai_sessions(session_name)
-                respond "*GPT*: Session *#{session_name}* deleted."
-              else
-                respond "*GPT*: You don't have a session with that name.\nCall `chatGPT list sessions` to see your saved sessions."
-              end
-            elsif type == :list
-              save_stats(:open_ai_chat_list_sessions)
-              if @open_ai.key?(user.name) and @open_ai[user.name].key?(:chat_gpt) and @open_ai[user.name][:chat_gpt].key?(:sessions) and
-                @open_ai[user.name][:chat_gpt][:sessions].size > 0
-                
-                sessions = @open_ai[user.name][:chat_gpt][:sessions].keys.sort
-                sessions.delete("")
-                list_sessions = []
-                sessions.each do |session_name|
-                  session = @open_ai[user.name][:chat_gpt][:sessions][session_name]
-                  list_sessions << "*`#{session_name}`*: *#{session.num_prompts}* prompts#{", collaborators: *#{session.collaborators.join(', ')}*" unless !session.key?(:collaborators) or session.collaborators.empty?}. _(#{session.started.gsub('-','/')[0..15]} - #{session.last_activity.gsub('-','/')[0..15]})_"
-                end
-                respond "*GPT*: Your sessions are:\n#{list_sessions.join("\n")}"
-              else
-                respond "*GPT*: You don't have any session saved."
-              end
-
-            elsif type == :get
-              save_stats(:open_ai_chat_get_prompts)
-              session_name = message
-              get_openai_sessions(session_name)
-              if @open_ai[user.name][:chat_gpt][:sessions].key?(session_name)
-                prompts = @ai_gpt[user.name][session_name].join("\n")
-                prompts.gsub!(/^Me>\s*/,"\nMe> ")
-                prompts.gsub!(/^chatGPT>\s*/,"\nchatGPT> ")
-                if prompts.length > 3000
-                  respond "*GPT*: Session *#{session_name}*."
-                  send_file(Thread.current[:dest], "", "prompts.txt", "", "text/plain", "text", content: prompts)
-                elsif prompts.empty?
-                  respond "*GPT*: Session *#{session_name}* has no prompts."
-                else
-                  respond "*GPT*: Session *#{session_name}*."
-                  if prompts.include?("`")
-                    respond prompts
-                  else
-                    respond "```#{prompts}```"
-                  end
-                end
-              else
-                respond "*GPT*: You don't have a session with that name.\nCall `chatGPT list sessions` to see your saved sessions."
-              end
-
             end
 
             #for collaborators
@@ -174,11 +86,10 @@ class SlackSmartBot
               collaborator = false
             end 
 
-            unless type == :delete or type == :get or type == :list or type == :add_collaborator or 
-              (type != :temporary and 
+            unless type != :temporary and 
               (!@open_ai.key?(user_creator) or !@open_ai[user_creator].key?(:chat_gpt) or !@open_ai[user_creator][:chat_gpt].key?(:sessions) or
               !@open_ai[user_creator][:chat_gpt][:sessions].key?(session_name) or
-              (@open_ai[user_creator][:chat_gpt][:sessions].key?(session_name) and !collaborator and user_creator!=user.name)))
+              (@open_ai[user_creator][:chat_gpt][:sessions].key?(session_name) and !collaborator and user_creator!=user.name))
               save_stats(__method__)
               @open_ai[user_creator][:chat_gpt][:sessions][session_name][:last_activity] = Time.now.strftime("%Y-%m-%d %H:%M:%S") unless session_name == ''
               @ai_open_ai, message_connect = SlackSmartBot::AI::OpenAI.connect(@ai_open_ai, config, @personal_settings, reconnect: delete_history, service: :chat_gpt)

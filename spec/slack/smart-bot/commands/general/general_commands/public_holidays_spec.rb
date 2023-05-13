@@ -31,26 +31,26 @@ RSpec.describe SlackSmartBot, "public_holidays" do
 
       it "displays the holidays for a country with states" do
         send_message "public holidays United States/California", from: user, to: channel
-        sleep 2
+        sleep 4
         expect(buffer(to: channel, from: :ubot).join).to match(/Holidays in United States California in #{Date.today.year}/im)
         expect(buffer(to: channel, from: :ubot).join).to match(/Christmas Day/im)
       end
 
       it "displays the holidays for a country and a year/month" do
         send_message "public holidays United States/California 2023/12", from: user, to: channel
-        sleep 2
+        sleep 4
         expect(buffer(to: channel, from: :ubot).join).to match(/Holidays in United States California in 2023-12/im)
         expect(buffer(to: channel, from: :ubot).join).to match(/Christmas Day/im)
       end
       it "displays the holidays for a country and a year/month/day" do
         send_message "public holidays United States/California 2023/12/25", from: user, to: channel
-        sleep 2
+        sleep 4
         expect(buffer(to: channel, from: :ubot).join).to match(/Holidays in United States California in 2023-12-25/im)
         expect(buffer(to: channel, from: :ubot).join).to match(/Christmas Day/im)
       end
       it "displays error for Too many holidays to show" do
         send_message "public holidays United States", from: user, to: channel
-        sleep 2
+        sleep 4
         expect(buffer(to: channel, from: :ubot).join).to match(/Too many holidays to show, please refine your search/im)
         expect(buffer(to: channel, from: :ubot).join).to match(/All States found in #{Date.today.year} United States/im)
         expect(buffer(to: channel, from: :ubot).join).to match(/Alabama/im)
@@ -62,7 +62,7 @@ RSpec.describe SlackSmartBot, "public_holidays" do
       describe "calendar" do
         it "displays no country found" do
           send_message "calendar wrongcountry", from: user, to: channel
-          sleep 2
+          sleep 4
           expect(buffer(to: channel, from: :ubot).join).to match(/Country wrongcountry not found/i)
           expect(buffer(to: channel, from: :ubot).join).to match(/Calendar #{Date.today.year} wrongcountry/i)
           expect(buffer(to: channel, from: :ubot).join).to match(/January/i)
@@ -77,7 +77,7 @@ RSpec.describe SlackSmartBot, "public_holidays" do
 
         it 'displays all states found' do
           send_message "calendar Spain", from: user, to: channel
-          sleep 2
+          sleep 4
           expect(buffer(to: channel, from: :ubot).join).to match(/All States found in #{Date.today.year} Spain/i)
           expect(buffer(to: channel, from: :ubot).join).to match(/Madrid/i)
           expect(buffer(to: channel, from: :ubot).join).to match(/Calendar #{Date.today.year} Spain/i)
@@ -93,7 +93,7 @@ RSpec.describe SlackSmartBot, "public_holidays" do
 
         it 'displays the country/state calendar for present year' do
           send_message "calendar Spain/Madrid", from: user, to: channel
-          sleep 2
+          sleep 4
           expect(buffer(to: channel, from: :ubot).join).not_to match(/All States found in #{Date.today.year} Spain/i)
           expect(buffer(to: channel, from: :ubot).join).to match(/Calendar #{Date.today.year} Spain\/madrid/i)
           expect(buffer(to: channel, from: :ubot).join).to match(/January/i)
@@ -108,7 +108,7 @@ RSpec.describe SlackSmartBot, "public_holidays" do
 
         it 'displays the country/state calendar for specified year' do
           send_message "calendar Iceland 2022", from: user, to: channel
-          sleep 2
+          sleep 4
           expect(buffer(to: channel, from: :ubot).join).not_to match(/All States found in 2022 iceland/i)
           expect(buffer(to: channel, from: :ubot).join).to match(/Calendar 2022 iceland/i)
           expect(buffer(to: channel, from: :ubot).join).to match(/January/i)

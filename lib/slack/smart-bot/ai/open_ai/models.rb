@@ -5,17 +5,18 @@ class SlackSmartBot
         require "openai"
         require 'amazing_print'
         user = Thread.current[:user]
-        if model.empty?
+        if model.empty? or model == 'chatgpt'
           if open_ai_client.is_a?(NiceHttp) #azure
             resp = open_ai_client.get("/openai/deployments?api-version=#{chat_gpt_config.api_version}")
             models = resp.body.json(:id)
-            #list.select!{|i| i.include?('gpt-')} #Jal
+            models.select!{|i| i.include?('gpt-')} if model == 'chatgpt'
           else
             response = open_ai_client.models.list
             models = []
             response.data.each do |model|
               models << model["id"]
             end
+            models.select!{|i| i.include?('gpt-')} if model == 'chatgpt'
           end
           return models.uniq.sort.join("\n")
         else

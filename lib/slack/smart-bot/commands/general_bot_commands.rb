@@ -849,13 +849,17 @@ class SlackSmartBot
         # help: ----------------------------------------------
         # help: `?m`
         # help: `?m MODEL`
+        # help: `chatgpt models`
+        # help: `?m chatgpt`
         # help:     OpenAI: It will return the list of models available or the details of the model indicated.
+        # help:             If chatgpt models is used, it will return the list of chatgpt models available.
         # help: Examples:
         # help:     _?m_
         # help:     _?m gpt-3.5-turbo_
+        # help:    _chatgpt models_
         # help: command_id: :open_ai_models
         # help:
-        when /\A\s*\?m()\s*\z/im, /\A\s*\?m\s+(.+)\s*\z/im
+        when /\A\s*\?m()\s*\z/im, /\A\s*\?m\s+(.+)\s*\z/im, /\A\s*(chatgpt)\s+models\s*\z/im
           model = $1.to_s.downcase
           open_ai_models(model)     
 

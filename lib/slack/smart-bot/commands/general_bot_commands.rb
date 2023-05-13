@@ -959,6 +959,16 @@ class SlackSmartBot
         # help: command_id: :open_ai_chat_list_sessions
         # help:
 
+        # help: ----------------------------------------------
+        # help: `chatGPT copy SESSION_NAME`
+        # help: `chatGPT copy SESSION_NAME NEW_SESSION_NAME`
+        # help: Examples:
+        # help:     _chatgpt copy SpanishTeacher_
+        # help:     _chatgpt copy SpanishTeacher spanish_lessons_
+        # help: command_id: :open_ai_chat_copy_session
+        # help:
+
+
         #chatgpt get
         when /\A\s*\?\?(g)\s+([\w\-0-9]+)()\s*\z/im,
           /\A\s*chatgpt\s+(get)\s+([\w\-0-9]+)()\s*\z/im
@@ -975,6 +985,13 @@ class SlackSmartBot
         when /\A\s*chatgpt\s+(list\s+sessions)()()\s*\z/im, 
           /\A\s*\?\?(l)()()\s*\z/im
           open_ai_chat_list_sessions()
+
+        #chatgpt copy
+        when /\A\s*chatgpt\s+copy\s+([\w\-0-9]+)()\s*\z/im,
+          /\A\s*chatgpt\s+copy\s+([\w\-0-9]+)\s+([\w\-0-9]+)\s*\z/im
+          session_name = $1.to_s
+          new_session_name = $2.to_s
+          open_ai_chat_copy_session(session_name, new_session_name)
 
         # chatgpt chat
         when /\A\s*\?\s+(add\s+collaborator)\s+<@(\w+)>()\s*\z/im,

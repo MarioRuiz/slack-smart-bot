@@ -956,6 +956,22 @@ class SlackSmartBot
         # help:
 
         # help: ----------------------------------------------
+        # help: `chatGPT share SESSION_NAME`
+        # help: `chatGPT share SESSION_NAME #CHANNEL`
+        # help: `chatGPT stop sharing SESSION_NAME`
+        # help: `chatGPT stop sharing SESSION_NAME #CHANNEL`
+        # help:     OpenAI: It will share your ChatGPT session with everyone in your workspace if no channel supplied.
+        # help:             If channel supplied it will be shared with that channel.
+        # help:             If 'stop sharing' is used it will stop sharing the session.
+        # help: Examples:
+        # help:     _chatgpt share SpanishTeacher_
+        # help:     _chatgpt share SpanishTeacher #sales_
+        # help:     _chatgpt stop sharing SpanishTeacher_
+        # help:     _chatgpt stop sharing SpanishTeacher #sales_
+        # help: command_id: :open_ai_chat_share_session
+        # help:
+        
+        # help: ----------------------------------------------
         # help: `chatGPT list sessions`
         # help: `chatGPT list public sessions`
         # help: `chatGPT list shared sessions`
@@ -995,6 +1011,16 @@ class SlackSmartBot
           session_name = $2.to_s
           open_ai_chat_delete_session(session_name)
 
+        #chatgpt share
+        when /\A\s*chatgpt\s+(share)\s+([\w\-0-9]+)\s+(on\s+|in\s+)?<#(\w+)\|.*>\s*\z/im,
+          /\A\s*chatgpt\s+(share)\s+([\w\-0-9]+)()()\s*\z/im,
+          /\A\s*chatgpt\s+(stop)\s+sharing\s+([\w\-0-9]+)\s+(on\s+|in\s+)?<#(\w+)\|.*>\s*\z/im,
+          /\A\s*chatgpt\s+(stop)\s+sharing\s+([\w\-0-9]+)()()\s*\z/im
+          type = $1.to_s.downcase.to_sym
+          session_name = $2.to_s
+          channel_id = $4.to_s
+          open_ai_chat_share_session(type, session_name, channel_id)
+          
         #chatgpt list
         when /\A\s*chatgpt\s+list\s+sessions()\s*\z/im, 
           /\A\s*chatgpt\s+sessions()\s*\z/im, 

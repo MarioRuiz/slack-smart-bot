@@ -992,10 +992,19 @@ class SlackSmartBot
         # help: ----------------------------------------------
         # help: `chatGPT copy SESSION_NAME`
         # help: `chatGPT copy SESSION_NAME NEW_SESSION_NAME`
+        # help: `chatGPT use USER_NAME SESSION_NAME`
+        # help: `chatGPT use USER_NAME SESSION_NAME NEW_SESSION_NAME`
+        # help:     OpenAI: SmartBot will copy the ChatGPT session indicated.
+        # help:             If NEW_SESSION_NAME is supplied it will be used as the name for the new session.
+        # help:             If USER_NAME is supplied it will copy the session from that user on shared sessions.
+        # help:             In case no NEW_SESSION_NAME is supplied it will use the same name as the original session plus a number.
         # help: Examples:
         # help:     _chatgpt copy SpanishTeacher_
         # help:     _chatgpt copy SpanishTeacher spanish_lessons_
+        # help:     _chatgpt use peterw SpanishTeacher_
+        # help:     _chatgpt use susanssd dataAnalysis DataSales_
         # help: command_id: :open_ai_chat_copy_session
+        # help: command_id: :open_ai_chat_copy_session_from_user
         # help:
 
 
@@ -1038,7 +1047,15 @@ class SlackSmartBot
           /\A\s*chatgpt\s+copy\s+([\w\-0-9]+)\s+([\w\-0-9]+)\s*\z/im
           session_name = $1.to_s
           new_session_name = $2.to_s
-          open_ai_chat_copy_session(session_name, new_session_name)
+          open_ai_chat_copy_session("", session_name, new_session_name)
+
+        #chatgpt use session
+        when /\A\s*chatgpt\s+use\s+([\w\-0-9]+)\s+([\w\-0-9]+)()\s*\z/im,
+          /\A\s*chatgpt\s+use\s+([\w\-0-9]+)\s+([\w\-0-9]+)\s+([\w\-0-9]+)\s*\z/im
+          user_name = $1.to_s
+          session_name = $2.to_s
+          new_session_name = $3.to_s
+          open_ai_chat_copy_session(user_name, session_name, new_session_name)
 
         # chatgpt chat
         when /\A\s*\?\s+(add\s+collaborator)\s+<@(\w+)>()()\s*\z/im,
@@ -1068,7 +1085,7 @@ class SlackSmartBot
           if type == :add_collaborator
             open_ai_chat_add_collaborator(text)
           else
-            open_ai_chat(text, delete_history, type, model: model, description: description)
+            open_ai_chat(text, delete_history, type, model: model, description: description, files: files)
           end
           
       else

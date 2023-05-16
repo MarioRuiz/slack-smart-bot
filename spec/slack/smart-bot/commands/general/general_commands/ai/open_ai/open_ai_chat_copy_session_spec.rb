@@ -19,7 +19,7 @@ RSpec.describe SlackSmartBot, "open_ai_chat_copy_session" do
         send_message "chatgpt copy mySessioncopy1", from: user, to: channel
         sleep 3
         expect(buffer(to: channel, from: :ubot).join).to match(/Session mySessioncopy1 copied to mySessioncopy11/i)
-        expect(bufferc(to: channel, from: :ubot).join).to match(/Now you can call `chatGPT mySessioncopy11` to use it/i)
+        expect(bufferc(to: channel, from: :ubot).join).to match(/Now you can call `\^chatGPT mySessioncopy11` to use it/i)
         send_message "chatgpt mySessioncopy11", from: user, to: channel
         sleep 3
         expect(buffer(to: channel, from: :ubot).join).to match(/Session _<mySessioncopy11>_ model:/i)
@@ -49,7 +49,7 @@ RSpec.describe SlackSmartBot, "open_ai_chat_copy_session" do
         send_message "chatgpt copy mySession_copy mySession_new_copy", from: user, to: channel
         sleep 3
         expect(buffer(to: channel, from: :ubot).join).to match(/Session mySession_copy copied to mySession_new_copy/i)
-        expect(bufferc(to: channel, from: :ubot).join).to match(/Now you can call `chatGPT mySession_new_copy` to use it/i)
+        expect(bufferc(to: channel, from: :ubot).join).to match(/Now you can call `\^chatGPT mySession_new_copy` to use it/i)
         send_message "chatgpt mySession_new_copy", from: user, to: channel
         sleep 3
         expect(buffer(to: channel, from: :ubot).join).to match(/Session _<mySession_new_copy>_ model:/i)

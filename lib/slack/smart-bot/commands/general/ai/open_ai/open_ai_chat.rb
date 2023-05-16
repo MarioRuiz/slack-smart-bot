@@ -3,7 +3,7 @@ class SlackSmartBot
     module General
       module AI
         module OpenAI
-          def open_ai_chat(message, delete_history, type, model: '', description: '')
+          def open_ai_chat(message, delete_history, type, model: '', description: '', files: [])
             get_personal_settings()
             user = Thread.current[:user].dup
             @active_chat_gpt_sessions[user.name] ||= {}
@@ -38,15 +38,23 @@ class SlackSmartBot
                   collaborators: [],
                   num_prompts: 0,
                   model: model,
+                  copy_of_session: '',
+                  copy_of_user: '',
+                  users_copying: [],
                   public: false,
                   shared: []
                 }
-              elsif type == :continue
+              else # type == :continue or loading
                 @open_ai[user.name][:chat_gpt][:sessions][session_name][:model] = model if model != ''
-                respond "*GPT*: I just loaded *#{session_name}*."
-              else
-                @open_ai[user.name][:chat_gpt][:sessions][session_name][:model] = model if model != ''
-                respond "*GPT*: You already have a session with that name.\nI just loaded *#{session_name}*."
+                respond "*GPT*: I just loaded *#{session_name}*.\nThis was the last prompt from the session:\n"
+                content = @ai_gpt[user.name][session_name].join("\n")
+                index_last_prompt = content.rindex(/^(Me>\s.*)$/)
+                if index_last_prompt.nil?
+                  respond "No prompts found"
+                else
+                  last_prompt = content[index_last_prompt..-1].gsub(/^Me>/, '*Me>*').gsub(/^chatGPT>/i, "\n*ChatGPT>*")
+                  respond last_prompt
+                end
               end          
               if Thread.current[:on_thread] and 
                   (Thread.current[:thread_ts] == Thread.current[:ts] or 
@@ -114,6 +122,13 @@ class SlackSmartBot
                     if message == ''
                       res = ''
                     else
+                      if !files.nil? and files.size == 1
+                        require "nice_http"
+                        http = NiceHttp.new(host: "https://files.slack.com", headers: { "Authorization" => "Bearer #{config.token}" })
+                        res = http.get(files[0].url_private_download)
+                        message = "#{message}\n\n#{res.data}"
+                      end
+    
                       @open_ai[user_creator][:chat_gpt][:sessions][session_name][:num_prompts] += 1 if session_name != ''
                       @ai_gpt[user_creator][session_name] << "Me> #{message}"
                       prompts = @ai_gpt[user_creator][session_name].join("\n\n")
@@ -126,8 +141,8 @@ class SlackSmartBot
                     end
                     if session_name == ''
                       temp_session_name = @ai_gpt[user_creator][''].first[0..35].gsub('Me> ','')
-                      respond "*GPT* Temporary session: _<#{temp_session_name}...>_ model: #{model}\n#{res.strip}"
-                      if res.strip == ''
+                      respond "*GPT* Temporary session: _<#{temp_session_name.gsub("\n",' ').gsub("`",' ')}...>_ model: #{model}\n#{res.to_s.strip}"
+                      if res.to_s.strip == ''
                         respond "It seems like GPT is not responding. Please try again later or use another model, as it might be overloaded."
                       end
                       #to avoid logging the prompt or the response
@@ -135,16 +150,16 @@ class SlackSmartBot
                         Thread.current[:encrypted] ||= []
                         Thread.current[:encrypted] << message
                       end
-                    elsif res.strip == ''
+                    elsif res.to_s.strip == ''
                       respond "*GPT* Session _<#{session_name}>_ model: #{model}"
                       respond "It seems like GPT is not responding. Please try again later or use another model, as it might be overloaded." if message != ''
                     else
-                      respond "*GPT* Session _<#{session_name}>_ model: #{model}\n#{res.strip}"
+                      respond "*GPT* Session _<#{session_name}>_ model: #{model}\n#{res.to_s.strip}"
                     end
                     update_openai_sessions(session_name, user_name: user_creator) unless session_name == ''
                   rescue => exception
-                    @logger.info exception
                     respond "*GPT*: Sorry, I'm having some problems. OpenAI probably is not available. Please try again later."
+                    @logger.warn exception
                   end
                   unreact :speech_balloon
                 end

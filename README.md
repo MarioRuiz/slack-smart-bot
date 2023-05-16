@@ -780,16 +780,21 @@ You can share a message and use it as input for the supplied prompt.
 <img src="img/chat_gpt_share.png" width="600">  
 
 
-When using ?? a temporary chatGPT session will be created. If you want to start a session with a given name use `chatGPT SESSION_NAME`.  
-You can supply also a specific GPT model to be used.  
+When using ?? a temporary chatGPT session will be created. If you want to start a session with a given name use `chatGPT SESSION_NAME`. You can add also the description of the session by using `chatGPT SESSION_NAME "DESCRIPTION"`.  
+You can supply also a specific GPT model to be used. `chatGPT SESSION_NAME MODEL_NAME`.  
 To get all prompts from a specific session name use `chatGPT get SESSION_NAME`.  
-To list all sessions use `chatGPT list sessions`.  
-When starting a new session, if you ask SmartBot to answer on a Thread by using !! or ^, then it won't be necessary to send ? before the prompt. In this case, every single message you send will be considered a prompt to be treated. After 30 minutes of inactivity SmartBot will stop listening to the thread. You will need to continue the session after that. If you want to avoid a message to be treated then start it with a hyphen '-'.  
+To list all sessions you created use `chatGPT list sessions`.  
+When starting a new session, if you ask SmartBot to answer on a Thread by using !! or ^, then it won't be necessary to send ? before the prompt. In this case, every single message you send will be considered a prompt to be treated. After 30 minutes of inactivity, SmartBot will stop listening to the thread. You will need to continue the session after that. If you want to avoid a message to be treated then start it with a hyphen '-'.  
 To add a collaborator when on a thread, you can use directly `add collaborator @USER`  
 
 <img src="img/chat_gpt_session.png" width="650">  
 
-Other chatGPT commands: `chatGPT SESSION_NAME MODEL_NAME`, `chatGPT delete SESSION_NAME`, `chatGPT get SESSION_NAME`, `chatGPT list sessions`  
+You can copy your session by using `chatGPT copy SESSION_NAME NEW_SESSION_NAME`.  
+To share your session with everyone use `chatGPT share SESSION_NAME`. Then the session will be available for everyone to use. If you prefer to share it with a specific channel use `chatGPT share SESSION_NAME #CHANNEL`. In that case, only the users on that channel will be able to use the session.  
+To list all public sessions call `chatGPT list public sessions`. To list all shared sessions in a channel, from that channel call `chatGPT list shared sessions`.  
+If you want to use any public or shared session, you can use `chatGPT use USER_NAME SESSION_NAME` or `chatGPT use USER_NAME SESSION_NAME NEW_SESSION_NAME`.  
+To remove any shared session from the list, call `chatGPT stop sharing SESSION_NAME` or `chatGPT stop sharing SESSION_NAME #CHANNEL`.  
+
 
 #### Image Generation
 `??i PROMPT`  
@@ -831,6 +836,7 @@ It will transcribe the audio file attached and perform the PROMPT indicated if s
 
 `?m`  
 `?m MODEL`  
+`chatgpt models`  
 It will return the list of models available or the details of the model indicated.  
 
 

@@ -16,6 +16,7 @@ class SlackSmartBot
                 if channel_id == ""
                   @open_ai[user.name][:chat_gpt][:sessions][session_name].public = true
                 else
+                  @open_ai[user.name][:chat_gpt][:sessions][session_name].shared ||= []
                   @open_ai[user.name][:chat_gpt][:sessions][session_name].shared << channel_id
                 end
               elsif type == :stop

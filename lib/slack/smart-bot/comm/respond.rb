@@ -47,13 +47,36 @@ class SlackSmartBot
             txt = msg
           else
             txt = ""
-            msg.split("\n").each do |m|
-              if (m + txt).size > max_chars_per_message
+            in_a_code_block = false
+            print_previous = false
+            all_lines = msg.split("\n")
+
+            all_lines.each_with_index do |m, i|
+              if m.match?(/^\s*```/)
+                in_a_code_block = !in_a_code_block
+                num_chars_code = 0
+                print_previous = false
+                if in_a_code_block
+                  all_lines[i+1..-1].each do |l|
+                    num_chars_code += l.size
+                    break if l.match?(/^\s*```/)
+                  end
+                  if num_chars_code + (m + txt).size > max_chars_per_message
+                    print_previous = true
+                  end  
+                end
+              end            
+              if ((m + txt).size > max_chars_per_message and !in_a_code_block) or print_previous
                 unless txt == ""
                   txt[0] = '.' if txt.match?(/\A\s\s\s/) #first line of message in slack don't show spaces at the begining so we force it by changing first char
+                  if m.match?(/^\s*```\s*$/) and !in_a_code_block
+                    txt += (m + "\n")
+                    m = ""
+                  end
                   t = txt.chars.each_slice(max_chars_per_message).map(&:join)
                   msgs << t
                   txt = ""
+                  print_previous = false if print_previous
                 end
               end
               txt += (m + "\n")

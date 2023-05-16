@@ -11,12 +11,27 @@ class SlackSmartBot
           temperature: 0.7,
         }
         if open_ai_client.is_a?(NiceHttp)
-          request = {
-            path: "/openai/deployments/#{model}/chat/completions?api-version=#{chat_gpt_config.api_version}",
-            data: parameters
-          }
-          response = open_ai_client.post(request)
-          response = response.data
+          begin 
+            response = {}
+            tries = 0
+            while (!response.key?(:data) or response.data.nil? or response.data.empty? ) and tries < 10
+              begin
+                request = {
+                  path: "/openai/deployments/#{model}/chat/completions?api-version=#{chat_gpt_config.api_version}",
+                  data: parameters
+                }
+                response = open_ai_client.post(request)
+              rescue Exception => exception
+                response = {message: exception.message}.to_json
+              end
+              tries += 1
+              sleep 1 if !response.key?(:data) or response.data.nil? or response.data.empty? #wait a second before trying again
+            end
+            response.data = { message: ""}.to_json if !response.key?(:data) or response.data.nil? or response.data.empty?
+            response = response.data
+          rescue Exception => exception
+            response = {message: exception.message}.to_json
+          end
         else
           response = open_ai_client.chat(parameters: parameters)
           response = response.to_json

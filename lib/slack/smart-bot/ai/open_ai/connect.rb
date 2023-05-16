@@ -113,7 +113,12 @@ class SlackSmartBot
             ai_open_ai[user.name][service][:client] = ::OpenAI::Client.new(uri_base: "https://api.openai.com/", access_token: access_token)
           else
             if ai_open_ai_user[service].key?(:api_type) and ai_open_ai_user[service][:api_type] == :openai_azure
-              ai_open_ai[user.name][service][:client] = NiceHttp.new(host: host, headers: {'api-key': access_token}, log: :no)
+              if general_config._ai.open_ai.key?(:testing) and general_config._ai.open_ai.testing and !general_config.simulate
+                log = './logs/chat_gpt_azure.log'
+              else
+                log = :no
+              end
+              ai_open_ai[user.name][service][:client] = NiceHttp.new(host: host, headers: {'api-key': access_token}, ssl: true, timeout: (60*5), log: log)
             else
               ai_open_ai[user.name][service][:client] = ::OpenAI::Client.new(uri_base: host, access_token: access_token)
             end

@@ -18,6 +18,7 @@ settings = {
   },
   ai: {
     open_ai: {
+      testing: true,
       chat_gpt: {
         host: ENV['OPENAI_AZURE_HOST'],
         access_token: ENV['OPENAI_AZURE_ACCESS_TOKEN'],
@@ -27,10 +28,12 @@ settings = {
       }
     }
   },
-  encrypt: true,
+  encrypt: false, #Jal
   github: {token: ENV['GITHUB_TOKEN']}#,
   #jira: {host: ENV['JIRA_HOST'], user: 'smartbot', password: ENV['JIRA_PASSWORD']}
 }
+
+settings.ai.open_ai = { access_token: ENV['OPENAI_ACCESS_TOKEN'] } if ENV['OPENAI_HOST'].to_s == 'true'
 
 if ENV['SIMULATE'] == 'true'
   settings.ai.open_ai = { access_token: ENV['OPENAI_ACCESS_TOKEN'] }

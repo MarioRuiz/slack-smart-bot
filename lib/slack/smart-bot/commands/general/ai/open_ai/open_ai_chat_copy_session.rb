@@ -40,7 +40,8 @@ class SlackSmartBot
                 copy_of_user: user_orig,
                 users_copying: [],
                 public: false,
-                description: session_orig[:description]
+                description: session_orig[:description],
+                tag: session_orig[:tag]
               }
               new_session_name = session_name if new_session_name == ""
               session_names = @open_ai[user.name][:chat_gpt][:sessions].keys

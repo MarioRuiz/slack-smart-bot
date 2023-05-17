@@ -781,9 +781,10 @@ You can share a message and use it as input for the supplied prompt.
 
 
 When using ?? a temporary chatGPT session will be created. If you want to start a session with a given name use `chatGPT SESSION_NAME`. You can add also the description of the session by using `chatGPT SESSION_NAME "DESCRIPTION"`.  
+If you want to categorize your sessions you can use `chatGPT SESSION_NAME >TAG_NAME`.  
 You can supply also a specific GPT model to be used. `chatGPT SESSION_NAME MODEL_NAME`.  
 To get all prompts from a specific session name use `chatGPT get SESSION_NAME`.  
-To list all sessions you created use `chatGPT list sessions`.  
+To list all sessions you created use `chatGPT sessions`.  
 When starting a new session, if you ask SmartBot to answer on a Thread by using !! or ^, then it won't be necessary to send ? before the prompt. In this case, every single message you send will be considered a prompt to be treated. After 30 minutes of inactivity, SmartBot will stop listening to the thread. You will need to continue the session after that. If you want to avoid a message to be treated then start it with a hyphen '-'.  
 To add a collaborator when on a thread, you can use directly `add collaborator @USER`  
 
@@ -791,9 +792,12 @@ To add a collaborator when on a thread, you can use directly `add collaborator @
 
 You can copy your session by using `chatGPT copy SESSION_NAME NEW_SESSION_NAME`.  
 To share your session with everyone use `chatGPT share SESSION_NAME`. Then the session will be available for everyone to use. If you prefer to share it with a specific channel use `chatGPT share SESSION_NAME #CHANNEL`. In that case, only the users on that channel will be able to use the session.  
-To list all public sessions call `chatGPT list public sessions`. To list all shared sessions in a channel, from that channel call `chatGPT list shared sessions`.  
+To list all public sessions call `chatGPT public sessions`. To list all shared sessions in a channel, from that channel call `chatGPT shared sessions`. You can also filter the sessions by tag, for example, `chatGPT public sessions >TAG_NAME`.  
 If you want to use any public or shared session, you can use `chatGPT use USER_NAME SESSION_NAME` or `chatGPT use USER_NAME SESSION_NAME NEW_SESSION_NAME`.  
 To remove any shared session from the list, call `chatGPT stop sharing SESSION_NAME` or `chatGPT stop sharing SESSION_NAME #CHANNEL`.  
+
+[![SmartBot ChatGPT Share Sessions](https://img.youtube.com/vi/Mnve3tnEd-8/0.jpg)](https://www.youtube.com/watch?v=Mnve3tnEd-8)  
+
 
 
 #### Image Generation

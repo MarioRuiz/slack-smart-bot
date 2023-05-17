@@ -3,7 +3,7 @@ class SlackSmartBot
     module General
       module AI
         module OpenAI
-          def open_ai_chat(message, delete_history, type, model: '', description: '', files: [])
+          def open_ai_chat(message, delete_history, type, model: '', tag: '', description: '', files: [])
             get_personal_settings()
             user = Thread.current[:user].dup
             @active_chat_gpt_sessions[user.name] ||= {}
@@ -42,7 +42,9 @@ class SlackSmartBot
                   copy_of_user: '',
                   users_copying: [],
                   public: false,
-                  shared: []
+                  shared: [],
+                  description: description,
+                  tag: tag.downcase
                 }
               else # type == :continue or loading
                 @open_ai[user.name][:chat_gpt][:sessions][session_name][:model] = model if model != ''
@@ -69,6 +71,7 @@ class SlackSmartBot
                 @active_chat_gpt_sessions[user.name][Thread.current[:dest]] = session_name
               end
               @open_ai[user.name][:chat_gpt][:sessions][session_name][:description] = description if description != ''
+              @open_ai[user.name][:chat_gpt][:sessions][session_name][:tag] = tag.downcase if tag != ''
             elsif type == :temporary and 
               (!@chat_gpt_collaborating.key?(user.name) or !@chat_gpt_collaborating[user.name].key?(Thread.current[:thread_ts]))
               if Thread.current[:on_thread] and 

@@ -2,7 +2,7 @@ class SlackSmartBot
   module Utils
     module Encryption
       def self.decrypt(data, config)
-        if config.encrypt
+        if config.encrypt or (config.key?(:recover_encrypted) and config[:recover_encrypted])
           require "openssl"
           require "base64"
           if data == ''

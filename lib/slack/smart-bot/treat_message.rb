@@ -207,10 +207,25 @@ class SlackSmartBot
         if (Time.now - @last_activity_check) > 60 * 30 #every 30 minutes
           @last_activity_check = Time.now
           @listening.each do |k,v|
-            v.each do |kk, vv|
-              @listening[k].delete(kk) if (Time.now - vv) > 60 * 30
+            unless k == :threads
+              v.each do |kk, vv|
+                if (Time.now - vv) > TIMEOUT_LISTENING
+                  if @listening[:threads].key?(kk) && @active_chat_gpt_sessions.key?(k) &&
+                    @active_chat_gpt_sessions[k].key?(kk)
+                    unreact :running, kk, channel: @listening[:threads][kk]
+                    @listening[:threads].delete(kk)
+                    session_name = @active_chat_gpt_sessions[k][kk]
+                    chatgpt_message = "ChatGPT session has been terminated due to inactivity."
+                    if !session_name.to_s.empty?
+                      chatgpt_message += "\n\nIf you want to start it again on this thread call `chatgpt #{session_name}`"
+                    end
+                    respond chatgpt_message, @listening[:threads][kk], thread_ts: kk
+                  end
+                  @listening[k].delete(kk)
+                end
+              end
+              @listening.delete(k) if @listening[k].empty?
             end
-            @listening.delete(k) if @listening[k].empty?
           end
         end
         begin
@@ -379,6 +394,10 @@ class SlackSmartBot
               end
             end
             if @status == :exit
+              @listening[:threads].each do |thread_ts, channel_thread| #jal
+                unreact :running, thread_ts, channel: channel_thread
+                respond "ChatGPT session closed since SmartBot is going to be closed", channel_thread, thread_ts: thread_ts
+              end  
               @logger.info 'Game over!'
               sleep 3
               exit!

@@ -48,7 +48,8 @@ class SlackSmartBot
                 }
               else # type == :continue or loading
                 @open_ai[user.name][:chat_gpt][:sessions][session_name][:model] = model if model != ''
-                respond "*GPT*: I just loaded *#{session_name}*.\nThis was the last prompt from the session:\n"
+                num_prompts = @open_ai[user.name][:chat_gpt][:sessions][session_name][:num_prompts]
+                respond "*GPT*: I just loaded *#{session_name}*.\nThere are *#{num_prompts} prompts* in this session.\nThis was the *last prompt* from the session:\n"
                 content = @ai_gpt[user.name][session_name].join("\n")
                 index_last_prompt = content.rindex(/^(Me>\s.*)$/)
                 if index_last_prompt.nil?
@@ -63,10 +64,13 @@ class SlackSmartBot
                     ( @open_ai[user.name][:chat_gpt][:sessions].key?(session_name) and
                       @open_ai[user.name][:chat_gpt][:sessions][session_name].key?(:thread_ts) and
                       @open_ai[user.name][:chat_gpt][:sessions][session_name][:thread_ts].include?(Thread.current[:thread_ts]) ) )
+                react :running, Thread.current[:thread_ts]
                 @listening[user.name] ||= {}
                 @listening[user.name][Thread.current[:thread_ts]] = Time.now
                 @open_ai[user.name][:chat_gpt][:sessions][session_name][:thread_ts] ||= []
+
                 @open_ai[user.name][:chat_gpt][:sessions][session_name][:thread_ts] << Thread.current[:thread_ts]
+                @listening[:threads][Thread.current[:thread_ts]] = Thread.current[:dest]
               else
                 @active_chat_gpt_sessions[user.name][Thread.current[:dest]] = session_name
               end
@@ -79,11 +83,22 @@ class SlackSmartBot
                   (@open_ai[user.name][:chat_gpt][:sessions].key?("") and @open_ai[user.name][:chat_gpt][:sessions][""][:thread_ts].include?(Thread.current[:thread_ts]) ))
                 @listening[user.name] ||= {}
                 @listening[user.name][Thread.current[:thread_ts]] = Time.now
+                @listening[:threads][Thread.current[:thread_ts]] = Thread.current[:dest]
+                react :running if Thread.current[:thread_ts] == Thread.current[:ts]
                 @open_ai[user.name] ||= {}
                 @open_ai[user.name][:chat_gpt] ||= {}
                 @open_ai[user.name][:chat_gpt][:sessions] ||= {}
                 @open_ai[user.name][:chat_gpt][:sessions][""] ||= {}
                 @open_ai[user.name][:chat_gpt][:sessions][""][:thread_ts] ||= []
+                @open_ai[user.name][:chat_gpt][:sessions][""][:thread_ts].each do |thread_ts|
+                  if thread_ts != Thread.current[:thread_ts] && @listening[:threads].key?(thread_ts)
+                    unreact :running, thread_ts, channel: @listening[:threads][thread_ts]
+                    message_chatgpt = "I'm sorry, but I'm no longer listening to this thread since you started a new temporary session."
+                    respond message_chatgpt, @listening[:threads][thread_ts], thread_ts: thread_ts
+                    @listening[user.name].delete(thread_ts)
+                    @listening[:threads].delete(thread_ts)
+                  end
+                end
                 @open_ai[user.name][:chat_gpt][:sessions][""][:thread_ts] << Thread.current[:thread_ts]
                 @active_chat_gpt_sessions[user.name] ||= {}
                 @active_chat_gpt_sessions[user.name][Thread.current[:thread_ts]] ||= ""

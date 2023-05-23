@@ -31,7 +31,8 @@ class SlackSmartBot
     version = geml.version.to_s
   end
   VERSION = version
-
+  TIMEOUT_LISTENING = 60 * 30 # 30 minutes
+  
   def initialize(config)
     if config.key?(:path) and config[:path] != ''
       config.path.chop! if config.path[-1]=="/"
@@ -222,6 +223,7 @@ class SlackSmartBot
     end
 
     @listening = Hash.new()
+    @listening[:threads] = Hash.new() #[thread_ts] => channel_id
 
     @bots_created = Hash.new()
     @shortcuts = Hash.new()

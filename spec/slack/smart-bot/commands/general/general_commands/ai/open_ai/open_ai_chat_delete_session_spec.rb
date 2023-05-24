@@ -3,6 +3,7 @@ RSpec.describe SlackSmartBot, "open_ai_chat_delete_session" do
     describe "on channel bot" do
       channel = :cbot1cm
       user = :user1
+      seconds_to_wait = ENV['OPEN_AI_SECONDS_TO_WAIT'].to_i || 3
 
       before(:all) do
         skip("no api key") unless ENV["OPENAI_ACCESS_TOKEN"].to_s != ""
@@ -10,17 +11,17 @@ RSpec.describe SlackSmartBot, "open_ai_chat_delete_session" do
 
       it 'is deleting a session' do
         send_message "chatgpt mySession9", from: user, to: channel
-        sleep 3
+        sleep seconds_to_wait
         expect(bufferc(to: channel, from: :ubot).join).to match(/Session _<mySession9>_ model:/i)
         send_message "chatgpt delete mySession9", from: user, to: channel
-        sleep 3
+        sleep seconds_to_wait
         expect(bufferc(to: channel, from: :ubot).join).to match(/Session \*mySession9\* deleted/i)
         send_message "chatgpt mySession9", from: user, to: channel
-        sleep 3
+        sleep seconds_to_wait
         expect(buffer(to: channel, from: :ubot).join).to match(/Session _<mySession9>_ model:/i)
         expect(bufferc(to: channel, from: :ubot).join).not_to match(/I just loaded/i)
         send_message "??d mySession9", from: user, to: channel
-        sleep 3
+        sleep seconds_to_wait
         expect(bufferc(to: channel, from: :ubot).join).to match(/Session \*mySession9\* deleted/i)
       end
 

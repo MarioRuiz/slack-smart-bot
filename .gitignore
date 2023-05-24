@@ -27,6 +27,8 @@ tmp.rb
 config_tmp.status
 /status/
 /spec/bot/status/
+access_channels.yaml
+rules_imported.yaml
 /spec/bot/smart-bot-example_teams.yaml
 /spec/bot/smart-bot-example_vacations.yaml
 /spec/bot/vacations/smart-bot-example_vacations.yaml

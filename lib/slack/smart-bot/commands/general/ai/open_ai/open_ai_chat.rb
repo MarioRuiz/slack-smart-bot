@@ -12,7 +12,8 @@ class SlackSmartBot
               @active_chat_gpt_sessions[user.name][Thread.current[:dest]] = ''
               session_name = '' 
             end
-            if @active_chat_gpt_sessions[user.name].key?(Thread.current[:thread_ts])
+            
+            if @active_chat_gpt_sessions[user.name].key?(Thread.current[:thread_ts]) and Thread.current[:thread_ts]!='' #added and Thread.current[:thread_ts]!='' for testing when SIMULATE==true and not in a thread
               session_name = @active_chat_gpt_sessions[user.name][Thread.current[:thread_ts]]
             elsif @active_chat_gpt_sessions[user.name].key?(Thread.current[:dest])
               session_name = @active_chat_gpt_sessions[user.name][Thread.current[:dest]]
@@ -104,7 +105,7 @@ class SlackSmartBot
                 @active_chat_gpt_sessions[user.name][Thread.current[:thread_ts]] ||= ""
               end
             end
-
+            
             #for collaborators
             if @chat_gpt_collaborating.key?(user.name) and @chat_gpt_collaborating[user.name].key?(Thread.current[:thread_ts])
               user_creator = @chat_gpt_collaborating[user.name][Thread.current[:thread_ts]][:user_creator]

@@ -34,7 +34,7 @@ class SlackSmartBot
             file.close
             @status = :exit
             respond "Game over!", dest
-            @listening[:threads].each do |thread_ts, channel_thread| #jal
+            @listening[:threads].each do |thread_ts, channel_thread|
               unreact :running, thread_ts, channel: channel_thread
               respond "ChatGPT session closed since SmartBot is going to be closed", channel_thread, thread_ts: thread_ts
             end  

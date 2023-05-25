@@ -204,7 +204,7 @@ class SlackSmartBot
       load "#{config.path}/rules/general_commands.rb" if File.exist?("#{config.path}/rules/general_commands.rb") and @datetime_general_commands != File.mtime("#{config.path}/rules/general_commands.rb")
       eval(File.new(config.path + config.rules_file).read) if !defined?(rules) and File.exist?(config.path+config.rules_file) and !config.rules_file.empty?
       unless typem == :dont_treat or user_info.nil?
-        if (Time.now - @last_activity_check) > 60 * 30 #every 30 minutes
+        if (Time.now - @last_activity_check) > TIMEOUT_LISTENING #every 30 minutes
           @last_activity_check = Time.now
           @listening.each do |k,v|
             unless k == :threads
@@ -213,13 +213,13 @@ class SlackSmartBot
                   if @listening[:threads].key?(kk) && @active_chat_gpt_sessions.key?(k) &&
                     @active_chat_gpt_sessions[k].key?(kk)
                     unreact :running, kk, channel: @listening[:threads][kk]
-                    @listening[:threads].delete(kk)
                     session_name = @active_chat_gpt_sessions[k][kk]
                     chatgpt_message = "ChatGPT session has been terminated due to inactivity."
                     if !session_name.to_s.empty?
                       chatgpt_message += "\n\nIf you want to start it again on this thread call `chatgpt #{session_name}`"
                     end
                     respond chatgpt_message, @listening[:threads][kk], thread_ts: kk
+                    @listening[:threads].delete(kk)
                   end
                   @listening[k].delete(kk)
                 end
@@ -394,7 +394,7 @@ class SlackSmartBot
               end
             end
             if @status == :exit
-              @listening[:threads].each do |thread_ts, channel_thread| #jal
+              @listening[:threads].each do |thread_ts, channel_thread|
                 unreact :running, thread_ts, channel: channel_thread
                 respond "ChatGPT session closed since SmartBot is going to be closed", channel_thread, thread_ts: thread_ts
               end  

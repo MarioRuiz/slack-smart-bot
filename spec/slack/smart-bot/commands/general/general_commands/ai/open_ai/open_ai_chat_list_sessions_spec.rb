@@ -30,6 +30,19 @@ RSpec.describe SlackSmartBot, "open_ai_chat_list_sessions" do
         expect(buffer(to: channel, from: :ubot).join).to match(/`mySession12`/i)
         expect(buffer(to: channel, from: :ubot).join).to match(/`mySession13`/i)
       end
+      it 'is listing the session names by tags' do
+        send_message "chatgpt mySessionTag0 >myTag0", from: user, to: channel
+        sleep seconds_to_wait
+        send_message "chatgpt sessions >myTag0", from: user, to: channel
+        sleep seconds_to_wait
+        expect(buffer(to: channel, from: :ubot).join).to match(/Your >\*mytag0\* sessions/)
+        expect(buffer(to: channel, from: :ubot).join).to match(/`mySessionTag0`/)
+      end
+      it 'is not listing tags when tag is not found' do
+        send_message "chatgpt sessions >wrong_tag", from: user, to: channel
+        sleep seconds_to_wait
+        expect(buffer(to: channel, from: :ubot).join).to match(/You don't have any >\*wrong_tag\* sessions./)
+      end
 
     end
   end

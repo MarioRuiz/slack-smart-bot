@@ -164,6 +164,23 @@ RSpec.describe SlackSmartBot, "open_ai_chat" do
         expect(buffer(to: channel, from: :ubot, thread_ts: thread).join).to eq ""
       end
 
+      it 'is tagging the session indicated' do
+        send_message "chatgpt mySessionTag >myTag", from: user, to: channel
+        sleep seconds_to_wait
+        send_message "chatgpt sessions", from: user, to: channel
+        sleep seconds_to_wait
+        expect(buffer(to: channel, from: :ubot).join).to match(/tag:\s+>\*mytag\*/)
+      end
+
+      it 'is adding the description indicated' do
+        send_message 'chatgpt mySessionDesc "myDesc"', from: user, to: channel
+        sleep seconds_to_wait
+        send_message "chatgpt sessions", from: user, to: channel
+        sleep seconds_to_wait
+        expect(buffer(to: channel, from: :ubot).join).to match(/\*`mySessionDesc`\*: _"myDesc"_/)
+      end
+
+
     end
   end
 end

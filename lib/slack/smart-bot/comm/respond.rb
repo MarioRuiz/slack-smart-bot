@@ -153,14 +153,14 @@ class SlackSmartBot
             end
           elsif dest[0] == "D" or dest[0] == "U" or dest[0] == "W" # Direct message
             msgs.each do |msg|
-              resp = send_msg_user(dest, msg, on_thread, unfurl_links: unfurl_links, unfurl_media: unfurl_media)
+              resp = send_msg_user(dest, msg, on_thread, unfurl_links: unfurl_links, unfurl_media: unfurl_media, thread_ts: thread_ts)
               sleep wait
             end
           elsif dest[0] == "@"
             begin
               user_info = @users.select { |u| u.id == dest[1..-1] or u.name == dest[1..-1] or (u.key?(:enterprise_user) and u.enterprise_user.id == dest[1..-1]) }[-1]
               msgs.each do |msg|
-                resp = send_msg_user(user_info.id, msg, on_thread, unfurl_links: unfurl_links, unfurl_media: unfurl_media)
+                resp = send_msg_user(user_info.id, msg, on_thread, unfurl_links: unfurl_links, unfurl_media: unfurl_media, thread_ts: thread_ts)
                 sleep wait
               end
             rescue Exception => stack
@@ -227,14 +227,14 @@ class SlackSmartBot
             end
           elsif dest[0] == "D" or dest[0] == "U" or dest[0] == "W" # Direct message
             blocks.each_slice(40).to_a.each do |blockstmp|
-              resp = send_msg_user(dest, msg, on_thread, unfurl_links: unfurl_links, unfurl_media: unfurl_media, blocks: blockstmp)
+              resp = send_msg_user(dest, msg, on_thread, unfurl_links: unfurl_links, unfurl_media: unfurl_media, blocks: blockstmp, thread_ts: thread_ts)
               sleep wait
             end
           elsif dest[0] == "@"
             begin
               user_info = @users.select { |u| u.id == dest[1..-1] or (u.key?(:enterprise_user) and u.enterprise_user.id == dest[1..-1]) }[-1]
               blocks.each_slice(40).to_a.each do |blockstmp|
-                resp = send_msg_user(user_info.id, msg, on_thread, unfurl_links: unfurl_links, unfurl_media: unfurl_media, blocks: blockstmp)
+                resp = send_msg_user(user_info.id, msg, on_thread, unfurl_links: unfurl_links, unfurl_media: unfurl_media, blocks: blockstmp, thread_ts: thread_ts)
                 sleep wait
               end
             rescue Exception => stack

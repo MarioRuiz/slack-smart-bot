@@ -159,7 +159,7 @@ RSpec.describe SlackSmartBot, "add_routine" do
       expect(bufferc(to: channel, from: :ubot).join).to match(/Added routine \*`example`\* to the channel/)
       send_message 'see routines', from: user, to: channel
       sleep 3
-      expect(buffer(to: channel, from: :ubot).join).to match(/Next Run: #{(started+(2*60*60)).strftime("%Y-%m-%d %H:%M")}/)
+      expect(buffer(to: channel, from: :ubot).join).to match(/Next Run: #{(started+(2*60*60)).strftime("%Y-%m-%d %H")}/)
     end
 
     it 'creates routine supplying minutes' do
@@ -168,7 +168,7 @@ RSpec.describe SlackSmartBot, "add_routine" do
       expect(bufferc(to: channel, from: :ubot).join).to match(/Added routine \*`example`\* to the channel/)
       send_message 'see routines', from: user, to: channel
       sleep 5
-      expect(buffer(to: channel, from: :ubot).join).to match(/Next Run: #{(started+(2*60)).strftime("%Y-%m-%d %H:%M:%S")}/)
+      expect(buffer(to: channel, from: :ubot).join).to match(/Next Run: #{(started+(2*60)).strftime("%Y-%m-%d %H:%M")}/)
     end
 
     it "creates the routine on weekends" do

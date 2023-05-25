@@ -124,7 +124,7 @@ class SlackSmartBot
         started = Time.now
         process_to_run = ("cd #{project_folder} && " + process_to_run) if defined?(project_folder)
         stdin, stdout, stderr, wait_thr = Open3.popen3(process_to_run)
-        timeout = 30 * 60 # 30 minutes
+        timeout = TIMEOUT_LISTENING # 30 minutes
 
         file_output_repl = File.open("#{config.path}/repl/#{@channel_id}/#{session_name}.output", "r")
         @repl_sessions[from][:pid] = wait_thr.pid

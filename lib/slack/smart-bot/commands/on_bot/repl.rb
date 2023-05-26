@@ -26,6 +26,8 @@ class SlackSmartBot
   # help:     If you want to see the methods of a class or module you created use _ls TheModuleOrClass_
   # help:     To see the code of a method: _code TheModuleOrClass.my_method_
   # help:     To see the documentation of a method: _doc TheModuleOrClass.my_method_
+  # help:     You can ask *ChatGPT* to help you or suggest any code by sending the message: `? PROMPT`
+  # help:     If you send just `?` it will suggest some code to be added.
   # help:     You can supply the Environmental Variables you need for the Session
   # help:     You can add collaborators by sending _add collaborator @USER_ to the session.
   # help:     Examples:
@@ -128,7 +130,15 @@ class SlackSmartBot
 
         file_output_repl = File.open("#{config.path}/repl/#{@channel_id}/#{session_name}.output", "r")
         @repl_sessions[from][:pid] = wait_thr.pid
-        while (wait_thr.status == "run" or wait_thr.status == "sleep") and @repl_sessions.key?(from)
+        @repl_sessions[from][:output] ||= []
+        @repl_sessions[from][:input_output] ||= [] #jal
+        @repl_sessions[from][:input_output] << "Please chatgpt return code in Ruby language."
+        if File.exist?("#{project_folder}/.smart-bot-repl")
+            pre_input = File.read("#{project_folder}/.smart-bot-repl")
+            @repl_sessions[from][:input_output] << "```\n#{pre_input}\n```" #jal
+        end
+
+        while (wait_thr.status == "run" or wait_thr.status == "sleep") and @repl_sessions.key?(from) #jal
           begin
             if (Time.now - @repl_sessions[from][:finished]) > timeout
               open("#{config.path}/repl/#{@channel_id}/#{@repl_sessions[from][:name]}.input", "a+") { |f|
@@ -156,14 +166,16 @@ class SlackSmartBot
                 unreact(:running, @ts_repl[@repl_sessions[from].name])
                 @ts_repl[@repl_sessions[from].name] = ""
               end
-              if (resp_repl.to_s.lines.count < 60 and resp_repl.to_s.size < 3500) or 
-                resp_repl.match?(/^\s*[_\*]*`\w+`/im)
+              if (resp_repl.to_s.lines.count < 60 and resp_repl.to_s.size < 3500) or
+                 resp_repl.match?(/^\s*[_\*]*`\w+`/im)
                 respond resp_repl, dest
               else
                 resp_repl.gsub!(/^\s*```/, "")
                 resp_repl.gsub!(/```\s*$/, "")
                 send_file(dest, "", "response.rb", "", "text/plain", "ruby", content: resp_repl)
               end
+              @repl_sessions[from][:output] << resp_repl
+              @repl_sessions[from][:input_output] << resp_repl
             end
           rescue Exception => excp
             @logger.fatal excp
@@ -179,15 +191,15 @@ class SlackSmartBot
         code.gsub!("\\r", "\r")
         # Disabled for the moment since it is deleting lines with '}'
         #code.gsub!(/^\W*$/, "") #to remove special chars from slack when copy/pasting.
-      if code.match?(/\A\s*-/i)
-        # don't treat
-      elsif code.match?(/System/i) or code.match?(/Kernel/i) or code.include?("File.") or
-           code.include?("`") or code.include?("exec") or code.include?("spawn") or code.include?("IO.") or
-           code.match?(/open3/i) or code.match?(/bundle/i) or code.match?(/gemfile/i) or code.include?("%x") or
-           code.include?("ENV") or code.match?(/=\s*IO/) or code.include?("Dir.") or
-           code.match?(/=\s*File/) or code.match?(/=\s*Dir/) or code.match?(/<\s*File/) or code.match?(/<\s*Dir/) or
-           code.match?(/\w+:\s*File/) or code.match?(/\w+:\s*Dir/) or
-           code.match?(/=?\s*(require|load)(\(|\s)/i)
+        if code.match?(/\A\s*-/i)
+          # don't treat
+        elsif code.match?(/System/i) or code.match?(/Kernel/i) or code.include?("File.") or
+              code.include?("`") or code.include?("exec") or code.include?("spawn") or code.include?("IO.") or
+              code.match?(/open3/i) or code.match?(/bundle/i) or code.match?(/gemfile/i) or code.include?("%x") or
+              code.include?("ENV") or code.match?(/=\s*IO/) or code.include?("Dir.") or
+              code.match?(/=\s*File/) or code.match?(/=\s*Dir/) or code.match?(/<\s*File/) or code.match?(/<\s*Dir/) or
+              code.match?(/\w+:\s*File/) or code.match?(/\w+:\s*Dir/) or
+              code.match?(/=?\s*(require|load)(\(|\s)/i)
           respond "Sorry I cannot run this due security reasons", dest
         elsif code.match(/\A\s*add\s+collaborator\s+<@(\w+)>\s*\z/i)
           collaborator = $1
@@ -208,11 +220,50 @@ class SlackSmartBot
               user_creator: creator,
             }
           end
+        elsif code.match(/\A\s*\?\s*(.*)\s*\z/im)
+          save_stats :open_ai_chat
+          #call chatgpt when: ? prompt
+          #if no prompt then suggest next code line
+          prompt = $1
+          prompt = "suggest next code line" if prompt.to_s == ""
+          @repl_sessions[user.name][:chat_gpt] ||= {}
+          react :speech_balloon
+          if !@repl_sessions[user.name][:chat_gpt].key?(:client) or @repl_sessions[user.name][:chat_gpt][:client].nil?
+            get_personal_settings()
+            tmp_repl_sessions, message_connect = SlackSmartBot::AI::OpenAI.connect(@repl_sessions, config, @personal_settings, reconnect: true, service: :chat_gpt)
+            @repl_sessions[user.name][:chat_gpt] = tmp_repl_sessions[user.name][:chat_gpt]
+            respond message_connect if message_connect
+          end
+          @repl_sessions[user.name][:chat_gpt][:prompts] ||= []
+          unless @repl_sessions[user.name][:chat_gpt][:client].nil?
+            model ||= @repl_sessions[user.name][:chat_gpt][:repl_model]
+            #todo: add source code to the prompt
+            @repl_sessions[user.name][:chat_gpt][:prompts] << prompt
+            @repl_sessions[from][:input_output] << prompt
+            prompts = @repl_sessions[user.name][:input_output].join("\n")
+            success, res = SlackSmartBot::AI::OpenAI.send_gpt_chat(@repl_sessions[user.name][:chat_gpt][:client], model, prompts, @repl_sessions[user.name].chat_gpt)
+            if success
+              @repl_sessions[user.name][:chat_gpt][:prompts] << res
+              respond "*ChatGPT>* _#{model}_\n#{res}"
+              @repl_sessions[from][:input_output] << res
+            elsif res.to_s.strip!=''
+              respond "*ChatGPT>* _#{model}_\n#{res}"
+            else
+              respond "ChatGPT: Sorry, I cannot chat right now. Please try again later."
+            end
+          end
+          unreact :speech_balloon
+
         else
           if @repl_sessions[from][:user_type] == :collaborator
             @repl_sessions[@repl_sessions[from][:user_creator]][:input] << code
           else
             @repl_sessions[from][:input] << code
+          end
+          if code.include?("```")
+            @repl_sessions[from][:input_output] << code
+          else
+            @repl_sessions[from][:input_output] << "```\n#{code}\n```"
           end
           case code
           when /^\s*(quit|exit|bye|bye\s+bot)\s*$/i

@@ -9,6 +9,7 @@ class SlackSmartBot
         After 30 minutes of no communication with the Smart Bot the session will be dismissed.
         If you want to see the methods of a class or module you created use _ls TheModuleOrClass_
         To see the code of a method: _code TheModuleOrClass.my_method_. To see the documentation of a method: _doc TheModuleOrClass.my_method_
+        You can ask *ChatGPT* to help you or suggest any code by sending the message: `? PROMPT`. If no prompt then it will suggest the next line of code.
         You can supply the Environmental Variables you need for the Session
         Example:
           _repl CreateCustomer LOCATION=spain HOST='https://10.30.40.50:8887'_
@@ -67,7 +68,12 @@ class SlackSmartBot
             def ls(obj)
               result = ""
               (obj.methods - Object.methods).sort.each do |m|
-                result << get_met_params(obj, m)
+                if obj.respond_to?(m)
+                  pre = "*`#{obj}`*."
+                else
+                  pre = ""
+                end
+                result << "#{pre}#{get_met_params(obj, m)}"
                 result << "\n"
               end
               puts result

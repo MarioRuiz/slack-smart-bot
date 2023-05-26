@@ -1,10 +1,11 @@
-*Version 1.15.0-DEV28* Released 2023-May-24
+*Version 1.15.0-DEV31* Released 2023-May-25
 
 *For General users*
 - OpenAI adds specific hosts and access tokens for services. (<https://github.com/MarioRuiz/slack-smart-bot/issues/107|#107>).
 - chatGPT command improvements. (<https://github.com/MarioRuiz/slack-smart-bot/issues/108|#108>)
 - chatGPT sharing sessions. (<https://github.com/MarioRuiz/slack-smart-bot/issues/110|#110>)
 - chatGPT tags for sessions. (<https://github.com/MarioRuiz/slack-smart-bot/issues/111|#111>)
+- chatGPT can be called inside a REPL to help you create scripts. (<https://github.com/MarioRuiz/slack-smart-bot/issues/112|#112>)
 
 *For Admin users*
 - chatGPT now supports Azure. (<https://github.com/MarioRuiz/slack-smart-bot/issues/109|#109>)

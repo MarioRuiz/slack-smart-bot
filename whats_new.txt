@@ -1,4 +1,4 @@
-*Version 1.15.0-DEV31* Released 2023-May-25
+*Version 1.15.0-DEV32* Released 2023-May-26
 
 *For General users*
 - OpenAI adds specific hosts and access tokens for services. (<https://github.com/MarioRuiz/slack-smart-bot/issues/107|#107>).

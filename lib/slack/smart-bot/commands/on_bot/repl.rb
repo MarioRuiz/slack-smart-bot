@@ -131,14 +131,15 @@ class SlackSmartBot
         file_output_repl = File.open("#{config.path}/repl/#{@channel_id}/#{session_name}.output", "r")
         @repl_sessions[from][:pid] = wait_thr.pid
         @repl_sessions[from][:output] ||= []
-        @repl_sessions[from][:input_output] ||= [] #jal
+        @repl_sessions[from][:input_output] ||= []
         @repl_sessions[from][:input_output] << "Please chatgpt return code in Ruby language."
-        if File.exist?("#{project_folder}/.smart-bot-repl")
+        if File.exist?("#{project_folder}/.smart-bot-repl") and type != :private_clean and type != :public_clean
             pre_input = File.read("#{project_folder}/.smart-bot-repl")
-            @repl_sessions[from][:input_output] << "```\n#{pre_input}\n```" #jal
+            @repl_sessions[from][:input_output] << "```\n#{pre_input}\n```"
+            respond "*Preloaded source code:*\n```\n#{pre_input}\n```"
         end
 
-        while (wait_thr.status == "run" or wait_thr.status == "sleep") and @repl_sessions.key?(from) #jal
+        while (wait_thr.status == "run" or wait_thr.status == "sleep") and @repl_sessions.key?(from)
           begin
             if (Time.now - @repl_sessions[from][:finished]) > timeout
               open("#{config.path}/repl/#{@channel_id}/#{@repl_sessions[from][:name]}.input", "a+") { |f|
@@ -191,35 +192,8 @@ class SlackSmartBot
         code.gsub!("\\r", "\r")
         # Disabled for the moment since it is deleting lines with '}'
         #code.gsub!(/^\W*$/, "") #to remove special chars from slack when copy/pasting.
-        if code.match?(/\A\s*-/i)
+        if code.match?(/\A\s*-/i)          
           # don't treat
-        elsif code.match?(/System/i) or code.match?(/Kernel/i) or code.include?("File.") or
-              code.include?("`") or code.include?("exec") or code.include?("spawn") or code.include?("IO.") or
-              code.match?(/open3/i) or code.match?(/bundle/i) or code.match?(/gemfile/i) or code.include?("%x") or
-              code.include?("ENV") or code.match?(/=\s*IO/) or code.include?("Dir.") or
-              code.match?(/=\s*File/) or code.match?(/=\s*Dir/) or code.match?(/<\s*File/) or code.match?(/<\s*Dir/) or
-              code.match?(/\w+:\s*File/) or code.match?(/\w+:\s*Dir/) or
-              code.match?(/=?\s*(require|load)(\(|\s)/i)
-          respond "Sorry I cannot run this due security reasons", dest
-        elsif code.match(/\A\s*add\s+collaborator\s+<@(\w+)>\s*\z/i)
-          collaborator = $1
-          user_info = @users.select { |u| u.id == collaborator or (u.key?(:enterprise_user) and u.enterprise_user.id == collaborator) }[-1]
-          collaborator_name = user_info.name
-          if @repl_sessions.key?(collaborator_name)
-            respond "Sorry, <@#{collaborator}> is already in a repl. Please ask her/him to quit it first.", dest
-          else
-            respond "Collaborator added. Now <@#{collaborator}> can interact with this repl.", dest
-            creator = @repl_sessions[from][:user_creator]
-            @repl_sessions[creator][:collaborators] << collaborator_name
-            @repl_sessions[collaborator_name] = {
-              name: @repl_sessions[from][:name],
-              dest: dest,
-              on_thread: Thread.current[:on_thread],
-              thread_ts: Thread.current[:thread_ts],
-              user_type: :collaborator,
-              user_creator: creator,
-            }
-          end
         elsif code.match(/\A\s*\?\s*(.*)\s*\z/im)
           save_stats :open_ai_chat
           #call chatgpt when: ? prompt
@@ -253,7 +227,33 @@ class SlackSmartBot
             end
           end
           unreact :speech_balloon
-
+        elsif code.match?(/System/i) or code.match?(/Kernel/i) or code.include?("File.") or
+              code.include?("`") or code.include?("exec") or code.include?("spawn") or code.include?("IO.") or
+              code.match?(/open3/i) or code.match?(/bundle/i) or code.match?(/gemfile/i) or code.include?("%x") or
+              code.include?("ENV") or code.match?(/=\s*IO/) or code.include?("Dir.") or
+              code.match?(/=\s*File/) or code.match?(/=\s*Dir/) or code.match?(/<\s*File/) or code.match?(/<\s*Dir/) or
+              code.match?(/\w+:\s*File/) or code.match?(/\w+:\s*Dir/) or
+              code.match?(/=?\s*(require|load)(\(|\s)/i)
+          respond "Sorry I cannot run this due security reasons", dest
+        elsif code.match(/\A\s*add\s+collaborator\s+<@(\w+)>\s*\z/i)
+          collaborator = $1
+          user_info = @users.select { |u| u.id == collaborator or (u.key?(:enterprise_user) and u.enterprise_user.id == collaborator) }[-1]
+          collaborator_name = user_info.name
+          if @repl_sessions.key?(collaborator_name)
+            respond "Sorry, <@#{collaborator}> is already in a repl. Please ask her/him to quit it first.", dest
+          else
+            respond "Collaborator added. Now <@#{collaborator}> can interact with this repl.", dest
+            creator = @repl_sessions[from][:user_creator]
+            @repl_sessions[creator][:collaborators] << collaborator_name
+            @repl_sessions[collaborator_name] = {
+              name: @repl_sessions[from][:name],
+              dest: dest,
+              on_thread: Thread.current[:on_thread],
+              thread_ts: Thread.current[:thread_ts],
+              user_type: :collaborator,
+              user_creator: creator,
+            }
+          end
         else
           if @repl_sessions[from][:user_type] == :collaborator
             @repl_sessions[@repl_sessions[from][:user_creator]][:input] << code

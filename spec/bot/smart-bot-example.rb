@@ -24,11 +24,13 @@ settings = {
         access_token: ENV['OPENAI_AZURE_ACCESS_TOKEN'],
         api_version: '2023-03-15-preview',
         api_type: :openai_azure,
-        model: 'gpt-35-turbo-0301'
+        model: 'gpt-35-turbo-0301',
+        #repl_model: 'gpt-4-32k-0314'
       }
     }
   },
-  encrypt: false, #Jal
+  recover_encrypted: true,
+  encrypt: true, #jal
   github: {token: ENV['GITHUB_TOKEN']}#,
   #jira: {host: ENV['JIRA_HOST'], user: 'smartbot', password: ENV['JIRA_PASSWORD']}
 }

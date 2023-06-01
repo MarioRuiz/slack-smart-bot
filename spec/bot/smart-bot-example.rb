@@ -30,7 +30,7 @@ settings = {
     }
   },
   recover_encrypted: true,
-  encrypt: true, #jal
+  encrypt: false, 
   github: {token: ENV['GITHUB_TOKEN']}#,
   #jira: {host: ENV['JIRA_HOST'], user: 'smartbot', password: ENV['JIRA_PASSWORD']}
 }
@@ -38,7 +38,12 @@ settings = {
 settings.ai.open_ai = { access_token: ENV['OPENAI_ACCESS_TOKEN'] } if ENV['OPENAI_HOST'].to_s == 'true'
 
 if ENV['SIMULATE'] == 'true'
-  settings.ai.open_ai = { access_token: ENV['OPENAI_ACCESS_TOKEN'] }
+  if ENV['OPENAI_USE_AZURE'].to_s == 'true'
+    settings.encrypt = false
+  else
+    settings.encrypt = true
+    settings.ai.open_ai = { access_token: ENV['OPENAI_ACCESS_TOKEN'] } 
+  end
   settings.simulate = true
   settings.path = './spec/bot/'
   require_relative 'client.rb'

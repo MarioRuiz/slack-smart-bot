@@ -190,6 +190,43 @@ RSpec.describe SlackSmartBot, "open_ai_chat" do
         expect(buffer(to: channel, from: :ubot).join).to match(/yes/i)
       end
 
+      it 'restarts the conversation when sent `??` on a given session name' do
+        thread = "openai#{'3:L&'.gen}"
+        send_message "^chatgpt mySessionRestart", from: user, to: channel, thread_ts: thread
+        sleep seconds_to_wait
+        expect(bufferc(to: channel, from: :ubot, thread_ts: thread).join).to match(/Session _<mySessionRestart>_ model:/i)
+        send_message "how much is 3 plus 6", from: user, to: channel, thread_ts: thread
+        sleep seconds_to_wait
+        expect(buffer(to: channel, from: :ubot, thread_ts: thread).join).to match(/Session _<mySessionRestart>_ model:/i)
+        expect(bufferc(to: channel, from: :ubot, thread_ts: thread).join).to match(/(9|nine)/)
+        send_message "??", from: user, to: channel, thread_ts: thread
+        sleep seconds_to_wait
+        expect(buffer(to: channel, from: :ubot, thread_ts: thread).join).to match(/Session _<mySessionRestart>_ model:/i)
+        expect(bufferc(to: channel, from: :ubot, thread_ts: thread).join).to match(/All prompts were removed from session/)
+        send_message "and plus 2", from: user, to: channel, thread_ts: thread
+        sleep seconds_to_wait
+        expect(buffer(to: channel, from: :ubot, thread_ts: thread).join).to match(/Session _<mySessionRestart>_ model:/i)
+        expect(bufferc(to: channel, from: :ubot, thread_ts: thread).join).not_to match(/(11|eleven)/)
+      end
+
+      it 'restarts the conversation when sent `??` on a temporary session' do
+        thread = "openai#{'3:L&'.gen}"
+        send_message "^??", from: user, to: channel, thread_ts: thread
+        sleep seconds_to_wait
+        expect(bufferc(to: channel, from: :ubot, thread_ts: thread).join).to match(/Let's start a new temporary conversation. Ask me anything/i)
+        send_message "how much is 3 plus 6", from: user, to: channel, thread_ts: thread
+        sleep seconds_to_wait
+        expect(buffer(to: channel, from: :ubot, thread_ts: thread).join).to match(/Temporary session: _<how much is 3 plus 6...>_ model:/i)
+        expect(bufferc(to: channel, from: :ubot, thread_ts: thread).join).to match(/(9|nine)/)
+        send_message "??", from: user, to: channel, thread_ts: thread
+        sleep seconds_to_wait
+        expect(bufferc(to: channel, from: :ubot, thread_ts: thread).join).to match(/Let's start a new temporary conversation. Ask me anything/i)
+        send_message "and plus 2", from: user, to: channel, thread_ts: thread
+        sleep seconds_to_wait
+        expect(buffer(to: channel, from: :ubot, thread_ts: thread).join).to match(/Temporary session: _<and plus 2...>_ model:/i)
+        expect(bufferc(to: channel, from: :ubot, thread_ts: thread).join).not_to match(/(11|eleven)/)
+      end
+
     end
   end
 end

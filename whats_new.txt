@@ -6,7 +6,8 @@
 - ChatGPT sharing sessions. (<https://github.com/MarioRuiz/slack-smart-bot/issues/110|#110>)
 - ChatGPT tags for sessions. (<https://github.com/MarioRuiz/slack-smart-bot/issues/111|#111>)
 - ChatGPT can be called inside a REPL to help you create scripts. (<https://github.com/MarioRuiz/slack-smart-bot/issues/112|#112>)
-- ChatGPT has access to internet. If a prompt include !URL, SmartBot will download the supplied website text and add it to the prompt. (<https://github.com/MarioRuiz/slack-smart-bot/issues/113|#113>) 
+- ChatGPT has access to internet. If a prompt includes `!URL`, SmartBot will download the supplied website text and add it to the prompt. (<https://github.com/MarioRuiz/slack-smart-bot/issues/113|#113>) 
+- ChatGPT deletes all prompts from the session when on a Thread and sending `??` (<https://github.com/MarioRuiz/slack-smart-bot/issues/115|#115>) 
 
 *For Admin users*
 - ChatGPT now supports Azure. (<https://github.com/MarioRuiz/slack-smart-bot/issues/109|#109>)

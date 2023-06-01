@@ -1105,6 +1105,10 @@ class SlackSmartBot
             type = :add_collaborator
           else
             type = :temporary
+            if text == '??'
+              delete_history = true 
+              text = ''
+            end
           end        
           if type == :add_collaborator
             open_ai_chat_add_collaborator(text)

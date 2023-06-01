@@ -188,7 +188,8 @@ class SlackSmartBot
                         Thread.current[:encrypted] << message
                       end
                     elsif res.to_s.strip == ''
-                      respond "*GPT* Session _<#{session_name}>_ model: #{model}"
+                      res = "\nAll prompts were removed from session." if delete_history
+                      respond "*GPT* Session _<#{session_name}>_ model: #{model}#{res}"
                       respond "It seems like GPT is not responding. Please try again later or use another model, as it might be overloaded." if message != ''
                     else
                       respond "*GPT* Session _<#{session_name}>_ model: #{model}\n#{res.to_s.strip}"

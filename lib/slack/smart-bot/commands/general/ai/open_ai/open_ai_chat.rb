@@ -134,6 +134,7 @@ class SlackSmartBot
                 else
                   react :speech_balloon
                   begin
+                    urls_messages = []
                     get_openai_sessions(session_name, user_name: user_creator)
                     @ai_gpt[user_creator][session_name] = [] if delete_history
                     model = @open_ai[user_creator][:chat_gpt][:sessions][session_name][:model].to_s unless session_name == ''
@@ -142,13 +143,30 @@ class SlackSmartBot
                       res = ''
                     else
                       if !files.nil? and files.size == 1
-                        require "nice_http"
                         http = NiceHttp.new(host: "https://files.slack.com", headers: { "Authorization" => "Bearer #{config.token}" })
                         res = http.get(files[0].url_private_download)
                         message = "#{message}\n\n#{res.data}"
                       end
     
                       @open_ai[user_creator][:chat_gpt][:sessions][session_name][:num_prompts] += 1 if session_name != ''
+
+                      urls = message.scan(/!(https?:\/\/[\S]+)/).flatten
+                      urls.uniq.each do |url|
+                        begin
+                            parsed_url = URI.parse(url)
+                            domain = "#{parsed_url.scheme}://#{parsed_url.host}"
+                            response = NiceHttp.new(domain).get(url)
+                            html_doc = Nokogiri::HTML(response.body)
+                            text = html_doc.text.gsub(/^\s*$/m, "")
+                            urls_messages << "> #{url}: content extracted and added to prompt\n"
+                        rescue Exception => e
+                            text = "Error: #{e.message}"
+                            urls_messages << "> #{url}: #{text}\n"
+                        end
+                        message.gsub!("!#{url}", url)
+                        message+= "\n#{url} content:\n#{text}\n"
+                      end
+
                       @ai_gpt[user_creator][session_name] << "Me> #{message}"
                       prompts = @ai_gpt[user_creator][session_name].join("\n\n")
                       prompts.gsub!(/^Me>\s*/,'')
@@ -174,6 +192,9 @@ class SlackSmartBot
                       respond "It seems like GPT is not responding. Please try again later or use another model, as it might be overloaded." if message != ''
                     else
                       respond "*GPT* Session _<#{session_name}>_ model: #{model}\n#{res.to_s.strip}"
+                    end
+                    if urls_messages.size > 0
+                      respond urls_messages.join("\n")
                     end
                     update_openai_sessions(session_name, user_name: user_creator) unless session_name == ''
                   rescue => exception

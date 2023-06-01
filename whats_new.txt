@@ -2,13 +2,14 @@
 
 *For General users*
 - OpenAI adds specific hosts and access tokens for services. (<https://github.com/MarioRuiz/slack-smart-bot/issues/107|#107>).
-- chatGPT command improvements. (<https://github.com/MarioRuiz/slack-smart-bot/issues/108|#108>)
-- chatGPT sharing sessions. (<https://github.com/MarioRuiz/slack-smart-bot/issues/110|#110>)
-- chatGPT tags for sessions. (<https://github.com/MarioRuiz/slack-smart-bot/issues/111|#111>)
-- chatGPT can be called inside a REPL to help you create scripts. (<https://github.com/MarioRuiz/slack-smart-bot/issues/112|#112>)
+- ChatGPT command improvements. (<https://github.com/MarioRuiz/slack-smart-bot/issues/108|#108>)
+- ChatGPT sharing sessions. (<https://github.com/MarioRuiz/slack-smart-bot/issues/110|#110>)
+- ChatGPT tags for sessions. (<https://github.com/MarioRuiz/slack-smart-bot/issues/111|#111>)
+- ChatGPT can be called inside a REPL to help you create scripts. (<https://github.com/MarioRuiz/slack-smart-bot/issues/112|#112>)
+- ChatGPT has access to internet. If a prompt include !URL, SmartBot will download the supplied website text and add it to the prompt. (<https://github.com/MarioRuiz/slack-smart-bot/issues/113|#113>) 
 
 *For Admin users*
-- chatGPT now supports Azure. (<https://github.com/MarioRuiz/slack-smart-bot/issues/109|#109>)
+- ChatGPT now supports Azure. (<https://github.com/MarioRuiz/slack-smart-bot/issues/109|#109>)
 
 ------------------------------
 

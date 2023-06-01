@@ -17,7 +17,7 @@ class SlackSmartBot
               prompts.gsub!(/^chatGPT>\s*/, "\nchatGPT> ")
               if prompts.length > 3000
                 respond "*GPT*: Session *#{session_name}*."
-                send_file(Thread.current[:dest], "", "prompts.txt", "", "text/plain", "text", content: prompts)
+                send_file(Thread.current[:dest], "ChatGPT prompts for #{session_name}", "prompts.txt", "prompts", "text/plain", "text", content: prompts)
               elsif prompts.empty?
                 respond "*GPT*: Session *#{session_name}* has no prompts."
               else

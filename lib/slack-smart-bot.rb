@@ -10,6 +10,7 @@ require "nice_http"
 require "nice_hash"
 require 'cgi'
 require 'yaml'
+require 'nokogiri'
 
 require_relative "slack/smart-bot/comm"
 require_relative "slack/smart-bot/listen"

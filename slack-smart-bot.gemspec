@@ -21,6 +21,7 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency 'async-websocket', '~> 0.8.0'
   s.add_runtime_dependency 'amazing_print', '~> 1', '>= 1.4.0'
   s.add_runtime_dependency 'openssl', '~> 3'
+  s.add_runtime_dependency 'nokogiri', '~> 1'
   s.add_development_dependency 'rspec', '~> 3.9'
   s.required_ruby_version = '>= 2.7.3' #due to this bug on Ruby 2.7 console gem: https://github.com/socketry/console/issues/37
   s.post_install_message = "Thanks for installing! Visit us on https://github.com/MarioRuiz/slack-smart-bot"

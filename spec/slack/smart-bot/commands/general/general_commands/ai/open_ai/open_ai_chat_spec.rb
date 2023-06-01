@@ -180,6 +180,15 @@ RSpec.describe SlackSmartBot, "open_ai_chat" do
         expect(buffer(to: channel, from: :ubot).join).to match(/\*`mySessionDesc`\*: _"myDesc"_/)
       end
 
+      it 'is downloading the url specified and add it to the prompt' do
+        send_message "?? is it displayed on this webpage !https://github.com/MarioRuiz/nice_http/blob/master/lib/nice_http/defaults.rb the sentence 'Wrong sentence'", from: user, to: channel
+        sleep seconds_to_wait
+        expect(buffer(to: channel, from: :ubot).join).to match(/No/i)
+        expect(bufferc(to: channel, from: :ubot).join).to match(/content extracted and added to prompt/i)
+        send_message "? is it displayed '@async_resource'", from: user, to: channel
+        sleep seconds_to_wait
+        expect(buffer(to: channel, from: :ubot).join).to match(/yes/i)
+      end
 
     end
   end

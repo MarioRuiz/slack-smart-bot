@@ -926,6 +926,7 @@ class SlackSmartBot
         # help:                To add a collaborator when on a thread, you can use directly `add collaborator @USER`
         # help:             If ?? is used, it will start from zero the temporary session. If not all the previous prompts from the session will be used to generate the response.
         # help:             You can share a message and use it as input for the supplied PROMPT.
+        # help:             If you include in the prompt !URL then it will download and use the content of the URL as input for the prompt.
         # help:             When "DESCRIPTION" is used it will be used as a description for the session.
         # help:                If a previous DESCRIPTION for the session exists it will be replaced.
         # help:             When >TAG_NAME is used it will be used as a tag for the session.

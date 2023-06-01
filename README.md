@@ -790,6 +790,7 @@ To get all prompts from a specific session name use `chatGPT get SESSION_NAME`.
 To list all sessions you created use `chatGPT sessions`.  
 When starting a new session, if you ask SmartBot to answer on a Thread by using !! or ^, then it won't be necessary to send ? before the prompt. In this case, every single message you send will be considered a prompt to be treated. After 30 minutes of inactivity, SmartBot will stop listening to the thread. You will need to continue the session after that. If you want to avoid a message to be treated then start it with a hyphen '-'.  
 To add a collaborator when on a thread, you can use directly `add collaborator @USER`  
+If you include in the prompt `!URL` then it will download and use the content of the URL as input for the prompt.  
 
 <img src="img/chat_gpt_session.png" width="650">  
 

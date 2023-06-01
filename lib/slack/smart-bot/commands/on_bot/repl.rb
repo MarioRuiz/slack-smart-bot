@@ -256,20 +256,22 @@ class SlackSmartBot
           end
         else
           if @repl_sessions[from][:user_type] == :collaborator
+            creator = @repl_sessions[from][:user_creator]
             @repl_sessions[@repl_sessions[from][:user_creator]][:input] << code
           else
+            creator = from
             @repl_sessions[from][:input] << code
           end
           if code.include?("```")
-            @repl_sessions[from][:input_output] << code
+            @repl_sessions[creator][:input_output] << code
           else
-            @repl_sessions[from][:input_output] << "```\n#{code}\n```"
+            @repl_sessions[creator][:input_output] << "```\n#{code}\n```"
           end
           case code
           when /^\s*(quit|exit|bye|bye\s+bot)\s*$/i
             if @repl_sessions[from][:user_type] == :collaborator
               respond "Collaborator <@#{user.id}> removed.", dest
-              @repl_sessions[@repl_sessions[from][:user_creator]][:collaborators].delete(from)
+              @repl_sessions[creator][:collaborators].delete(from)
               @repl_sessions.delete(from)
             else
               open("#{config.path}/repl/#{@channel_id}/#{@repl_sessions[from][:name]}.input", "a+") { |f|
@@ -290,11 +292,11 @@ class SlackSmartBot
               @repl_sessions.delete(from)
             end
           else
-            if @ts_repl[@repl_sessions[from].name].to_s == ""
-              @ts_repl[@repl_sessions[from].name] = Thread.current[:ts]
+            if @ts_repl[@repl_sessions[creator].name].to_s == ""
+              @ts_repl[@repl_sessions[creator].name] = Thread.current[:ts]
               react :running
             end
-            open("#{config.path}/repl/#{@channel_id}/#{@repl_sessions[from][:name]}.input", "a+") { |f|
+            open("#{config.path}/repl/#{@channel_id}/#{@repl_sessions[creator][:name]}.input", "a+") { |f|
               f.puts code
             }
           end

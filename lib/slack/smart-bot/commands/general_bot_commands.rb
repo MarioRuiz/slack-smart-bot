@@ -908,6 +908,7 @@ class SlackSmartBot
         # help: ----------------------------------------------
         # help: `?? PROMPT`
         # help: `? PROMPT`
+        # help: `?? use model MODEL_NAME`
         # help: `chatGPT SESSION_NAME`
         # help: `chatGPT SESSION_NAME "DESCRIPTION"`
         # help: `chatGPT SESSION_NAME >TAG_NAME`
@@ -924,9 +925,11 @@ class SlackSmartBot
         # help:                After 30 minutes of inactivity SmartBot will stop listening to the thread. You will need to continue the session after that.
         # help:                If you want to avoid a message to be treated then start it with a hyphen '-'.
         # help:                To add a collaborator when on a thread, you can use directly `add collaborator @USER`
+        # help:                To change the model when on a thread, you can use directly `use model MODEL_NAME`
         # help:             If ?? is used, it will start from zero the temporary session. If not all the previous prompts from the session will be used to generate the response.
         # help:             You can share a message and use it as input for the supplied PROMPT.
         # help:             If you include in the prompt !URL then it will download and use the content of the URL as input for the prompt.
+        # help:             MODEL_NAME can be a substring of the model name, SmartBot will search the model name that contains the substring supplied.
         # help:             When "DESCRIPTION" is used it will be used as a description for the session.
         # help:                If a previous DESCRIPTION for the session exists it will be replaced.
         # help:             When >TAG_NAME is used it will be used as a tag for the session.
@@ -939,10 +942,11 @@ class SlackSmartBot
         # help:     _!!chatgpt data_analyst gpt-3.5-turbo_
         # help:     _^chatgpt SpanishTeacher "I will teach you Spanish"_
         # help:     _^chatgpt SpanishTeacher gpt-3.5-turbo "I will teach you Spanish"_
-        # help:     _^chatgpt SpanishTeacher gpt-3.5-turbo >dev "I will teach you Spanish"_
+        # help:     _^chatgpt SpanishTeacher 32k >dev "I will teach you Spanish"_
         # help:     _^chatgpt data_analyst >science_
         # help: command_id: :open_ai_chat
         # help: command_id: :open_ai_chat_add_collaborator
+        # help: command_id: :open_ai_chat_use_model
         # help:
 
         # help: ----------------------------------------------
@@ -1077,12 +1081,14 @@ class SlackSmartBot
 
         # chatgpt chat
         when /\A\s*\?\s+(add\s+collaborator)\s+<@(\w+)>()()()\s*\z/im,
+          /\A\s*\?\s+(use)\s+model\s+()([\w\-0-9\.]+)()()\s*\z/im,
+          /\A\s*(\?\?)()\s+use\s+model\s+([\w\-0-9\.]+)()()\s*\z/im,
           /\A\s*\?\?(s|c)\s+([\w\-0-9]+)()()()\s*\z/im,
           /\A\s*chatgpt\s+(start|continue|load)\s+([\w\-0-9]+)()()()\s*\z/im,
           /\A\s*(chatgpt)\s+([\w\-0-9]+)()()()\s*\z/im, #chatgpt session_name
           /\A\s*(chatgpt)\s+([\w\-0-9]+)()\s+>([\w\-0-9]+)()\s*\z/im, #chatgpt session_name >tag_name
           /\A\s*(chatgpt)\s+([\w\-0-9]+)\s+([\w\-0-9\.]+)()()\s*\z/im, #chatgpt session_name model_name
-          /\A\s*(chatgpt)\s+([\w\-0-9]+)\s+([\w\-0-9\.]+)\s+>([\w\-0-9]+)()\s*\z/im, #chatgpt session_name model_name >tag_name
+          /\A\s*(chatgpt)\s+([\w\-0-9]+)\s+([\w\-0-9\.]+)\s+>([\w\-0-9\.]+)()\s*\z/im, #chatgpt session_name model_name >tag_name
           /\A\s*(chatgpt)\s+([\w\-0-9]+)()\s+>([\w\-0-9]+)\s+(".+")\s*\z/im, #chatgpt session_name >tag_name "description"
           /\A\s*(chatgpt)\s+([\w\-0-9]+)()()\s+(".+")\s*\z/im, #chatgpt session_name "description"
           /\A\s*(chatgpt)\s+([\w\-0-9]+)()\s+>([\w\-0-9]+)\s+(".+")\s*\z/im, #chatgpt session_name >tag_name "description"
@@ -1103,6 +1109,8 @@ class SlackSmartBot
             type = :continue
           elsif type.match?(/add\s+collaborator/)
             type = :add_collaborator
+          elsif type == 'use'
+            type = :use_model
           else
             type = :temporary
             if text == '??'
@@ -1112,6 +1120,8 @@ class SlackSmartBot
           end        
           if type == :add_collaborator
             open_ai_chat_add_collaborator(text)
+          elsif type == :use_model
+            open_ai_chat_use_model(model)
           else
             open_ai_chat(text, delete_history, type, model: model, tag: tag, description: description, files: files)
           end

@@ -7,7 +7,6 @@ class SlackSmartBot
             get_personal_settings()
             user = Thread.current[:user].dup
             @active_chat_gpt_sessions[user.name] ||= {}
-            
             if delete_history
               @active_chat_gpt_sessions[user.name][Thread.current[:dest]] = ''
               session_name = '' 
@@ -21,7 +20,6 @@ class SlackSmartBot
               session_name = ''
               @active_chat_gpt_sessions[user.name][Thread.current[:dest]] = ''
             end
-
             if type == :start or type == :continue
               session_name = message
               @active_chat_gpt_sessions[user.name] ||= {}
@@ -77,6 +75,7 @@ class SlackSmartBot
               end
               @open_ai[user.name][:chat_gpt][:sessions][session_name][:description] = description if description != ''
               @open_ai[user.name][:chat_gpt][:sessions][session_name][:tag] = tag.downcase if tag != ''
+              open_ai_chat_use_model(model, dont_save_stats: true) if model != ''              
             elsif type == :temporary and 
               (!@chat_gpt_collaborating.key?(user.name) or !@chat_gpt_collaborating[user.name].key?(Thread.current[:thread_ts]))
               if Thread.current[:on_thread] and 
@@ -128,16 +127,24 @@ class SlackSmartBot
               if !@ai_open_ai[user_creator].nil? and !@ai_open_ai[user_creator][:chat_gpt][:client].nil?
                 @ai_gpt[user_creator] ||= {}
                 @ai_gpt[user_creator][session_name] ||= []
+                if delete_history
+                  @open_ai[user_creator] ||= {}
+                  @open_ai[user_creator][:chat_gpt] ||= {}
+                  @open_ai[user_creator][:chat_gpt][:sessions] ||= {}
+                  @open_ai[user_creator][:chat_gpt][:sessions][session_name] ||= {}
+                  @open_ai[user_creator][:chat_gpt][:sessions][session_name][:model] = ''
+                end
                 if message == "" and session_name == '' # ?? is called
                   @ai_gpt[user_creator][session_name] = []
                   respond "*GPT*: Let's start a new temporary conversation. Ask me anything."
+                  open_ai_chat_use_model(model, dont_save_stats: true) if model != ''
                 else
                   react :speech_balloon
                   begin
                     urls_messages = []
                     get_openai_sessions(session_name, user_name: user_creator)
                     @ai_gpt[user_creator][session_name] = [] if delete_history
-                    model = @open_ai[user_creator][:chat_gpt][:sessions][session_name][:model].to_s unless session_name == ''
+                    model = @open_ai[user_creator][:chat_gpt][:sessions][session_name][:model].to_s
                     model = @ai_open_ai[user_creator].chat_gpt.model if model.nil? or model.empty?
                     if message == ''
                       res = ''

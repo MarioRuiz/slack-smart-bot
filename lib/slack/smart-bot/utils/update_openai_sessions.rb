@@ -7,10 +7,13 @@ class SlackSmartBot
     end
     
     file_name = File.join(config.path, "openai", "o_#{user_name}.yaml")
-
+    data = @open_ai[user_name].deep_copy
+    if data.key?(:chat_gpt) and data[:chat_gpt].key?(:sessions)
+      data[:chat_gpt][:sessions].delete('') #temporary session
+    end
     File.open(file_name, 'w') {|file|
       file.flock(File::LOCK_EX)
-      file.write(Utils::Encryption.encrypt(@open_ai[user_name].to_yaml, config))
+      file.write(Utils::Encryption.encrypt(data.to_yaml, config))
       file.flock(File::LOCK_UN)
     }
     @datetime_open_ai_file[file_name] = File.mtime(file_name)

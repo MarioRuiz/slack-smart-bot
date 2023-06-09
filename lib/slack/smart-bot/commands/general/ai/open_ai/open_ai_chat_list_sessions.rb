@@ -31,13 +31,13 @@ class SlackSmartBot
                     (type == :public and session.key?(:public) and session[:public]) or
                     (type == :shared and session.key?(:shared) and session[:shared].include?(channel))
                     
-                    if tag == '' or (session.key?(:tag) and tag == session[:tag])
+                    if tag == '' or (session.key?(:tag) and tag == session[:tag].to_s)
                       list_sessions << "*`#{session_name}`*: "
                       list_sessions[-1]<<"_#{session[:description]}_ " if session.key?(:description) and session[:description].to_s.strip != ''
                       list_sessions[-1]<<"*(public)* " if session.key?(:public) and session[:public] and type != :public
                       list_sessions[-1]<<"(shared on <##{session.shared.join(">, <#")}>) " if session.key?(:shared) and session[:shared].size > 0 and type != :shared
                       list_sessions[-1]<<"\n     *#{session.num_prompts}* prompts. "
-                      list_sessions[-1]<<" tag: >*#{session.tag}*. " if session.key?(:tag) and session[:tag] != '' and tag == ''
+                      list_sessions[-1]<<" tag: >*#{session.tag}*. " if session.key?(:tag) and session[:tag].to_s != '' and tag == ''
                       list_sessions[-1]<<"shared by: *#{session.user_creator}*. " if type != :own
                       list_sessions[-1]<<"original creator: *#{session.copy_of_user}*. " if session.key?(:copy_of_user) and session[:copy_of_user] != '' and session[:copy_of_user] != session[:user_creator]
                       list_sessions[-1]<<"model: #{session.model}. " if session.key?(:model) and session[:model] != ''
@@ -53,17 +53,17 @@ class SlackSmartBot
             if list_sessions.size > 0
               list_sessions[-1] << "\n\n:information_source: To start using a session: `chatgpt use USER_SHARED SESSION_NAME`" if type != :own
               if type == :own
-                respond "*GPT*: Your#{" >*#{tag}*" if tag!=''} sessions:\n\n#{list_sessions.join("\n\n")}"
+                respond "*ChatGPT*: Your#{" >*#{tag}*" if tag!=''} sessions:\n\n#{list_sessions.join("\n\n")}"
               elsif type == :public
-                respond "*GPT*: Public#{" >*#{tag}*" if tag!=''} sessions:\n\n#{list_sessions.join("\n\n")}"
+                respond "*ChatGPT*: Public#{" >*#{tag}*" if tag!=''} sessions:\n\n#{list_sessions.join("\n\n")}"
               elsif type == :shared
-                respond "*GPT*: Shared#{" >*#{tag}*" if tag!=''} sessions on <##{channel}>:\n\n#{list_sessions.join("\n\n")}"
+                respond "*ChatGPT*: Shared#{" >*#{tag}*" if tag!=''} sessions on <##{channel}>:\n\n#{list_sessions.join("\n\n")}"
               end
             else
               if type == :own
-                respond "*GPT*: You don't have any#{" >*#{tag}*" if tag!=''} sessions."
+                respond "*ChatGPT*: You don't have any#{" >*#{tag}*" if tag!=''} sessions."
               else
-                respond "*GPT*: There are no#{" >*#{tag}*" if tag!=''} #{type} sessions."
+                respond "*ChatGPT*: There are no#{" >*#{tag}*" if tag!=''} #{type} sessions."
               end                
             end
 

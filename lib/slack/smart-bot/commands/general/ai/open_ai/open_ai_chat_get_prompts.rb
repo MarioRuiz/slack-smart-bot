@@ -16,12 +16,12 @@ class SlackSmartBot
               prompts.gsub!(/^Me>\s*/, "\nMe> ")
               prompts.gsub!(/^chatGPT>\s*/, "\nchatGPT> ")
               if prompts.length > 3000
-                respond "*GPT*: Session *#{session_name}*."
+                respond "*ChatGPT*: Session *#{session_name}*."
                 send_file(Thread.current[:dest], "ChatGPT prompts for #{session_name}", "prompts.txt", "prompts", "text/plain", "text", content: prompts)
               elsif prompts.empty?
-                respond "*GPT*: Session *#{session_name}* has no prompts."
+                respond "*ChatGPT*: Session *#{session_name}* has no prompts."
               else
-                respond "*GPT*: Session *#{session_name}*."
+                respond "*ChatGPT*: Session *#{session_name}*."
                 if prompts.include?("`")
                   respond prompts
                 else
@@ -29,7 +29,7 @@ class SlackSmartBot
                 end
               end
             else
-              respond "*GPT*: You don't have a session with that name.\nCall `chatGPT list sessions` to see your saved sessions."
+              respond "*ChatGPT*: You don't have a session with that name.\nCall `chatGPT list sessions` to see your saved sessions."
             end
           end
         end

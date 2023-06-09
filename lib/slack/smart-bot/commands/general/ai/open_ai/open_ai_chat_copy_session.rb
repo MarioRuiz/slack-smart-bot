@@ -16,13 +16,13 @@ class SlackSmartBot
             get_openai_sessions()
 
             if !@open_ai.key?(user_orig)
-              respond "*GPT*: The user *#{user_orig}* doesn't exist."
+              respond "*ChatGPT*: The user *#{user_orig}* doesn't exist."
             elsif !@open_ai[user_orig][:chat_gpt][:sessions].key?(session_name)
-              respond "*GPT*: The session *#{session_name}* doesn't exist."
+              respond "*ChatGPT*: The session *#{session_name}* doesn't exist."
             elsif user_orig != user.name and
               !@open_ai[user_orig][:chat_gpt][:sessions][session_name][:public] and
                   !@open_ai[user_orig][:chat_gpt][:sessions][session_name][:shared].include?(dest)
-              respond "*GPT*: The session *#{session_name}* doesn't exist or it is not shared."
+              respond "*ChatGPT*: The session *#{session_name}* doesn't exist or it is not shared."
             else
               @open_ai[user.name] ||= {}
               @open_ai[user.name][:chat_gpt] ||= {}
@@ -67,9 +67,9 @@ class SlackSmartBot
               @ai_gpt[user.name][new_session_name] = @ai_gpt[user_orig][session_name].dup
               update_openai_sessions(new_session_name, user_name: user.name)
               if user_orig != user.name
-                respond "*GPT*: Session #{session_name} (#{user_orig}) copied to #{new_session_name}.\nNow you can call `^chatGPT #{new_session_name}` to use it."
+                respond "*ChatGPT*: Session #{session_name} (#{user_orig}) copied to #{new_session_name}.\nNow you can call `^chatGPT #{new_session_name}` to use it."
               else
-                respond "*GPT*: Session #{session_name} copied to #{new_session_name}.\nNow you can call `^chatGPT #{new_session_name}` to use it."
+                respond "*ChatGPT*: Session #{session_name} copied to #{new_session_name}.\nNow you can call `^chatGPT #{new_session_name}` to use it."
               end
             end
           end

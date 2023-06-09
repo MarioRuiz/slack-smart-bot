@@ -29,19 +29,19 @@ class SlackSmartBot
               update_openai_sessions()
               if type == :share
                 if channel_id == ""
-                  respond "*GPT*: Session *#{session_name}* is now public."
+                  respond "*ChatGPT*: Session *#{session_name}* is now public."
                 else
-                  respond "*GPT*: Session *#{session_name}* is now shared on <##{channel_id}>."
+                  respond "*ChatGPT*: Session *#{session_name}* is now shared on <##{channel_id}>."
                 end
               elsif type == :stop
                 if channel_id == ""
-                  respond "*GPT*: Session *#{session_name}* is no longer public."
+                  respond "*ChatGPT*: Session *#{session_name}* is no longer public."
                 else
-                  respond "*GPT*: Session *#{session_name}* is no longer shared on <##{channel_id}>."
+                  respond "*ChatGPT*: Session *#{session_name}* is no longer shared on <##{channel_id}>."
                 end
               end
             else
-              respond "*GPT*: You don't have a session with that name.\nCall `chatGPT list sessions` to see your saved sessions."
+              respond "*ChatGPT*: You don't have a session with that name.\nCall `chatGPT list sessions` to see your saved sessions."
             end
           end
         end

@@ -30,9 +30,9 @@ class SlackSmartBot
               @open_ai[user.name][:chat_gpt][:sessions].delete(session_name)
 
               update_openai_sessions(session_name)
-              respond "*GPT*: Session *#{session_name}* deleted."
+              respond "*ChatGPT*: Session *#{session_name}* deleted."
             else
-              respond "*GPT*: You don't have a session with that name.\nCall `chatGPT list sessions` to see your saved sessions."
+              respond "*ChatGPT*: You don't have a session with that name.\nCall `chatGPT list sessions` to see your saved sessions."
             end
           end
         end

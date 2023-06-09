@@ -746,7 +746,7 @@ ai: {
                              #If supplied :openai_azure then it is necessary to supply host
         api_version: '2023-03-15-preview', # Default api version for :openai_azure
         model: 'gpt-3.5-turbo',
-        repl_model: 'gpt-3.5-turbo'
+        smartbot_model: 'gpt-3.5-turbo'
       },
       # Optional. For DALL-E. If supplied it will be used instead of the ones defined for all open_ai services
       dall_e: {
@@ -765,7 +765,7 @@ ai: {
 ```
 
 Or if you want you can set your personal access token just to be used by you by calling on a DM with the SmartBot the command: `set personal settings ai.open_ai.access_token ACCESS_TOKEN`  
-Also, you can specify personal settings for `host`, `ai.open_ai.chat_gpt.model`, `ai.open_ai.chat_gpt.repl_model`, `ai.open_ai.whisper.model` or `ai.open_ai.dall_e.image_size`, instead of using the default values.  
+Also, you can specify personal settings for `host`, `ai.open_ai.chat_gpt.model`, `ai.open_ai.chat_gpt.smartbot_model`, `ai.open_ai.whisper.model` or `ai.open_ai.dall_e.image_size`, instead of using the default values.  
 For using different hosts or tokens for each service you can use the `chat_gpt`, `dall_e` or `whisper` keys.  
 
 #### ChatGPT
@@ -804,6 +804,7 @@ To remove any shared session from the list, call `chatGPT stop sharing SESSION_N
 [![SmartBot ChatGPT Share Sessions](https://img.youtube.com/vi/Mnve3tnEd-8/0.jpg)](https://www.youtube.com/watch?v=Mnve3tnEd-8)  
 
 You can also use ChatGPT when creating REPLs. During the REPL session you can ask *ChatGPT* about the code or any other question. Just start the message with `?` and the Smart Bot will ask ChatGPT and will post the answer. Example: `? How to create a new customer?`. If you send just the question mark without a prompt then ChatGPT will suggest next code line. Example: `?`  
+To send the results of a *SmartBot command* as input for a *ChatGPT* session, use `COMMAND ?? PROMPT`. Example: `bot help ?? how can I use the time off commands`. If you are on a thread you can send more SmartBot commands to the same session by using `COMMAND ?? PROMPT`.   
 
 
 #### Image Generation

@@ -252,6 +252,15 @@ class SlackSmartBot
             processed = false
             processed_rules = false
 
+            if command_thread.match?(/\A.+\s+\?\?\s+.+\z/im) and !command_thread.match?(/\A\s*(add|create)\s+(silent\s+)?(bgroutine|routine)\s+([\w\.]+)/im)
+              pos = command_thread.index("??")
+              Thread.current[:prompt] = command_thread[pos+2..-1].strip
+              command_thread = command_thread[0..pos-1].strip
+              Thread.current[:stdout] = ""
+            else
+              Thread.current[:prompt] = ""
+              Thread.current[:stdout] = ""
+            end
             Thread.current[:dest] = dest
             Thread.current[:user] = user
             Thread.current[:command] = command_thread.dup
@@ -474,11 +483,24 @@ class SlackSmartBot
               end
             end
 
+            if Thread.current[:prompt].to_s != ''
+              prompt = "#{Thread.current[:command]}\n\n#{Thread.current[:prompt]}\n\n#{Thread.current[:stdout]}\n\n"
+              Thread.current[:prompt] = ''
+              Thread.current[:stdout] = ''
+              if processed
+                if @active_chat_gpt_sessions.key?(user.name) and  @active_chat_gpt_sessions[user.name].key?(Thread.current[:thread_ts])
+                  open_ai_chat(prompt, false, :temporary)
+                else
+                  open_ai_chat(prompt, true, :temporary, model: config[:ai].open_ai.chat_gpt.smartbot_model)
+                end
+              end
+            end              
             if processed and config.general_message != "" and !routine
               respond eval("\"" + config.general_message + "\"")
             end
             respond "_*Loop #{loop_id}* (#{i+1}/#{num_times}) <@#{user.name}>: #{command_every}_" if command_every!='' and processed
             @loops[user.name].delete(loop_id) if command_every!='' and !processed and @loops.key?(user.name) and @loops[user.name].include?(loop_id)
+
           rescue Exception => stack
             @logger.fatal stack
           end

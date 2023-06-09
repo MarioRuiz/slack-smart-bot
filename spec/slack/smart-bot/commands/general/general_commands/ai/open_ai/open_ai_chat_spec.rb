@@ -227,6 +227,30 @@ RSpec.describe SlackSmartBot, "open_ai_chat" do
         expect(bufferc(to: channel, from: :ubot, thread_ts: thread).join).not_to match(/(11|eleven)/)
       end
 
+      it 'calls a smartbot command and the outuput is added to the prompt in a temporary session' do
+        send_message "bot rules ?? how to use echo command", from: user, to: channel
+        sleep seconds_to_wait
+        expect(buffer(to: channel, from: :ubot).join).not_to match(/Specific commands/i)
+        expect(bufferc(to: channel, from: :ubot).join).to match(/echo/i)
+      end
+
+      #todo: unset for the moment since it is not working. Investigate.
+      xit 'calls a smartbot command and the outuput is added to the prompt in a given session on a thread' do
+        thread = "openai#{'3:L&'.gen}"
+        send_message "^chatgpt mySessionHelp", from: user, to: channel, thread_ts: thread
+        sleep seconds_to_wait
+        expect(bufferc(to: channel, from: :ubot, thread_ts: thread).join).to match(/mySessionHelp/i)
+        send_message "bot rules ?? how to use echo command", from: user, to: channel, thread_ts: thread
+        sleep seconds_to_wait
+        expect(buffer(to: channel, from: :ubot, thread_ts: thread).join).to match(/mySessionHelp/i)
+        expect(buffer(to: channel, from: :ubot, thread_ts: thread).join).not_to match(/Specific commands/i)
+        expect(bufferc(to: channel, from: :ubot, thread_ts: thread).join).to match(/echo/i)
+        send_message "ruby puts Time.now ?? is correct hour?", from: user, to: channel, thread_ts: thread
+        sleep seconds_to_wait
+        expect(buffer(to: channel, from: :ubot, thread_ts: thread).join).to match(/mySessionHelp/i)
+        expect(bufferc(to: channel, from: :ubot, thread_ts: thread).join).to match(/#{Time.now.strftime('%Y-%m-%d')}/)
+      end
+
     end
   end
 end

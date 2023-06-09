@@ -14,6 +14,7 @@ class SlackSmartBot
   def see_routines(dest, from, user, all, header, regexp)
     save_stats(__method__)
     if is_admin?
+      react :running
       if all
         routines = {}
         if config.on_master_bot
@@ -93,6 +94,7 @@ class SlackSmartBot
           end
         end
       end
+      unreact :running
     else
       respond "Only admin users can use this command", dest
     end

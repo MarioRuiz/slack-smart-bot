@@ -47,6 +47,7 @@ class SlackSmartBot
         if @routines.key?(@channel_id) && @routines[@channel_id].key?(name)
           respond "I'm sorry but there is already a routine with that name.\nCall `see routines` to see added routines", dest
         else
+          react :running
           number_time += ":00" if number_time.split(":").size == 2
           if (type != "every") && !number_time.match?(/^[01][0-9]:[0-5][0-9]:[0-5][0-9]$/) &&
              !number_time.match?(/^2[0-3]:[0-5][0-9]:[0-5][0-9]$/)
@@ -166,6 +167,7 @@ class SlackSmartBot
             respond "Added routine *`#{name}`* to the channel", dest
             create_routine_thread(name, @routines[@channel_id][name])
           end
+          unreact :running
         end
       else
         respond "Only admin users can use this command", dest

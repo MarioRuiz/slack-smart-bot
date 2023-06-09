@@ -73,7 +73,7 @@ class SlackSmartBot
     config[:ai][:open_ai][:chat_gpt][:host] ||= config._ai.open_ai.host
     config[:ai][:open_ai][:chat_gpt][:access_token] ||= config._ai.open_ai.access_token
     config[:ai][:open_ai][:chat_gpt][:model] ||= 'gpt-3.5-turbo'
-    config[:ai][:open_ai][:chat_gpt][:repl_model] ||= config[:ai][:open_ai][:chat_gpt][:model]
+    config[:ai][:open_ai][:chat_gpt][:smartbot_model] ||= config[:ai][:open_ai][:chat_gpt][:model]
     config[:ai][:open_ai][:chat_gpt][:api_type] ||= :openai
     config[:ai][:open_ai][:chat_gpt][:api_version] ||= ''
 

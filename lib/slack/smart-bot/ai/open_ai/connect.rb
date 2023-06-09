@@ -17,7 +17,7 @@ class SlackSmartBot
             host: general_config._ai.open_ai.chat_gpt.host,
             access_token: general_config._ai.open_ai.chat_gpt.access_token,
             model: general_config._ai.open_ai.chat_gpt.model,
-            repl_model: general_config._ai.open_ai.chat_gpt.repl_model,
+            smartbot_model: general_config._ai.open_ai.chat_gpt.smartbot_model,
             api_type: general_config._ai.open_ai.chat_gpt.api_type,
             api_version: general_config._ai.open_ai.chat_gpt.api_version,
           },
@@ -55,9 +55,9 @@ class SlackSmartBot
            personal_settings[user.name]["ai.open_ai.chat_gpt.model"] != ""
           ai_open_ai_user[:chat_gpt][:model] = personal_settings[user.name]["ai.open_ai.chat_gpt.model"]
         end
-        if personal_settings.key?(user.name) and personal_settings[user.name].key?("ai.open_ai.chat_gpt.repl_model") and
-           personal_settings[user.name]["ai.open_ai.chat_gpt.repl_model"] != ""
-          ai_open_ai_user[:chat_gpt][:repl_model] = personal_settings[user.name]["ai.open_ai.chat_gpt.repl_model"]
+        if personal_settings.key?(user.name) and personal_settings[user.name].key?("ai.open_ai.chat_gpt.smartbot_model") and
+           personal_settings[user.name]["ai.open_ai.chat_gpt.smartbot_model"] != ""
+          ai_open_ai_user[:chat_gpt][:smartbot_model] = personal_settings[user.name]["ai.open_ai.chat_gpt.smartbot_model"]
         end
 
         if personal_settings.key?(user.name) and personal_settings[user.name].key?("ai.open_ai.whisper.model") and
@@ -137,7 +137,7 @@ class SlackSmartBot
           if service == :chat_gpt
             message << "By default we will be using the chatgpt model #{general_config._ai.open_ai.chat_gpt.model}. You can change it in the config file or in personal settings:"
             message << "    `set personal settings ai.open_ai.chat_gpt.model gpt-4-0314`"
-            message << "For specifying the model for ChatGPT on REPLs: `set personal settings ai.open_ai.chat_gpt.repl_model gpt-4-0314`"
+            message << "For specifying the model for ChatGPT on REPLs: `set personal settings ai.open_ai.chat_gpt.smartbot_model gpt-4-0314`"
           elsif service == :whisper
             message << "By default we will be using the whisper model #{general_config._ai.open_ai.whisper.model}. You can change it in the config file or in personal settings:"
             message << "    `set personal settings ai.open_ai.whisper.model whisper-1`"

@@ -210,7 +210,7 @@ class SlackSmartBot
           end
           @repl_sessions[user.name][:chat_gpt][:prompts] ||= []
           unless @repl_sessions[user.name][:chat_gpt][:client].nil?
-            model ||= @repl_sessions[user.name][:chat_gpt][:repl_model]
+            model ||= @repl_sessions[user.name][:chat_gpt][:smartbot_model]
             #todo: add source code to the prompt
             @repl_sessions[user.name][:chat_gpt][:prompts] << prompt
             @repl_sessions[from][:input_output] << prompt

@@ -48,7 +48,7 @@ class SlackSmartBot
               else # type == :continue or loading
                 @open_ai[user.name][:chat_gpt][:sessions][session_name][:model] = model if model != ''
                 num_prompts = @open_ai[user.name][:chat_gpt][:sessions][session_name][:num_prompts]
-                respond "*GPT*: I just loaded *#{session_name}*.\nThere are *#{num_prompts} prompts* in this session.\nThis was the *last prompt* from the session:\n"
+                respond "*ChatGPT*: I just loaded *#{session_name}*.\nThere are *#{num_prompts} prompts* in this session.\nThis was the *last prompt* from the session:\n"
                 content = @ai_gpt[user.name][session_name].join("\n")
                 index_last_prompt = content.rindex(/^(Me>\s.*)$/)
                 if index_last_prompt.nil?
@@ -80,7 +80,8 @@ class SlackSmartBot
               (!@chat_gpt_collaborating.key?(user.name) or !@chat_gpt_collaborating[user.name].key?(Thread.current[:thread_ts]))
               if Thread.current[:on_thread] and 
                 (Thread.current[:thread_ts] == Thread.current[:ts] or 
-                  (@open_ai[user.name][:chat_gpt][:sessions].key?("") and @open_ai[user.name][:chat_gpt][:sessions][""][:thread_ts].include?(Thread.current[:thread_ts]) ))
+                  (@open_ai[user.name][:chat_gpt][:sessions].key?("") and @open_ai[user.name][:chat_gpt][:sessions][""].key?(:thread_ts) and
+                  @open_ai[user.name][:chat_gpt][:sessions][""][:thread_ts].include?(Thread.current[:thread_ts]) ))
                 @listening[user.name] ||= {}
                 @listening[user.name][Thread.current[:thread_ts]] = Time.now
                 @listening[:threads][Thread.current[:thread_ts]] = Thread.current[:dest]
@@ -114,7 +115,6 @@ class SlackSmartBot
               user_creator = user.name
               collaborator = false
             end 
-
             unless type != :temporary and 
               (!@open_ai.key?(user_creator) or !@open_ai[user_creator].key?(:chat_gpt) or !@open_ai[user_creator][:chat_gpt].key?(:sessions) or
               !@open_ai[user_creator][:chat_gpt][:sessions].key?(session_name) or
@@ -127,16 +127,19 @@ class SlackSmartBot
               if !@ai_open_ai[user_creator].nil? and !@ai_open_ai[user_creator][:chat_gpt][:client].nil?
                 @ai_gpt[user_creator] ||= {}
                 @ai_gpt[user_creator][session_name] ||= []
-                if delete_history
+                if delete_history or !@open_ai.key?(user_creator) or !@open_ai[user_creator].key?(:chat_gpt) or !@open_ai[user_creator][:chat_gpt].key?(:sessions) or
+                  !@open_ai[user_creator][:chat_gpt][:sessions].key?(session_name)
+                  
                   @open_ai[user_creator] ||= {}
                   @open_ai[user_creator][:chat_gpt] ||= {}
                   @open_ai[user_creator][:chat_gpt][:sessions] ||= {}
                   @open_ai[user_creator][:chat_gpt][:sessions][session_name] ||= {}
-                  @open_ai[user_creator][:chat_gpt][:sessions][session_name][:model] = ''
+                  @open_ai[user_creator][:chat_gpt][:sessions][session_name][:model] = model
+                  @open_ai[user_creator][:chat_gpt][:sessions][session_name][:num_prompts] = 0
                 end
                 if message == "" and session_name == '' # ?? is called
                   @ai_gpt[user_creator][session_name] = []
-                  respond "*GPT*: Let's start a new temporary conversation. Ask me anything."
+                  respond "*ChatGPT*: Let's start a new temporary conversation. Ask me anything."
                   open_ai_chat_use_model(model, dont_save_stats: true) if model != ''
                 else
                   react :speech_balloon
@@ -155,7 +158,7 @@ class SlackSmartBot
                         message = "#{message}\n\n#{res.data}"
                       end
     
-                      @open_ai[user_creator][:chat_gpt][:sessions][session_name][:num_prompts] += 1 if session_name != ''
+                      @open_ai[user_creator][:chat_gpt][:sessions][session_name][:num_prompts] += 1 
 
                       urls = message.scan(/!(https?:\/\/[\S]+)/).flatten
                       urls.uniq.each do |url|
@@ -185,7 +188,7 @@ class SlackSmartBot
                     end
                     if session_name == ''
                       temp_session_name = @ai_gpt[user_creator][''].first[0..35].gsub('Me> ','')
-                      respond "*GPT* Temporary session: _<#{temp_session_name.gsub("\n",' ').gsub("`",' ')}...>_ model: #{model}\n#{res.to_s.strip}"
+                      respond "*ChatGPT* Temporary session: _<#{temp_session_name.gsub("\n",' ').gsub("`",' ')}...>_ model: #{model}\n#{res.to_s.strip}"
                       if res.to_s.strip == ''
                         respond "It seems like GPT is not responding. Please try again later or use another model, as it might be overloaded."
                       end
@@ -196,17 +199,17 @@ class SlackSmartBot
                       end
                     elsif res.to_s.strip == ''
                       res = "\nAll prompts were removed from session." if delete_history
-                      respond "*GPT* Session _<#{session_name}>_ model: #{model}#{res}"
+                      respond "*ChatGPT* Session _<#{session_name}>_ model: #{model}#{res}"
                       respond "It seems like GPT is not responding. Please try again later or use another model, as it might be overloaded." if message != ''
                     else
-                      respond "*GPT* Session _<#{session_name}>_ model: #{model}\n#{res.to_s.strip}"
+                      respond "*ChatGPT* Session _<#{session_name}>_ model: #{model}\n#{res.to_s.strip}"
                     end
                     if urls_messages.size > 0
                       respond urls_messages.join("\n")
                     end
                     update_openai_sessions(session_name, user_name: user_creator) unless session_name == ''
                   rescue => exception
-                    respond "*GPT*: Sorry, I'm having some problems. OpenAI probably is not available. Please try again later."
+                    respond "*ChatGPT*: Sorry, I'm having some problems. OpenAI probably is not available. Please try again later."
                     @logger.warn exception
                   end
                   unreact :speech_balloon

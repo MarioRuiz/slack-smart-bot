@@ -1009,6 +1009,7 @@ class SlackSmartBot
         # help: ----------------------------------------------
         # help: `chatGPT copy SESSION_NAME`
         # help: `chatGPT copy SESSION_NAME NEW_SESSION_NAME`
+        # help: `chatGPT copy temporary session NEW_SESSION_NAME`
         # help: `chatGPT use USER_NAME SESSION_NAME`
         # help: `chatGPT use USER_NAME SESSION_NAME NEW_SESSION_NAME`
         # help:     OpenAI: SmartBot will copy the ChatGPT session indicated.
@@ -1065,7 +1066,8 @@ class SlackSmartBot
           open_ai_chat_list_sessions(type, tag: tag)
 
         #chatgpt copy
-        when /\A\s*chatgpt\s+copy\s+([\w\-0-9]+)()\s*\z/im,
+        when /\A\s*chatgpt\s+copy\s+temporary\s+session\s+()([\w\-0-9]+)\s*\z/im,
+          /\A\s*chatgpt\s+copy\s+([\w\-0-9]+)()\s*\z/im,
           /\A\s*chatgpt\s+copy\s+([\w\-0-9]+)\s+([\w\-0-9]+)\s*\z/im
           session_name = $1.to_s
           new_session_name = $2.to_s

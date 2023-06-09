@@ -21,8 +21,8 @@ class SlackSmartBot
                           elsif el.type == 'user'
                             data_text += "<@#{el.user_id}>"
                           elsif el.type == 'channel'
-                            tch = data.text.scan(/(<##{el.channel_id}\|[^\>]*>)/).join
-                            data_text += tch
+                            tch = data.text.scan(/(<##{el.channel_id}\|[^\>]*>)/).flatten.first
+                            data_text += tch.to_s
                           else
                             data_text += el.url
                           end
@@ -103,6 +103,7 @@ class SlackSmartBot
         end
       end
       if !dest.nil? and !data.text.nil? and !data.text.to_s.match?(/\A\s*\z/)
+
         get_bots_created()
         if data.channel[0] == "D" and !data.text.to_s.match?(/^\s*<@#{config[:nick_id]}>\s+/) and 
           (data.text.to_s.match?(/^\s*(on)?\s*<#\w+\|[^>]*>/i) or data.text.to_s.match?(/^\s*(on)?\s*#\w+/i))
@@ -258,7 +259,6 @@ class SlackSmartBot
           else
             command = data.text
           end
-
           #when added special characters on the message
           if command.match(/\A\s*```(.*)```\s*\z/im)
             command = $1
@@ -308,12 +308,10 @@ class SlackSmartBot
             # if @botname on #channel_rules: do something
           elsif (typem == :on_pub or typem == :on_pg) and command.size > 0 and command[0] != "-"
             process_first(user_info, command, dest, channel_rules, typem, data.files, data.ts, data.thread_ts, data.routine, data.routine_name, data.routine_type, command_orig)
-          end
-
+          end    
         rescue Exception => stack
           @logger.fatal stack
-        end
-
+        end        
       else
         @logger.warn "Pay attention there is no user on users with id #{data.user}" if user_info.nil? and data.user.to_s!=''
         if !config.on_master_bot and !dest.nil? and (data.channel == @master_bot_id or dest[0] == "D") and

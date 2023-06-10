@@ -128,14 +128,15 @@ class SlackSmartBot
                 @ai_gpt[user_creator] ||= {}
                 @ai_gpt[user_creator][session_name] ||= []
                 if delete_history or !@open_ai.key?(user_creator) or !@open_ai[user_creator].key?(:chat_gpt) or !@open_ai[user_creator][:chat_gpt].key?(:sessions) or
-                  !@open_ai[user_creator][:chat_gpt][:sessions].key?(session_name)
+                  !@open_ai[user_creator][:chat_gpt][:sessions].key?(session_name) or !@open_ai[user_creator][:chat_gpt][:sessions][session_name].key?(:model) or
+                  !@open_ai[user_creator][:chat_gpt][:sessions][session_name].key?(:num_prompts)
                   
                   @open_ai[user_creator] ||= {}
                   @open_ai[user_creator][:chat_gpt] ||= {}
                   @open_ai[user_creator][:chat_gpt][:sessions] ||= {}
                   @open_ai[user_creator][:chat_gpt][:sessions][session_name] ||= {}
-                  @open_ai[user_creator][:chat_gpt][:sessions][session_name][:model] = model
-                  @open_ai[user_creator][:chat_gpt][:sessions][session_name][:num_prompts] = 0
+                  @open_ai[user_creator][:chat_gpt][:sessions][session_name][:model] ||= model
+                  @open_ai[user_creator][:chat_gpt][:sessions][session_name][:num_prompts] ||= 0
                 end
                 if message == "" and session_name == '' # ?? is called
                   @ai_gpt[user_creator][session_name] = []
@@ -147,8 +148,13 @@ class SlackSmartBot
                     urls_messages = []
                     get_openai_sessions(session_name, user_name: user_creator)
                     @ai_gpt[user_creator][session_name] = [] if delete_history
-                    model = @open_ai[user_creator][:chat_gpt][:sessions][session_name][:model].to_s
-                    model = @ai_open_ai[user_creator].chat_gpt.model if model.nil? or model.empty?
+                    if @open_ai.key?(user_creator) and @open_ai[user_creator].key?(:chat_gpt) and @open_ai[user_creator][:chat_gpt].key?(:sessions) and
+                      @open_ai[user_creator][:chat_gpt][:sessions].key?(session_name) and @open_ai[user_creator][:chat_gpt][:sessions][session_name].key?(:model)
+                      model = @open_ai[user_creator][:chat_gpt][:sessions][session_name][:model].to_s
+                    else
+                      model = ''
+                    end
+                    model = @ai_open_ai[user_creator].chat_gpt.model if model.empty?
                     if message == ''
                       res = ''
                     else

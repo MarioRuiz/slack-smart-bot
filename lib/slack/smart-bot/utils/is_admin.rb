@@ -5,9 +5,9 @@ class SlackSmartBot
             from = user.name
         end
         
-        if (Thread.current[:dchannel].to_s!='' and !@channels_creator.key?(Thread.current[:dchannel])) or 
+        if (Thread.current[:dchannel].to_s!='' and Thread.current[:dchannel][0]!='D' and !@channels_creator.key?(Thread.current[:dchannel])) or 
             (Thread.current[:dest].to_s!='' and Thread.current[:dest][0]!='D' and !@channels_creator.key?(Thread.current[:dest])) or 
-            (Thread.current[:using_channel].to_s!='' and !@channels_creator.key?(:using_channel))
+            (Thread.current[:using_channel].to_s!='' and !@channels_creator.key?(Thread.current[:using_channel]))
             get_channels_name_and_id() 
         end
 

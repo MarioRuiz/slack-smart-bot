@@ -119,7 +119,7 @@ class SlackSmartBot
           else
             if ai_open_ai_user[service].key?(:api_type) and ai_open_ai_user[service][:api_type] == :openai_azure
               if general_config._ai.open_ai.key?(:testing) and general_config._ai.open_ai.testing and !general_config.simulate
-                log = "./logs/chat_gpt_azure.log"
+                log = "./logs/chat_gpt_azure_#{user.name}.log"
               else
                 log = :no
               end

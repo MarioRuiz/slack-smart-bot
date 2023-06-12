@@ -91,15 +91,6 @@ class SlackSmartBot
                 @open_ai[user.name][:chat_gpt][:sessions] ||= {}
                 @open_ai[user.name][:chat_gpt][:sessions][""] ||= {}
                 @open_ai[user.name][:chat_gpt][:sessions][""][:thread_ts] ||= []
-                @open_ai[user.name][:chat_gpt][:sessions][""][:thread_ts].each do |thread_ts|
-                  if thread_ts != Thread.current[:thread_ts] && @listening[:threads].key?(thread_ts)
-                    unreact :running, thread_ts, channel: @listening[:threads][thread_ts]
-                    message_chatgpt = "I'm sorry, but I'm no longer listening to this thread since you started a new temporary session."
-                    respond message_chatgpt, @listening[:threads][thread_ts], thread_ts: thread_ts
-                    @listening[user.name].delete(thread_ts)
-                    @listening[:threads].delete(thread_ts)
-                  end
-                end
                 @open_ai[user.name][:chat_gpt][:sessions][""][:thread_ts] << Thread.current[:thread_ts]
                 @active_chat_gpt_sessions[user.name] ||= {}
                 @active_chat_gpt_sessions[user.name][Thread.current[:thread_ts]] ||= ""
@@ -127,17 +118,34 @@ class SlackSmartBot
               if !@ai_open_ai[user_creator].nil? and !@ai_open_ai[user_creator][:chat_gpt][:client].nil?
                 @ai_gpt[user_creator] ||= {}
                 @ai_gpt[user_creator][session_name] ||= []
+
                 if delete_history or !@open_ai.key?(user_creator) or !@open_ai[user_creator].key?(:chat_gpt) or !@open_ai[user_creator][:chat_gpt].key?(:sessions) or
                   !@open_ai[user_creator][:chat_gpt][:sessions].key?(session_name) or !@open_ai[user_creator][:chat_gpt][:sessions][session_name].key?(:model) or
                   !@open_ai[user_creator][:chat_gpt][:sessions][session_name].key?(:num_prompts)
-                  
+
+                  if delete_history and session_name == '' && @open_ai.key?(user_creator) && @open_ai[user_creator].key?(:chat_gpt) && 
+                    @open_ai[user_creator][:chat_gpt].key?(:sessions) && @open_ai[user_creator][:chat_gpt][:sessions].key?("") &&
+                    @open_ai[user_creator][:chat_gpt][:sessions][""].key?(:thread_ts)
+
+                    @open_ai[user_creator][:chat_gpt][:sessions][""][:thread_ts].each do |thread_ts|
+                      if thread_ts != Thread.current[:thread_ts] && @listening[:threads].key?(thread_ts)
+                        unreact :running, thread_ts, channel: @listening[:threads][thread_ts]
+                        message_chatgpt = "I'm sorry, but I'm no longer listening to this thread since you started a new temporary session."
+                        respond message_chatgpt, @listening[:threads][thread_ts], thread_ts: thread_ts
+                        @listening[user_creator].delete(thread_ts)
+                        @listening[:threads].delete(thread_ts)
+                      end
+                    end
+                  end
+
                   @open_ai[user_creator] ||= {}
                   @open_ai[user_creator][:chat_gpt] ||= {}
                   @open_ai[user_creator][:chat_gpt][:sessions] ||= {}
                   @open_ai[user_creator][:chat_gpt][:sessions][session_name] ||= {}
-                  @open_ai[user_creator][:chat_gpt][:sessions][session_name][:model] ||= model
-                  @open_ai[user_creator][:chat_gpt][:sessions][session_name][:num_prompts] ||= 0
+                  @open_ai[user_creator][:chat_gpt][:sessions][session_name][:model] = model
+                  @open_ai[user_creator][:chat_gpt][:sessions][session_name][:num_prompts] = 0
                 end
+
                 if message == "" and session_name == '' # ?? is called
                   @ai_gpt[user_creator][session_name] = []
                   respond "*ChatGPT*: Let's start a new temporary conversation. Ask me anything."
@@ -150,7 +158,11 @@ class SlackSmartBot
                     @ai_gpt[user_creator][session_name] = [] if delete_history
                     if @open_ai.key?(user_creator) and @open_ai[user_creator].key?(:chat_gpt) and @open_ai[user_creator][:chat_gpt].key?(:sessions) and
                       @open_ai[user_creator][:chat_gpt][:sessions].key?(session_name) and @open_ai[user_creator][:chat_gpt][:sessions][session_name].key?(:model)
-                      model = @open_ai[user_creator][:chat_gpt][:sessions][session_name][:model].to_s
+                      if model == ''
+                        model = @open_ai[user_creator][:chat_gpt][:sessions][session_name][:model].to_s 
+                      else 
+                        @open_ai[user_creator][:chat_gpt][:sessions][session_name][:model] = model
+                      end
                     else
                       model = ''
                     end

@@ -488,7 +488,7 @@ class SlackSmartBot
               Thread.current[:prompt] = ''
               Thread.current[:stdout] = ''
               if processed
-                if @active_chat_gpt_sessions.key?(user.name) and  @active_chat_gpt_sessions[user.name].key?(Thread.current[:thread_ts])
+                if @active_chat_gpt_sessions.key?(user.name) and @active_chat_gpt_sessions[user.name].key?(Thread.current[:thread_ts])
                   open_ai_chat(prompt, false, :temporary)
                 else
                   open_ai_chat(prompt, true, :temporary, model: config[:ai].open_ai.chat_gpt.smartbot_model)

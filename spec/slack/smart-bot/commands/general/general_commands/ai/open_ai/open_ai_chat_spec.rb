@@ -234,8 +234,7 @@ RSpec.describe SlackSmartBot, "open_ai_chat" do
         expect(bufferc(to: channel, from: :ubot).join).to match(/echo/i)
       end
 
-      #todo: unset for the moment since it is not working. Investigate.
-      xit 'calls a smartbot command and the outuput is added to the prompt in a given session on a thread' do
+      it 'calls a smartbot command and the outuput is added to the prompt in a given session on a thread' do
         thread = "openai#{'3:L&'.gen}"
         send_message "^chatgpt mySessionHelp", from: user, to: channel, thread_ts: thread
         sleep seconds_to_wait
@@ -245,10 +244,27 @@ RSpec.describe SlackSmartBot, "open_ai_chat" do
         expect(buffer(to: channel, from: :ubot, thread_ts: thread).join).to match(/mySessionHelp/i)
         expect(buffer(to: channel, from: :ubot, thread_ts: thread).join).not_to match(/Specific commands/i)
         expect(bufferc(to: channel, from: :ubot, thread_ts: thread).join).to match(/echo/i)
-        send_message "ruby puts Time.now ?? is correct hour?", from: user, to: channel, thread_ts: thread
+      end
+
+      #todo: enable this test when the access token we use is able to use 32k model
+      xit "uses the generic model for smartbot when using the command as an input for chatgpt and doesn't affect model for temporary session" do
+        send_message "bot rules ?? how to use echo command", from: user, to: channel
         sleep seconds_to_wait
-        expect(buffer(to: channel, from: :ubot, thread_ts: thread).join).to match(/mySessionHelp/i)
-        expect(bufferc(to: channel, from: :ubot, thread_ts: thread).join).to match(/#{Time.now.strftime('%Y-%m-%d')}/)
+        expect(bufferc(to: channel, from: :ubot).join).to match(/32k/i)
+        send_message "?? hola", from: user, to: channel
+        sleep seconds_to_wait
+        expect(buffer(to: channel, from: :ubot).join).not_to match(/32k/i)
+        expect(bufferc(to: channel, from: :ubot).join).to match(/gpt-3\.5/i)
+        send_message "? que tal", from: user, to: channel
+        sleep seconds_to_wait
+        expect(buffer(to: channel, from: :ubot).join).not_to match(/32k/i)
+        expect(bufferc(to: channel, from: :ubot).join).to match(/gpt-3\.5/i)
+        send_message "bot rules ?? how to use echo command", from: user, to: channel
+        sleep seconds_to_wait
+        expect(bufferc(to: channel, from: :ubot).join).to match(/32k/i)
+        send_message "? more examples", from: user, to: channel
+        sleep seconds_to_wait
+        expect(bufferc(to: channel, from: :ubot).join).to match(/32k/i)        
       end
 
     end

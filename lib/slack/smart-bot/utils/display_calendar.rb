@@ -39,7 +39,11 @@ class SlackSmartBot
             vacations_set = false
             public_holiday_set = false
             if phd.include?(date_text)
-              month_line += ":large_red_square: "
+              if date == Date.today
+                month_line += ":large_red_circle: "
+              else
+                month_line += ":large_red_square: "
+              end
               public_holiday_set = true
             end
             if !public_holiday_set
@@ -47,11 +51,23 @@ class SlackSmartBot
                 @vacations[from_user_name][:periods].each do |period|
                   if date >= Date.parse(period[:from]) and date <= Date.parse(period[:to])
                     if period[:type] == "sick"
-                      month_line += ":face_with_thermometer: "
+                      if date == Date.today
+                        month_line += ":thermometer: "
+                      else
+                        month_line += ":face_with_thermometer: "
+                      end
                     elsif period[:type] == "sick child"
-                      month_line += ":baby: "
+                      if date == Date.today
+                        month_line += ":baby_bottle: "
+                      else
+                        month_line += ":baby: "
+                      end
                     elsif period[:type] == "vacation"
-                      month_line += ":palm_tree: "
+                      if date == Date.today
+                        month_line += ":evergreen_tree: "
+                      else
+                        month_line += ":palm_tree: "
+                      end
                       if wday <= 5
                         days_of_vacations += 1
                       end
@@ -63,9 +79,17 @@ class SlackSmartBot
               end
               if !vacations_set
                 if wday == 6 || wday == 7
-                  month_line += ":large_yellow_square: "
+                  if date == Date.today
+                    month_line += ":large_yellow_circle: "
+                  else
+                    month_line += ":large_yellow_square: "
+                  end
                 else
-                  month_line += ":white_square: "
+                  if date == Date.today
+                    month_line += ":white_circle: "
+                  else
+                    month_line += ":white_square: "
+                  end
                 end
               end
             end

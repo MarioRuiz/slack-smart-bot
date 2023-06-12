@@ -14,7 +14,8 @@ class SlackSmartBot
     elsif from =='tomorrow'
       from = (Date.today+1).strftime("%Y/%m/%d")
     elsif from.match?(/next\s+week/)
-      from = Date.today + ((1 - Date.today.wday) % 7)
+      from = Date.today + ((8 - Date.today.wday) % 7)
+      from += 7 if from == Date.today
       to = (from + 6).strftime("%Y/%m/%d")
       from = from.strftime("%Y/%m/%d")
     end

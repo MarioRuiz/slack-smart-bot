@@ -1,4 +1,4 @@
-*Version 1.15.0-DEV43* Released 2023-Jun-08
+*Version 1.15.0-DEV46* Released 2023-Jun-11
 
 *For General users*
 - OpenAI adds specific hosts and access tokens for services. (<https://github.com/MarioRuiz/slack-smart-bot/issues/107|#107>).
@@ -12,6 +12,7 @@
 - ChatGPT when on a session if we want to change the model send `use model MODEL_NAME` (<https://github.com/MarioRuiz/slack-smart-bot/issues/114|#114>) 
 - ChatGPT To send the results of a SmartBot command as input for a ChatGPT session, use `COMMAND ?? PROMPT`. Example: `bot help ?? how can I use the time off commands`. (<https://github.com/MarioRuiz/slack-smart-bot/issues/116|#116>)  
 - ChatGPT To copy the prompts from the temporary session: `chatgpt copy temporary session NEW_SESSION_NAME`
+- Time Off shows the day of today differently from other days. (<https://github.com/MarioRuiz/slack-smart-bot/issues/118|#118>)
 *For Admin users*
 - ChatGPT now supports Azure. (<https://github.com/MarioRuiz/slack-smart-bot/issues/109|#109>)
 

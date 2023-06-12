@@ -17,6 +17,7 @@ class SlackSmartBot
     from_user = '' if from_user_name == user.name
     if !@vacations.key?(from_user_name) or !@vacations[from_user_name].key?(:periods) or @vacations[from_user_name].periods.empty?
       if from_user.empty?
+        display_calendar(from_user_name, year) if dest[0] == 'D'
         respond "You didn't add any time off yet. Use `add vacation from YYYY/MM/DD to YYYY/MM/DD`"
       else
         respond "No time off added yet for <@#{from_user}>"

@@ -722,17 +722,25 @@ class SlackSmartBot
           # help: `see my time off`
           # help: `see vacations @USER`
           # help: `see my vacations YEAR`
+          # help: `time off`
           # help:     It will display current and past time off.
           # help:     If you call this command on a DM, it will show your vacations for the year on a calendar.
+          # help:     see: (optional)
+          # help: Examples:
+          # help:     _see my vacations_
+          # help:     _see my time off 2022_
+          # help:     _see vacations @john_
+          # help:     _time off 2023_
+          # help:     _time off @johan 2024_
           # help:    <https://github.com/MarioRuiz/slack-smart-bot#time-off-management|more info>
           # help: command_id: :see_vacations
           # help: 
-        when /\A\s*see\s+my\s+vacations\s*()\s*(\d{4})?\s*\z/i,
-          /\A\s*see\s+my\s+time\s+off\s*()\s*(\d{4})?\s*\z/i,
-          /\A\s*see\s+time\s+off\s+<@(\w+)>\s*\s*(\d{4})?\s*\z/i,
-          /\A\s*see\s+vacations\s+<@(\w+)>\s*(\d{4})?\s*\z/i
-          from_user = $1
-          year = $2
+        when /\A\s*(see\s+)?(my\s+)?vacations\s*()\s*(\d{4})?\s*\z/i,
+          /\A\s*(see\s+)?(my\s+)?time\s*off\s*()\s*(\d{4})?\s*\z/i,
+          /\A\s*(see\s+)()?time\s*off\s+<@(\w+)>\s*\s*(\d{4})?\s*\z/i,
+          /\A\s*(see\s+)()?vacations\s+<@(\w+)>\s*(\d{4})?\s*\z/i
+          from_user = $3
+          year = $4
           react :running
           see_vacations(user, dest, from_user: from_user, year: year)
           unreact :running

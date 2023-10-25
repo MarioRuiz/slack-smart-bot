@@ -7,6 +7,12 @@ class SlackSmartBot
     end
 
     country, location = country_region.split("/")
+    local_day_time = local_time(country_region)
+    if local_day_time.nil?
+      today = Date.today
+    else
+      today = local_day_time.to_date
+    end
     public_holidays(country.to_s, location.to_s, year, "", "", add_stats: false, publish_results: false)
     if from_user_name.empty?
       messages = ["*Calendar #{year} #{country_region}*"]
@@ -39,7 +45,7 @@ class SlackSmartBot
             vacations_set = false
             public_holiday_set = false
             if phd.include?(date_text)
-              if date == Date.today
+              if date == today
                 month_line += ":large_red_circle: "
               else
                 month_line += ":large_red_square: "
@@ -51,19 +57,19 @@ class SlackSmartBot
                 @vacations[from_user_name][:periods].each do |period|
                   if date >= Date.parse(period[:from]) and date <= Date.parse(period[:to])
                     if period[:type] == "sick"
-                      if date == Date.today
+                      if date == today
                         month_line += ":thermometer: "
                       else
                         month_line += ":face_with_thermometer: "
                       end
                     elsif period[:type] == "sick child"
-                      if date == Date.today
+                      if date == today
                         month_line += ":baby_bottle: "
                       else
                         month_line += ":baby: "
                       end
                     elsif period[:type] == "vacation"
-                      if date == Date.today
+                      if date == today
                         month_line += ":evergreen_tree: "
                       else
                         month_line += ":palm_tree: "
@@ -79,13 +85,13 @@ class SlackSmartBot
               end
               if !vacations_set
                 if wday == 6 || wday == 7
-                  if date == Date.today
+                  if date == today
                     month_line += ":large_yellow_circle: "
                   else
                     month_line += ":large_yellow_square: "
                   end
                 else
-                  if date == Date.today
+                  if date == today
                     month_line += ":white_circle: "
                   else
                     month_line += ":white_square: "
@@ -104,7 +110,12 @@ class SlackSmartBot
     if !from_user_name.empty?
       messages << "\n\n:large_yellow_square: weekend / :white_square: weekday / :white_small_square: not in month / :large_red_square: Public Holiday / :palm_tree: Vacation / :face_with_thermometer: Sick / :baby: Sick child"
       if country_region != ""
-        messages << "Your public holidays are set for #{country_region.downcase}. Call `set public holidays to COUNTRY/REGION` if you want to change it.\n"
+        if local_day_time.nil?
+          local_str = "local time not found"
+        else
+          local_str = local_day_time.strftime("%Y-%m-%d %H:%M")
+        end
+        messages << "Your public holidays are set for #{country_region.downcase} (#{local_str}). Call `set public holidays to COUNTRY/REGION` if you want to change it.\n"
       else
         messages << "Your public holidays are not set. Call `set public holidays to COUNTRY/REGION` to set it.\n"
       end

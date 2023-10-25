@@ -3,7 +3,7 @@ class SlackSmartBot
     module General
       module Teams
         module Memos
-          def see_memos_team(user, type: "all", name: nil, topic: "", add_stats: true, team: nil, memo_id: nil)
+          def see_memos_team(user, type: "all", name: nil, topic: "", add_stats: true, team: nil, memo_id: nil, precise: true)
             save_stats(__method__) if add_stats
 
             get_teams()
@@ -37,12 +37,14 @@ class SlackSmartBot
                 end
                 team[:memos].each do |memo|
                   if memo_id.nil? or memo[:memo_id] == memo_id.to_i
-                    memos_filtered << memo
-                    all_topics << memo.topic
-                    if memo.key?(:search) and memo.key?(:issues) and memo.issues.size > 0
-                      num_issues += memo.issues.size
-                    else
-                      num_issues += 1
+                    if topic == "" or (memo.topic == topic and precise) or (memo.topic.to_s.downcase.include?(topic.to_s.downcase) and !precise)
+                      memos_filtered << memo
+                      all_topics << memo.topic
+                      if memo.key?(:search) and memo.key?(:issues) and memo.issues.size > 0
+                        num_issues += memo.issues.size
+                      else
+                        num_issues += 1
+                      end
                     end
                   end
                 end
@@ -98,7 +100,8 @@ class SlackSmartBot
                               if memo.topic == :no_topic and !issue.fields.labels.empty?
                                 jira_memo.topic = issue.fields.labels.sort.join("_").split(" ").join("_")
                               end
-                              if topic == "" or (topic != "" and jira_memo.topic.to_s.downcase == topic.to_s.downcase)
+                              if topic == "" or (topic != "" and jira_memo.topic.to_s.downcase == topic.to_s.downcase and precise) or
+                                  (topic != "" and jira_memo.topic.to_s.downcase.include?(topic.to_s.downcase) and !precise)
                                 case issue.fields.issuetype.name
                                 when "Story"; jira_memo.type = ":abc:"; jira_memo.mtype = "memo"
                                 when "Bug"; jira_memo.type = ":bug:"; jira_memo.mtype = "bug"
@@ -179,7 +182,8 @@ class SlackSmartBot
                               if memo.topic == :no_topic and !issue.labels.empty?
                                 github_memo.topic = labels
                               end
-                              if topic == "" or (topic != "" and github_memo.topic.to_s.downcase == topic.to_s.downcase)
+                              if topic == "" or (topic != "" and github_memo.topic.to_s.downcase == topic.to_s.downcase and precise) or
+                                  (topic != "" and github_memo.topic.to_s.downcase.include?(topic.to_s.downcase) and !precise)
                                 case labels
                                 when /bug/i; github_memo.type = ":bug:"; github_memo.mtype = "bug"
                                 when /docum/i; github_memo.type = ":abc:"; github_memo.mtype = "note"
@@ -218,7 +222,8 @@ class SlackSmartBot
                         end
                         http.close
                       else
-                        if topic == "" or (topic != "" and memo.topic.to_s.downcase == topic.to_s.downcase)
+                        if topic == "" or (topic != "" and memo.topic.to_s.downcase == topic.to_s.downcase and precise) or
+                            (topic != "" and memo.topic.to_s.downcase.include?(topic.to_s.downcase) and !precise)
                           if (type == "all" or type.to_s == memo[:type].to_s or type == "")
                             memo.jira = false
                             memo.github = false

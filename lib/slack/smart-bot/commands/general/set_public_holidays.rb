@@ -18,6 +18,7 @@ class SlackSmartBot
         @vacations[user.name] ||= {}
         @vacations[user.name][:public_holidays] = country_region
         update_vacations()
+        check_vacations(date: nil, user: user.name, set_status: true, only_first_day: false)
     else
         respond "Be sure the country and state are correct. If not displayed available states, try with the country only."
     end

@@ -240,7 +240,7 @@ class SlackSmartBot
     @announcements = Hash.new()
     @shares = Hash.new()
     @last_status_change = Time.now
-    @vacations_check = (Date.today - 1)
+    @vacations_check = (Time.now - 3600).strftime("%Y%m%d%H")
     @announcements_activity_after = Hash.new()
     @public_holidays = Hash.new()
     @loops = Hash.new()

@@ -6,10 +6,28 @@ class SlackSmartBot
     else
       users = [user]
     end
-    on_vacation = []
+    on_vacation = []    
+    
     users.each do |user|
       type = nil
       expiration = nil
+
+      if date.nil?
+        if @vacations.key?(user) and @vacations[user][:public_holidays].to_s != ""
+          country_region = @vacations[user][:public_holidays].downcase
+        elsif config[:public_holidays].key?(:default_calendar)
+          country_region = config[:public_holidays][:default_calendar].downcase
+        else
+          country_region = ''
+        end
+    
+        local_day_time = local_time(country_region)
+        if local_day_time.nil?
+          date = Date.today
+        else
+          date = local_day_time.to_date
+        end
+      end
       @vacations[user].periods ||= []
       @vacations[user].periods.each do |p|
         if only_first_day and p.from == date.strftime("%Y/%m/%d")

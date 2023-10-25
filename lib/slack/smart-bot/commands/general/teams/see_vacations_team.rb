@@ -2,7 +2,7 @@ class SlackSmartBot
   module Commands
     module General
       module Teams
-        def see_vacations_team(user, team_name, date, add_stats: true)
+        def see_vacations_team(user, team_name, date, add_stats: true, filter_members: [])
           save_stats(__method__) if add_stats
 
           get_teams()
@@ -20,6 +20,7 @@ class SlackSmartBot
             end
             date.gsub!("-", "/")
             get_vacations()
+            members_by_country_region = {}
             team = teams[team_name.to_sym]
             assigned_members = team.members.values.flatten
             assigned_members.uniq!
@@ -49,6 +50,10 @@ class SlackSmartBot
               all_team_members += team_members
               all_team_members.uniq!
             end
+            if filter_members.size > 0
+              all_team_members = all_team_members & filter_members
+            end
+
             unless all_team_members.empty?
               blocks_header =
                 {
@@ -78,7 +83,8 @@ class SlackSmartBot
                   elsif config[:public_holidays].key?(:default_calendar) and country_region.empty?
                     country_region = defaulted_country_region
                   end
-
+                  members_by_country_region[country_region] ||= []
+                  members_by_country_region[country_region] << info.name
                   info = get_user_info(info.id)
                   if @vacations.key?(m)
                     v = ""
@@ -171,8 +177,17 @@ class SlackSmartBot
               if !defaulted_country_region.empty?
                 message = "Defaulted public holidays calendar: #{defaulted_country_region}\n"
               end
-              message += "To change your public holidays calendar, use the command `set public holidays to COUNTRY/STATE`. "
-              message += "\nExamples: `set public holidays to Iceland`, `set public holidays to Spain/Madrid`"
+              if members_by_country_region.size > 0 and members_by_country_region.keys.size > 1                
+                message_tmp = []
+                members_by_country_region.each do |region, members|
+                  message_tmp << "`#{region}`: <#{members.sort.join(", ")}>"
+                end
+                message += "Members by region:\n\t#{message_tmp.join(". ")}\n"
+              end
+              if all_team_members.include?(user.name)
+                message += "To change your public holidays calendar, use the command `set public holidays to COUNTRY/STATE`. "
+                message += "\nExamples: `set public holidays to Iceland`, `set public holidays to Spain/Madrid`"
+              end
               respond message
             end
           end

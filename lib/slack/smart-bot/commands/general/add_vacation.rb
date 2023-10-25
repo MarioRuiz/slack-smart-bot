@@ -9,13 +9,28 @@ class SlackSmartBot
       type = 'sick child'
     end
 
+    if @vacations.key?(user.name) and @vacations[user.name][:public_holidays].to_s != ""
+      country_region = @vacations[user.name][:public_holidays].downcase
+    elsif config[:public_holidays].key?(:default_calendar)
+      country_region = config[:public_holidays][:default_calendar].downcase
+    else
+      country_region = ''
+    end
+
+    local_day_time = local_time(country_region)
+    if local_day_time.nil?
+      today = Date.today
+    else
+      today = local_day_time.to_date
+    end
+
     if from=='today'
-      from = Date.today.strftime("%Y/%m/%d")
+      from = today.strftime("%Y/%m/%d")
     elsif from =='tomorrow'
-      from = (Date.today+1).strftime("%Y/%m/%d")
+      from = (today+1).strftime("%Y/%m/%d")
     elsif from.match?(/next\s+week/)
-      from = Date.today + ((8 - Date.today.wday) % 7)
-      from += 7 if from == Date.today
+      from = today + ((8 - today.wday) % 7)
+      from += 7 if from == today
       to = (from + 6).strftime("%Y/%m/%d")
       from = from.strftime("%Y/%m/%d")
     end
@@ -50,7 +65,7 @@ class SlackSmartBot
         vacations[user.name].periods << { vacation_id: vacation_id, type: type.downcase, from: from, to: to }
         update_vacations({user.name => vacations[user.name]})
         respond "Period has been added   ##{vacation_id}"
-        check_vacations(date: Date.today, user: user.name, set_status: true, only_first_day: false)
+        check_vacations(date: today, user: user.name, set_status: true, only_first_day: false)
       end
     end
   end

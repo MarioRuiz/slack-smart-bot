@@ -547,25 +547,22 @@ class SlackSmartBot
           # help: `see team TEAM_NAME`
           # help: `team TEAM_NAME`
           # help: `TEAM_NAME team`
+          # help: `TEAM_NAME team TOPIC`
           # help: `which team @USER`
           # help: `which team #CHANNEL`
           # help: `which team TEXT_TO_SEARCH_ON_INFO`
           # help: `which team does @USER belongs to?`
           # help:     It will display all teams or the team specified.
           # help:     In case a specific team it will show also the availability of the members.
+          # help:     TOPIC: It will filter members, channels and memos by topic.
           # help:  Examples:
           # help:     _see teams_
           # help:     _see team Sales_
           # help:     _Dev team_
+          # help:     _Sales team dev_
           # help:    <https://github.com/MarioRuiz/slack-smart-bot#teams|more info>
           # help: command_id: :see_teams
           # help: 
-        when /\A\s*see\s+teams?\s*([\w\-]+)?\s*\z/i, /\A\s*team\s+([\w\-]+)\s*\z/i, /\A\s*([\w\-]+)\s+team\s*\z/i, /\A\s*see\s+all\s+teams\s*()\z/i
-          name = $1.to_s.downcase
-          see_teams(user, name)
-        when /\A\s*(which|search)\s+teams?\s+(is\s+)?(.+)\??\s*\z/i, /\A\s*which\s+team\s+does\s+()()(.+)\s+belongs\s+to\??\s*\z/i
-          search = $3.to_s.downcase
-          see_teams(user, '', search)
 
           # help: ----------------------------------------------
           # help: `update team TEAM_NAME NEW_TEAM_NAME`
@@ -642,6 +639,28 @@ class SlackSmartBot
         when /\A\s*(delete|remove)\s+team\s+([\w\-]+)\s*\z/i, /\A\s*(delete|remove)\s+([\w\-]+)\s+team\s*\z/i
           name = $2.downcase
           delete_team(user, name)
+
+        when /\A\s*(see\s+)?(vacations|time\s+off)\s+team\s+([\w\-]+)\s*(\d\d\d\d\/\d\d\/\d\d)?\s*\z/i,
+          /\A\s*(see\s+)?(vacations|time\s+off)\s+([\w\-]+)\s+team\s*(\d\d\d\d\/\d\d\/\d\d)?\s*\z/i,
+          /\A\s*(see\s+)?(vacations|time\s+off)\s+team\s+([\w\-]+)\s*(\d\d\d\d-\d\d-\d\d)?\s*\z/i,
+          /\A\s*(see\s+)?(vacations|time\s+off)\s+([\w\-]+)\s+team\s*(\d\d\d\d-\d\d-\d\d)?\s*\z/i        
+          team_name = $3.downcase
+          date = $4.to_s
+          date = Date.today.strftime("%Y/%m/%d") if date.empty?
+          react :running
+          see_vacations_team(user, team_name, date)
+          unreact :running
+
+        when /\A\s*(which|search)\s+teams?\s+(is\s+)?(.+)\??\s*\z/i, /\A\s*which\s+team\s+does\s+()()(.+)\s+belongs\s+to\??\s*\z/i
+          search = $3.to_s.downcase
+          see_teams(user, '', search)
+        when /\A\s*see\s+teams?\s*([\w\-]+)?\s*()\z/i, 
+          /\A\s*team\s+([\w\-]+)\s*()\z/i, /\A\s*([\w\-]+)\s+team\s*()\z/i, 
+          /\A\s*team\s+([\w\-]+)\s+([\w\-]+)\z/i, /\A\s*([\w\-]+)\s+team\s+([\w\-]+)\z/i, 
+          /\A\s*see\s+all\s+teams\s*()()\z/i
+          name = $1.to_s.downcase
+          type = $2.to_s.downcase
+          see_teams(user, name, ttype: type)
 
           # help: ----------------------------------------------
           # help: `see MEMO_TYPE from TEAM_NAME team`
@@ -754,16 +773,6 @@ class SlackSmartBot
           # help:    <https://github.com/MarioRuiz/slack-smart-bot#time-off-management|more info>
           # help: command_id: :see_vacations_team
           # help: 
-        when /\A\s*(see\s+)?(vacations|time\s+off)\s+team\s+([\w\-]+)\s*(\d\d\d\d\/\d\d\/\d\d)?\s*\z/i,
-          /\A\s*(see\s+)?(vacations|time\s+off)\s+([\w\-]+)\s+team\s*(\d\d\d\d\/\d\d\/\d\d)?\s*\z/i,
-          /\A\s*(see\s+)?(vacations|time\s+off)\s+team\s+([\w\-]+)\s*(\d\d\d\d-\d\d-\d\d)?\s*\z/i,
-          /\A\s*(see\s+)?(vacations|time\s+off)\s+([\w\-]+)\s+team\s*(\d\d\d\d-\d\d-\d\d)?\s*\z/i        
-          team_name = $3.downcase
-          date = $4.to_s
-          date = Date.today.strftime("%Y/%m/%d") if date.empty?
-          react :running
-          see_vacations_team(user, team_name, date)
-          unreact :running
 
           # help: ----------------------------------------------
           # help: `public holidays COUNTRY`

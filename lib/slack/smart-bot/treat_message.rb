@@ -84,10 +84,10 @@ class SlackSmartBot
       if !dest.nil? and config.on_master_bot and !data.text.nil? and data.text.match(/^ping from (.+)\s*$/) and data.user == config[:nick_id]
         @pings << $1
       end
-      if config.on_master_bot and @vacations_check != Date.today
-        @vacations_check = Date.today
+      if config.on_master_bot and @vacations_check != Time.now.strftime("%Y%m%d%H") #every hour since depends on user's time zone
+        @vacations_check = Time.now.strftime("%Y%m%d%H")
         t = Thread.new do
-          check_vacations(only_first_day: true)
+          check_vacations(date: nil, only_first_day: true)
         end
       end
       typem = :dont_treat

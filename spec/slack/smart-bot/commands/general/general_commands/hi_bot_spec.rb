@@ -1,4 +1,3 @@
-
 RSpec.describe SlackSmartBot, "hi_bot" do
   before(:each) do
     salutations = ["example", "<@#{UBOT}>", "bot", "smart"]
@@ -20,7 +19,7 @@ RSpec.describe SlackSmartBot, "hi_bot" do
     expect(buffer(to: :cbot1cm, from: :ubot)[0]).to match(@hi_regexp)
   end
 
-  it 'responds in channel with extended rules' do
+  it "responds in channel with extended rules" do
     send_message @hi_bot, from: :user1, to: :cext1
     expect(buffer(to: :cext1, from: :ubot)[0]).to match(@hi_regexp)
   end
@@ -57,12 +56,39 @@ RSpec.describe SlackSmartBot, "hi_bot" do
     expect(buffer(to: :cext1, from: :ubot)[0]).to match(@hi_regexp)
   end
 
+  describe "on bot using user from other workspace" do
+
+    it "responds to user from another workspace with same user name than user from this workspace" do
+      command = "hi bot"
+      send_message "#{command}", from: :uexternal2, to: :cbot1cm
+      sleep 1
+      expect(bufferc(to: :cbot1cm, from: :ubot).join).to match(/Mario\sExternalYou\sare\son/i)
+
+      send_message "echo Lola", from: :uadmin, to: :cbot1cm
+      sleep 1
+      #expect that bot is not responding to same user from current workspace
+      expect(buffer(to: :cbot1cm, from: :ubot).join).to eq ""
+
+      send_message "echo Lola", from: :uexternal2, to: :cbot1cm
+      sleep 1
+      expect(buffer(to: :cbot1cm, from: :ubot).join).to match(/Lola/i)
+
+    end
+
+  end
+
   describe "on external channel not extended" do
     it "responds" do
       command = "hi bot"
       send_message "#{command}", from: :uadmin, to: :cexternal
       sleep 1
-      expect(buffer(to: :cexternal, from: :ubot).join).to  match(/You are on a channel where the SmartBot is just a member/i)
+      expect(buffer(to: :cexternal, from: :ubot).join).to match(/You are on a channel where the SmartBot is just a member/i)
+    end
+    it "responds to user from other workspace" do
+      command = "hi bot"
+      send_message "#{command}", from: :uexternal, to: :cexternal
+      sleep 1
+      expect(buffer(to: :cexternal, from: :ubot).join).to match(/You are on a channel where the SmartBot is just a member/i)
     end
   end
 

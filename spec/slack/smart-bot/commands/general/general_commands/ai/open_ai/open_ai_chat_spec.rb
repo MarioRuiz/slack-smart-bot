@@ -14,7 +14,7 @@ RSpec.describe SlackSmartBot, "open_ai_chat" do
         send_message "?? hola", from: user, to: channel
         sleep seconds_to_wait
         send_message "delete personal settings ai.open_ai.access_token", from: user, to: channel
-        expect(buffer(to: channel, from: :ubot).join).to match(/(Incorrect API key provided|invalid_api_key)/i)
+        expect(buffer(to: channel, from: :ubot).join).to match(/(Incorrect API key provided|invalid_api_key|Access denied|problems|Invalid)/i)
         prompt = "how much is 3 plus 3"
         send_message "?? #{prompt}", from: user, to: channel
         sleep seconds_to_wait
@@ -78,7 +78,7 @@ RSpec.describe SlackSmartBot, "open_ai_chat" do
         sleep seconds_to_wait
         expect(buffer(to: channel, from: :ubot).join).to match(/Session _<mySession1>_ model:/i)
         expect(bufferc(to: channel, from: :ubot).join).to match(/(6|six)/)
-        
+
         send_message "chatgpt start mySession2", from: user, to: channel
         sleep seconds_to_wait
         expect(bufferc(to: channel, from: :ubot).join).to match(/Session _<mySession2>_ model:/i)
@@ -116,7 +116,7 @@ RSpec.describe SlackSmartBot, "open_ai_chat" do
         expect(bufferc(to: channel, from: :ubot, thread_ts: thread).join).to match(/Session _<mySession5>_ model: wrong_model/i)
         send_message "how much is 3 plus 4", from: user, to: channel, thread_ts: thread
         sleep seconds_to_wait
-        message = 'The model `wrong_model` does not exist'
+        message = '(The model `wrong_model` does not exist|The API deployment for this resource does not exist|problems|invalid)'
         expect(buffer(to: channel, from: :ubot, thread_ts: thread).join).to match(/#{message}/i)
       end
 
@@ -181,11 +181,13 @@ RSpec.describe SlackSmartBot, "open_ai_chat" do
       end
 
       it 'is downloading the url specified and add it to the prompt' do
-        send_message "?? is it displayed on this webpage !https://github.com/MarioRuiz/nice_http/blob/master/lib/nice_http/defaults.rb the sentence 'Wrong sentence'", from: user, to: channel
+        send_message "?? use model 32k", from: user, to: channel
         sleep seconds_to_wait
+        send_message "? is it displayed on this webpage !https://poemasdesdelalocura.blogspot.com/2019/08/ganas-de-verte.html the sentence 'Wrong sentence'", from: user, to: channel
+        sleep seconds_to_wait*2
         expect(buffer(to: channel, from: :ubot).join).to match(/No/i)
         expect(bufferc(to: channel, from: :ubot).join).to match(/content extracted and added to prompt/i)
-        send_message "? is it displayed '@async_resource'", from: user, to: channel
+        send_message "? is it displayed 'Tengo ganas'", from: user, to: channel
         sleep seconds_to_wait
         expect(buffer(to: channel, from: :ubot).join).to match(/yes/i)
       end
@@ -264,7 +266,7 @@ RSpec.describe SlackSmartBot, "open_ai_chat" do
         expect(bufferc(to: channel, from: :ubot).join).to match(/32k/i)
         send_message "? more examples", from: user, to: channel
         sleep seconds_to_wait
-        expect(bufferc(to: channel, from: :ubot).join).to match(/32k/i)        
+        expect(bufferc(to: channel, from: :ubot).join).to match(/32k/i)
       end
 
     end

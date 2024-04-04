@@ -1,7 +1,6 @@
 class SlackSmartBot
-  def bot_rules(dest, help_command, typem, rules_file, user)
+  def bot_rules(dest, help_command, typem, rules_file, user, send_to_file: false)
     save_stats(__method__)
-    from = user.name
     if has_access?(__method__, user)
       if typem == :on_extended or typem == :on_call #for the other cases above.
         output = []
@@ -10,9 +9,10 @@ class SlackSmartBot
           expanded = true
         else
           expanded = false
-        end 
-  
-        help_filtered = get_help(rules_file, dest, from, true, expanded)
+        end
+        expanded = true if send_to_file
+
+        help_filtered = get_help(rules_file, dest, user, true, expanded)
 
         commands = []
         commands_search = []
@@ -28,7 +28,7 @@ class SlackSmartBot
               help_command.to_s.split(' ') do |hc|
                 unless hc.match?(/^\s*\z/)
                   if !h.match?(/#{hc}/i)
-                    all_found = false                  
+                    all_found = false
                   end
                 end
               end
@@ -77,14 +77,24 @@ class SlackSmartBot
           dest = :on_thread
           output.unshift('Since there are many lines returned the results are returned on a thread by default.')
         end
-        output.each do |h|
-          msg = h.gsub(/^\s*command_id:\s+:\w+\s*$/,'')
-          msg.gsub!(/^\s*>.+$/,'') if help_command.to_s != ''
-          unless msg.match?(/\A\s*\z/)
-            respond msg, dest, unfurl_links: false, unfurl_media: false
+        if send_to_file
+          content = output.join("\n\n")
+          content.gsub!(/\*<([^>]*)\|([^>]*)>\*/, '## [\2](\1)')
+          content.gsub!(/^\s*(\*.+\*)\s*$/, '# \1')
+          content.gsub!(/command_id:\s+:/, '### :')
+          content = content.gsub("\n", "  \n").gsub(/\|[\w\s]*>/i,">").gsub(/^\s*\-\-\-\-\-\-/, "\n------")
+          dest == :on_thread ? dest_file = dchannel : dest_file = dest
+          send_file(dest_file, "SmartBot Rules", "", 'smartbot_rules.md', "text/markdown", "markdown", content: content)
+        else
+          output.each do |h|
+            msg = h.gsub(/^\s*command_id:\s+:\w+\s*$/,'')
+            msg.gsub!(/^\s*>.+$/,'') if help_command.to_s != ''
+            unless msg.match?(/\A\s*\z/)
+              respond msg, dest, unfurl_links: false, unfurl_media: false
+            end
           end
         end
-    
+
       end
     end
   end

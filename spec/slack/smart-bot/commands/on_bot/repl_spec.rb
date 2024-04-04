@@ -53,7 +53,7 @@ RSpec.describe SlackSmartBot, "repl" do
       send_message "exit", from: user, to: channel
       expect(buffer(to: channel, from: :ubot).join).to match(/REPL session finished: \w+_\d+/)
     end
-    it 'ends the session when sending exit' do
+    it 'ends the session when sending bye' do
       send_message "!repl", from: user, to: channel
       send_message "bye", from: user, to: channel
       expect(buffer(to: channel, from: :ubot).join).to match(/REPL session finished: \w+_\d+/)

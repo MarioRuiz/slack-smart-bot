@@ -13,6 +13,10 @@ def get_key(user)
     key = USER2
   when :uadmin
     key = UADMIN
+  when :uexternal
+    key = UEXTERNAL
+  when :uexternal2
+    key = UEXTERNAL2
   when :cmaster
     key = CMASTER
   when :cbot1cm
@@ -27,7 +31,7 @@ def get_key(user)
     key = CPRIV1
   when :cprivext
     key = CPRIVEXT
-  when :cstatus 
+  when :cstatus
     key = CSTATUS
   when :cstats
     key = CSTATS
@@ -51,7 +55,7 @@ end
 
 build_DIRECT() unless SIMULATE
 
-def buffer(to:, from:, tries: 20, all: false, thread_ts: '')
+def buffer(to:, from:, tries: 20, all: false, thread_ts: "")
   SIMULATE ? sleep(0.2) : sleep(0.5)
   to = get_key(to)
   from = get_key(from)
@@ -62,7 +66,7 @@ def buffer(to:, from:, tries: 20, all: false, thread_ts: '')
     SIMULATE ? sleep(0.1) : sleep(0.2)
     b = File.read("./spec/bot/buffer.log", encoding: "UTF-8")
     if all
-      result = b.scan(/^\|#{to}\|#{thread_ts}\|#{from}\|(.*)/im).flatten 
+      result = b.scan(/^\|#{to}\|#{thread_ts}\|#{from}\|(.*)/im).flatten
     else
       result = b.scan(/^\|#{to}\|#{thread_ts}\|#{from}\|.*\|([^\|]+)$/).flatten
     end
@@ -78,7 +82,7 @@ def buffer(to:, from:, tries: 20, all: false, thread_ts: '')
   return result
 end
 
-def bufferc(to:, from:, tries: 20, thread_ts: '')
+def bufferc(to:, from:, tries: 20, thread_ts: "")
   result = buffer(to: to, from: from, tries: tries, thread_ts: thread_ts)
   clean_buffer()
   return result
@@ -130,12 +134,14 @@ def send_message(message, from: :ubot, to:, file_ruby: "", thread_ts: nil)
 
   if file_ruby.to_s == ""
     if SIMULATE
-      if from.to_s == 'uadmin'
-        from_name = 'marioruizs'
-      elsif from.to_s == 'user1'
-        from_name = 'smartbotuser1'
-      elsif from.to_s == 'user2'
-        from_name = 'smartbotuser2'
+      if from.to_s == "uadmin"
+        from_name = "marioruizs"
+      elsif from.to_s == "user1"
+        from_name = "smartbotuser1"
+      elsif from.to_s == "user2"
+        from_name = "smartbotuser2"
+      elsif from.to_s == "peter"
+        from_name = "peterloop"
       else
         from_name = from.to_s
       end
@@ -144,10 +150,10 @@ def send_message(message, from: :ubot, to:, file_ruby: "", thread_ts: nil)
       }
     else
       http.post(path: "/api/chat.postMessage", data: {
-        channel: to_key,
-        as_user: true,
-        text: message,
-      })
+                  channel: to_key,
+                  as_user: true,
+                  text: message,
+                })
       sleep 1
     end
   else

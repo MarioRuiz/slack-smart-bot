@@ -13,9 +13,9 @@ class SlackSmartBot
     # helpadmin:    In case from and to specified will send a DM to all users that have been using the SmartBot according to the SmartBot Stats. One message every 5sc. #CHANNEL and COMMAND_ID are optional filters.
     # helpadmin: command_id: :send_message
     # helpadmin:
-    def send_message(dest, from, typem, to, thread_ts, stats_from, stats_to, stats_channel_filter, stats_command_filter, message)
+    def send_message(dest, user, typem, to, thread_ts, stats_from, stats_to, stats_channel_filter, stats_command_filter, message)
       save_stats(__method__)
-      if config.masters.include?(from) and typem==:on_dm #master admin user
+      if config.team_id_masters.include?("#{user.team_id}_#{user.name}") and typem==:on_dm #master admin user
         react :runner
         unless Thread.current[:command_orig].to_s == ''
           message_orig = Thread.current[:command_orig].to_s.gsub("\u00A0", " ").scan(/[^:]+\s*:\s+(.+)/im).join
@@ -32,13 +32,13 @@ class SlackSmartBot
           Dir["#{config.stats_path}.*.log"].sort.each do |file|
             if file >= "#{config.stats_path}.#{stats_from[0..6]}.log" and file <= "#{config.stats_path}.#{stats_to[0..6]}.log"
               CSV.foreach(file, headers: true, header_converters: :symbol, converters: :numeric) do |row|
-                if row[:date] >= stats_from and row[:date] <= stats_to and !users.include?(row[:user_name]) 
+                if row[:date] >= stats_from and row[:date] <= stats_to and !users.include?(row[:user_name])
                   if (stats_channel_filter=='' and stats_command_filter=='') or
                     (stats_channel_filter!='' and stats_command_filter=='' and (row[:bot_channel_id]==stats_channel_filter or row[:dest_channel_id]==stats_channel_filter)) or
-                    (stats_command_filter!='' and stats_channel_filter=='' and row[:command]==stats_command_filter) or 
+                    (stats_command_filter!='' and stats_channel_filter=='' and row[:command]==stats_command_filter) or
                     (stats_channel_filter!='' and stats_command_filter!='' and ((row[:bot_channel_id]==stats_channel_filter or row[:dest_channel_id]==stats_channel_filter) and row[:command]==stats_command_filter))
 
-                    user_ids << row[:user_id] 
+                    user_ids << row[:user_id]
                     users << row[:user_name]
                   end
                 end
@@ -82,4 +82,3 @@ class SlackSmartBot
       end
     end
 end
-  

@@ -25,11 +25,11 @@ class SlackSmartBot
             assigned_members = team.members.values.flatten
             assigned_members.uniq!
             assigned_members.dup.each do |m|
-              user_info = @users.select { |u| u.id == m or (u.key?(:enterprise_user) and u.enterprise_user.id == m) or u.name == m or (u.key?(:enterprise_user) and u.enterprise_user.name == m) }[-1]
+              user_info = find_user(m)
               assigned_members.delete(m) if user_info.nil? or user_info.deleted
             end
 
-            channels_members = []
+            channels_members = [] #todo: check if this is used in here. Remove.
             all_team_members = assigned_members.dup
             if team.channels.key?("members")
               team_members = []
@@ -41,8 +41,8 @@ class SlackSmartBot
                 else
                   channels_members << @channels_id[ch]
                   tm.each do |m|
-                    user_info = @users.select { |u| u.id == m or (u.key?(:enterprise_user) and u.enterprise_user.id == m) }[-1]
-                    team_members << user_info.name unless user_info.is_app_user or user_info.is_bot
+                    user_info = find_user(m)
+                    team_members << "#{user_info.team_id}_#{user_info.name}" unless user_info.nil? or user_info.is_app_user or user_info.is_bot
                   end
                 end
               end
@@ -74,8 +74,7 @@ class SlackSmartBot
                 defaulted_country_region = ""
               end
               all_team_members.each do |m|
-                @users = get_users() if @users.empty?
-                info = @users.select { |u| u.id == m or (u.key?(:enterprise_user) and u.enterprise_user.id == m) or u.name == m or (u.key?(:enterprise_user) and u.enterprise_user.name == m) }[-1]
+                info = find_user(m)
                 unless info.nil?
                   country_region = ""
                   if @vacations.key?(m) and @vacations[m][:public_holidays].to_s != ""
@@ -84,8 +83,7 @@ class SlackSmartBot
                     country_region = defaulted_country_region
                   end
                   members_by_country_region[country_region] ||= []
-                  members_by_country_region[country_region] << info.name
-                  info = get_user_info(info.id)
+                  members_by_country_region[country_region] << "#{info.team_id}_#{info.name}"
                   if @vacations.key?(m)
                     v = ""
                     (from..(from + 20)).each do |d|
@@ -154,8 +152,8 @@ class SlackSmartBot
                     elements: [
                       {
                         type: "image",
-                        image_url: info.user.profile.image_24,
-                        alt_text: info.user.name,
+                        image_url: info.profile.image_24,
+                        alt_text: info.name,
                       },
                       {
                             type: "plain_text",
@@ -177,10 +175,12 @@ class SlackSmartBot
               if !defaulted_country_region.empty?
                 message = "Defaulted public holidays calendar: #{defaulted_country_region}\n"
               end
-              if members_by_country_region.size > 0 and members_by_country_region.keys.size > 1                
+              if members_by_country_region.size > 0 and members_by_country_region.keys.size > 1
                 message_tmp = []
                 members_by_country_region.each do |region, members|
-                  message_tmp << "`#{region}`: <#{members.sort.join(", ")}>"
+                  #use only the user name on members
+                  members_names = members.map { |m| m.split("_")[1..-1].join("_") }
+                  message_tmp << "`#{region}`: <#{members_names.sort.join(", ")}>"
                 end
                 message += "Members by region:\n\t#{message_tmp.join(". ")}\n"
               end

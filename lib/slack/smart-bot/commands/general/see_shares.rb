@@ -12,7 +12,7 @@ class SlackSmartBot
 
     general_message = "\nRelated commands `share messages /RegExp/ on #CHANNEL`, `share messages \"TEXT\" on #CHANNEL`, `delete share ID`"
     if File.exist?("#{config.path}/shares/#{@channels_name[channel]}.csv")
-      t = CSV.table("#{config.path}/shares/#{@channels_name[channel]}.csv", headers: ['share_id', 'user_deleted', 'user_created', 'date', 'time', 'type', 'to_channel', 'condition'])
+      t = CSV.table("#{config.path}/shares/#{@channels_name[channel]}.csv", headers: ['share_id', 'user_team_id_deleted', 'user_deleted', 'user_team_id_created', 'user_created', 'date', 'time', 'type', 'to_channel', 'condition'])
       message =[]
       t.each do |m|
         if m[:user_deleted] == ''

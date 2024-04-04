@@ -5,16 +5,17 @@ class SlackSmartBot
         module Memos
           def see_memos_team(user, type: "all", name: nil, topic: "", add_stats: true, team: nil, memo_id: nil, precise: true)
             save_stats(__method__) if add_stats
-
             get_teams()
             type = "all" if type.match?(/all\s+memo/i)
             message = []
             if @teams.size > 0
+              num_memos = 0
               if team.nil?
                 @teams.each do |team_name, teamv|
                   if (team_name.to_s == name.to_s) or (name.to_s.gsub("-", "").gsub("_", "") == team_name.to_s)
-                    if teamv.key?(:memos) and teamv[:memos].size > 0
-                      team = teamv.deep_copy
+                    team = teamv.deep_copy
+                    if team.key?(:memos) and team[:memos].size > 0
+                      num_memos = teamv[:memos].size
                     else
                       respond "There are no memos for the team #{name}." unless !add_stats
                     end
@@ -22,7 +23,8 @@ class SlackSmartBot
                   end
                 end
               end
-              if team
+              num_memos = team[:memos].size if team and num_memos == 0
+              if team and num_memos > 0
                 react :running unless !add_stats
                 all_memos = {}
                 assigned_members, unassigned_members, not_on_team_channel, channels_members, all_team_members = get_team_members(team)
@@ -59,22 +61,22 @@ class SlackSmartBot
                 elsif memos_filtered.size > 0
                   memos_filtered.each do |memo|
                     if memo.privacy.empty? or
-                       (memo.privacy == "private" and (all_team_members.include?(user.name) and (users_link or channels_members.include?(Thread.current[:dest])))) or
-                       (memo.privacy == "personal" and memo.user == user.name and users_link)
+                       (memo.privacy == "private" and (all_team_members.include?("#{user.team_id}_#{user.name}") and (users_link or channels_members.include?(Thread.current[:dest])))) or
+                       (memo.privacy == "personal" and memo.user == "#{user.team_id}_#{user.name}" and users_link)
                       if memo.type == "jira" and config.jira.host != ""
                         http = NiceHttp.new(config.jira.host)
                         http.headers.authorization = NiceHttpUtils.basic_authentication(user: config.jira.user, password: config.jira.password)
                         if memo.message.match?(/^\w+\-\d+$/) or (memo.key?(:search) and !memo.search)
                           resp = http.get("/rest/api/latest/issue/#{memo.message}")
-                          issues = [resp.data.json] if resp.code == 200
+                          issues = [resp.data.json] if resp.code.to_s == '200'
                           memo.search = false
                         else
                           resp = http.get("/rest/api/latest/search/?jql=#{memo.message}")
-                          issues = resp.data.json().issues if resp.code == 200
+                          issues = resp.data.json().issues if resp.code.to_s == '200'
                           memo.search = true
                         end
-                        if resp.code == 200
-                          unless issues.empty?
+                        if resp.code.to_s == '200'
+                          unless issues.nil? or issues.empty?
                             if memo.search
                               if memo.key?(:issues)
                                 orig_issues = memo.issues.deep_copy.sort
@@ -151,7 +153,7 @@ class SlackSmartBot
                         resp = http.get("/repos/#{issue_url}")
                         issues = resp.data.json()
                         issues = [issues] unless issues.is_a?(Array)
-                        if resp.code == 200
+                        if resp.code.to_s == '200'
                           unless issues.empty?
                             if memo.search
                               if memo.key?(:issues)
@@ -268,7 +270,8 @@ class SlackSmartBot
                         when "personal"; priv = " `personal`"
                         else priv = ""
                         end
-                        message << "        #{memo.type} #{memo.date.gsub("-", "/")[0..9]}:  #{memo.status} #{memo.message} (#{memo.user} #{memo.memo_id})#{priv}#{" :spiral_note_pad:" if memo.key?(:comments) and !memo.comments.empty?}#{" :mag:" if memo.key?(:search) and memo.search}"
+                        uname = memo.user.split("_")[1..-1].join("_")
+                        message << "        #{memo.type} #{memo.date.gsub("-", "/")[0..9]}:  #{memo.status} #{memo.message} (#{uname} #{memo.memo_id})#{priv}#{" :spiral_note_pad:" if memo.key?(:comments) and !memo.comments.empty?}#{" :mag:" if memo.key?(:search) and memo.search}"
                       end
                     end
                     all_memos[:no_topic] = []
@@ -281,7 +284,8 @@ class SlackSmartBot
                           when "personal"; priv = " `personal`"
                           else priv = ""
                           end
-                          message << "            #{memo.type} #{memo.date.gsub("-", "/")[0..9]}:  #{memo.status} #{memo.message} (#{memo.user} #{memo.memo_id})#{priv}#{" :spiral_note_pad:" if memo.key?(:comments) and !memo.comments.empty?}#{" :mag:" if memo.key?(:search) and memo.search}"
+                          uname = memo.user.split("_")[1..-1].join("_")
+                          message << "            #{memo.type} #{memo.date.gsub("-", "/")[0..9]}:  #{memo.status} #{memo.message} (#{uname} #{memo.memo_id})#{priv}#{" :spiral_note_pad:" if memo.key?(:comments) and !memo.comments.empty?}#{" :mag:" if memo.key?(:search) and memo.search}"
                         end
                       end
                     end
@@ -290,7 +294,7 @@ class SlackSmartBot
                   message << "There are no memos #{name} team #{type} #{topic}." unless !add_stats
                 end
                 unreact :running unless !add_stats
-              else
+              elsif team.nil?
                 respond "There is no team named #{name}." unless !add_stats
               end
               if add_stats

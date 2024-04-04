@@ -10,21 +10,37 @@ RSpec.describe SlackSmartBot, "open_ai_chat_use_model" do
       end
 
       it "use the specified model when on temporary session" do
-        send_message "?? use model 0301", from: user, to: channel
+        if ENV['OPENAI_USE_LLM'].to_s=='true'
+          send_message "?? use model gpt-4", from: user, to: channel
+        else
+          send_message "?? use model 0301", from: user, to: channel
+        end
         sleep seconds_to_wait
         expect(bufferc(to: channel, from: :ubot).join).to match(/Let's start a new temporary conversation. Ask me anything./)
         send_message "? hola", from: user, to: channel
         sleep seconds_to_wait
-        expect(bufferc(to: channel, from: :ubot).join).to match(/gpt-3\.5/)
+        if ENV['OPENAI_USE_LLM'].to_s=='true'
+          expect(bufferc(to: channel, from: :ubot).join).to match(/gpt-4/)
+        else
+          expect(bufferc(to: channel, from: :ubot).join).to match(/gpt-3\.?5/)
+        end
       end
 
       it "use the specified model when on session" do
         send_message "chatgpt useModel01", from: user, to: channel
         sleep seconds_to_wait
-        expect(bufferc(to: channel, from: :ubot).join).to match(/Session _<useModel01>_ model: gpt-3\.5/)
-        send_message "? use model 0301", from: user, to: channel
+        expect(bufferc(to: channel, from: :ubot).join).to match(/Session _<useModel01>_ model: gpt-3\.?5/)
+        if ENV['OPENAI_USE_LLM'].to_s=='true'
+          send_message "? use model gpt-4", from: user, to: channel
+        else
+          send_message "? use model 0301", from: user, to: channel
+        end
         sleep seconds_to_wait
-        expect(bufferc(to: channel, from: :ubot).join).to match(/Model for this session is now gpt-3\.5/)
+        if ENV['OPENAI_USE_LLM'].to_s=='true'
+          expect(bufferc(to: channel, from: :ubot).join).to match(/Model for this session is now gpt-4/)
+        else
+          expect(bufferc(to: channel, from: :ubot).join).to match(/Model for this session is now gpt-3\.?5/)
+        end
       end
 
       it 'returns model not found' do

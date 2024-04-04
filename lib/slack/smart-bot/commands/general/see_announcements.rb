@@ -16,9 +16,9 @@ class SlackSmartBot
     else
       dest = Thread.current[:dest]
     end
-    
+
     if type == 'all'
-      if config.masters.include?(user.name) and typem==:on_dm
+      if config.team_id_masters.include?("#{user.team_id}_#{user.name}") and typem==:on_dm
         channels = Dir.entries("#{config.path}/announcements/")
         channels.select! {|i| i[/\.csv$/]}
       else
@@ -45,14 +45,14 @@ class SlackSmartBot
         end
       end
       if has_access?(__method__, user)
-        if (channel_id!=Thread.current[:dest] and config.masters.include?(user.name) and typem==:on_dm) or publish
+        if (channel_id!=Thread.current[:dest] and config.team_id_masters.include?("#{user.team_id}_#{user.name}") and typem==:on_dm) or publish
           see_announcements_on_demand = true
         else
           see_announcements_on_demand = false
         end
         if channel_id == Thread.current[:dest] or see_announcements_on_demand or publish #master admin user or publish_announcements
           if File.exist?("#{config.path}/announcements/#{channel_id}.csv") and (!@announcements.key?(channel_id) or see_announcements_on_demand) # to force to have the last version that maybe was updated by other SmartBot in case of demand
-            t = CSV.table("#{config.path}/announcements/#{channel_id}.csv", headers: ['message_id', 'user_deleted', 'user_created', 'date', 'time', 'type', 'message'])
+            t = CSV.table("#{config.path}/announcements/#{channel_id}.csv", headers: ['message_id', 'user_team_id_deleted', 'user_deleted', 'user_team_id_created', 'user_created', 'date', 'time', 'type', 'message'])
             @announcements[channel_id] = t
           end
           if @announcements.key?(channel_id)
@@ -70,7 +70,7 @@ class SlackSmartBot
                   user_created = "<@#{m[:user_created]}>"
                 else
                   user_created = m[:user_created]
-                  user_info = @users.select { |u| u.name == user_created or (u.key?(:enterprise_user) and u.enterprise_user.name == user_created) }[-1]
+                  user_info = find_user(user_created)
                   user_created = user_info.profile.display_name unless user_info.nil?
                 end
                 if type == 'all' and channel_id[0]=='D'

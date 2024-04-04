@@ -17,13 +17,13 @@ class SlackSmartBot
     typem = Thread.current[:typem]
     user = Thread.current[:user]
     # :on_call, :on_bot, :on_extended, :on_dm, :on_master, :on_pg, :on_pub
-    admin = is_admin?(user.name)
+    admin = is_admin?(user)
 
     commands[:general] = (Dir.entries("#{__dir__}/../commands/general/").select { |e| e.match?(/\.rb/) }).sort.join('|').gsub('.rb','').split('|')
     general = File.read("#{__dir__}/../commands/general_bot_commands.rb")
     commands[:general] += general.scan(/^\s*#\s*help\w*:\s+command_id:\s+:(\w+)\s*$/i).flatten
     commands[:general].uniq!
-    
+
     if typem == :on_bot or typem == :on_master
       commands[:on_bot_general] = (Dir.entries("#{__dir__}/../commands/on_bot/general/").select { |e| e.match?(/\.rb/) }).sort.join('|').gsub('.rb','').split('|')
     end
@@ -36,7 +36,7 @@ class SlackSmartBot
       commands[:on_bot_admin] = (Dir.entries("#{__dir__}/../commands/on_bot/admin/").select { |e| e.match?(/\.rb/) }).sort.join('|').gsub('.rb','').split('|')
     end
 
-    if (typem == :on_bot or typem == :on_master) and config.masters.include?(user.name)
+    if (typem == :on_bot or typem == :on_master) and config.team_id_masters.include?("#{user.team_id}_#{user.name}")
       commands[:on_bot_master_admin] = (Dir.entries("#{__dir__}/../commands/on_bot/admin_master/").select { |e| e.match?(/\.rb/) }).sort.join('|').gsub('.rb','').split('|')
     end
 
@@ -53,7 +53,7 @@ class SlackSmartBot
       commands[:on_master_admin] = (Dir.entries("#{__dir__}/../commands/on_master/admin/").select { |e| e.match?(/\.rb/) }).sort.join('|').gsub('.rb','').split('|')
     end
 
-    if typem == :on_master and config.masters.include?(user.name)
+    if typem == :on_master and config.team_id_masters.include?("#{user.team_id}_#{user.name}")
       commands[:on_master_master_admin] = (Dir.entries("#{__dir__}/../commands/on_master/admin_master/").select { |e| e.match?(/\.rb/) }).sort.join('|').gsub('.rb','').split('|')
     end
 
@@ -75,7 +75,7 @@ class SlackSmartBot
           general_rules = File.read("#{config.path}/rules/general_rules.rb")
           commands[:general_rules] = general_rules.scan(/^\s*#\s*help\w*:\s+command_id:\s+:(\w+)\s*$/i).flatten
           commands[:general_rules]+= general_rules.scan(/^\s*save_stats\(?\s*:(\w+)\s*,?/i).flatten
-          commands[:general_rules].uniq!  
+          commands[:general_rules].uniq!
         end
       end
     end

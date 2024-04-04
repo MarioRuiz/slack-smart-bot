@@ -9,11 +9,10 @@ class SlackSmartBot
   def see_repls(dest, user, typem)
     #todo: add tests
     save_stats(__method__)
-    from = user.name
     if has_access?(__method__, user)
       message = ""
       @repls.sort.to_h.each do |session_name, repl|
-        if (repl.creator_name == user.name or repl.type == :public or repl.type == :public_clean) or (is_admin?(user.name) and typem == :on_dm)
+        if ((repl.creator_name == user.name and repl.creator_team_id == user.team_id) or repl.type == :public or repl.type == :public_clean) or (is_admin?(user) and typem == :on_dm)
           message += "(#{repl.type}) *#{session_name}*: #{repl.description} / created: #{repl.created} / accessed: #{repl.accessed} / creator: #{repl.creator_name} / runs: #{repl.runs_by_creator+repl.runs_by_others} / gets: #{repl.gets} \n"
         end
       end

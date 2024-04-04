@@ -1,10 +1,10 @@
 class SlackSmartBot
-  def check_vacations(date: Date.today, user: nil, set_status: true, only_first_day: true)
+  def check_vacations(date: Date.today, team_id: nil, user: nil, set_status: true, only_first_day: true)
     get_vacations()
     if user.nil?
       users = @vacations.keys
     else
-      users = [user]
+      users = ["#{team_id}_#{user}"]
     end
     on_vacation = []    
     

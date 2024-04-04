@@ -7,23 +7,24 @@ class SlackSmartBot
             save_stats(__method__)
 
             user = Thread.current[:user].dup
+            team_id_user = Thread.current[:team_id_user]
 
-            @open_ai[user.name] ||= {}
-            @open_ai[user.name][:chat_gpt] ||= {}
-            @open_ai[user.name][:chat_gpt][:sessions] ||= {}
-            if @open_ai[user.name][:chat_gpt][:sessions].key?(session_name)
+            @open_ai[team_id_user] ||= {}
+            @open_ai[team_id_user][:chat_gpt] ||= {}
+            @open_ai[team_id_user][:chat_gpt][:sessions] ||= {}
+            if @open_ai[team_id_user][:chat_gpt][:sessions].key?(session_name)
               if type == :share
                 if channel_id == ""
-                  @open_ai[user.name][:chat_gpt][:sessions][session_name].public = true
+                  @open_ai[team_id_user][:chat_gpt][:sessions][session_name].public = true
                 else
-                  @open_ai[user.name][:chat_gpt][:sessions][session_name].shared ||= []
-                  @open_ai[user.name][:chat_gpt][:sessions][session_name].shared << channel_id
+                  @open_ai[team_id_user][:chat_gpt][:sessions][session_name].shared ||= []
+                  @open_ai[team_id_user][:chat_gpt][:sessions][session_name].shared << channel_id
                 end
               elsif type == :stop
                 if channel_id == ""
-                  @open_ai[user.name][:chat_gpt][:sessions][session_name].public = false
+                  @open_ai[team_id_user][:chat_gpt][:sessions][session_name].public = false
                 else
-                  @open_ai[user.name][:chat_gpt][:sessions][session_name].shared.delete(channel_id)
+                  @open_ai[team_id_user][:chat_gpt][:sessions][session_name].shared.delete(channel_id)
                 end
               end
               update_openai_sessions()

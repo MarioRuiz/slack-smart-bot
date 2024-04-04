@@ -1,27 +1,27 @@
 class SlackSmartBot
-  def get_help(rules_file, dest, from, only_rules, expanded, descriptions: true, only_normal_user: false)
+  def get_help(rules_file, dest, user, only_rules, expanded, descriptions: true, only_normal_user: false)
     order = {
-      general: [:bot_help, :hi_bot, :bye_bot, :add_admin, :remove_admin, :see_admins, :poster, :add_announcement, :delete_announcement, 
-                :see_announcements, :see_command_ids, :share_messages, :see_shares, :delete_share, :see_favorite_commands, :see_statuses, 
+      general: [:bot_help, :hi_bot, :bye_bot, :add_admin, :remove_admin, :see_admins, :add_announcement, :delete_announcement,
+                :see_announcements, :see_command_ids, :share_messages, :see_shares, :delete_share, :see_favorite_commands, :see_statuses,
                 :allow_access, :see_access, :deny_access, :add_team, :add_memo_team, :delete_memo_team, :set_memo_status, :see_teams, :update_team, :ping_team, :delete_team,
-                :see_memos_team, :add_vacation, :remove_vacation, :see_vacations, :see_vacations_team, :public_holidays, :set_public_holidays, :create_loop, :quit_loop, 
-                :get_personal_settings, :delete_personal_settings, :set_personal_settings, 
-                :open_ai_chat, :open_ai_chat_get_prompts, :open_ai_chat_delete_session, :open_ai_chat_share_session, :open_ai_chat_list_sessions, 
+                :see_memos_team, :add_vacation, :remove_vacation, :see_vacations, :see_vacations_team, :public_holidays, :set_public_holidays, :create_loop, :quit_loop,
+                :get_personal_settings, :delete_personal_settings, :set_personal_settings,
+                :open_ai_chat, :open_ai_chat_get_prompts, :open_ai_chat_delete_session, :open_ai_chat_share_session, :open_ai_chat_list_sessions,
                 :open_ai_chat_list_sessions, :open_ai_chat_copy_session,
-                :open_ai_generate_image, :open_ai_edit_image, :open_ai_variations_image, :open_ai_whisper, :open_ai_models ],
+                :open_ai_generate_image, :open_ai_edit_image, :open_ai_variations_image, :open_ai_whisper, :open_ai_models, :recap, :summarize, :get_smartbot_readme, :poster ],
       on_bot_general: [:whats_new, :suggest_command, :bot_status, :use_rules, :stop_using_rules, :bot_stats, :leaderboard],
       on_bot: [:ruby_code, :repl, :get_repl, :run_repl, :delete_repl, :see_repls, :kill_repl, :add_shortcut, :delete_shortcut, :see_shortcuts],
       on_bot_admin: [:extend_rules, :stop_using_rules_on, :start_bot, :pause_bot, :add_routine,
         :see_routines, :start_routine, :pause_routine, :remove_routine, :see_result_routine, :run_routine]
     }
-    if config.masters.include?(from)
+    if config.team_id_masters.include?("#{user.team_id}_#{user.name}")
       user_type = :master # master admin
-    elsif is_admin?(from)
+    elsif is_admin?(user)
       user_type = :admin
     else
       user_type = :normal #normal user
     end
-    
+
     # channel_type: :bot, :master_bot, :direct, :extended, :external
     if dest[0] == "D"
       channel_type = :direct
@@ -38,7 +38,7 @@ class SlackSmartBot
     end
 
     if only_normal_user
-      user_type = :normal 
+      user_type = :normal
       channel_type = :bot
     end
 
@@ -53,7 +53,7 @@ class SlackSmartBot
     end
     if rules_file != ""
       help[:rules_file] = build_help(config.path+rules_file, expanded)[user_type].values.join("\n") + "\n"
-     
+
       # to get all the help from other rules files added to the main rules file by using require or load. For example general_rules.rb
       res = IO.readlines(config.path+rules_file).join.scan(/$\s*(load|require)\s("|')(.+)("|')/)
       rules_help = []
@@ -81,7 +81,7 @@ class SlackSmartBot
       commands_on_extended_from_on_bot = [:repl, :see_repls, :get_repl, :run_repl, :delete_repl, :kill_repl, :ruby_code]
       commands_on_extended_from_on_bot.each do |cm|
         help[:on_extended][cm] = help[:on_bot][cm] if help[:on_bot].key?(cm)
-      end      
+      end
     end
     help = remove_hash_keys(help, :admin_master) unless user_type == :master
     help = remove_hash_keys(help, :admin) unless user_type == :admin or user_type == :master
@@ -94,12 +94,12 @@ class SlackSmartBot
       txt += "===================================
       For the Smart Bot start listening to you say *hi bot*
       To run a command on demand even when the Smart Bot is not listening to you:
-            *!THE_COMMAND*
-            *@NAME_OF_BOT THE_COMMAND*
-            *NAME_OF_BOT THE_COMMAND*
+            `!THE_COMMAND`
+            `@NAME_OF_BOT THE_COMMAND`
+            `NAME_OF_BOT THE_COMMAND`
       To run a command on demand and add the respond on a thread:
-            *^THE_COMMAND*
-            *!!THE_COMMAND*\n"
+            `^THE_COMMAND`
+            `!!THE_COMMAND`\n"
     end
     if channel_type == :direct and expanded and descriptions
       txt += "===================================
@@ -127,7 +127,7 @@ class SlackSmartBot
       if descriptions
         if channel_type == :direct
           txt += "===================================
-          *General commands:*\n"
+          *General commands on Bot channel:*\n"
         else
           txt += "===================================
           *General commands on Bot channel even when the Smart Bot is not listening to you:*\n"
@@ -206,7 +206,7 @@ class SlackSmartBot
         txt += "===================================
          *Specific commands on this Channel, call them !THE_COMMAND or !!THE_COMMAND:*\n" if descriptions
       end
-  
+
       txt += help.rules_file
     end
     return txt

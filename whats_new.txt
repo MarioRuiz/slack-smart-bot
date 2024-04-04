@@ -1,4 +1,4 @@
-*Version 1.15.0-DEV55* Released 2023-Jun-11
+*Version 1.15.0* Released 2024-Apr-04
 
 *For General users*
 - OpenAI adds specific hosts and access tokens for services. (<https://github.com/MarioRuiz/slack-smart-bot/issues/107|#107>).
@@ -11,11 +11,27 @@
 - ChatGPT to use a different model when starting a temporary session: `^?? use model MODEL_NAME` (<https://github.com/MarioRuiz/slack-smart-bot/issues/114|#114>) 
 - ChatGPT when on a session if we want to change the model send `use model MODEL_NAME` (<https://github.com/MarioRuiz/slack-smart-bot/issues/114|#114>) 
 - ChatGPT To send the results of a SmartBot command as input for a ChatGPT session, use `COMMAND ?? PROMPT`. Example: `bot help ?? how can I use the time off commands`. (<https://github.com/MarioRuiz/slack-smart-bot/issues/116|#116>)  
-- ChatGPT To copy the prompts from the temporary session: `chatgpt copy temporary session NEW_SESSION_NAME`
+- ChatGPT To copy the prompts from the temporary session: `chatgpt copy temporary session NEW_SESSION_NAME` (<https://github.com/MarioRuiz/slack-smart-bot/issues/125|#125>)
 - Time Off shows the day of today differently from other days. (<https://github.com/MarioRuiz/slack-smart-bot/issues/118|#118>)
+- Teams It is possible to filter by topic, for example: `sales team dev` (<https://github.com/MarioRuiz/slack-smart-bot/issues/118|#124>)
+- All users in the channel will be able to use SmartBot even though they are not workspace members. (<https://github.com/MarioRuiz/slack-smart-bot/issues/123|#123>)
+- SmartBot can be called from Slack Workflows or Slack apps (<https://github.com/MarioRuiz/slack-smart-bot/issues/122|#122>)
+- New `recap` command. It will show a recap of the channel. If channel not supplied, it will show the recap of the current channel (<https://github.com/MarioRuiz/slack-smart-bot/issues/126|#126>)
+- New `summarize` command. It will summarize using ChatGPT the messages in the channel since the date specified (<https://github.com/MarioRuiz/slack-smart-bot/issues/127|#127>)
+- Call `get smartbot readme` to get the README for SmartBot. (<https://github.com/MarioRuiz/slack-smart-bot/issues/128|#128>)
+- You can call `<bot help` or `<bot rules`. SmartBot will send a Markdown file with extended help commands. Open the file in a new window. You can install this extension in Google Chrome to view it: https://chromewebstore.google.com/detail/medapdbncneneejhbgcjceippjlfkmkg (<https://github.com/MarioRuiz/slack-smart-bot/issues/129|#129>)
+- It is possible to specify authorizations tokens for any website you want to reach the content using ChatGPT command. When adding to your prompt !URL SmartBot will verify if the domain specified have set an authorization header and add it. To add personal authorization tokens you can do it calling on a DM the commands: `add personal settings authorizations.example.host example.com`, `add personal settings authorizations.example.authorization Xdddj33a_SDFBBBS33Ab` (<https://github.com/MarioRuiz/slack-smart-bot/issues/130|#130>)
+
 *For Admin users*
 - ChatGPT now supports Azure. (<https://github.com/MarioRuiz/slack-smart-bot/issues/109|#109>)
+- Bot Stats will store also the team of the user.
+- Added granular_token to SmartBot settings. Supply the Slack token of your granular App.
+- New config added to lib/slack/smart-bot/config.rb
+- It is possible now to use LLM proxy for ChatGPT and also specify a concrete end point to get the models.
+- Added LDAP settings in config. (<https://github.com/MarioRuiz/slack-smart-bot/issues/131|#131>)
+- Added authorizations settings in config. (<https://github.com/MarioRuiz/slack-smart-bot/issues/130|#130>)
 
 ------------------------------
 
 *Previous*: <https://github.com/MarioRuiz/slack-smart-bot/blob/3a4b369d6d32316690e873309eb0758511a2c513/whats_new.txt|1.14.2>
+

@@ -15,6 +15,7 @@ class SlackSmartBot
       end
     rescue Exception => stack
       @logger.warn stack
+      return {presence: "unknown"}
     end
   end
 end

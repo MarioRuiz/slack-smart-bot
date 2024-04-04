@@ -92,6 +92,9 @@ require_relative 'commands/general/ai/open_ai/open_ai_variations_image'
 require_relative 'commands/general/ai/open_ai/open_ai_edit_image'
 require_relative 'commands/general/ai/open_ai/open_ai_models'
 require_relative 'commands/general/ai/open_ai/open_ai_whisper'
+require_relative 'commands/general/recap'
+require_relative 'commands/general/summarize'
+require_relative 'commands/general/get_smartbot_readme'
 
 class SlackSmartBot
     include SlackSmartBot::Commands::General::AI::OpenAI

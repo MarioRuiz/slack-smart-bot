@@ -5,7 +5,6 @@ class SlackSmartBot
     elsif config[:public_holidays].key?(:default_calendar) and country_region.empty?
       country_region = config[:public_holidays][:default_calendar].downcase
     end
-
     country, location = country_region.split("/")
     local_day_time = local_time(country_region)
     if local_day_time.nil?

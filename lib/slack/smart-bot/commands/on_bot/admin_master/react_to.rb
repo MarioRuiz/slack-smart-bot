@@ -11,9 +11,9 @@ class SlackSmartBot
     # helpadmin:       _react to #sales p1622550707012100 :thumbsup: :heavy_check_mark: :bathtub:_
     # helpadmin: command_id: :react_to
     # helpadmin:
-    def react_to(dest, from, typem, to, thread_ts, emojis)
+    def react_to(dest, user, typem, to, thread_ts, emojis)
       save_stats(__method__)
-      if config.masters.include?(from) and typem==:on_dm #master admin user
+      if config.team_id_masters.include?("#{user.team_id}_#{user.name}") and typem==:on_dm #master admin user
         succs = []
         emojis.split(' ').each do |emoji|
           succs << (react emoji, thread_ts, to)
@@ -31,4 +31,3 @@ class SlackSmartBot
       end
     end
 end
-  

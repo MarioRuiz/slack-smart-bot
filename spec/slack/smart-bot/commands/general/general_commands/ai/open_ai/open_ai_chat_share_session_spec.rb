@@ -12,12 +12,12 @@ RSpec.describe SlackSmartBot, "open_ai_chat_share_session" do
         expect(bufferc(to: channel, from: :ubot).join).to match(/Session _<mySessionshare>_ model:/i)
         send_message "?how much is 3 + 7", from: user, to: channel
         sleep seconds_to_wait
-        expect(buffer(to: channel, from: :ubot).join).to match(/10/)        
+        expect(buffer(to: channel, from: :ubot).join).to match(/10/)
       end
       before(:each) do
         send_message "chatgpt stop sharing mySessionshare", from: user, to: channel
         send_message "chatgpt stop sharing mySessionshare <##{CBOT1CM}|>", from: user, to: channel
-        send_message "chatgpt delete mySessionshare", from: :user2, to: :cbot2cu        
+        send_message "chatgpt delete mySessionshare", from: :user2, to: :cbot2cu
         sleep seconds_to_wait
       end
       it 'is displaying error message if session does not exist' do
@@ -45,7 +45,7 @@ RSpec.describe SlackSmartBot, "open_ai_chat_share_session" do
         expect(bufferc(to: :cbot2cu, from: :ubot).join).to match(/10/)
         send_message "?and plus 2", from: :user2, to: :cbot2cu
         sleep seconds_to_wait
-        expect(bufferc(to: :cbot2cu, from: :ubot).join).to match(/12/)        
+        expect(bufferc(to: :cbot2cu, from: :ubot).join).to match(/12/)
       end
 
       it 'is deleting a session as public' do
@@ -101,7 +101,7 @@ RSpec.describe SlackSmartBot, "open_ai_chat_share_session" do
         expect(bufferc(to: channel, from: :ubot).join).to match(/`mySessionshare`/)
         send_message "chatgpt shared sessions", from: user, to: :cbot2cu
         sleep seconds_to_wait
-        expect(bufferc(to: :cbot2cu, from: :ubot).join).to match(/`mySessionshare`/)        
+        expect(bufferc(to: :cbot2cu, from: :ubot).join).to match(/`mySessionshare`/)
         send_message "chatgpt stop sharing mySessionshare <##{CBOT2CU}|>", from: user, to: channel
         sleep seconds_to_wait
         expect(bufferc(to: channel, from: :ubot).join).to match(/Session \*mySessionshare\* is no longer shared on <##{CBOT2CU}>/i)

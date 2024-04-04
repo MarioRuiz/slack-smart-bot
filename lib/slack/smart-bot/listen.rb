@@ -1,7 +1,7 @@
 class SlackSmartBot
   def listen_simulate
     @salutations = [config[:nick], "<@#{config[:nick_id]}>", "bot", "smart", "smartbot", "smart-bot", "smart bot"]
-    @pings = []
+    @pings ||= []
     @last_activity_check = Time.now
     get_bots_created()
     @buffer_complete = [] unless defined?(@buffer_complete)
@@ -41,7 +41,7 @@ class SlackSmartBot
   end
 
   def listen
-    @pings = []
+    @pings ||= []
     @last_activity_check = Time.now
     get_bots_created()
 
@@ -73,7 +73,7 @@ class SlackSmartBot
     started = false
     while restarts < 200 and !started
       begin
-        @logger.info "Bot starting: #{config.inspect}"
+        @logger.info "Bot starting: #{@config_log.inspect}"
         client.start!
       rescue Slack::RealTime::Client::ClientAlreadyStartedError
         @logger.info "ClientAlreadyStarted so we continue with execution"
@@ -85,7 +85,7 @@ class SlackSmartBot
           @logger.info "*" * 50
           @logger.fatal "Rescued on starting: #{e.inspect}"
           @logger.info "Waiting 60 seconds to retry. restarts: #{restarts}"
-          puts "#{Time.now}: Not able to start client. Waiting 60 seconds to retry: #{config.inspect}"
+          puts "#{Time.now}: Not able to start client. Waiting 60 seconds to retry: #{@config_log.inspect}"
           sleep 60
         else
           exit!

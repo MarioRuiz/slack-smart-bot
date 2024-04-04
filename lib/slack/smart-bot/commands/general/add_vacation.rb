@@ -8,9 +8,9 @@ class SlackSmartBot
     if type.match?(/sick\s+baby/i) or type.match?(/sick\s+child/i)
       type = 'sick child'
     end
-
-    if @vacations.key?(user.name) and @vacations[user.name][:public_holidays].to_s != ""
-      country_region = @vacations[user.name][:public_holidays].downcase
+    team_id_user = "#{user.team_id}_#{user.name}"
+    if @vacations.key?(team_id_user) and @vacations[team_id_user][:public_holidays].to_s != ""
+      country_region = @vacations[team_id_user][:public_holidays].downcase
     elsif config[:public_holidays].key?(:default_calendar)
       country_region = config[:public_holidays][:default_calendar].downcase
     else
@@ -51,21 +51,21 @@ class SlackSmartBot
         respond "It seems like the date #{to} is not in the correct format: YYYY/MM/DD or is a wrong date."
       else
         vacations = @vacations.deep_copy
-        vacations[user.name] ||= { user_id: user.id, periods: [] }
-        if !vacations[user.name].key?(:periods)
-          vacations[user.name][:user_id] = user.id
-          vacations[user.name][:periods] = []
+        vacations[team_id_user] ||= { user_id: user.id, periods: [] }
+        if !vacations[team_id_user].key?(:periods)
+          vacations[team_id_user][:user_id] = user.id
+          vacations[team_id_user][:periods] = []
         end
 
-        if vacations[user.name].periods.empty?
+        if vacations[team_id_user].periods.empty?
           vacation_id = 1
         else
-          vacation_id = vacations[user.name].periods[-1].vacation_id + 1
+          vacation_id = vacations[team_id_user].periods[-1].vacation_id + 1
         end
-        vacations[user.name].periods << { vacation_id: vacation_id, type: type.downcase, from: from, to: to }
-        update_vacations({user.name => vacations[user.name]})
+        vacations[team_id_user].periods << { vacation_id: vacation_id, type: type.downcase, from: from, to: to }
+        update_vacations({team_id_user => vacations[team_id_user]})
         respond "Period has been added   ##{vacation_id}"
-        check_vacations(date: today, user: user.name, set_status: true, only_first_day: false)
+        check_vacations(date: today, team_id: user.team_id, user: user.name, set_status: true, only_first_day: false)
       end
     end
   end

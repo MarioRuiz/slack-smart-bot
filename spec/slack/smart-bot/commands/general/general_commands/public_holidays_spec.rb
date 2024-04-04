@@ -120,7 +120,7 @@ RSpec.describe SlackSmartBot, "public_holidays" do
           expect(buffer(to: channel, from: :ubot).join).not_to match(/Your public holidays/i)
           expect(buffer(to: channel, from: :ubot).join).not_to match(/you have spent/i)
         end
-        
+
       end
 
     end

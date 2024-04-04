@@ -7,12 +7,14 @@ class SlackSmartBot
             save_stats(__method__)
 
             user = Thread.current[:user].dup
-            @active_chat_gpt_sessions[user.name] ||= {}
+            team_id_user = Thread.current[:team_id_user]
+        
+            @active_chat_gpt_sessions[team_id_user] ||= {}
 
             get_openai_sessions(session_name)
             
-            if @open_ai[user.name][:chat_gpt][:sessions].key?(session_name)
-              prompts = @ai_gpt[user.name][session_name].join("\n")
+            if @open_ai[team_id_user][:chat_gpt][:sessions].key?(session_name)
+              prompts = @ai_gpt[team_id_user][session_name].join("\n")
               prompts.gsub!(/^Me>\s*/, "\nMe> ")
               prompts.gsub!(/^chatGPT>\s*/, "\nchatGPT> ")
               if prompts.length > 3000

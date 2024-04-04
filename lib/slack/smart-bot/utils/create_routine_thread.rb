@@ -7,7 +7,7 @@ class SlackSmartBot
         started = Time.now
         if @status == :on and @routines[@channel_id][name][:status] == :on
           if !@routines[@channel_id][name].key?(:creator_id) or @routines[@channel_id][name][:creator_id].to_s == ''
-            user_info = @users.select{|u| u.name == @routines[@channel_id][name][:creator]}[-1]
+            user_info = find_user(@routines[@channel_id][name][:creator])
             @routines[@channel_id][name][:creator_id] = user_info.id unless user_info.nil? or user_info.empty?
           end
           @logger.info "Routine #{name}: #{@routines[@channel_id][name].inspect}"
@@ -20,11 +20,11 @@ class SlackSmartBot
           if @routines[@channel_id][name][:at] == "" or
              (@routines[@channel_id][name][:at] != "" and @routines[@channel_id][name][:running] and
               @routines[@channel_id][name][:next_run] != "" and Time.now.to_s >= @routines[@channel_id][name][:next_run])
-              
-            if !@routines[@channel_id][name].key?(:dayweek) or 
+
+            if !@routines[@channel_id][name].key?(:dayweek) or
               (@routines[@channel_id][name].key?(:dayweek) and @routines[@channel_id][name][:dayweek].to_s!='weekday' and @routines[@channel_id][name][:dayweek].to_s!='weekend') or
               (@routines[@channel_id][name].key?(:dayweek) and @routines[@channel_id][name][:dayweek].to_s=='weekday' and Date.today.wday>=1 and Date.today.wday<=5) or
-              (@routines[@channel_id][name].key?(:dayweek) and @routines[@channel_id][name][:dayweek].to_s=='weekend' and (Date.today.wday==6 or Date.today.wday==0)) 
+              (@routines[@channel_id][name].key?(:dayweek) and @routines[@channel_id][name][:dayweek].to_s=='weekend' and (Date.today.wday==6 or Date.today.wday==0))
               File.delete "#{config.path}/routines/#{@channel_id}/#{name}_output.txt" if File.exist?("#{config.path}/routines/#{@channel_id}/#{name}_output.txt")
               if @routines[@channel_id][name][:file_path] != ""
                 process_to_run = "#{ruby}#{Dir.pwd}#{@routines[@channel_id][name][:file_path][1..-1]}"
@@ -90,7 +90,7 @@ class SlackSmartBot
               end
               @routines[@channel_id][name][:last_run] = started.to_s
             elsif (@routines[@channel_id][name].key?(:dayweek) and @routines[@channel_id][name][:dayweek].to_s=='weekday' and (Date.today.wday==6 or Date.today.wday==0)) or
-              (@routines[@channel_id][name].key?(:dayweek) and @routines[@channel_id][name][:dayweek].to_s=='weekend' and Date.today.wday>=1 and Date.today.wday<=5) 
+              (@routines[@channel_id][name].key?(:dayweek) and @routines[@channel_id][name][:dayweek].to_s=='weekend' and Date.today.wday>=1 and Date.today.wday<=5)
               @routines[@channel_id][name][:last_run] = started.to_s
             end
           end
@@ -116,27 +116,27 @@ class SlackSmartBot
               end
               days = (next_time - Date.today).to_i
               every_in_seconds = Time.parse(@routines[@channel_id][name][:next_run]) - Time.now
-            elsif @routines[@channel_id][name].key?(:dayweek) and @routines[@channel_id][name][:dayweek].to_s!='' and 
+            elsif @routines[@channel_id][name].key?(:dayweek) and @routines[@channel_id][name][:dayweek].to_s!='' and
               @routines[@channel_id][name][:dayweek].to_s!='weekend' and @routines[@channel_id][name][:dayweek].to_s!='weekday'
-              
+
               day = @routines[@channel_id][name][:dayweek]
               days = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday']
               incr = days.index(day) - Time.now.wday
-              if incr < 0 
+              if incr < 0
                 incr = (7+incr)*24*60*60
               else
                 incr = incr * 24 * 60 * 60
               end
               days = incr/(24*60*60)
               weekly = true
-            elsif @routines[@channel_id][name].key?(:dayweek) and @routines[@channel_id][name][:dayweek].to_s!='' and 
+            elsif @routines[@channel_id][name].key?(:dayweek) and @routines[@channel_id][name][:dayweek].to_s!='' and
               @routines[@channel_id][name][:dayweek].to_s=='weekend'
-              
+
               weekly = false
               days = 0
-            elsif @routines[@channel_id][name].key?(:dayweek) and @routines[@channel_id][name][:dayweek].to_s!='' and 
+            elsif @routines[@channel_id][name].key?(:dayweek) and @routines[@channel_id][name][:dayweek].to_s!='' and
               @routines[@channel_id][name][:dayweek].to_s=='weekday'
-              
+
               weekly = false
               days = 0
             else
@@ -147,7 +147,7 @@ class SlackSmartBot
             if started.strftime("%H:%M:%S") < @routines[@channel_id][name][:at] and days == 0
               nt = @routines[@channel_id][name][:at].split(":")
               next_run = Time.new(started.year, started.month, started.day, nt[0], nt[1], nt[2])
-            else 
+            else
               if days == 0 and started.strftime("%H:%M:%S") >= @routines[@channel_id][name][:at]
                 if weekly
                     days = 7

@@ -28,12 +28,8 @@ class SlackSmartBot
                   break
                 else
                   member_id = $1
-                  member_info = @users.select { |u| u.id == member_id or (u.key?(:enterprise_user) and u.enterprise_user.id == member_id) }[-1]
-                  if member_info.nil?
-                    @users = get_users()
-                    member_info = @users.select { |u| u.id == member_id or (u.key?(:enterprise_user) and u.enterprise_user.id == member_id) }[-1]
-                  end
-                  team[:members][last_type] << member_info.name
+                  member_info = find_user(member_id)
+                  team[:members][last_type] << "#{member_info.team_id}_#{member_info.name}"
                 end
               elsif opt.match(/<#(\w+)\|[^>]*>/i)
                 team[:channels][last_type] ||= []
@@ -69,8 +65,8 @@ class SlackSmartBot
               get_teams()
               team[:info] = info
               team[:status] = :added
-              team[:user] = user.name
-              team[:creator] = user.name
+              team[:user] = "#{user.team_id}_#{user.name}"
+              team[:creator] = "#{user.team_id}_#{user.name}"
               team[:date] = Time.now.strftime("%Y-%m-%dT%H:%M:%S.000Z")[0..18]
               new_team = {}
               team[:name] = name

@@ -84,24 +84,25 @@ class SlackSmartBot
                       date_holiday = " #{holiday[:date][:datetime][:year]}-#{"%02d" % m}-#{"%02d" % d} "
                     end
                     num_holidays_to_show += 1
-                    break if num_holidays_to_show > 30 and publish_results
-                    week_day = Date.new(holiday[:date][:datetime][:year], holiday[:date][:datetime][:month], holiday[:date][:datetime][:day]).strftime("%A")
-                    messages << "\t:spiral_calendar_pad:#{date_holiday}*#{holiday[:name]}* _(#{holiday[:type].join(", ")}) (#{week_day})_"
-                    messages << "\t#{holiday[:description]}"
-                    if location == ""
-                      if holiday.states.is_a?(Array)
-                        messages << "\tLocations: #{holiday.states.name.sort.join(", ")}"
-                      else
-                        messages << "\tLocations: #{holiday.states}"
+                    unless num_holidays_to_show > 30 and publish_results
+                        week_day = Date.new(holiday[:date][:datetime][:year], holiday[:date][:datetime][:month], holiday[:date][:datetime][:day]).strftime("%A")
+                        messages << "\t:spiral_calendar_pad:#{date_holiday}*#{holiday[:name]}* _(#{holiday[:type].join(", ")}) (#{week_day})_"
+                        messages << "\t#{holiday[:description]}"
+                        if location == ""
+                        if holiday.states.is_a?(Array)
+                          messages << "\tLocations: #{holiday.states.name.sort.join(", ")}"
+                        else
+                          messages << "\tLocations: #{holiday.states}"
+                        end
                       end
+                      messages << "\n"
+                      holidays_to_add << holiday
                     end
                     if holiday.states.is_a?(Array)
                       states << holiday.states.name
                     else
                       states << holiday.states
                     end
-                    messages << "\n"
-                    holidays_to_add << holiday
                   end
                 end
               end

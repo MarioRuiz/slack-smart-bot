@@ -8,17 +8,18 @@
 ![GitHub last commit](https://img.shields.io/github/last-commit/MarioRuiz/slack-smart-bot)
 ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/MarioRuiz/slack-smart-bot)
 
-Create a Slack bot that is really smart and so easy to expand.
+Create a highly smart Slack bot that is incredibly easy to customize and expand.
 
-The main scope of this ruby gem is to be used internally in your company so teams can create team channels with their own bot to help them on their daily work, almost everything is suitable to be automated!!  
+The primary purpose of this Ruby gem is to be used internally within your company, allowing teams to create dedicated channels with their own bot to assist them with their daily tasks. Almost any task can be automated with ease!
 
-slack-smart-bot can create bots on demand, create shortcuts, run ruby code, chatGPT, DALL-E, Whisper... just on a chat channel, you can access it just from your mobile phone if you want and run those tests you forgot to run, get the results, restart a server, or have a chatGPT session...... no limits.
+slack-smart-bot has the ability to create bots on demand, set up shortcuts, execute Ruby code, utilize ChatGPT, DALL-E, Whisper, and more. All of this can be done directly within a chat channel, even from your mobile phone. Whether you need to run forgotten tests, retrieve results, restart a server, summarize a channel or just a thread, or engage in a ChatGPT session, the possibilities are limitless.
 
-<img src="./img/smart-bot.png" width="150" height="150"><img src="./img/slack.png" width="300"><img src="./img/openai.png" width="300">  
+<img src="img/smart-bot-150.png"><img src="img/slack-300.png"><img src="img/openai-300.png">  
 
 # Table of Contents
+(A): Only for Admins  
 
-- [Installation and configuration](#installation-and-configuration)
+- [Installation and configuration](#installation-and-configuration) (A)
 - [Usage](#usage)
   * [creating the MASTER BOT](#creating-the-master-bot) (A)
   * [How to access the Smart Bot](#how-to-access-the-smart-bot)
@@ -41,22 +42,24 @@ slack-smart-bot can create bots on demand, create shortcuts, run ruby code, chat
   * [Teams](#teams)
   * [Time off management](#time-off-management)
   * [OpenAI](#openai)
-    + [OpenAI Set up](#openai-setup)
+    + [OpenAI Set up](#openai-setup) (A)
     + [Chat GPT](#chatgpt)
     + [Image Generation](#image-generation)
     + [Image Variations](#image-variations)
     + [Image Editing](#image-editing)
     + [Whisper](#whisper)
     + [Models](#models)
+  * [Recap](#recap)
+  * [Summarize](#summarize)
+  * [Personal Settings](#personal-settings)
   * [Tips](#tips)
     + [Send a file](#send-a-file) (A)
     + [Download a file](#download-a-file) (A)
 - [Contributing](#contributing)
 - [License](#license)
 
-(A): Only for Admins
-
 ## Installation and configuration
+> for admins
 
     $ gem install slack-smart-bot
     
@@ -72,7 +75,9 @@ settings = {
     # the channel that will act like the master channel, main channel
     master_channel: 'my_master_channel',
     masters: ["mario"], #names of the master users
-    token: 'xxxxxxxxxxxxxxxxxx' # the API Slack token
+    token: 'xxxxxxxxxxxxxxxxxx', # the API Slack token
+    user_token: 'yyyyyyyyyy', # The API Slack User token
+    granular_token: 'zzzzzzzz' # The API Granular Slack Token
 }
 
 puts "Connecting #{settings.inspect}"
@@ -84,27 +89,86 @@ The master_channel will be the channel where you will be able to create other bo
 
 The masters will have full access to everything. You need to use the slack user name defined on https://YOUR_WORK_SPACE.slack.com/account/settings#username.
 
-For the token remember you need to generate a token on the Slack web for the bot user.
+Create the SmartBot *[Slack App. Bot Token](https://api.slack.com/slack-apps)* :
 
-You can get one by any of these options:
+  1) [Create a Classic Slack App](https://api.slack.com/apps?new_classic_app=1) This will be our *@smart-bot App* we will interact with. This App will use RTM to connect to Slack.    
 
-- *[Slack App. Bot Token](https://api.slack.com/slack-apps)*. (Recommended)
+  1) Add a bot user to your app. On Add features and functionality section for your app, select *Bots*. Click on *Add a Legacy Bot User*
 
-  1) [Create a Slack App](https://api.slack.com/apps?new_app=1)
+  1) On your app click on the menu on the left: *OAuth & Permissions*. Add the 'users.profile:write' scope. This is necessary for the SmartBot to be able to change the slack status of other users.  
+  
+  1) Now you will need to ask a workspace admin to click on *Install App to Workspace*.
 
-  1) Add a bot user to your app. On Add features and functionality section for your app, select *Bots*. Click on *Add a Bot User*
+  1) Copy your *Bot User OAuth Access Token* and add it to the SmartBot settings with key :token
 
-  1) On your app click on the menu on the left: *OAuth & Permissions* and click on *Install App to Workspace*.
+  1) Ask a workspace admin to provide the *User OAuth Token* and add it to the SmartBot settings with key :user_token  
 
-  1) Copy your *Bot User OAuth Access Token*.
+Now we will create the GranularSmartBot Slack App to get access to certain end points as a regular Slack App:  
 
+  1) [Create a Granular Slack App](https://api.slack.com/apps?new_app=1) This will be our @granular-smart-bot App. It will be used internally on the SmartBot. It is a regular Slack App with scopes.  
 
-- *[Legacy API Token](https://api.slack.com/custom-integrations/legacy-tokens)*. 
+  1) On your app click on the menu on the left: *OAuth & Permissions* and add on Bot Token Scopes the necessary Scopes: app_mentions:read, channels:history, channels:read, chat:write, chat:write.customize, emoji:read, files:read, groups:history, groups:read, im:history, im:read, im:write, incoming-webhook, mpim:history, mpim:read, mpim:write, reactions:read, reactions:write, team:read, users.profile:read, users:read, users:read.email  
+  
+  1) Click on *Install App to Workspace*.  
 
+  1) Copy the *Bot User OAuth Token* and add it to the SmartBot settings with the key :granular_token  
 
-*Remember to invite the smart bot to the channels where they will be accessible before creating the bot*  
+Both Apps need to be on the channels we want to use the SmartBot.  
+
+*Remember to invite the smart bot to the channels where they will be accessible before starting the bot*  
 
 SmartBot will notify about SmartBot status changes or any SmartBot incident if defined the status_channel in settings file and the channel exists. By default: smartbot-status  
+
+
+This is an example of typical settings to be supplied for the *Slack Smart Bot* instance:
+```ruby
+settings = {
+  token: ENV["SLACK_BOT_TOKEN"],
+  user_token: ENV['SLACK_USER_TOKEN'],
+  granular_token: ENV['SLACK_GRANULAR_BOT_TOKEN'],
+  masters: ["mario", "peterv", "lisawhite"], #master admin users
+  master_channel: "smartbot_master",
+  silent: true,
+  stats: true,
+  encrypt: true,
+  encryption: { # if not encryption key supplied then it will be generated one using the host name and the Slack token
+    key: ENV['ENCRYPTION_KEY'], 
+    iv: ENV['ENCRYPTION_IV']
+  },
+  github: {
+    token: ENV['GITHUB_TOKEN']
+  },
+  jira: {
+    host: ENV['JIRA_HOST'], 
+    user: ENV['JIRA_USER'], 
+    password: ENV['JIRA_PASSWORD']
+  },
+  public_holidays: {
+    api_key: ENV['CALENDARIFIC_API_KEY'],
+    default_calendar: 'spain/madrid'
+  },
+  ai: {
+    open_ai: {
+      access_token: ENV["OPENAI_ACCESS_TOKEN"],
+      chat_gpt: {
+        model: 'gpt-3.5-turbo-0613', # to be used by default for the user calling chatgpt command
+        smartbot_model: 'gpt-4-32k-0613' # to be used by default by the SmartBot internally
+      }
+    }
+  }
+}
+
+```
+
+You can see all the accepted settings on: [/lib/slack/smart-bot/config.rb](/lib/slack/smart-bot/config.rb)  
+
+To use the other integrated services:
+* OpenAI: https://platform.openai.com/account/api-keys
+* Calendarific: https://www.calendarific.com 
+* GitHub: https://github.com/settings/tokens
+* Jira: https://support.atlassian.com/atlassian-account/docs/manage-api-tokens-for-your-atlassian-account/
+
+
 
 ## Usage
 
@@ -243,7 +307,7 @@ Examples:
 <img src="img/commands_on_external_call.png" width="400">  
 
 Examples on DM:
->**_Peter>_** `#sales show report from India`
+>**_Peter>_** `#sales show report from India`  
 >**_Peter>_** `on #sales notify clients`
 
 If you want the Smart Bot just listen to part of the message you send, add the commands you want using '`' and start the line with '-!', '-!!' or '-^'
@@ -292,7 +356,7 @@ For the examples use _ and for the rules `. This is a good example of a Help sup
 # help:     _execute smoke tests on db1_
 ```
 
-To see what's new just call `What's new`
+To see what's new just call `What's new`. And to get the SmartBot README call `get smartbot readme`.  
 
 ### Bot Management
 > for admins
@@ -358,6 +422,7 @@ Also it is possible to attach a Ruby file and the Smart Bot will run and post th
 #### REPL
 > for all users
 
+For a quick introduction play this video:  
 [![SmartBot REPLs](https://img.youtube.com/vi/URMI3BdD7J8/0.jpg)](https://www.youtube.com/watch?v=URMI3BdD7J8)  
 
 Easily starts a REPL session so you will be able to create a script directly from the slack conversation. You will be able to share the REPL so they can run it or see the content.
@@ -578,7 +643,7 @@ If you want to change who has access to a specific command without restarting th
         # helpadmin:      
       when /\A\s*update\s+access\s*\z/i
         save_stats(:update_access)
-        if is_admin?(user.name)
+        if is_admin?()
           config.allow_access.repl = ['marioruiz', 'samcooke']
           respond "updated on <##{@channel_id}>!"
         else
@@ -593,7 +658,7 @@ if has_access?(:your_command_id)
 end
 ```
 
-Also you can allow or deny access for specific commands and users on any specific channel all you need is the Smartbot to be a member of the channel and use these commands on Slack:
+Also you can allow or deny access for specific commands and users on any specific channel all you need is the Smartbot to be a member of the channel and use these commands on Slack:  
 `allow access COMMAND_ID`  
 `allow access COMMAND_ID @user1 @user99`  
 It will allow the specified command to be used on the channel.  
@@ -621,8 +686,9 @@ Examples:
 >**_`most used commands`_**  
 
 ### Teams
-> for all users
+> for all users  
 
+For a quick introduction play this video:  
 [![SmartBot Teams](https://img.youtube.com/vi/u8B4aGDXH9M/0.jpg)](https://www.youtube.com/watch?v=u8B4aGDXH9M)  
 
 You can add, update, see, ping and delete teams. When calling `see TEAM_NAME team` the availability of the members will be displayed.  
@@ -697,11 +763,10 @@ The vacation plan will be displayed also with the team when calling `see team NA
 
 Also, you can see the vacation plan for the team for a specific period: `vacations team NAME YYYY/MM/DD`  
 
-To be able to use this command you need to allow the 'users.profile:write' scope on your Slack App and an admin user of the workspace needs to install the app. Set the user token on the SmartBot settings:  
+To be able to use this command you need to allow the 'users.profile:write' scope on your Slack App and an admin user of the workspace needs to install the app. Set the user token provided by the workspace on the SmartBot settings:  
 
 ```ruby
 settings = {
-  token: ENV["SLACK_BOT_TOKEN"],
   user_token: ENV['SLACK_USER_TOKEN']
 }
 ```
@@ -712,7 +777,7 @@ Add to your Smartbot configuration:
 ```ruby
 settings = {
   public_holidays: { 
-      api_key: API_KEY
+      api_key: ENV['CALENDARIFIC_API_KEY']
   }
 }
 ```
@@ -725,8 +790,10 @@ Other 'time off' commands: **_`remove time off ID`_**, **_`see my time off`_**, 
 
 
 ### OpenAI
-> for all users  
+
 #### OpenAI setup
+> for admins  
+
 To be able to use this SmartBot general command you need to ask for an API token: https://platform.openai.com/account/api-keys or supply a Host and api_key for Azure OpenAI.    
 
 Then specify in the SmartBot config the keys:  
@@ -769,7 +836,9 @@ Also, you can specify personal settings for `host`, `ai.open_ai.chat_gpt.model`,
 For using different hosts or tokens for each service you can use the `chat_gpt`, `dall_e` or `whisper` keys.  
 
 #### ChatGPT
+> for all users  
 
+For a quick introduction play this video:  
 [![SmartBot ChatGPT](https://img.youtube.com/vi/zri_R6sLtBA/0.jpg)](https://www.youtube.com/watch?v=zri_R6sLtBA)  
 
 `?? PROMPT`  
@@ -801,6 +870,7 @@ To list all public sessions call `chatGPT public sessions`. To list all shared s
 If you want to use any public or shared session, you can use `chatGPT use USER_NAME SESSION_NAME` or `chatGPT use USER_NAME SESSION_NAME NEW_SESSION_NAME`.  
 To remove any shared session from the list, call `chatGPT stop sharing SESSION_NAME` or `chatGPT stop sharing SESSION_NAME #CHANNEL`.  
 
+Play this video:  
 [![SmartBot ChatGPT Share Sessions](https://img.youtube.com/vi/Mnve3tnEd-8/0.jpg)](https://www.youtube.com/watch?v=Mnve3tnEd-8)  
 
 You can also use ChatGPT when creating REPLs. During the REPL session you can ask *ChatGPT* about the code or any other question. Just start the message with `?` and the Smart Bot will ask ChatGPT and will post the answer. Example: `? How to create a new customer?`. If you send just the question mark without a prompt then ChatGPT will suggest next code line. Example: `?`  
@@ -808,6 +878,8 @@ To send the results of a *SmartBot command* as input for a *ChatGPT* session, us
 
 
 #### Image Generation
+> for all users  
+
 `??i PROMPT`  
  `?i PROMPT`  
  `?ir`  
@@ -818,6 +890,7 @@ if using `?ir` will generate a new image using the session prompts.
 <img src="img/image_generation.png" width="400">  
 
 #### Image Variations
+> for all users  
 
 `?iv`  
 `?ivNUMBER`  
@@ -828,6 +901,7 @@ If an image is attached then it will generate temporary variations of the attach
 <img src="img/image_variations.png" width="400">  
 
 #### Image Editing
+> for all users  
 
 `?ie PROMPT`  
 It will edit the attached image with the supplied PROMPT. The supplied image needs to be an image with a transparent area.  
@@ -836,6 +910,7 @@ The PROMPT need to explain the final result of the image.
 <img src="img/image_editing.png" width="400">  
 
 #### Whisper
+> for all users  
 
 `?w PROMPT`  
 `?w`  
@@ -844,12 +919,71 @@ It will transcribe the audio file attached and perform the PROMPT indicated if s
 <img src="img/whisper.png" width="650">  
 
 #### Models
+> for all users  
 
 `?m`  
 `?m MODEL`  
 `chatgpt models`  
 It will return the list of models available or the details of the model indicated.  
 
+### Recap
+> for all users  
+
+`recap`  
+`my recap`  
+`recap from YYYY/MM/DD`  
+`recap from YYYY/MM/DD to YYYY/MM/DD`  
+`recap YYYY`  
+`recap #CHANNEL`  
+`my recap #CHANNEL`  
+`recap from YYYY/MM/DD #CHANNEL`  
+`recap from YYYY/MM/DD to YYYY/MM/DD #CHANNEL`  
+`recap YYYY #CHANNEL`  
+It will show a recap of the channel. If channel not supplied, it will show the recap of the current channel.  
+If 'my' is added, it will show also a recap of your messages.  
+If only one date is added, it will show the recap from that day to 31st of December of that year.  
+If only one year is added, it will show the recap from 1st of January to 31st of December of that year.  
+Examples:  
+>**_`recap`_**  
+>**_`my recap`_**  
+>**_`recap 2023`_**  
+>**_`recap from 2023/07/01 to 2023/12/31 #sales`_**  
+>**_`recap 2022 #sales`_**  
+
+<img src="img/command_recap.png" width="250">  
+
+### Summarize
+> for all users  
+
+`summarize`  
+`summarize since YYYY/MM/DD`  
+`summarize #CHANNEL`  
+`summarize #CHANNEL since YYYY/MM/DD`  
+`summarize URL_THREAD`  
+It will summarize using ChatGPT the messages in the channel since the date specified.  
+If no date is specified it will summarize the last 30 days.  
+If time off added using Time Off command it will summarize since your last time off started.  
+If no channel is specified it will summarize the current channel.  
+If a thread URL is specified it will summarize the thread.  
+If the command is used in a thread it will summarize the thread.  
+Examples:  
+>**_`summarize`_**  
+>**_`summarize since 2024/01/22`_**  
+>**_`summarize #sales`_**  
+>**_`summarize #sales since 2024/01/22`_**  
+>**_`summarize https://yourcompany.slack.com/archives/C111JG4V4DZ/p1622549264010700`_**  
+
+<img src="img/command_summarize.png" width="500">  
+
+### Personal Settings  
+On a DM with SmartBot you can call `set personal settings` command and supply your specific personal settings just for you. Then the command using those settings will be specific for you with the value indicated here.   
+Examples:  
+>**_`set personal settings ai.open_ai.access_token Axdd3SSccffddZZZDFFDxf7`_**  
+>**_`set personal settings ai.open_ai_chat_gpt.model gpt-4-turbo-preview`_**  
+>**_`set personal settings authorizations.confluence.host confluence.love.example.com`_**  
+>**_`set personal settings authorizations.confluence.authorization Bearer XDfjjdkAAAjjjdkkslsladjjjd`_**  
+
+Other commands: `delete personal settings SETTINGS_ID`, `get personal settings`, `get personal settings SETTINGS_ID`  
 
 ### Tips
 > for admins
@@ -869,7 +1003,7 @@ When uploading a file the message added to 'Add a message about the file' will b
 ```ruby
     when /^do something with my file/i
       if !files.nil? and files.size == 1 and files[0].filetype == 'yaml'
-        require 'nice_http'
+        require "nice_http"
         http = NiceHttp.new(host: "https://files.slack.com", headers: { "Authorization" => "Bearer #{config.token}" })
         res = http.get(files[0].url_private_download, save_data: './tmp/')
         # if you want to directly access to the content use: `res.data`

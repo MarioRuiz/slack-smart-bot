@@ -42,6 +42,7 @@ class SlackSmartBot
           started = Time.now
           data = { channel: @routines[@channel_id][name][:dest],
             user: @routines[@channel_id][name][:creator_id],
+            team_id: @routines[@channel_id][name][:creator_team_id],
             text: @routines[@channel_id][name][:command],
             files: nil,
             routine_name: name, 

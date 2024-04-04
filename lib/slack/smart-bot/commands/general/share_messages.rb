@@ -25,7 +25,7 @@ class SlackSmartBot
               type = :reaction
             end
             if File.exist?("#{config.path}/shares/#{from_channel}.csv")
-              t = CSV.table("#{config.path}/shares/#{from_channel}.csv", headers: ['share_id', 'user_deleted', 'user_created', 'date', 'time', 'type', 'to_channel', 'condition'])
+              t = CSV.table("#{config.path}/shares/#{from_channel}.csv", headers: ['share_id', 'user_team_id_deleted', 'user_deleted', 'user_team_id_created', 'user_created', 'date', 'time', 'type', 'to_channel', 'condition'])
               @shares[from_channel] = t
               if t.size>0
                 num = t[:share_id].max + 1
@@ -34,13 +34,13 @@ class SlackSmartBot
               end
             elsif !@shares.key?(from_channel)
               File.open("#{config.path}/shares/#{from_channel}.csv","w")
-              t = CSV.table("#{config.path}/shares/#{from_channel}.csv", headers: ['share_id', 'user_deleted', 'user_created', 'date', 'time', 'type', 'to_channel', 'condition'])
+              t = CSV.table("#{config.path}/shares/#{from_channel}.csv", headers: ['share_id', 'user_team_id_deleted', 'user_deleted', 'user_team_id_created', 'user_created', 'date', 'time', 'type', 'to_channel', 'condition'])
               num = 1
               @shares[from_channel] = t
             else
               num = @shares[from_channel][:share_id].max + 1
             end
-            values = [num, '', user.name, Time.now.strftime("%Y/%m/%d"), Time.now.strftime("%H:%M"), type.to_s, to_channel, condition]
+            values = [num, '', '', user.team_id, user.name, Time.now.strftime("%Y/%m/%d"), Time.now.strftime("%H:%M"), type.to_s, to_channel, condition]
             @shares[from_channel] << values
             CSV.open("#{config.path}/shares/#{from_channel}.csv", "a+") do |csv|
               csv << values

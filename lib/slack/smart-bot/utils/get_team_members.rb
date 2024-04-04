@@ -3,7 +3,7 @@ class SlackSmartBot
     assigned_members = team.members.values.flatten
     assigned_members.uniq!
     assigned_members.dup.each do |m|
-      user_info = @users.select { |u| u.id == m or (u.key?(:enterprise_user) and u.enterprise_user.id == m) or u.name == m or (u.key?(:enterprise_user) and u.enterprise_user.name == m) }[-1]
+      user_info = find_user(m)
       assigned_members.delete(m) if user_info.nil? or user_info.deleted
     end
     channels_members = []
@@ -18,15 +18,15 @@ class SlackSmartBot
         else
           channels_members << @channels_id[ch]
           tm.each do |m|
-            user_info = @users.select { |u| u.id == m or (u.key?(:enterprise_user) and u.enterprise_user.id == m) }[-1]
-            team_members << user_info.name unless user_info.is_app_user or user_info.is_bot
+            user_info = find_user(m)
+            team_members << "#{user_info.team_id}_#{user_info.name}" unless user_info.nil? or user_info.is_app_user or user_info.is_bot
           end
         end
       end
       team_members.flatten!
       team_members.uniq!
       unassigned_members = team_members - assigned_members
-      unassigned_members.delete(config.nick)
+      unassigned_members.delete("#{config.team_id}_#{config.nick}")
       not_on_team_channel = assigned_members - team_members
       all_team_members += team_members
     else

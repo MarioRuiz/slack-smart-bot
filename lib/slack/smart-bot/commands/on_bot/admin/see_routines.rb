@@ -29,8 +29,8 @@ class SlackSmartBot
           routines = @routines
         end
       else
-        if @rules_imported.key?(user.name) and @rules_imported[user.name].key?(user.name) and dest[0] == "D"
-          routines = YAML.load(File.read("#{config.path}/routines/routines_#{@rules_imported[user.name][user.name]}.yaml"))
+        if @rules_imported.key?("#{user.team_id}_#{user.name}") and @rules_imported["#{user.team_id}_#{user.name}"].key?(user.name) and dest[0] == "D"
+          routines = YAML.load(File.read("#{config.path}/routines/routines_#{@rules_imported["#{user.team_id}_#{user.name}"][user.name]}.yaml"))
           routines = {} if routines.is_a?(FalseClass)
         else
           routines = @routines
@@ -82,7 +82,7 @@ class SlackSmartBot
             msg << "\tStatus: #{v[:status]}"
             msg << "\tEvery: #{v[:every]}" unless v[:every] == ""
             msg << "\tAt: #{v[:at]}" unless v[:at] == ""
-            msg << "\tOn: #{v[:dayweek]}" unless !v.key?(:dayweek) or v[:dayweek].to_s == "" 
+            msg << "\tOn: #{v[:dayweek]}" unless !v.key?(:dayweek) or v[:dayweek].to_s == ""
             msg << "\tNext Run: #{v[:next_run]}"
             msg << "\tLast Run: #{v[:last_run]}"
             msg << "\tTime consumed on last run: #{v[:last_elapsed]}" unless v[:command] !=''

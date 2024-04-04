@@ -62,7 +62,7 @@ class SlackSmartBot
       user = "" # for the case we are on the stats channel
     end
     if (from_user.id != user and
-        (config.masters.include?(from_user.name) or master_admin_users_id.include?(from_user.id) or dest == @channels_id[config.stats_channel]) and 
+        (config.team_id_masters.include?("#{from_user.team_id}_#{from_user.name}") or master_admin_users_id.include?(from_user.id) or dest == @channels_id[config.stats_channel]) and
         (typem == :on_dm or dest[0] == "D" or dest == @channels_id[config.stats_channel]))
       on_dm_master = true #master admin user
     else
@@ -88,14 +88,14 @@ class SlackSmartBot
         wrong = true
       else
         tm.each do |m|
-          user_info = @users.select { |u| u.id == m or (u.key?(:enterprise_user) and u.enterprise_user.id == m) }[-1]
+          user_info = find_user(m)
           members_list << user_info.name unless user_info.is_app_user or user_info.is_bot
         end
       end
     end
 
     if header.size > 0
-      headers = ["date", "bot_channel", "bot_channel_id", "dest_channel", "dest_channel_id", "type_message", "user_name", "user_id", "text", "command", "files", "time_zone", "job_title"]
+      headers = ["date", "bot_channel", "bot_channel_id", "dest_channel", "dest_channel_id", "type_message", "user_name", "user_id", "text", "command", "files", "time_zone", "job_title", "team_id"]
       header.each do |h|
         if !headers.include?(h.downcase)
           message << ":exclamation: Wrong header #{h}. It should be one of the following: #{headers.join(", ")}"
@@ -117,6 +117,8 @@ class SlackSmartBot
     tzone_users = {}
     job_title_users = {}
     users_by_job_title = {}
+    users_by_team = {}
+    total_calls_by_team = {}
     unless wrong
       type_group = :monthly if only_graph and type_group == ""
       if on_dm_master or (from_user.id == user) # normal user can only see own stats
@@ -163,7 +165,7 @@ class SlackSmartBot
             end
             #end
             if user != ""
-              user_info = @users.select { |u| u.id == user or (u.key?(:enterprise_user) and u.enterprise_user.id == user) }[-1]
+              user_info = find_user(user)
               if user_info.nil? # for the case the user is populated from outside of slack
                 user_name = user
                 user_id = user
@@ -197,6 +199,7 @@ class SlackSmartBot
                     (exclude_channel_members and !members_list.include?(row[:user_name])) or
                     (!include_channel_members and !exclude_channel_members)
                     row[:date] = row[:date].to_s
+                    row[:team_id] = config.team_id if row[:team_id].to_s == ''
                     if row[:dest_channel_id].to_s[0] == "D"
                       row[:dest_channel] = "DM"
                     elsif row[:dest_channel].to_s == ""
@@ -217,7 +220,7 @@ class SlackSmartBot
                           header.each_with_index do |h, i|
                             if !row[h.downcase.to_sym].to_s.match?(/#{regexp[i]}/i)
                               add = false
-                              break 
+                              break
                             end
                           end
                         end
@@ -367,6 +370,35 @@ class SlackSmartBot
                 end
               end
 
+              team_ids = rows.team_id.uniq
+              client_web = Slack::Web::Client.new(token: config.token)
+              client_web.auth_test
+              team_ids.each do |team_id|
+                resp = client_web.team_info(team: team_id)
+                team_name = resp.team.name
+                users_by_team[team_name] ||= []
+                users_by_team[team_name] += rows.select { |h| h.team_id == team_id }.map { |h| h.user_id }.uniq
+                total_calls_by_team[team_name] ||= 0
+                total_calls_by_team[team_name] += rows.count { |h| h.team_id == team_id }
+              end
+              client_web = nil
+
+              #print users by team
+              if users_by_team.size > 0
+                message << "*Users by Space*"
+                users_by_team.each do |team_name, users|
+                  message << "\t#{team_name}: #{users.size} (#{(users.size.to_f * 100 / users_id_name.size).round(2)}%)"
+                end
+              end
+
+              #print total calls by user team
+              if total_calls_by_team.size > 0
+                message << "*Total calls by User Space*"
+                total_calls_by_team.each do |team_name, total_calls|
+                  message << "\t#{team_name}: #{total_calls} (#{(total_calls.to_f * 100 / total).round(2)}%)"
+                end
+              end
+
               if !only_graph
                 users_attachment = []
                 if user == ""
@@ -386,7 +418,7 @@ class SlackSmartBot
                           tzone_users[rows[i].values[11]] += 1
                         end
                       else
-                        user_info = @users.select { |u| u.id == usr or (u.key?(:enterprise_user) and u.enterprise_user.id == usr) }[-1]
+                        user_info = find_user(usr)
                         unless user_info.nil? or user_info.is_app_user or user_info.is_bot
                           tzone_users[user_info.tz_label] ||= 0
                           tzone_users[user_info.tz_label] += 1
@@ -422,7 +454,7 @@ class SlackSmartBot
                             users_by_job_title[job_title] << rows.user_name[i]
                           end
                         else
-                          user_info = @users.select { |u| u.id == usr or (u.key?(:enterprise_user) and u.enterprise_user.id == usr) }[-1]
+                          user_info = find_user(usr)
                           unless user_info.nil? or user_info.is_app_user or user_info.is_bot
                             if job_title_users.key?(user_info.profile.title)
                               job_title = user_info.profile.title
@@ -443,6 +475,7 @@ class SlackSmartBot
                   users_by_job_title.each do |job_title, users|
                     users.uniq!
                   end
+
                   if users.size > 10
                     message << "*Users* - #{users.size} (Top 10)"
                   else

@@ -24,8 +24,8 @@ class SlackSmartBot
       code = prerun.join("\n")
       if File.exist?("#{config.path}/repl/#{@channel_id}/#{session_name}.run")
         if @repls.key?(session_name) and (@repls[session_name][:type] == :private or @repls[session_name][:type] == :private_clean) and
-           @repls[session_name][:creator_name] != user.name and
-           !is_admin?(user.name)
+           (@repls[session_name][:creator_name] != user.name or @repls[session_name][:creator_team_id] != user.team_id) and
+           !is_admin?(user)
           respond "The REPL with session name: #{session_name} is private", dest
         elsif !prerun.empty? and (code.match?(/System/i) or code.match?(/Kernel/i) or code.include?("File.") or
                                   code.include?("`") or code.include?("exec") or code.include?("spawn") or code.include?("IO.") or
@@ -38,7 +38,7 @@ class SlackSmartBot
         else
           if @repls.key?(session_name) #not temp
             @repls[session_name][:accessed] = Time.now.to_s
-            if @repls[session_name].creator_name == user.name
+            if @repls[session_name].creator_name == user.name and @repls[session_name].creator_team_id == user.team_id
               @repls[session_name][:runs_by_creator] += 1
             else
               @repls[session_name][:runs_by_others] += 1
@@ -65,7 +65,7 @@ class SlackSmartBot
           content += File.read("#{config.path}/repl/#{@channel_id}/#{session_name}.run").gsub(/^(quit|exit|bye)$/i, "") #todo: remove this gsub, it will never contain it
           Dir.mkdir("#{project_folder}/tmp") unless Dir.exist?("#{project_folder}/tmp")
           Dir.mkdir("#{project_folder}/tmp/repl") unless Dir.exist?("#{project_folder}/tmp/repl")
-          if Thread.current[:on_thread] 
+          if Thread.current[:on_thread]
             # to force stdout.each to be performed every 3 seconds
             content = "Thread.new do
               while true do
@@ -81,7 +81,7 @@ class SlackSmartBot
           process_to_run = "ruby  ./tmp/repl/#{session_name}_#{user.name}_#{random}.rb"
           process_to_run = ("cd #{project_folder} && #{process_to_run}") if defined?(project_folder)
           respond "Running REPL #{session_name} (id: #{random})"
-          @run_repls[random] = { user: user.name, name: session_name, pid: '' }
+          @run_repls[random] = { team_id: user.team_id, user: user.name, name: session_name, pid: '' }
           react :running
 
           require "pty"

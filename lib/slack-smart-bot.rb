@@ -1,3 +1,5 @@
+SP_COMPARE_NUMBERS_AS_STRINGS = false #nice_hash
+
 require "slack-ruby-client"
 require "async"
 require "open-uri"
@@ -8,10 +10,12 @@ require "fileutils"
 require "open3"
 require "nice_http"
 require "nice_hash"
-require 'cgi'
-require 'yaml'
-require 'nokogiri'
+require "cgi"
+require "yaml"
+require "nokogiri"
+require 'tiktoken_ruby'
 
+require_relative "slack/smart-bot/config"
 require_relative "slack/smart-bot/comm"
 require_relative "slack/smart-bot/listen"
 require_relative "slack/smart-bot/treat_message"
@@ -22,8 +26,9 @@ require_relative "slack/smart-bot/utils"
 require_relative "slack/smart-bot/ai"
 
 ADMIN_USERS = MASTER_USERS if defined?(MASTER_USERS) # for bg compatibility
+
 class SlackSmartBot
-  attr_accessor :config, :client, :client_user
+  attr_accessor :config, :client, :client_user, :client_granular
   attr_reader :master_bot_id, :channel_id
   geml = Gem.loaded_specs.values.select { |x| x.name == "slack-smart-bot" }[0]
   if geml.nil?
@@ -33,65 +38,32 @@ class SlackSmartBot
   end
   VERSION = version
   TIMEOUT_LISTENING = 60 * 30 # 30 minutes
-  
+
+  # Initializes the Slack Smart Bot with the given configuration.
+  # Check the README for more information on the configuration options.
+  # and lib/slack/smart-bot/config.rb for the default values.
   def initialize(config)
-    if config.key?(:path) and config[:path] != ''
-      config.path.chop! if config.path[-1]=="/"
-    else
-      config[:path] = '.'
+    config_defaults = SlackSmartBot::Config.new()
+    abort "The config supplied is not correct. You need to supply a hash with the correct keys and values. The keys are: #{config_defaults.to_h.keys.join(", ")}" unless config.is_a?(Hash)
+    # when simulate true for testing purposes: client, web_client, nick, nick_id, git
+    config_check = config.deep_copy
+    [:client, :web_client, :nick, :nick_id, :git, :allow_access, :authorizations].each do |key|
+      config_check.delete(key)
     end
-    config[:silent] = false unless config.key?(:silent)
-    config[:testing] = false unless config.key?(:testing)
-    config[:simulate] = false unless config.key?(:simulate)
-    config[:stats] = false unless config.key?(:stats)
-    config[:allow_access] = Hash.new unless config.key?(:allow_access)
-    config[:on_maintenance] = false unless config.key?(:on_maintenance)
-    config[:on_maintenance_message] = "Sorry I'm on maintenance so I cannot attend your request." unless config.key?(:on_maintenance_message)
-    config[:general_message] = "" unless config.key?(:general_message)
-    config[:logrtm] = false unless config.key?(:logrtm)
-    config[:status_channel] = 'smartbot-status' unless config.key?(:status_channel)
-    config[:stats_channel] = 'smartbot-stats' unless config.key?(:stats_channel)
+    result_config = NiceHash.compare_structure(config_check, config_defaults.to_h)
+    abort "The config supplied is not correct. You need to supply a hash with the correct keys and values. The keys are: #{config_defaults.to_h.keys.join(", ")}" unless result_config
 
-    config[:jira] = { host: '', user: '', password: '' } unless config.key?(:jira) and config[:jira].key?(:host) and config[:jira].key?(:user) and config[:jira].key?(:password)
-    config[:jira][:host] = "https://#{config[:jira][:host]}" unless config[:jira][:host] == '' or config[:jira][:host].match?(/^http/)
-    config[:github] = {token: '' } unless config.key?(:github) and config[:github].key?(:token)
-    config[:github][:host] ||= "https://api.github.com"
-    config[:github][:host] = "https://#{config[:github][:host]}" unless config[:github][:host] == '' or config[:github][:host].match?(/^http/)
-    config[:public_holidays] = { api_key: '' } unless config.key?(:public_holidays) and config[:public_holidays].key?(:api_key)
-    config[:public_holidays][:host] ||= "https://calendarific.com"
-    config[:public_holidays][:host] = "https://#{config[:public_holidays][:host]}" unless config[:public_holidays][:host] == '' or config[:public_holidays][:host].match?(/^http/)
-    config[:encrypt] ||= true unless config.key?(:encrypt)
-    config[:ai] ||= {} unless config.key?(:ai)
-    config[:ai][:open_ai] ||= {
-      access_token: ''
-    } unless config[:ai].key?(:open_ai)
-    config[:ai][:open_ai][:host] ||= ''
-    config[:ai][:open_ai][:chat_gpt] ||= { }
-    config[:ai][:open_ai][:dall_e] ||= { }
-    config[:ai][:open_ai][:whisper] ||= { }
+    config = config_defaults.to_h.nice_merge(config)
 
-    config[:ai][:open_ai][:chat_gpt][:host] ||= config._ai.open_ai.host
-    config[:ai][:open_ai][:chat_gpt][:access_token] ||= config._ai.open_ai.access_token
-    config[:ai][:open_ai][:chat_gpt][:model] ||= 'gpt-3.5-turbo'
-    config[:ai][:open_ai][:chat_gpt][:smartbot_model] ||= config[:ai][:open_ai][:chat_gpt][:model]
-    config[:ai][:open_ai][:chat_gpt][:api_type] ||= :openai
-    config[:ai][:open_ai][:chat_gpt][:api_version] ||= ''
+    config.path.chop! if config.path[-1] == "/"
+    config[:jira][:host] = "https://#{config[:jira][:host]}" unless config[:jira][:host] == "" or config[:jira][:host].match?(/^http/)
+    config[:github][:host] = "https://#{config[:github][:host]}" unless config[:github][:host] == "" or config[:github][:host].match?(/^http/)
+    config[:public_holidays][:host] = "https://#{config[:public_holidays][:host]}" unless config[:public_holidays][:host] == "" or config[:public_holidays][:host].match?(/^http/)
 
-    config[:ai][:open_ai][:dall_e][:host] ||= config._ai.open_ai.host
-    config[:ai][:open_ai][:dall_e][:access_token] ||= config._ai.open_ai.access_token
-    config[:ai][:open_ai][:dall_e][:model] ||= ''
-    config[:ai][:open_ai][:dall_e][:api_type] ||= :openai
-    config[:ai][:open_ai][:dall_e][:image_size] ||= '256x256'
-
-    config[:ai][:open_ai][:whisper][:host] ||= config._ai.open_ai.host
-    config[:ai][:open_ai][:whisper][:access_token] ||= config._ai.open_ai.access_token
-    config[:ai][:open_ai][:whisper][:api_type] ||= :openai
-    config[:ai][:open_ai][:whisper][:model] ||= 'whisper-1'
-    
-    if config.path.to_s!='' and config.file.to_s==''
+    if config.path.to_s != "" and config.file.to_s == ""
       config.file = File.basename($0)
     end
-    if config.key?(:file) and config.file!=''
+    if config.key?(:file) and config.file != ""
       config.file_path = "#{config.path}/#{config.file}"
     else
       config.file_path = $0
@@ -115,26 +87,59 @@ class SlackSmartBot
 
     File.delete("#{config.path}/config_tmp.status") if File.exist?("#{config.path}/config_tmp.status")
 
-    config.masters = MASTER_USERS if config.masters.to_s=='' and defined?(MASTER_USERS)
-    config.master_channel = MASTER_CHANNEL if config.master_channel.to_s=='' and defined?(MASTER_CHANNEL)
-
-    if ARGV.size == 0 or (config.file.to_s!='' and config.file.to_s!=File.basename($0))
-      config.rules_file = "#{config.file.gsub(".rb", "_rules.rb")}" unless config.rules_file.to_s!=''
-      unless File.exist?(config.path + '/' + config.rules_file)
-        default_rules = (__FILE__).gsub(/\.rb$/, "_rules.rb")
-        FileUtils.copy_file(default_rules, config.path + '/' + config.rules_file)
+    if !config.simulate
+      if (!config.key?(:token) or config.token.to_s == "")
+        abort "You need to supply a valid token key on the settings. key: :token"
+      elsif (!config.key?(:user_token) or config.user_token.to_s == "")
+        abort "You need to supply a valid user_token key on the settings. key: :user_token"
+      elsif (!config.key?(:granular_token) or config.granular_token.to_s == "")
+        abort "You need to supply a valid granular_token key on the settings. key: :granular_token"
       end
-      config.admins = config.masters.dup unless config.admins.to_s!=''
-      config.channel = config.master_channel unless config.channel.to_s!=''
-      config.status_init = :on unless config.status_init.to_s!=''
+    end
+
+    resp = get_smartbot_team_info(config[:token])
+    if resp.key?(:team) and resp[:team].key?(:enterprise_id)
+      config.team_id = resp[:team][:enterprise_id]
+    else
+      config.team_id = resp.team.id
+    end
+
+    config.masters = MASTER_USERS if config.masters.to_s == "" and defined?(MASTER_USERS)
+    config.team_id_masters ||= []
+    config.team_id_admins ||= []
+
+    config.master_channel = MASTER_CHANNEL if config.master_channel.to_s == "" and defined?(MASTER_CHANNEL)
+
+    if ARGV.size == 0 or (config.file.to_s != "" and config.file.to_s != File.basename($0))
+      config.rules_file = "#{config.file.gsub(".rb", "_rules.rb")}" unless config.rules_file.to_s != ""
+      unless File.exist?(config.path + "/" + config.rules_file)
+        default_rules = (__FILE__).gsub(/\.rb$/, "_rules.rb")
+        FileUtils.copy_file(default_rules, config.path + "/" + config.rules_file)
+      end
+      config.admins = config.masters.dup unless !config.admins.empty?
+      config.team_id_admins = config.team_id_masters.dup unless !config.team_id_admins.empty?
+      config.channel = config.master_channel unless config.channel.to_s != ""
+      config.status_init = :on unless config.status_init.to_s != ""
     else
       config.rules_file = ARGV[2]
       config.admins = ARGV[1].split(",")
       config.channel = ARGV[0]
       config.status_init = ARGV[3].to_sym
     end
-    config.rules_file[0]='' if config.rules_file[0]=='.'
-    config.rules_file='/'+config.rules_file if config.rules_file[0]!='/'
+    if config.team_id_admins.size != config.admins.size and !config.admins.empty?
+        config.admins.each do |name|
+          if name.match?(/^[A-Z0-9]{7,11}_/)
+            config.team_id_admins << name
+          else
+            config.team_id_admins << "#{config.team_id}_#{name}"
+          end
+        end
+    end
+    config.team_id_admins.uniq!
+    config.admins.uniq!
+
+    config.rules_file[0] = "" if config.rules_file[0] == "."
+    config.rules_file = "/" + config.rules_file if config.rules_file[0] != "/"
 
     config.shortcuts_file = "slack-smart-bot_shortcuts_#{config.channel}.yaml".gsub(" ", "_")
     if config.channel == config.master_channel
@@ -144,32 +149,47 @@ class SlackSmartBot
       config.on_master_bot = false
     end
 
-    if (!config.key?(:token) or config.token.to_s == '') and !config.simulate
-      abort "You need to supply a valid token key on the settings. key: :token"
-    elsif !config.key?(:masters) or !config.masters.is_a?(Array) or config.masters.size == 0
-      abort "You need to supply a masters array on the settings containing the user names of the master admins. key: :masters"
-    elsif !config.key?(:master_channel) or config.master_channel.to_s == ''
+    if (!config.masters.is_a?(Array) or !config.team_id_masters.is_a?(Array)) or
+      (config.masters + config.team_id_masters).empty?
+      message = "You need to supply a masters array on the settings containing the user names of the master admins, for example: [peter]. key: :masters"
+      message += " or a team_id_masters array containing the team_id and user names of the master admins, for example: [TJDFJKD34_peter]. key: :team_id_masters"
+      abort message
+    elsif !config.key?(:master_channel) or config.master_channel.to_s == ""
       abort "You need to supply a master_channel on the settings. key: :master_channel"
-    elsif !config.key?(:channel) or config.channel.to_s == ''
+    elsif !config.key?(:channel) or config.channel.to_s == ""
       abort "You need to supply a bot channel name on the settings. key: :channel"
     end
-
-
 
     logfile = File.basename(config.rules_file.gsub("_rules_", "_logs_"), ".rb") + ".log"
     config.log_file = logfile
     @logger = Logger.new("#{config.path}/logs/#{logfile}")
     @last_respond = Time.now
-    
-    config_log = config.dup
+
+    #todo: consider putting this on a method
+    config_log = config.deep_copy
     config_log.delete(:token)
     config_log.delete(:user_token)
-    @logger.info "Initializing bot: #{config_log.inspect}"
+    config_log.delete(:granular_token)
+    config_log.delete(:authorizations)
+    config_log.jira.password = "********" if config_log.key?(:jira) and config_log.jira.key?(:password)
+    config_log.github.token = "********" if config_log.key?(:github) and config_log.github.key?(:token)
+    config_log.public_holidays.api_key = "********" if config_log.key?(:public_holidays) and config_log.public_holidays.key?(:api_key)
+    config_log.encryption[:key] = "********" if config_log.key?(:encryption) and config_log.encryption[:key].to_s != ""
+    config_log.encryption.iv = "********" if config_log.key?(:encryption) and config_log.encryption.iv.to_s != ""
+    config_log.ai.open_ai.access_token = "********" if config_log.key?(:ai) and config_log.ai.key?(:open_ai) and config_log.ai.open_ai.key?(:access_token)
+    config_log.ai.open_ai.chat_gpt.access_token = "********" if config_log.key?(:ai) and config_log.ai.key?(:open_ai) and config_log.ai.open_ai.key?(:chat_gpt) and config_log.ai.open_ai.chat_gpt.key?(:access_token)
+    config_log.ai.open_ai.dall_e.access_token = "********" if config_log.key?(:ai) and config_log.ai.key?(:open_ai) and config_log.ai.open_ai.key?(:dall_e) and config_log.ai.open_ai.dall_e.key?(:access_token)
+    config_log.ai.open_ai.whisper.access_token = "********" if config_log.key?(:ai) and config_log.ai.key?(:open_ai) and config_log.ai.open_ai.key?(:whisper) and config_log.ai.open_ai.whisper.key?(:access_token)
+    config_log.ai.open_ai.models.access_token = "********" if config_log.key?(:ai) and config_log.ai.key?(:open_ai) and config_log.ai.open_ai.key?(:models) and config_log.ai.open_ai.models.key?(:access_token)
+    config_log.ldap.auth.password = "********" if config_log.key?(:ldap) and config_log.ldap.key?(:auth) and config_log.ldap.auth.key?(:password)
+    @config_log = config_log.deep_copy
+    @logger.info "Initializing bot: #{@config_log.inspect}"
 
     File.new("#{config.path}/buffer.log", "w") if config[:testing] and config.on_master_bot
     File.new("#{config.path}/buffer_complete.log", "w") if config[:simulate] and config.on_master_bot
 
     self.config = config
+
     save_status :off, :initializing, "Initializing bot: #{config_log.inspect}"
 
     unless config.simulate and config.key?(:client)
@@ -185,10 +205,26 @@ class SlackSmartBot
         @logger.fatal "*" * 50
         @logger.fatal "Rescued on creation client_user: #{e.inspect}"
         self.client_user = nil
+        abort "Rescued on creation client_user. You need to supply a valid user_token key on the settings. key: :user_token.\n#{e.inspect}"
       end
     else
       self.client_user = nil
     end
+
+    unless (config.simulate and config.key?(:client)) or config.granular_token.nil? or config.granular_token.empty?
+      begin
+        self.client_granular = Slack::Web::Client.new(token: config.granular_token)
+        self.client_granular.auth_test
+      rescue Exception => e
+        @logger.fatal "*" * 50
+        @logger.fatal "Rescued on creation client_granular: #{e.inspect}"
+        self.client_granular = nil
+        abort "Rescued on creation client_granular. You need to supply a valid granular_token key on the settings. key: :granular_token.\n#{e.inspect}"
+      end
+    else
+      self.client_granular = nil
+    end
+
     restarts = 0
     created = false
     while restarts < 200 and !created
@@ -224,6 +260,23 @@ class SlackSmartBot
       end
     end
 
+    if config.team_id_masters.empty?
+      config.masters.each_with_index do |name, i|
+        if name.match?(/^[A-Z0-9]{7,11}_/)
+          config.team_id_masters << name
+          config.masters[i] = name.split("_")[1..-1].join("_")
+        else
+          config.team_id_masters << "#{config.team_id}_#{name}"
+        end
+      end
+    else
+      config.masters = []
+      config.team_id_masters.each_with_index do |tid_name, i|
+        name = tid_name.split("_")[1..-1].join("_")
+        config.masters << name
+      end
+    end
+
     @listening = Hash.new()
     @listening[:threads] = Hash.new() #[thread_ts] => channel_id
 
@@ -249,26 +302,48 @@ class SlackSmartBot
     @chat_gpt_collaborating = Hash.new()
     @open_ai = Hash.new()
     @open_ai_models = []
+    @slack_bots = Hash.new()
 
-    if File.exist?("#{config.path}/shortcuts/#{config.shortcuts_file}".gsub('.yaml','.rb')) #backwards compatible
-      file_conf = IO.readlines("#{config.path}/shortcuts/#{config.shortcuts_file}".gsub('.yaml','.rb')).join
+    @ldap = nil
+    begin
+      if config.ldap.key?(:host) and config.ldap[:host].to_s != ""
+        require 'net/ldap'
+        if config.ldap.key?(:auth) and config.ldap[:auth].key?(:user) and config.ldap[:auth][:user].to_s != ""
+          @ldap = Net::LDAP.new(host: config.ldap.host, port: config.ldap.port, auth: config.ldap.auth)
+        else
+          @ldap = Net::LDAP.new(host: config.ldap.host, port: config.ldap.port)
+        end
+      end
+    rescue Exception => e
+      @logger.fatal "Rescued on creation ldap: #{e.inspect}"
+      @ldap = nil
+    end
+
+    if (config.on_master_bot and !File.exist?("#{config.path}/status/version.txt")) or
+       (config.on_master_bot and File.exist?("#{config.path}/status/version.txt") and
+        Gem::Version.new(File.read("#{config.path}/status/version.txt").to_s) <= Gem::Version.new("1.15.0"))
+      upgrade_to_use_team_ids()
+    end
+
+    if File.exist?("#{config.path}/shortcuts/#{config.shortcuts_file}".gsub(".yaml", ".rb")) #backwards compatible
+      file_conf = IO.readlines("#{config.path}/shortcuts/#{config.shortcuts_file}".gsub(".yaml", ".rb")).join
       if file_conf.to_s() == ""
         @shortcuts = {}
       else
         @shortcuts = eval(file_conf)
       end
-      File.open("#{config.path}/shortcuts/#{config.shortcuts_file}", 'w') {|file| file.write(@shortcuts.to_yaml) }
-      File.delete("#{config.path}/shortcuts/#{config.shortcuts_file}".gsub('.yaml','.rb'))
+      File.open("#{config.path}/shortcuts/#{config.shortcuts_file}", "w") { |file| file.write(@shortcuts.to_yaml) }
+      File.delete("#{config.path}/shortcuts/#{config.shortcuts_file}".gsub(".yaml", ".rb"))
     elsif File.exist?("#{config.path}/shortcuts/#{config.shortcuts_file}")
       @shortcuts = YAML.load(File.read("#{config.path}/shortcuts/#{config.shortcuts_file}"))
     end
-    if File.exist?("#{config.path}/shortcuts/shortcuts_global.rb")  #backwards compatible
+    if File.exist?("#{config.path}/shortcuts/shortcuts_global.rb") #backwards compatible
       file_sc = IO.readlines("#{config.path}/shortcuts/shortcuts_global.rb").join
       @shortcuts_global = {}
       unless file_sc.to_s() == ""
         @shortcuts_global = eval(file_sc)
       end
-      File.open("#{config.path}/shortcuts/shortcuts_global.yaml", 'w') {|file| file.write(@shortcuts_global.to_yaml) }
+      File.open("#{config.path}/shortcuts/shortcuts_global.yaml", "w") { |file| file.write(@shortcuts_global.to_yaml) }
       File.delete("#{config.path}/shortcuts/shortcuts_global.rb")
     elsif File.exist?("#{config.path}/shortcuts/shortcuts_global.yaml")
       @shortcuts_global = YAML.load(File.read("#{config.path}/shortcuts/shortcuts_global.yaml"))
@@ -277,12 +352,12 @@ class SlackSmartBot
     get_routines()
     get_repls()
 
-    if config.on_master_bot and (File.exist?(config.file_path.gsub(".rb", "_bots.rb")) or File.exist?(config.file_path.gsub('.rb', '_bots.yaml')))
+    if config.on_master_bot and (File.exist?(config.file_path.gsub(".rb", "_bots.rb")) or File.exist?(config.file_path.gsub(".rb", "_bots.yaml")))
       get_bots_created()
       if @bots_created.kind_of?(Hash) and config.start_bots
         @bots_created.each { |key, value|
           if !value.key?(:cloud) or (value.key?(:cloud) and value[:cloud] == false)
-            if value.key?(:silent) and value.silent!=config.silent
+            if value.key?(:silent) and value.silent != config.silent
               silent = value.silent
             else
               silent = config.silent
@@ -308,24 +383,26 @@ class SlackSmartBot
     FileUtils.copy_file(default_general_commands, config.path + general_commands_file) unless File.exist?(config.path + general_commands_file)
 
     get_rules_imported()
-
     begin
       #todo: take in consideration the case that the value supplied on config.masters and config.admins are the ids and not the user names
       @admin_users_id = []
       @master_admin_users_id = []
-      config.admins.each do |au|
+      config.team_id_admins.each do |au|
         user_info = get_user_info("@#{au}")
         @admin_users_id << user_info.user.id
-        if config.masters.include?(au)
+        if config.team_id_masters.include?(au)
           @master_admin_users_id << user_info.user.id
         end
         sleep 1
       end
-      (config.masters-config.admins).each do |au|
+      (config.team_id_masters - config.team_id_admins).each do |au|
         user_info = get_user_info("@#{au}")
-        @master_admin_users_id << user_info.user.id
+        @master_admin_users_id << user_info.user.id unless user_info.nil?
         sleep 1
       end
+      @admin_users_id.uniq!
+      @master_admin_users_id.uniq!
+
     rescue Slack::Web::Api::Errors::TooManyRequestsError
       @logger.fatal "TooManyRequestsError"
       save_status :off, :TooManyRequestsError, "TooManyRequestsError please re run the bot and be sure of executing first: killall ruby"
@@ -390,7 +467,7 @@ class SlackSmartBot
         @logger.info _data
         #save_status :off, :closing, "Connection closing, exiting." #todo: don't notify for the moment, remove when checked
       end
-  
+
       client.on :closed do |_data|
         m = "Connection has been disconnected. #{Time.now}"
         @logger.info m

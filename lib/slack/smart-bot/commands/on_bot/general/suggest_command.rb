@@ -12,10 +12,10 @@ class SlackSmartBot
   # help:    if used 'command' it will show any kind of command or rule.
   # help: command_id: :suggest_command
   # help:
-  def suggest_command(from, dest, dchannel, specific, rules_file)
+  def suggest_command(user, dest, dchannel, specific, rules_file)
     save_stats(__method__)
     dont_suggest = []
-    help_message = get_help(rules_file, dest, from, specific, true, descriptions: false, only_normal_user: true)
+    help_message = get_help(rules_file, dest, user, specific, true, descriptions: false, only_normal_user: true)
     commands = help_message.gsub(/====+/,'-'*30).split(/^\s*-------*$/).flatten
     commands.reject!{|c| c.match?(/These are specific commands for this bot on this/i) || c.match?(/\A\s*\z/)}
     dont_suggest.each do |ds|
@@ -24,7 +24,7 @@ class SlackSmartBot
     @last_suggested_commands ||= []
     @last_suggested_commands.shift if @last_suggested_commands.size >=5
     command = ''
-    begin 
+    begin
       command = commands.sample
     end until !@last_suggested_commands.include?(command) or commands.size <= 5
     @last_suggested_commands << command

@@ -6,13 +6,15 @@ class SlackSmartBot
           def open_ai_models(model='', just_models: false)
             save_stats(__method__) unless just_models
             get_personal_settings()
-            @ai_open_ai, message_connect = SlackSmartBot::AI::OpenAI.connect(@ai_open_ai, config, @personal_settings)
+            @ai_open_ai, message_connect = SlackSmartBot::AI::OpenAI.connect(@ai_open_ai, config, @personal_settings, service: :models)
             respond message_connect if message_connect
-            user = Thread.current[:user]
-            if !@ai_open_ai[user.name].nil? and !@ai_open_ai[user.name][:chat_gpt][:client].nil?
+            user = Thread.current[:user].dup
+            team_id = user.team_id
+            team_id_user = Thread.current[:team_id_user]
+            if !@ai_open_ai[team_id_user].nil? and !@ai_open_ai[team_id_user][:models][:client].nil?
                 react :running unless just_models
                 begin
-                  res = SlackSmartBot::AI::OpenAI.models(@ai_open_ai[user.name][:chat_gpt][:client], @ai_open_ai[user.name][:chat_gpt], model)
+                  res = SlackSmartBot::AI::OpenAI.models(@ai_open_ai[team_id_user][:models][:client], @ai_open_ai[team_id_user][:models], model)
                   if model == '' or model == 'chatgpt'
                     unless just_models
                       message = ["*OpenAI*"]
@@ -27,7 +29,11 @@ class SlackSmartBot
                     end
                     @open_ai_models = res.split("\n") if model == ''
                   else
-                    respond "*OpenAI* Info about #{model} model:\n```#{res.strip}```"
+                    if just_models
+                      return res
+                    else
+                      respond "*OpenAI* Info about #{model} model:\n```#{res.strip}```"
+                    end
                   end
                 rescue => exception
                   @logger.warn "Error in open_ai_models: #{exception}"

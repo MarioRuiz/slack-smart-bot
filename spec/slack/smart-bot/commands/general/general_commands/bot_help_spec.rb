@@ -73,25 +73,27 @@ RSpec.describe SlackSmartBot, "bot_help" do
         expect(buffer(to: channel, from: :ubot).join).to match(@rules)
       end
       it 'responds short version of the help by default' do
-        send_message "bot help", from: :uadmin, to: channel
-        expect(buffer(to: channel, from: :ubot).join).to match(/If you want to see the \*expanded\* version/) # message
-        expect(buffer(to: channel, from: :ubot).join).to match(/add shortcut NAME: COMMAND/) # first command
-        expect(buffer(to: channel, from: :ubot).join).not_to match(/add sc NAME: COMMAND/) # not first command
-        expect(buffer(to: channel, from: :ubot).join).to match(/It will show the routines of the channel/) # first description
-        expect(buffer(to: channel, from: :ubot).join).not_to match(/it will show all the routines from all channels/) # not first description
-        expect(buffer(to: channel, from: :ubot).join).to match(/add shortcut for all Spanish/) #first example
-        expect(buffer(to: channel, from: :ubot).join).not_to match(/shortcut Spanish Account/) # not first example
+        send_message "bot help", from: :user2, to: channel
+        buf = buffer(to: channel, from: :ubot, all: true).join
+        expect(buf).to match(/If you want to see the \*expanded\* version/) # message
+        expect(buf).to match(/add announcement MESSAGE/) # first command
+        expect(buf).not_to match(/add yellow announcementt/) # not first command
+        expect(buf).to match(/It will delete the message on the announcement list/) # first description
+        expect(buf).not_to match(/aliases for announcement: statement, declaration, message/) # not first description
+        expect(buf).to match(/delete announcement 24/) #first example
+        expect(buf).not_to match(/delete message 645/) # not first example
       end
       it 'responds expanded version of the help' do
         send_message "bot help expanded", from: :uadmin, to: channel
+        buf = buffer(to: channel, from: :ubot, all: true).join
         sleep 2
-        expect(buffer(to: channel, from: :ubot).join).not_to match(/If you want to see the *expanded* version/) # message
-        expect(buffer(to: channel, from: :ubot).join).to match(/`bot help`/) # first command
-        expect(buffer(to: channel, from: :ubot).join).to match(/`bot help COMMAND`/) # not first command
-        expect(buffer(to: channel, from: :ubot).join).to match(/it will display the help content for a random command/) # first description
-        expect(buffer(to: channel, from: :ubot).join).to match(/if used 'rule' then it will display a random rule/) # not first description
-        expect(buffer(to: channel, from: :ubot).join).to match(/react to #sales 1622550707.012100/) #first example
-        expect(buffer(to: channel, from: :ubot).join).to match(/react to #sales p1622550707012100/) # not first example
+        expect(buf).not_to match(/If you want to see the *expanded* version/) # message
+        expect(buf).to match(/`bot help`/) # first command
+        expect(buf).to match(/`bot help COMMAND`/) # not first command
+        expect(buf).to match(/it will display the help content for a random command/) # first description
+        expect(buf).to match(/if used 'rule' then it will display a random rule/) # not first description
+        expect(buf).to match(/react to #sales 1622550707.012100/) #first example
+        expect(buf).to match(/react to #sales p1622550707012100/) # not first example
       end
       it 'returns help searching on command description' do
         send_message "bot help 'rule' then it will display a random rule", from: :uadmin, to: channel

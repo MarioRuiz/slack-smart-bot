@@ -22,7 +22,8 @@ class SlackSmartBot
               assigned_members = team.members.values.flatten
               assigned_members.uniq!
               assigned_members.dup.each do |m|
-                user_info = @users.select { |u| u.id == m or (u.key?(:enterprise_user) and u.enterprise_user.id == m) or u.name == m or (u.key?(:enterprise_user) and u.enterprise_user.name == m) }[-1]
+                # extract the team_id from the member name: team_id_user_name. so everything after the first _ is the user_name. user_name can include _.
+                user_info = find_user(m)
                 assigned_members.delete(m) if user_info.nil? or user_info.deleted
               end
               unassigned_members = []
@@ -34,19 +35,19 @@ class SlackSmartBot
                   get_channels_name_and_id() unless @channels_id.key?(ch)
                   tm = get_channel_members(@channels_id[ch])
                   tm.each do |m|
-                    user_info = @users.select { |u| u.id == m or (u.key?(:enterprise_user) and u.enterprise_user.id == m) }[-1]
-                    team_members << user_info.name unless user_info.nil? or user_info.is_app_user or user_info.is_bot or user_info.deleted
+                    user_info = find_user(m)
+                    team_members << "#{user_info.team_id}_#{user_info.name}" unless user_info.nil? or user_info.is_app_user or user_info.is_bot or user_info.deleted
                   end
                 end
                 team_members.flatten!
                 team_members.uniq!
                 unassigned_members = team_members - assigned_members
-                unassigned_members.delete(config.nick)
+                unassigned_members.delete("#{config.team_id}_#{config.nick}")
 
                 unless unassigned_members.empty?
                   um = unassigned_members.dup
                   um.each do |m|
-                    user_info = @users.select { |u| u.name == m or (u.key?(:enterprise_user) and u.enterprise_user.name == m) }[-1]
+                    user_info = find_user(m)
                     unless user_info.nil? or user_info.profile.title.to_s == "" or user_info.deleted
                       team.members[user_info.profile.title.to_snake_case] ||= []
                       team.members[user_info.profile.title.to_snake_case] << m
@@ -70,7 +71,7 @@ class SlackSmartBot
                 if type == :ping
                   active_members = []
                   members_list.each do |member|
-                    member_info = @users.select { |u| u.name == member }[-1]
+                    member_info = find_user(member)
                     unless member_info.nil? or member_info.deleted
                       active = (get_presence(member_info.id).presence.to_s == "active")
                       active_members << member if active
@@ -81,12 +82,13 @@ class SlackSmartBot
                   members = members_list
                 end
                 members.dup.each do |m|
-                  user_info = @users.select { |u| u.id == m or (u.key?(:enterprise_user) and u.enterprise_user.id == m) or u.name == m or (u.key?(:enterprise_user) and u.enterprise_user.name == m) }[-1]
+                  user_info = find_user(m)
                   members.delete(m) if user_info.nil? or user_info.deleted
                 end
 
                 if members.size > 0
-                  respond "#{icon} *#{type} #{team_name} team #{member_type}*\nfrom <@#{user.name}>\nto <@#{members[0..9].join(">, <@")}>#{", #{members[10..-1].join(", ")}" if members.size > 10} \n> #{message.split("\n").join("\n> ")}"
+                  members_names = members.map { |m| m.split("_")[1..-1].join("_") }
+                  respond "#{icon} *#{type} #{team_name} team #{member_type}*\nfrom <@#{user.name}>\nto <@#{members_names[0..29].join(">, <@")}>#{", #{members_names[30..-1].join(", ")}" if members.size > 30} \n> #{message.split("\n").join("\n> ")}"
                 elsif type == :ping
                   respond "It seems like there are no available #{member_type} members on #{team_name} team. Please call `see team #{team_name}`"
                 else

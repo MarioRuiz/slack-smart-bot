@@ -11,7 +11,8 @@ class SlackSmartBot
     command_ids = get_command_ids()
     if command_ids.values.flatten.include?(command_id)
       if @access_channels.key?(channel) and @access_channels[channel].key?(command_id) and @access_channels[channel][command_id].size > 0
-        respond "Only these users have access to `#{command_id}` in this channel: <@#{@access_channels[channel][command_id].join(">, <@")}>"
+        names = @access_channels[channel][command_id].map { |a| a.split('_')[1..-1].join('_') }
+        respond "Only these users have access to `#{command_id}` in this channel: <@#{names.join(">, <@")}>"
       elsif @access_channels.key?(channel) and @access_channels[channel].key?(command_id) and @access_channels[channel][command_id].empty?
         respond "`#{command_id}` is not possible to be used in this channel. Please contact an admin if you want to use it."
       else

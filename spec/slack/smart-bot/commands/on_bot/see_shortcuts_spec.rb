@@ -41,7 +41,7 @@ RSpec.describe SlackSmartBot, "see_shortcuts" do
       sleep 1
       send_message "!see shortcuts", from: user, to: channel
       sleep 2
-      expect(buffer(to: channel, from: :ubot).join).to match(/exampleglobalsee \(global\): echo Text/)      
+      expect(buffer(to: channel, from: :ubot).join).to match(/exampleglobalsee \(global\): echo Text/)
     end
 
     it "responds when listening" do

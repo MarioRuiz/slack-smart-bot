@@ -16,10 +16,12 @@ class SlackSmartBot
     save_stats(__method__)
     if is_admin?
       if @routines.key?(@channel_id) and @routines[@channel_id].key?(name)
+        react :running
         @routines[@channel_id][name][:thread].exit
         @routines[@channel_id].delete(name)
         update_routines()
         respond "The routine *`#{name}`* has been removed.", dest
+        unreact :running
       else
         respond "There isn't a routine with that name: *`#{name}`*.\nCall `see routines` to see added routines", dest
       end

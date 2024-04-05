@@ -58,13 +58,13 @@ class SlackSmartBot
               default_rules = (__FILE__).gsub(/slack\/smart-bot\/commands\/on_master\/create_bot\.rb$/, "slack-smart-bot_rules.rb")
               default_general_rules = (__FILE__).gsub(/slack\/smart-bot\/commands\/on_master\/create_bot\.rb$/, "slack-smart-bot_general_rules.rb")
               default_general_commands = (__FILE__).gsub(/slack\/smart-bot\/commands\/on_master\/create_bot\.rb$/, "slack-smart-bot_general_commands.rb")
-              
+
               File.delete(config.path + rules_file) if File.exist?(config.path + rules_file)
               FileUtils.copy_file(default_rules, config.path + rules_file) unless File.exist?(config.path + rules_file)
               FileUtils.copy_file(default_general_rules, config.path + general_rules_file) unless File.exist?(config.path + general_rules_file)
               FileUtils.copy_file(default_general_commands, config.path + general_commands_file) unless File.exist?(config.path + general_commands_file)
               admin_users = Array.new()
-              creator_info = @users.select{|u| u.id == channel_found.creator or (u.key?(:enterprise_user) and u.enterprise_user.id == channel_found.creator)}[-1]
+              creator_info = find_user(channel_found.creator)
               if creator_info.nil? or creator_info.empty? or creator_info.user.nil?
                 admin_users = [from] + config.masters
               else
@@ -72,7 +72,7 @@ class SlackSmartBot
               end
               admin_users.uniq!
               @logger.info "BOT_SILENT=#{silent} ruby #{config.file_path} \"#{channel}\" \"#{admin_users.join(",")}\" \"#{rules_file}\" on"
-          
+
               if cloud
                 respond "Copy the bot folder to your cloud location and run `ruby #{config.file} \"#{channel}\" \"#{admin_users.join(",")}\" \"#{rules_file}\" on&`", dest
               else

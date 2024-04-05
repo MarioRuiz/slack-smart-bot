@@ -9,7 +9,7 @@ class SlackSmartBot
         channel = Thread.current[:dest]
       end
       if File.exist?("#{config.path}/announcements/#{channel}.csv") and !@announcements.key?(channel)
-        t = CSV.table("#{config.path}/announcements/#{channel}.csv", headers: ['message_id', 'user_deleted', 'user_created', 'date', 'time', 'type', 'message'])
+        t = CSV.table("#{config.path}/announcements/#{channel}.csv", headers: ['message_id', 'user_team_id_deleted', 'user_deleted', 'user_team_id_created', 'user_created', 'date', 'time', 'type', 'message'])
         @announcements[channel] = t
       end
       found = false
@@ -19,6 +19,7 @@ class SlackSmartBot
           @announcements[channel].each do |row|
             if row[:message_id].to_i == message_id.to_i
               message = row[:message]
+              row[:user_team_id_deleted] = user.team_id
               row[:user_deleted] = user.name
             end    
             csv << row

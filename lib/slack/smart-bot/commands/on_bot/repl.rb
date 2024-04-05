@@ -26,6 +26,8 @@ class SlackSmartBot
   # help:     If you want to see the methods of a class or module you created use _ls TheModuleOrClass_
   # help:     To see the code of a method: _code TheModuleOrClass.my_method_
   # help:     To see the documentation of a method: _doc TheModuleOrClass.my_method_
+  # help:     You can ask *ChatGPT* to help you or suggest any code by sending the message: `? PROMPT`
+  # help:     If you send just `?` it will suggest some code to be added.
   # help:     You can supply the Environmental Variables you need for the Session
   # help:     You can add collaborators by sending _add collaborator @USER_ to the session.
   # help:     Examples:
@@ -39,8 +41,9 @@ class SlackSmartBot
   def repl(dest, user, session_name, env_vars, rules_file, command, description, type)
     #todo: add more tests
     from = user.name
+    team_id_user = "#{user.team_id}_#{user.name}"
     if has_access?(__method__, user)
-      if !@repl_sessions.key?(from)
+      if !@repl_sessions.key?(team_id_user)
         save_stats(__method__)
         Dir.mkdir("#{config.path}/repl") unless Dir.exist?("#{config.path}/repl")
         Dir.mkdir("#{config.path}/repl/#{@channel_id}") unless Dir.exist?("#{config.path}/repl/#{@channel_id}")
@@ -58,7 +61,7 @@ class SlackSmartBot
             session_name = "#{name}#{i}"
           end
         end
-        @repl_sessions[from] = {
+        @repl_sessions[team_id_user] = {
           name: session_name,
           dest: dest,
           started: Time.now,
@@ -68,14 +71,15 @@ class SlackSmartBot
           thread_ts: Thread.current[:thread_ts],
           collaborators: [],
           user_type: :creator,
-          user_creator: from,
+          user_creator: team_id_user,
         }
 
         unless temp_repl
           @repls[session_name] = {
-            created: @repl_sessions[from][:started].to_s,
-            accessed: @repl_sessions[from][:started].to_s,
+            created: @repl_sessions[team_id_user][:started].to_s,
+            accessed: @repl_sessions[team_id_user][:started].to_s,
             creator_name: user.name,
+            creator_team_id: user.team_id,
             creator_id: user.id,
             description: description,
             type: type,
@@ -94,7 +98,7 @@ class SlackSmartBot
         end
         @ts_repl ||= {}
         @ts_repl[session_name] = ""
-        process_to_run = repl_client(from, session_name, type, serialt, env_vars)
+        process_to_run = repl_client(team_id_user, session_name, type, serialt, env_vars)
 
         unless rules_file.empty? # to get the project_folder
           begin
@@ -124,83 +128,128 @@ class SlackSmartBot
         started = Time.now
         process_to_run = ("cd #{project_folder} && " + process_to_run) if defined?(project_folder)
         stdin, stdout, stderr, wait_thr = Open3.popen3(process_to_run)
-        timeout = 30 * 60 # 30 minutes
+        timeout = TIMEOUT_LISTENING # 30 minutes
 
         file_output_repl = File.open("#{config.path}/repl/#{@channel_id}/#{session_name}.output", "r")
-        @repl_sessions[from][:pid] = wait_thr.pid
-        while (wait_thr.status == "run" or wait_thr.status == "sleep") and @repl_sessions.key?(from)
+        @repl_sessions[team_id_user][:pid] = wait_thr.pid
+        @repl_sessions[team_id_user][:output] ||= []
+        @repl_sessions[team_id_user][:input_output] ||= []
+        @repl_sessions[team_id_user][:input_output] << "Please chatgpt return code in Ruby language."
+        if File.exist?("#{project_folder}/.smart-bot-repl") and type != :private_clean and type != :public_clean
+            pre_input = File.read("#{project_folder}/.smart-bot-repl")
+            @repl_sessions[team_id_user][:input_output] << "```\n#{pre_input}\n```"
+            respond "*Preloaded source code:*\n```\n#{pre_input}\n```"
+        end
+
+        while (wait_thr.status == "run" or wait_thr.status == "sleep") and @repl_sessions.key?(team_id_user)
           begin
-            if (Time.now - @repl_sessions[from][:finished]) > timeout
-              open("#{config.path}/repl/#{@channel_id}/#{@repl_sessions[from][:name]}.input", "a+") { |f|
+            if (Time.now - @repl_sessions[team_id_user][:finished]) > timeout
+              open("#{config.path}/repl/#{@channel_id}/#{@repl_sessions[team_id_user][:name]}.input", "a+") { |f|
                 f.puts "quit"
               }
-              respond "REPL session finished: #{@repl_sessions[from][:name]}", dest
-              unreact :running, @ts_react[@repl_sessions[from].name]
-              pids = `pgrep -P #{@repl_sessions[from][:pid]}`.split("\n").map(&:to_i) #todo: it needs to be adapted for Windows
+              respond "REPL session finished: #{@repl_sessions[team_id_user][:name]}", dest
+              unreact :running, @ts_react[@repl_sessions[team_id_user].name]
+              pids = `pgrep -P #{@repl_sessions[team_id_user][:pid]}`.split("\n").map(&:to_i) #todo: it needs to be adapted for Windows
               pids.each do |pid|
                 begin
                   Process.kill("KILL", pid)
                 rescue
                 end
               end
-              @repl_sessions[from][:collaborators].each do |collaborator|
+              @repl_sessions[team_id_user][:collaborators].each do |collaborator|
                 @repl_sessions.delete(collaborator)
               end
-              @repl_sessions.delete(from)
+              @repl_sessions.delete(team_id_user)
               break
             end
             sleep 0.2
             resp_repl = file_output_repl.read
             if resp_repl.to_s != ""
-              if @ts_repl[@repl_sessions[from].name].to_s != ""
-                unreact(:running, @ts_repl[@repl_sessions[from].name])
-                @ts_repl[@repl_sessions[from].name] = ""
+              if @ts_repl[@repl_sessions[team_id_user].name].to_s != ""
+                unreact(:running, @ts_repl[@repl_sessions[team_id_user].name])
+                @ts_repl[@repl_sessions[team_id_user].name] = ""
               end
-              if (resp_repl.to_s.lines.count < 60 and resp_repl.to_s.size < 3500) or 
-                resp_repl.match?(/^\s*[_\*]*`\w+`/im)
+              if (resp_repl.to_s.lines.count < 60 and resp_repl.to_s.size < 3500) or
+                 resp_repl.match?(/^\s*[_\*]*`\w+`/im)
                 respond resp_repl, dest
               else
                 resp_repl.gsub!(/^\s*```/, "")
                 resp_repl.gsub!(/```\s*$/, "")
                 send_file(dest, "", "response.rb", "", "text/plain", "ruby", content: resp_repl)
               end
+              @repl_sessions[team_id_user][:output] << resp_repl
+              @repl_sessions[team_id_user][:input_output] << resp_repl
             end
           rescue Exception => excp
             @logger.fatal excp
           end
         end
-      elsif @repl_sessions.key?(from) and @repl_sessions[from][:command].to_s == ""
+      elsif @repl_sessions.key?(team_id_user) and @repl_sessions[team_id_user][:command].to_s == ""
         respond "You are already in a repl on this SmartBot. You need to quit that one before starting a new one."
       else
-        @repl_sessions[from][:finished] = Time.now
-        code = @repl_sessions[from][:command]
-        @repl_sessions[from][:command] = ""
+        @repl_sessions[team_id_user][:finished] = Time.now
+        code = @repl_sessions[team_id_user][:command]
+        @repl_sessions[team_id_user][:command] = ""
         code.gsub!("\\n", "\n")
         code.gsub!("\\r", "\r")
         # Disabled for the moment since it is deleting lines with '}'
         #code.gsub!(/^\W*$/, "") #to remove special chars from slack when copy/pasting.
-      if code.match?(/\A\s*-/i)
-        # don't treat
-      elsif code.match?(/System/i) or code.match?(/Kernel/i) or code.include?("File.") or
-           code.include?("`") or code.include?("exec") or code.include?("spawn") or code.include?("IO.") or
-           code.match?(/open3/i) or code.match?(/bundle/i) or code.match?(/gemfile/i) or code.include?("%x") or
-           code.include?("ENV") or code.match?(/=\s*IO/) or code.include?("Dir.") or
-           code.match?(/=\s*File/) or code.match?(/=\s*Dir/) or code.match?(/<\s*File/) or code.match?(/<\s*Dir/) or
-           code.match?(/\w+:\s*File/) or code.match?(/\w+:\s*Dir/) or
-           code.match?(/=?\s*(require|load)(\(|\s)/i)
+        if code.match?(/\A\s*-/i)
+          # don't treat
+        elsif code.match(/\A\s*\?\s*(.*)\s*\z/im)
+          save_stats :open_ai_chat
+          #call chatgpt when: ? prompt
+          #if no prompt then suggest next code line
+          prompt = $1
+          prompt = "suggest next code line" if prompt.to_s == ""
+          tid = "#{user.team_id}_#{user.name}"
+          @repl_sessions[tid][:chat_gpt] ||= {}
+          react :speech_balloon
+          if !@repl_sessions[tid][:chat_gpt].key?(:client) or @repl_sessions[tid][:chat_gpt][:client].nil?
+            get_personal_settings()
+            tmp_repl_sessions, message_connect = SlackSmartBot::AI::OpenAI.connect(@repl_sessions, config, @personal_settings, reconnect: true, service: :chat_gpt)
+            @repl_sessions[tid][:chat_gpt] = tmp_repl_sessions[tid][:chat_gpt]
+            respond message_connect if message_connect
+          end
+          @repl_sessions[tid][:chat_gpt][:prompts] ||= []
+          unless @repl_sessions[tid][:chat_gpt][:client].nil?
+            model ||= @repl_sessions[tid][:chat_gpt][:smartbot_model]
+            #todo: add source code to the prompt
+            @repl_sessions[tid][:chat_gpt][:prompts] << prompt
+            @repl_sessions[team_id_user][:input_output] << prompt
+            prompts = @repl_sessions[tid][:input_output].join("\n")
+            success, res = SlackSmartBot::AI::OpenAI.send_gpt_chat(@repl_sessions[tid][:chat_gpt][:client], model, prompts, @repl_sessions[tid].chat_gpt)
+            if success
+              @repl_sessions[tid][:chat_gpt][:prompts] << res
+              respond "*ChatGPT>* _#{model}_\n#{res}"
+              @repl_sessions[team_id_user][:input_output] << res
+            elsif res.to_s.strip!=''
+              respond "*ChatGPT>* _#{model}_\n#{res}"
+            else
+              respond "ChatGPT: Sorry, I cannot chat right now. Please try again later."
+            end
+          end
+          unreact :speech_balloon
+        elsif code.match?(/System/i) or code.match?(/Kernel/i) or code.include?("File.") or
+              code.include?("`") or code.include?("exec") or code.include?("spawn") or code.include?("IO.") or
+              code.match?(/open3/i) or code.match?(/bundle/i) or code.match?(/gemfile/i) or code.include?("%x") or
+              code.include?("ENV") or code.match?(/=\s*IO/) or code.include?("Dir.") or
+              code.match?(/=\s*File/) or code.match?(/=\s*Dir/) or code.match?(/<\s*File/) or code.match?(/<\s*Dir/) or
+              code.match?(/\w+:\s*File/) or code.match?(/\w+:\s*Dir/) or
+              code.match?(/=?\s*(require|load)(\(|\s)/i)
           respond "Sorry I cannot run this due security reasons", dest
         elsif code.match(/\A\s*add\s+collaborator\s+<@(\w+)>\s*\z/i)
           collaborator = $1
-          user_info = @users.select { |u| u.id == collaborator or (u.key?(:enterprise_user) and u.enterprise_user.id == collaborator) }[-1]
-          collaborator_name = user_info.name
+          user_info = find_user(collaborator)
+          collaborator_name = "#{user_info.team_id}_#{user_info.name}"
           if @repl_sessions.key?(collaborator_name)
             respond "Sorry, <@#{collaborator}> is already in a repl. Please ask her/him to quit it first.", dest
           else
             respond "Collaborator added. Now <@#{collaborator}> can interact with this repl.", dest
-            creator = @repl_sessions[from][:user_creator]
+            creator = @repl_sessions[team_id_user][:user_creator]
             @repl_sessions[creator][:collaborators] << collaborator_name
             @repl_sessions[collaborator_name] = {
-              name: @repl_sessions[from][:name],
+              name: @repl_sessions[team_id_user][:name],
               dest: dest,
               on_thread: Thread.current[:on_thread],
               thread_ts: Thread.current[:thread_ts],
@@ -209,41 +258,48 @@ class SlackSmartBot
             }
           end
         else
-          if @repl_sessions[from][:user_type] == :collaborator
-            @repl_sessions[@repl_sessions[from][:user_creator]][:input] << code
+          if @repl_sessions[team_id_user][:user_type] == :collaborator
+            creator = @repl_sessions[team_id_user][:user_creator]
+            @repl_sessions[@repl_sessions[team_id_user][:user_creator]][:input] << code
           else
-            @repl_sessions[from][:input] << code
+            creator = team_id_user
+            @repl_sessions[team_id_user][:input] << code
+          end
+          if code.include?("```")
+            @repl_sessions[creator][:input_output] << code
+          else
+            @repl_sessions[creator][:input_output] << "```\n#{code}\n```"
           end
           case code
           when /^\s*(quit|exit|bye|bye\s+bot)\s*$/i
-            if @repl_sessions[from][:user_type] == :collaborator
+            if @repl_sessions[team_id_user][:user_type] == :collaborator
               respond "Collaborator <@#{user.id}> removed.", dest
-              @repl_sessions[@repl_sessions[from][:user_creator]][:collaborators].delete(from)
-              @repl_sessions.delete(from)
+              @repl_sessions[creator][:collaborators].delete(team_id_user)
+              @repl_sessions.delete(team_id_user)
             else
-              open("#{config.path}/repl/#{@channel_id}/#{@repl_sessions[from][:name]}.input", "a+") { |f|
+              open("#{config.path}/repl/#{@channel_id}/#{@repl_sessions[team_id_user][:name]}.input", "a+") { |f|
                 f.puts code
               }
-              respond "REPL session finished: #{@repl_sessions[from][:name]}", dest
-              unreact :running, @ts_react[@repl_sessions[from].name]
-              pids = `pgrep -P #{@repl_sessions[from][:pid]}`.split("\n").map(&:to_i) #todo: it needs to be adapted for Windows
+              respond "REPL session finished: #{@repl_sessions[team_id_user][:name]}", dest
+              unreact :running, @ts_react[@repl_sessions[team_id_user].name]
+              pids = `pgrep -P #{@repl_sessions[team_id_user][:pid]}`.split("\n").map(&:to_i) #todo: it needs to be adapted for Windows
               pids.each do |pid|
                 begin
                   Process.kill("KILL", pid)
                 rescue
                 end
               end
-              @repl_sessions[from][:collaborators].each do |collaborator|
+              @repl_sessions[team_id_user][:collaborators].each do |collaborator|
                 @repl_sessions.delete(collaborator)
               end
-              @repl_sessions.delete(from)
+              @repl_sessions.delete(team_id_user)
             end
           else
-            if @ts_repl[@repl_sessions[from].name].to_s == ""
-              @ts_repl[@repl_sessions[from].name] = Thread.current[:ts]
+            if @ts_repl[@repl_sessions[creator].name].to_s == ""
+              @ts_repl[@repl_sessions[creator].name] = Thread.current[:ts]
               react :running
             end
-            open("#{config.path}/repl/#{@channel_id}/#{@repl_sessions[from][:name]}.input", "a+") { |f|
+            open("#{config.path}/repl/#{@channel_id}/#{@repl_sessions[creator][:name]}.input", "a+") { |f|
               f.puts code
             }
           end

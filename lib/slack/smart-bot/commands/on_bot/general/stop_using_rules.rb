@@ -15,12 +15,13 @@ class SlackSmartBot
       channel_id = channel
     end
 
+    team_id_user = "#{user.team_id}_#{user.name}"
     if dest[0] == "C" or dest[0] == "G" #channel
-      if @rules_imported.key?(user.name) and @rules_imported[user.name].key?(dchannel)
-        if @rules_imported[user.name][dchannel] != channel_id
+      if @rules_imported.key?(team_id_user) and @rules_imported[team_id_user].key?(dchannel)
+        if @rules_imported[team_id_user][dchannel] != channel_id
           respond "You are not using those rules.", dest
         else
-          @rules_imported[user.name].delete(dchannel)
+          @rules_imported[team_id_user].delete(dchannel)
           sleep 0.5
           update_rules_imported()
           respond "You won't be using those rules from now on.", dest
@@ -32,11 +33,11 @@ class SlackSmartBot
         respond "You were not using those rules.", dest
       end
     else #direct message
-      if @rules_imported.key?(user.name) and @rules_imported[user.name].key?(user.name)
-        if @rules_imported[user.name][user.name] != channel_id
+      if @rules_imported.key?(team_id_user) and @rules_imported[team_id_user].key?(user.name)
+        if @rules_imported[team_id_user][user.name] != channel_id
           respond "You are not using those rules.", dest
         else
-          @rules_imported[user.name].delete(user.name)
+          @rules_imported[team_id_user].delete(user.name)
           sleep 0.5
           update_rules_imported()
           respond "You won't be using those rules from now on.", dest

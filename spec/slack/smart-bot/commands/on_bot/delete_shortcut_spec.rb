@@ -82,7 +82,7 @@ RSpec.describe SlackSmartBot, "delete_shortcut" do
 
     it 'is not possible to delete a global sc' do
       send_message "!delete global shortcut exampleglobdel", from: user, to: channel
-      expect(buffer(to: channel, from: :ubot).join).to match(/It is only possible to delete global shortcuts from Master channel/i)  
+      expect(buffer(to: channel, from: :ubot).join).to match(/It is only possible to delete global shortcuts from Master channel/i)
     end
 
   end
@@ -122,7 +122,7 @@ RSpec.describe SlackSmartBot, "delete_shortcut" do
       sleep 1
       expect(buffer(to: :cbot1cm, from: :ubot).join).to match(/I don't understand/i)
     end
-    
+
   end
 
   describe "on direct message" do

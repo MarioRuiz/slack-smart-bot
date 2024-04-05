@@ -31,11 +31,12 @@ class SlackSmartBot
         respond "The bot in that channel is not :on", dest
       else
         if user.id == channel_found.creator or members.include?(user.id)
-          @rules_imported[user.name] = {} unless @rules_imported.key?(user.name)
+          team_id_user = "#{user.team_id}_#{user.name}"
+          @rules_imported[team_id_user] = {} unless @rules_imported.key?(team_id_user)
           if dest[0] == "C" or dest[0] == "G" #todo: take in consideration bots that are not master
-            @rules_imported[user.name][dchannel] = channel_found.id
+            @rules_imported[team_id_user][dchannel] = channel_found.id
           else
-            @rules_imported[user.name][user.name] = channel_found.id
+            @rules_imported[team_id_user][user.name] = channel_found.id
           end
           sleep 0.5
           update_rules_imported()

@@ -53,7 +53,7 @@ RSpec.describe SlackSmartBot, "repl" do
       send_message "exit", from: user, to: channel
       expect(buffer(to: channel, from: :ubot).join).to match(/REPL session finished: \w+_\d+/)
     end
-    it 'ends the session when sending exit' do
+    it 'ends the session when sending bye' do
       send_message "!repl", from: user, to: channel
       send_message "bye", from: user, to: channel
       expect(buffer(to: channel, from: :ubot).join).to match(/REPL session finished: \w+_\d+/)
@@ -89,18 +89,22 @@ RSpec.describe SlackSmartBot, "repl" do
     it "adds collaborator" do
       send_message "!repl", from: user, to: channel
       send_message "add collaborator <@#{USER2}>", from: user, to: channel
+      sleep 1
       expect(buffer(to: channel, from: :ubot).join).to match("Collaborator added. Now <@#{USER2}> can interact with this repl.")
       send_message "a = 3 + 97", from: user, to: channel
       sleep 1
       clean_buffer()
       send_message "puts a", from: :user2, to: channel
+      sleep 1
       expect(buffer(to: channel, from: :ubot).join).to match(/100/)
     end
 
     it "removes collaborator" do
       send_message "!repl", from: user, to: channel
       send_message "add collaborator <@#{USER2}>", from: user, to: channel
+      sleep 1
       send_message "quit", from: :user2, to: channel
+      sleep 1
       expect(buffer(to: channel, from: :ubot).join).to match("Collaborator <@#{USER2}> removed.")
       send_message "a = 3 + 97", from: user, to: channel
       sleep 1

@@ -7,6 +7,8 @@ class SlackSmartBot
             save_stats(__method__) if answer.empty?
 
             get_teams()
+            team_id_user = "#{user.team_id}_#{user.name}"
+
             if @teams.key?(team_name.to_sym)
               assigned_members = @teams[team_name.to_sym].members.values.flatten
               assigned_members.uniq!
@@ -17,8 +19,8 @@ class SlackSmartBot
                   get_channels_name_and_id() unless @channels_id.key?(ch)
                   tm = get_channel_members(@channels_id[ch])
                   tm.each do |m|
-                    user_info = @users.select { |u| u.id == m or (u.key?(:enterprise_user) and u.enterprise_user.id == m) }[-1]
-                    team_members << user_info.name unless user_info.is_app_user or user_info.is_bot
+                    user_info = find_user(m)
+                    team_members << "#{user_info.team_id}_#{user_info.name}" unless user_info.is_app_user or user_info.is_bot
                   end
                 end
               end
@@ -30,13 +32,13 @@ class SlackSmartBot
 
             if !@teams.key?(team_name.to_sym)
               respond "It seems like the team *#{team_name}* doesn't exist.\nRelated commands `add team TEAM_NAME PROPERTIES`, `see team TEAM_NAME`, `see teams`"
-            elsif !(all_team_members + config.masters).flatten.include?(user.name)
+            elsif !(all_team_members + config.team_id_masters).flatten.include?(team_id_user)
               respond "You have to be a member of the team or a Master admin to be able to delete a memo of the team."
             elsif !@teams[team_name.to_sym].key?(:memos) or @teams[team_name.to_sym][:memos].empty? or !@teams[team_name.to_sym][:memos].memo_id.include?(memo_id.to_i)
               respond "It seems like there is no memo with id #{memo_id}"
             elsif @teams[team_name.to_sym][:memos].memo_id.include?(memo_id.to_i)
               memo_selected = @teams[team_name.to_sym][:memos].select { |m| m.memo_id == memo_id.to_i }[-1]
-              if memo_selected.privacy == "personal" and memo_selected.user != user.name
+              if memo_selected.privacy == "personal" and memo_selected.user != team_id_user
                 respond "Only the creator can delete a personal memo."
               else
                 if answer.empty?

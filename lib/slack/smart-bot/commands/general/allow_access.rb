@@ -4,7 +4,7 @@ class SlackSmartBot
     not_allowed = ["hi_bot", "bye_bot", "allow_access", "deny_access", "get_bot_logs", "add_routine", "pause_bot", "pause_routine", "remove_routine", "run_routine", "start_bot",
                    "start_routine", "delete_message", "update_message", "send_message", "kill_bot_on_channel", "exit_bot", "notify_message", "publish_announcements", "set_general_message",
                    "set_maintenance", "bot_help", "bot_rules"]
-    if !is_admin?(user.name)
+    if !is_admin?(user)
       respond "Only admins of this channel can use this command. Take a look who is an admin of this channel by calling `see admins`"
     elsif Thread.current[:dest][0] == "D"
       respond "This command cannot be called from a DM"
@@ -43,11 +43,13 @@ class SlackSmartBot
               @access_channels[channel][command_id] = []
             end
             access_users_names = []
+            access_team_id_users_names = []
             access_users.each do |us|
-              user_info = @users.select { |u| u.id == us or (u.key?(:enterprise_user) and u.enterprise_user.id == us) }[-1]
+              user_info = find_user(us)
               access_users_names << user_info.name unless user_info.nil?
+              access_team_id_users_names << "#{user_info.team_id}_#{user_info.name}" unless user_info.nil?
             end
-            @access_channels[channel][command_id] += access_users_names
+            @access_channels[channel][command_id] += access_team_id_users_names
             @access_channels[channel][command_id].flatten!
             @access_channels[channel][command_id].uniq!
             @access_channels[channel][command_id].delete(nil)
@@ -56,7 +58,9 @@ class SlackSmartBot
           if !@access_channels[channel].key?(command_id)
             respond "All users will have access to this command on this channel."
           else
-            respond "These users will have access to this command on this channel: <@#{@access_channels[channel][command_id].join(">, <@")}>"
+            # get the names of the users. The value of the hash is the team_id_user_name
+            names = @access_channels[channel][command_id].map { |u| u.split("_")[1..-1].join("_") }
+            respond "These users will have access to this command on this channel: <@#{names.join(">, <@")}>"
           end
         end
       else

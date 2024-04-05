@@ -9,18 +9,7 @@ class SlackSmartBot
         found_location = true
         http = NiceHttp.new("#{config[:public_holidays][:host]}/api/v2")
         if !defined?(@countries_candelarific)
-          if File.exist?("#{config.path}/vacations/countries_candelarific.json")
-            @countries_candelarific = JSON.parse(File.read("#{config.path}/vacations/countries_candelarific.json"))
-          else
-            response = http.get "/countries?api_key=#{config[:public_holidays][:api_key]}"
-            countries_candelarific = response.data.json(:countries)
-            if countries_candelarific.is_a?(Array)
-              File.write("#{config.path}/vacations/countries_candelarific.json", countries_candelarific.to_json)
-              @countries_candelarific = JSON.parse(countries_candelarific.to_json)
-            else
-              @countries_candelarific = []
-            end
-          end
+          get_countries_candelarific()
         end
         country = @countries_candelarific.find { |c| c.country_name.match?(/^\s*#{country_name}\s*$/i) }
         if country.nil?
@@ -95,24 +84,25 @@ class SlackSmartBot
                       date_holiday = " #{holiday[:date][:datetime][:year]}-#{"%02d" % m}-#{"%02d" % d} "
                     end
                     num_holidays_to_show += 1
-                    break if num_holidays_to_show > 30 and publish_results
-                    week_day = Date.new(holiday[:date][:datetime][:year], holiday[:date][:datetime][:month], holiday[:date][:datetime][:day]).strftime("%A")
-                    messages << "\t:spiral_calendar_pad:#{date_holiday}*#{holiday[:name]}* _(#{holiday[:type].join(", ")}) (#{week_day})_"
-                    messages << "\t#{holiday[:description]}"
-                    if location == ""
-                      if holiday.states.is_a?(Array)
-                        messages << "\tLocations: #{holiday.states.name.sort.join(", ")}"
-                      else
-                        messages << "\tLocations: #{holiday.states}"
+                    unless num_holidays_to_show > 30 and publish_results
+                        week_day = Date.new(holiday[:date][:datetime][:year], holiday[:date][:datetime][:month], holiday[:date][:datetime][:day]).strftime("%A")
+                        messages << "\t:spiral_calendar_pad:#{date_holiday}*#{holiday[:name]}* _(#{holiday[:type].join(", ")}) (#{week_day})_"
+                        messages << "\t#{holiday[:description]}"
+                        if location == ""
+                        if holiday.states.is_a?(Array)
+                          messages << "\tLocations: #{holiday.states.name.sort.join(", ")}"
+                        else
+                          messages << "\tLocations: #{holiday.states}"
+                        end
                       end
+                      messages << "\n"
+                      holidays_to_add << holiday
                     end
                     if holiday.states.is_a?(Array)
                       states << holiday.states.name
                     else
                       states << holiday.states
                     end
-                    messages << "\n"
-                    holidays_to_add << holiday
                   end
                 end
               end

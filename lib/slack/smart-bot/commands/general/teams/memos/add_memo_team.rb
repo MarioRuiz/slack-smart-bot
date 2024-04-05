@@ -17,8 +17,8 @@ class SlackSmartBot
                   get_channels_name_and_id() unless @channels_id.key?(ch)
                   tm = get_channel_members(@channels_id[ch])
                   tm.each do |m|
-                    user_info = @users.select { |u| u.id == m or (u.key?(:enterprise_user) and u.enterprise_user.id == m) }[-1]
-                    team_members << user_info.name unless user_info.is_app_user or user_info.is_bot
+                    user_info = find_user(m)
+                    team_members << "#{user_info.team_id}_#{user_info.name}" unless user_info.is_app_user or user_info.is_bot
                   end
                 end
               end
@@ -31,34 +31,39 @@ class SlackSmartBot
             if type == "jira"
               able_to_connect_jira = false
               begin
-                http = NiceHttp.new(config.jira.host)
-                http.headers.authorization = NiceHttpUtils.basic_authentication(user: config.jira.user, password: config.jira.password)
-                message.gsub!(/^\s*</, "")
-                message.gsub!(/\>$/, "")
-                message.gsub!(/\|.+$/, "")
-                message.gsub!(/^#{config.jira.host}/, "")
-                if message.include?("/browse/")
-                  message = message.scan(/\/browse\/(.+)/).join
-                  resp = http.get("/rest/api/latest/issue/#{message}")
+                if config.jira.host == "" or config.jira.user == "" or config.jira.password == ""
+                  respond "You need to supply the correct credentials for JIRA on the SmartBot settings: `jira: { host: HOST, user: USER, password: PASSWORD }`"
                 else
-                  message.gsub!(/^\/issues\/\?jql=/, "")
-                  message.gsub!(" ", "%20")
-                  resp = http.get("/rest/api/latest/search/?jql=#{message}")
-                  search = true
-                end
-                if resp.code == 200
-                  able_to_connect_jira = true
-                else
-                  error_code = resp.code
-                  if resp.code == 400
-                    error_message = resp.data.json(:errorMessages)[-1]
+                  http = NiceHttp.new(config.jira.host)
+                  http.headers.authorization = NiceHttpUtils.basic_authentication(user: config.jira.user, password: config.jira.password)
+                  message.gsub!(/^\s*</, "")
+                  message.gsub!(/\>$/, "")
+                  message.gsub!(/\|.+$/, "")
+                  message.gsub!(/^#{config.jira.host}/, "")
+                  if message.include?("/browse/")
+                    message = message.scan(/\/browse\/(.+)/).join
+                    resp = http.get("/rest/api/latest/issue/#{message}")
                   else
-                    error_message = ""
+                    message.gsub!(/^\/issues\/\?jql=/, "")
+                    message.gsub!(" ", "%20")
+                    resp = http.get("/rest/api/latest/search/?jql=#{message}")
+                    search = true
                   end
+                  if resp.code.to_s == '200'
+                    able_to_connect_jira = true
+                  else
+                    error_code = resp.code.to_s
+                    if resp.code.to_s == '400'
+                      error_message = resp.data.json(:errorMessages)[-1]
+                    else
+                      error_message = ""
+                    end
+                  end
+                  http.close
                 end
-                http.close
               rescue => exception
                 @logger.fatal exception
+                respond "There was an error trying to connect to JIRA. Please ask the admin to check the logs."
               end
             elsif type == "github"
               able_to_connect_github = false
@@ -73,11 +78,11 @@ class SlackSmartBot
                 message.gsub!("https://github.com", "")
                 message.slice!(0) if message[0] == "/"
                 resp = http.get("/repos/#{message}")
-                if resp.code == 200
+                if resp.code.to_s == '200'
                   able_to_connect_github = true
                 else
-                  error_code = resp.code
-                  if resp.code == 401
+                  error_code = resp.code.to_s
+                  if resp.code.to_s == '401'
                     error_message = resp.data.json(:message)[-1]
                   else
                     error_message = ""
@@ -91,7 +96,7 @@ class SlackSmartBot
 
             if !@teams.key?(team_name.to_sym)
               respond "It seems like the team *#{team_name}* doesn't exist\nRelated commands `add team TEAM_NAME PROPERTIES`, `see team TEAM_NAME`, `see teams`"
-            elsif !(all_team_members + config.masters).flatten.include?(user.name)
+            elsif !(all_team_members + config.team_id_masters).flatten.include?("#{user.team_id}_#{user.name}")
               respond "You have to be a member of the team or a Master admin to be able to add a memo to the team."
             elsif type == "jira" and !able_to_connect_jira
               if error_message == ""
@@ -117,7 +122,7 @@ class SlackSmartBot
                 topic: topic,
                 type: type,
                 privacy: privacy,
-                user: user.name,
+                user: "#{user.team_id}_#{user.name}",
                 date: Time.now.strftime("%Y-%m-%dT%H:%M:%S.000Z")[0..18],
                 message: message,
                 status: ":new: ",

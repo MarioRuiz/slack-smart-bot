@@ -17,8 +17,8 @@ class SlackSmartBot
                   get_channels_name_and_id() unless @channels_id.key?(ch)
                   tm = get_channel_members(@channels_id[ch])
                   tm.each do |m|
-                    user_info = @users.select { |u| u.id == m or (u.key?(:enterprise_user) and u.enterprise_user.id == m) }[-1]
-                    team_members << user_info.name unless user_info.is_app_user or user_info.is_bot
+                    user_info = find_user(m)
+                    team_members << "#{user_info.team_id}_#{user_info.name}" unless user_info.is_app_user or user_info.is_bot
                   end
                 end
               end
@@ -30,7 +30,7 @@ class SlackSmartBot
 
             if !@teams.key?(team_name.to_sym)
               respond "It seems like the team *#{team_name}* doesn't exist.\nRelated commands `add team TEAM_NAME PROPERTIES`, `see team TEAM_NAME`, `see teams`"
-            elsif !(all_team_members + config.masters).flatten.include?(user.name)
+            elsif !(all_team_members + config.team_id_masters).flatten.include?("#{user.team_id}_#{user.name}")
               respond "You have to be a member of the team or a Master admin to be able to set the status of a memo."
             elsif !@teams[team_name.to_sym].key?(:memos) or @teams[team_name.to_sym][:memos].empty? or !@teams[team_name.to_sym][:memos].memo_id.include?(memo_id.to_i)
               respond "It seems like there is no memo with id #{memo_id}"
@@ -39,7 +39,7 @@ class SlackSmartBot
               if memo_selected.type == "jira" or memo_selected.type == "github"
                 #todo: add tests for jira and github
                 respond "The memo specified is a #{memo_selected.type} and the status in those cases are linked to the specific issues in #{memo_selected.type}."
-              elsif memo_selected.privacy == "personal" and memo_selected.user != user.name
+              elsif memo_selected.privacy == "personal" and memo_selected.user != "#{user.team_id}_#{user.name}"
                 respond "Only the creator can set the status of a personal memo."
               else
                 answer_delete

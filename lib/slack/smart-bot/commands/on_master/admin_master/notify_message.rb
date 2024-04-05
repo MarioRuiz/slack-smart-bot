@@ -10,10 +10,10 @@ class SlackSmartBot
   # helpmaster:    <https://github.com/MarioRuiz/slack-smart-bot#sending-notifications|more info>
   # helpmaster: command_id: :notify_message
   # helpmaster:
-  def notify_message(dest, from, where, message)
+  def notify_message(dest, user, where, message)
     save_stats(__method__)
     if config.on_master_bot
-      if config.masters.include?(from) #admin user
+      if config.team_id_masters.include?("#{user.team_id}_#{user.name}") #master admin user
         if where.nil? #not all and not channel
           @bots_created.each do |k, v|
             respond message, k

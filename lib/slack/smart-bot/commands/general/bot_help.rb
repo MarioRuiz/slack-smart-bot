@@ -1,11 +1,10 @@
 class SlackSmartBot
 
-  def bot_help(user, from, dest, dchannel, specific, help_command, rules_file, savestats: true, strict: false)
+  def bot_help(user, from, dest, dchannel, specific, help_command, rules_file, savestats: true, strict: false, send_to_file: false)
     save_stats(__method__) if savestats
     output = []
     if has_access?(__method__, user)
       help_found = false
-
       message = ""
       if help_command.to_s != ''
         help_command = '' if help_command.to_s.match?(/^\s*expanded\s*$/i) or help_command.to_s.match?(/^\s*extended\s*$/i)
@@ -16,7 +15,12 @@ class SlackSmartBot
         message_not_expanded = "If you want to see the *expanded* version of *`bot help`* or *`bot rules`*, please call *`bot help expanded`* or *`bot rules expanded`*\n"
         message_not_expanded += "Also to get specific *expanded* help for a specific command or rule call *`bot help COMMAND`*\n"
       end
-      help_message = get_help(rules_file, dest, from, specific, expanded)
+      expanded = true if Thread.current[:prompt].to_s != ''
+      if send_to_file
+          expanded = true
+          message_not_expanded = ''
+      end
+      help_message = get_help(rules_file, dest, user, specific, expanded)
       commands = []
       commands_search = []
       if help_command.to_s != ""
@@ -39,7 +43,7 @@ class SlackSmartBot
               help_command.to_s.split(' ') do |hc|
                 unless hc.match?(/^\s*\z/)
                   if !h.match?(/#{hc}/i)
-                    all_found = false                  
+                    all_found = false
                   end
                 end
               end
@@ -110,15 +114,25 @@ class SlackSmartBot
         output << message_not_expanded
       end
     end
-    if output.join("\n").lines.count > 50 and dest[0]!='D'
+    if output.join("\n").lines.count > 50 and dest[0]!='D' and !send_to_file
       dest = :on_thread
       output.unshift('Since there are many lines returned the results are returned on a thread by default.')
     end
-    output.each do |h|
-      msg = h.gsub(/^\s*command_id:\s+:\w+\s*$/,'')
-      msg.gsub!(/^\s*>.+$/,'') if help_command.to_s != ''
-      unless msg.match?(/\A\s*\z/)
-        respond msg, dest, unfurl_links: false, unfurl_media: false
+    if send_to_file
+      content = output.join("\n\n")
+      content.gsub!(/\*<([^>]*)\|([^>]*)>\*/, '## [\2](\1)')
+      content.gsub!(/^\s*(\*.+\*)\s*$/, '# \1')
+      content.gsub!(/command_id:\s+:/, '### :')
+      content = content.gsub("\n", "  \n").gsub(/\|[\w\s]*>/i,">").gsub(/^\s*\-\-\-\-\-\-/, "\n------")
+      dest == :on_thread ? dest_file = dchannel : dest_file = dest
+      send_file(dest_file, "SmartBot Help", "", 'smartbot_help.md', "text/markdown", "markdown", content: content)
+    else
+      output.each do |h|
+        msg = h.gsub(/^\s*command_id:\s+:\w+\s*$/,'')
+        msg.gsub!(/^\s*>.+$/,'') if help_command.to_s != ''
+        unless msg.match?(/\A\s*\z/)
+          respond msg, dest, unfurl_links: false, unfurl_media: false
+        end
       end
     end
     return output.join("\n")

@@ -16,10 +16,10 @@ class SlackSmartBot
   # helpmaster:    <https://github.com/MarioRuiz/slack-smart-bot#bot-management|more info>
   # helpmaster: command_id: :set_maintenance
   # helpmaster:
-  def set_maintenance(from, status, message)
+  def set_maintenance(user, status, message)
     save_stats(__method__)
     if config.on_master_bot
-      if config.masters.include?(from) #admin user
+      if config.team_id_masters.include?("#{user.team_id}_#{user.name}") #master admin user
         if message == ''
           config.on_maintenance_message = "Sorry I'm on maintenance so I cannot attend your request."
         else
@@ -35,11 +35,11 @@ class SlackSmartBot
           respond "From now on I won't be on maintenance. Everything is back to normal!"
           save_status :on, :maintenance_off, config.on_maintenance_message
         end
-        
+        @config_log.on_maintenance = config.on_maintenance
         file = File.open("#{config.path}/config_tmp.status", "w")
-        file.write config.inspect
+        file.write @config_log.inspect
         file.close
-    
+
       else
         respond 'Only master admins on master channel can use this command.'
       end

@@ -13,6 +13,7 @@ class SlackSmartBot
             end
         rescue Exception => stack
             @logger.warn stack
+            return []
         end
 
     end

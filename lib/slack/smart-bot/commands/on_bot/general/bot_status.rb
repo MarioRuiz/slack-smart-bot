@@ -20,8 +20,12 @@ class SlackSmartBot
       ip_address = Socket.ip_address_list.find { |ai| ai.ipv4? && !ai.ipv4_loopback? }.ip_address
       respond "*#{Socket.gethostname} (#{ip_address})*\n\tStatus: #{@status}.\n\tVersion: #{VERSION}.#{version_message}\n\tRules file: #{File.basename config.rules_file}\n\tExtended: #{@bots_created[@channel_id][:extended] unless config.on_master_bot}\n\tAdmins: #{config.admins}\n\tBot time: #{Time.now}", dest
       if @status == :on
-        respond "I'm listening to [#{@listening.keys.join(", ")}]", dest
-        if config.on_master_bot and config.admins.include?(user.name)
+        #@listening.keys delete :threads key
+        listening_keys = @listening.keys - [:threads]
+        #remove team id from keys, key is a symbol
+        listening_keys = listening_keys.map{|k| k.to_s.gsub(user.team_id+"_",'').to_sym}
+        respond "I'm listening to [#{listening_keys.join(", ")}]", dest
+        if config.on_master_bot and config.team_id_admins.include?("#{user.team_id}_#{user.name}")
           sleep 5
           @bots_created.each do |k, v|
             msg = []

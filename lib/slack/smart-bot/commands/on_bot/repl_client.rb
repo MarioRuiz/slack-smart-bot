@@ -1,23 +1,24 @@
 class SlackSmartBot
-  def repl_client(from, session_name, type, serialt, env_vars)
+  def repl_client(team_id_user, session_name, type, serialt, env_vars)
     message = "Session name: *#{session_name}*
-        From now on I will execute all you write as a Ruby command and I will keep the session open until you send `quit` or `bye` or `exit`. 
+        From now on I will execute all you write as a Ruby command and I will keep the session open until you send `quit` or `bye` or `exit`.
         In case you need someone to help you with the session you can add collaborators by sending `add collaborator @USER` to the session.
-        I will respond with the result so it is not necessary you send `print`, `puts`, `p` or `pp` unless you want it as the output when calling `run repl`. 
-        Use `p` to print a message raw, exacly like it is returned. 
-        If you want to avoid a message to be treated by me, start the message with '-'. 
+        I will respond with the result so it is not necessary you send `print`, `puts`, `p` or `pp` unless you want it as the output when calling `run repl`.
+        Use `p` to print a message raw, exacly like it is returned.
+        If you want to avoid a message to be treated by me, start the message with '-'.
         After 30 minutes of no communication with the Smart Bot the session will be dismissed.
         If you want to see the methods of a class or module you created use _ls TheModuleOrClass_
         To see the code of a method: _code TheModuleOrClass.my_method_. To see the documentation of a method: _doc TheModuleOrClass.my_method_
+        You can ask *ChatGPT* to help you or suggest any code by sending the message: `? PROMPT`. If no prompt then it will suggest the next line of code.
         You can supply the Environmental Variables you need for the Session
         Example:
           _repl CreateCustomer LOCATION=spain HOST='https://10.30.40.50:8887'_
         "
     respond message
 
-    File.write("#{config.path}/repl/#{@channel_id}/#{@repl_sessions[from][:name]}.input", "", mode: "a+")
-    File.write("#{config.path}/repl/#{@channel_id}/#{@repl_sessions[from][:name]}.output", "", mode: "a+")
-    File.write("#{config.path}/repl/#{@channel_id}/#{@repl_sessions[from][:name]}.run", "", mode: "a+")
+    File.write("#{config.path}/repl/#{@channel_id}/#{@repl_sessions[team_id_user][:name]}.input", "", mode: "a+")
+    File.write("#{config.path}/repl/#{@channel_id}/#{@repl_sessions[team_id_user][:name]}.output", "", mode: "a+")
+    File.write("#{config.path}/repl/#{@channel_id}/#{@repl_sessions[team_id_user][:name]}.run", "", mode: "a+")
 
     if type != :private_clean and type != :public_clean
       pre_execute = '
@@ -44,7 +45,7 @@ class SlackSmartBot
               if m.nil?
                 met = obj
               else
-                met = obj.method(m) 
+                met = obj.method(m)
               end
               met.source.split("\n").each { |line|
                 line.gsub!("def", "")
@@ -57,7 +58,7 @@ class SlackSmartBot
                   result << "#{line}"
                   result << " ..." if !line.include?("(") and !line.include?(")")
                   result << "\n"
-                  break 
+                  break
                 else
                   result << "#{line}\n"
                 end
@@ -67,15 +68,20 @@ class SlackSmartBot
             def ls(obj)
               result = ""
               (obj.methods - Object.methods).sort.each do |m|
-                result << get_met_params(obj, m)
+                if obj.respond_to?(m)
+                  pre = "*`#{obj}`*."
+                else
+                  pre = ""
+                end
+                result << "#{pre}#{get_met_params(obj, m)}"
                 result << "\n"
               end
               puts result
             end
             def get_object(obj_txt)
               met = obj_txt.scan(/\.(\w+)/).flatten.last
-            
-              if met.nil? and obj_txt[0].match(/[A-Z]/) 
+
+              if met.nil? and obj_txt[0].match(/[A-Z]/)
                 obj = Object
                 obj_txt.split("::").each do |cl|
                   if obj.const_defined?(cl.to_sym)
@@ -90,7 +96,7 @@ class SlackSmartBot
                   obj = self.method(obj_txt)
                 rescue
                   obj = nil
-                end     
+                end
               else
                 cl = obj_txt.scan(/([\w\:]+)\./).flatten.first
                 obj = Object
@@ -106,15 +112,15 @@ class SlackSmartBot
                   if obj.respond_to?(met)
                     obj = obj.method(met)
                   elsif obj.instance_method(met)
-                    obj = obj.instance_method(met)        
+                    obj = obj.instance_method(met)
                   else
                     obj = nil
                   end
                 end
-            
-              end    
+
+              end
             end
-            
+
             def doc(obj_txt)
               obj = get_object(obj_txt)
               if !obj.nil? and obj.respond_to?(:source_location) and obj.respond_to?(:comment) and
@@ -132,7 +138,7 @@ class SlackSmartBot
               end
               puts result
             end
-            
+
             def source(obj_txt)
               obj = get_object(obj_txt)
               if !obj.nil? and obj.respond_to?(:source_location) and obj.respond_to?(:comment) and
@@ -144,21 +150,21 @@ class SlackSmartBot
               end
               puts result
             end
-                        
+
             def code(obj_txt)
               source(obj_txt)
-            end            
+            end
 
             file_run_path = \"' + +File.expand_path(config.path) + "/repl/" + @channel_id + "/" + session_name + '.rb\"
             file_input_repl = File.open(\"' + File.expand_path(config.path) + "/repl/" + @channel_id + "/" + session_name + '.input\", \"r\")
             ' + pre_execute + '
-            while true do 
-              sleep 0.2 
+            while true do
+              sleep 0.2
               code_to_run_repl = file_input_repl.read
               if code_to_run_repl.to_s!=\"\"
                 add_to_run_repl = true
-                if code_to_run_repl.to_s.match?(/^quit$/i) or 
-                  code_to_run_repl.to_s.match?(/^exit$/i) or 
+                if code_to_run_repl.to_s.match?(/^quit$/i) or
+                  code_to_run_repl.to_s.match?(/^exit$/i) or
                   code_to_run_repl.to_s.match?(/^bye bot$/i) or
                   code_to_run_repl.to_s.match?(/^bye$/i)
                   exit
@@ -179,10 +185,10 @@ class SlackSmartBot
                       end
                     begin
                       original_stdout = $stdout
-                      $stdout = StringIO.new 
+                      $stdout = StringIO.new
                       resp_repl = eval(code_to_run_repl, bindme' + serialt + ')
                       stdout_repl = $stdout.string
-                    ensure 
+                    ensure
                       $stdout = original_stdout
                     end
                   rescue Exception => resp_repl
@@ -198,7 +204,7 @@ class SlackSmartBot
                       if stdout_repl.to_s == \'\'
                         resp_repl = resp_repl.inspect
                       else
-                        resp_repl = stdout_repl 
+                        resp_repl = stdout_repl
                       end
                       open(\"' + File.expand_path(config.path) + "/repl/" + @channel_id + "/" + session_name + '.output\", \"a+\") {|f|
                         f.puts \"\`\`\`\n#{resp_repl}\`\`\`\"
@@ -207,7 +213,7 @@ class SlackSmartBot
                       if stdout_repl.to_s == \'\'
                         resp_repl = resp_repl.ai
                       else
-                        resp_repl = stdout_repl 
+                        resp_repl = stdout_repl
                       end
                       open(\"' + File.expand_path(config.path) + "/repl/" + @channel_id + "/" + session_name + '.output\", \"a+\") {|f|
                         if as_it_is

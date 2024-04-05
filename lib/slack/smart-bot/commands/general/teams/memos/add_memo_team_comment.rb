@@ -13,7 +13,7 @@ class SlackSmartBot
                 memo = @teams[team_name].memos.select { |m| m.memo_id == memo_id.to_i }[-1]
                 if memo
                   memo.comments ||= []
-                  memo.comments << { user_name: user.name, user_id: user.id, message: message, time: Time.now.to_s }
+                  memo.comments << { user_name: "#{user.team_id}_#{user.name}", user_id: user.id, message: message, time: Time.now.to_s }
                   update_teams()
                   if config.simulate
                     respond "Comment added to memo #{memo_id} in team #{team_name}"

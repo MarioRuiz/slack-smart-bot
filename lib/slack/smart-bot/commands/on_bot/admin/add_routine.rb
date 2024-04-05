@@ -42,11 +42,12 @@ class SlackSmartBot
   # helpadmin:
   def add_routine(dest, from, user, name, type, number_time, period, command_to_run, files, silent, channel, routine_type)
     save_stats(__method__)
-    if files.nil? or files.size == 0 or (files.size > 0 and config.masters.include?(from))
+    if files.nil? or files.size == 0 or (files.size > 0 and config.team_id_masters.include?("#{user.team_id}_#{user.name}"))
       if is_admin?
         if @routines.key?(@channel_id) && @routines[@channel_id].key?(name)
           respond "I'm sorry but there is already a routine with that name.\nCall `see routines` to see added routines", dest
         else
+          react :running
           number_time += ":00" if number_time.split(":").size == 2
           if (type != "every") && !number_time.match?(/^[01][0-9]:[0-5][0-9]:[0-5][0-9]$/) &&
              !number_time.match?(/^2[0-3]:[0-5][0-9]:[0-5][0-9]$/)
@@ -91,14 +92,14 @@ class SlackSmartBot
                     next_time = Date.new(next_month.year, next_month.month, day)
                 end
                 days = (next_time - Date.today).to_i
-                every_in_seconds = days * 24 * 60 * 60 # one day       
-                                
+                every_in_seconds = days * 24 * 60 * 60 # one day
+
               elsif type != 'at' and type!='weekday' and type!='weekend'
                 dayweek = type.downcase
 
                 days = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday']
                 incr = days.index(dayweek) - Time.now.wday
-                if incr < 0 
+                if incr < 0
                   incr = (7+incr)*24*60*60
                 else
                   incr = incr * 24 * 60 * 60
@@ -137,7 +138,7 @@ class SlackSmartBot
                 file_path += ".rb"
               end
               if files[0].key?(:content)
-                File.open(file_path, 'w') do |f| 
+                File.open(file_path, 'w') do |f|
                   f.write files[0].content
                 end
               else
@@ -154,18 +155,19 @@ class SlackSmartBot
             elsif @channels_id.key?(channel) #it is a channel name
               channel_id = @channels_id[channel]
             end
-    
+
             channel_id = dest if channel_id.to_s == ''
             @routines[@channel_id] = {} unless @routines.key?(@channel_id)
-            @routines[@channel_id][name] = { channel_name: config.channel, creator: from, creator_id: user.id, status: :on,
-                                             every: every, every_in_seconds: every_in_seconds, at: at, dayweek: dayweek, daymonth: daymonth, file_path: file_path, 
+            @routines[@channel_id][name] = { channel_name: config.channel, creator_team_id: user.team_id, creator: from, creator_id: user.id, status: :on,
+                                             every: every, every_in_seconds: every_in_seconds, at: at, dayweek: dayweek, daymonth: daymonth, file_path: file_path,
                                              command: command_to_run.to_s.strip, silent: silent,
-                                             next_run: next_run.to_s, dest: channel_id, last_run: "", last_elapsed: "", 
+                                             next_run: next_run.to_s, dest: channel_id, last_run: "", last_elapsed: "",
                                              running: false, routine_type: routine_type}
             update_routines()
             respond "Added routine *`#{name}`* to the channel", dest
             create_routine_thread(name, @routines[@channel_id][name])
           end
+          unreact :running
         end
       else
         respond "Only admin users can use this command", dest

@@ -21,8 +21,8 @@ class SlackSmartBot
                           elsif el.type == 'user'
                             data_text += "<@#{el.user_id}>"
                           elsif el.type == 'channel'
-                            tch = data.text.scan(/(<##{el.channel_id}\|[^\>]*>)/).join
-                            data_text += tch
+                            tch = data.text.scan(/(<##{el.channel_id}\|[^\>]*>)/).flatten.first
+                            data_text += tch.to_s
                           else
                             data_text += el.url
                           end
@@ -41,22 +41,22 @@ class SlackSmartBot
         end
         data.text.gsub!('‘', "'")
         data.text.gsub!('’', "'")
-        data.text.gsub!('“', '"') 
+        data.text.gsub!('“', '"')
         data.text.gsub!('”', '"')
       rescue Exception => exc
         @logger.warn "Impossible to unescape or clean format for data.text:#{data.text}"
         @logger.warn exc.inspect
       end
-      
+
       unless data.key?(:routine)
-        data.routine = false 
+        data.routine = false
         data.routine_name = ''
         data.routine_type = ''
       end
       if config[:testing] and config.on_master_bot and !@buffered
         @buffered = true
         open("#{config.path}/buffer.log", "a") { |f|
-          f.puts "|#{data.channel}|#{data.user}|#{data.user_name}|#{data.text}"
+          f.puts "|#{data.channel}|#{data.thread_ts}|#{data.user}|#{data.user_name}|#{data.text}"
         }
       end
       if data.key?(:dest) and data.dest.to_s!='' # for run routines and publish on different channels
@@ -80,38 +80,51 @@ class SlackSmartBot
           end
         end
       end
-      
       if !dest.nil? and config.on_master_bot and !data.text.nil? and data.text.match(/^ping from (.+)\s*$/) and data.user == config[:nick_id]
         @pings << $1
       end
-      if config.on_master_bot and @vacations_check != Date.today
-        @vacations_check = Date.today
+      if config.on_master_bot and @vacations_check != Time.now.strftime("%Y%m%d%H") #every hour since depends on user's time zone
+        @vacations_check = Time.now.strftime("%Y%m%d%H")
         t = Thread.new do
-          check_vacations(only_first_day: true)
+          check_vacations(date: nil, only_first_day: true)
         end
       end
       typem = :dont_treat
+
+      @users = get_users() if @users.empty?
+      if data.key?(:bot_id) and data.bot_id.to_s!=''
+        if @slack_bots.key?(data.bot_id) #bot or workflow
+          data.user = @slack_bots[data.bot_id]
+        else
+          bot_info = get_user_info(data.bot_id, is_bot: true)
+          unless bot_info.nil? or bot_info.empty?
+              @slack_bots[data.bot_id] = bot_info.user.id
+              data.user = bot_info.user.id
+              @users << bot_info.user unless bot_info.nil? or bot_info.empty?
+          end
+        end
+      end
       if data.nil? or data.user.nil? or data.user.to_s==''
         user_info = nil
-        @users = get_users() if @users.empty?
       else
-        #todo: when changed @questions user_id then move user_info inside the ifs to avoid calling it when not necessary
-        user_info = @users.select{|u| u.id == data.user or (u.key?(:enterprise_user) and u.enterprise_user.id == data.user)}[-1]
-        if user_info.nil? or user_info.empty?
-          @users = get_users() 
-          user_info = @users.select{|u| u.id == data.user or (u.key?(:enterprise_user) and u.enterprise_user.id == data.user)}[-1]
+        user_info = find_user(data.user, get_sso_user_name: true)
+        if user_info.nil?
+          @logger.warn "User not found on users with id #{data.user} and user_team #{data.user_team}"
+        elsif !user_info.key?(:team_id) or user_info.team_id.to_s.empty?
+          @logger.warn "User with id #{data.user} and user_team #{data.user_team} has no team_id. User_info: #{user_info.inspect}"
         end
       end
       if !dest.nil? and !data.text.nil? and !data.text.to_s.match?(/\A\s*\z/)
+
         get_bots_created()
-        if data.channel[0] == "D" and !data.text.to_s.match?(/^\s*<@#{config[:nick_id]}>\s+/) and 
+        if data.channel[0] == "D" and !data.text.to_s.match?(/^\s*<@#{config[:nick_id]}>\s+/) and
           (data.text.to_s.match?(/^\s*(on)?\s*<#\w+\|[^>]*>/i) or data.text.to_s.match?(/^\s*(on)?\s*#\w+/i))
           data.text = "<@#{config[:nick_id]}> " + data.text.to_s
         end
         #todo: we need to add mixed channels: @smart-bot on private1 #bot1cm <#CXDDFRDDF|bot2cu>: echo A
         if data.text.match(/\A\^\^+/) # to open a thread it will be only when starting by single ^
           typem = :dont_treat
-        elsif data.text.match(/^\s*<@#{config[:nick_id]}>\s+(on\s+)?((<#\w+\|[^>]*>\s*)+)\s*:?\s*(.*)/im) or 
+        elsif data.text.match(/^\s*<@#{config[:nick_id]}>\s+(on\s+)?((<#\w+\|[^>]*>\s*)+)\s*:?\s*(.*)/im) or
           data.text.match(/^\s*<@#{config[:nick_id]}>\s+(on\s+)?((#[a-zA-Z0-9\-\_]+\s*)+)\s*:?\s*(.*)/im) or
           data.text.match(/^\s*<@#{config[:nick_id]}>\s+(on\s+)?(([a-zA-Z0-9\-\_]+\s*)+)\s*:\s*(.*)/im)
           channels_rules = $2 #multiple channels @smart-bot on #channel1 #channel2 echo AAA
@@ -132,10 +145,10 @@ class SlackSmartBot
           else
             channels_arr.each do |row|
               row[0] = @channels_id[row[1]] if row[0] == ''
-              row[1] = @channels_name[row[0]] if row[1] == ''              
+              row[1] = @channels_name[row[0]] if row[1] == ''
             end
           end
-          
+
           # to be treated only on the bots of the requested channels
           channels_arr.each do |tcid, tcname|
             if @channel_id == tcid
@@ -163,9 +176,9 @@ class SlackSmartBot
           end
         elsif data.channel[0] == "D" #Direct message
           get_rules_imported()
-          if @rules_imported.key?(user_info.name) && @rules_imported[user_info.name].key?(user_info.name) and
-            @bots_created.key?(@rules_imported[user_info.name][user_info.name])
-            if @channel_id == @rules_imported[user_info.name][user_info.name]
+          if @rules_imported.key?("#{user_info.team_id}_#{user_info.name}") && @rules_imported["#{user_info.team_id}_#{user_info.name}"].key?(user_info.name) and
+            @bots_created.key?(@rules_imported["#{user_info.team_id}_#{user_info.name}"][user_info.name])
+            if @channel_id == @rules_imported["#{user_info.team_id}_#{user_info.name}"][user_info.name]
               #only to be treated by the channel we are 'using'
               typem = :on_dm
             end
@@ -204,46 +217,61 @@ class SlackSmartBot
       load "#{config.path}/rules/general_commands.rb" if File.exist?("#{config.path}/rules/general_commands.rb") and @datetime_general_commands != File.mtime("#{config.path}/rules/general_commands.rb")
       eval(File.new(config.path + config.rules_file).read) if !defined?(rules) and File.exist?(config.path+config.rules_file) and !config.rules_file.empty?
       unless typem == :dont_treat or user_info.nil?
-        if (Time.now - @last_activity_check) > 60 * 30 #every 30 minutes
+        if (Time.now - @last_activity_check) > TIMEOUT_LISTENING #every 30 minutes
           @last_activity_check = Time.now
           @listening.each do |k,v|
-            v.each do |kk, vv|
-              @listening[k].delete(kk) if (Time.now - vv) > 60 * 30
+            unless k == :threads
+              v.each do |kk, vv|
+                if (Time.now - vv) > TIMEOUT_LISTENING
+                  if @listening[:threads].key?(kk) && @active_chat_gpt_sessions.key?(k) &&
+                    @active_chat_gpt_sessions[k].key?(kk)
+                    unreact :running, kk, channel: @listening[:threads][kk]
+                    session_name = @active_chat_gpt_sessions[k][kk]
+                    chatgpt_message = "ChatGPT session has been terminated due to inactivity."
+                    if !session_name.to_s.empty?
+                      chatgpt_message += "\n\nIf you want to start it again on this thread call `chatgpt #{session_name}`"
+                    end
+                    respond chatgpt_message, @listening[:threads][kk], thread_ts: kk
+                    @listening[:threads].delete(kk)
+                  end
+                  @listening[k].delete(kk)
+                end
+              end
+              @listening.delete(k) if @listening[k].empty?
             end
-            @listening.delete(k) if @listening[k].empty?
           end
         end
         begin
           #user_info.id = data.user #todo: remove this line when slack issue with Wxxxx Uxxxx fixed
           data.user = user_info.id  #todo: remove this line when slack issue with Wxxxx Uxxxx fixed
-          if data.thread_ts.nil?
+          team_id_user = "#{user_info.team_id}_#{user_info.name}"
+          if data.thread_ts.to_s.empty?
             qdest = dest
           else
             qdest = data.thread_ts
           end
-          if !answer(user_info.name, qdest).empty?
+          if !answer(user_info, qdest).empty?
             if data.text.match?(/\A\s*(Bye|Bæ|Good\sBye|Adiós|Ciao|Bless|Bless\sBless|Adeu)\s(#{@salutations.join("|")})\s*$/i)
-              answer_delete(user_info.name, qdest)
+              answer_delete(user_info, qdest)
               command = data.text
             else
-              command = answer(user_info.name, qdest)
-              @answer[user_info.name][qdest] = data.text
-              @questions[user_info.name] = data.text # to be backwards compatible #todo remove it when 2.0
+              command = answer(user_info, qdest)
+              @answer[team_id_user][qdest] = data.text
+              @questions[team_id_user] = data.text # to be backwards compatible #todo remove it when 2.0
             end
-          elsif @repl_sessions.key?(user_info.name) and data.channel==@repl_sessions[user_info.name][:dest] and 
-            ((@repl_sessions[user_info.name][:on_thread] and data.thread_ts == @repl_sessions[user_info.name][:thread_ts]) or
-            (!@repl_sessions[user_info.name][:on_thread] and data.thread_ts.to_s == '' ))
-            
+          elsif @repl_sessions.key?(team_id_user) and data.channel==@repl_sessions[team_id_user][:dest] and
+            ((@repl_sessions[team_id_user][:on_thread] and data.thread_ts == @repl_sessions[team_id_user][:thread_ts]) or
+            (!@repl_sessions[team_id_user][:on_thread] and data.thread_ts.to_s == '' ))
+
             if data.text.match(/^\s*```(.*)```\s*$/im)
-                @repl_sessions[user_info.name][:command] = $1
-            else   
-              @repl_sessions[user_info.name][:command] = data.text
+                @repl_sessions[team_id_user][:command] = $1
+            else
+              @repl_sessions[team_id_user][:command] = data.text
             end
             command = 'repl'
           else
             command = data.text
           end
-
           #when added special characters on the message
           if command.match(/\A\s*```(.*)```\s*\z/im)
             command = $1
@@ -291,16 +319,16 @@ class SlackSmartBot
                 command.size > 0 and command[0] != "-"
             process_first(user_info, command, dest, data.channel, typem, data.files, data.ts, data.thread_ts, data.routine, data.routine_name, data.routine_type, command_orig)
             # if @botname on #channel_rules: do something
-          elsif typem == :on_pub or typem == :on_pg
+          elsif (typem == :on_pub or typem == :on_pg) and command.size > 0 and command[0] != "-"
             process_first(user_info, command, dest, channel_rules, typem, data.files, data.ts, data.thread_ts, data.routine, data.routine_name, data.routine_type, command_orig)
           end
-
         rescue Exception => stack
           @logger.fatal stack
         end
-
       else
-        @logger.warn "Pay attention there is no user on users with id #{data.user}" if user_info.nil? and data.user.to_s!=''
+        if user_info.nil? and data.user.to_s!=''
+          @logger.warn "Pay attention there is no user on users with id #{data.user}"
+        end
         if !config.on_master_bot and !dest.nil? and (data.channel == @master_bot_id or dest[0] == "D") and
           data.text.match?(/^\s*(!|!!|\^)?\s*bot\s+status\s*$/i) and @admin_users_id.include?(data.user)
           respond "ping from #{config.channel}", dest
@@ -342,7 +370,7 @@ class SlackSmartBot
                 end
               end
             end
-            
+
           when /^Bot has been (closed|killed) by/i
             sleep 2
             get_bots_created()
@@ -379,6 +407,10 @@ class SlackSmartBot
               end
             end
             if @status == :exit
+              @listening[:threads].each do |thread_ts, channel_thread|
+                unreact :running, thread_ts, channel: channel_thread
+                respond "ChatGPT session closed since SmartBot is going to be closed", channel_thread, thread_ts: thread_ts
+              end
               @logger.info 'Game over!'
               sleep 3
               exit!
@@ -388,7 +420,7 @@ class SlackSmartBot
       end
       unless data.nil? or data.channel.nil? or data.channel.empty?
         @announcements_activity_after[data.channel] ||= 0
-        @announcements_activity_after[data.channel] += 1 
+        @announcements_activity_after[data.channel] += 1
       end
     rescue Exception => stack
       @logger.fatal stack

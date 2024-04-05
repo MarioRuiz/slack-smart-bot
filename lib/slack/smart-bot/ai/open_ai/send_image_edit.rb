@@ -11,10 +11,11 @@ class SlackSmartBot
         else
           response = open_api_client.images.edit(parameters: { image: image, prompt: message, size: size })
         end
-        if !response.body.json(:message).empty?
-          return false, "*OpenAI*: #{response.body.json(:message)}"
+        response = response.to_json
+        if !response.json(:message).empty?
+          return false, "*OpenAI*: #{response.json(:message)}"
         else
-          urls = [response.body.json(:url)].flatten
+          urls = [response.json(:url)].flatten
           return true, urls
         end
       end

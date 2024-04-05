@@ -8,7 +8,7 @@ class SlackSmartBot
           require "csv"
           if !File.exist?("#{config.stats_path}.#{Time.now.strftime("%Y-%m")}.log")
             CSV.open("#{config.stats_path}.#{Time.now.strftime("%Y-%m")}.log", "wb") do |csv|
-              csv << ["date", "bot_channel", "bot_channel_id", "dest_channel", "dest_channel_id", "type_message", "user_name", "user_id", "text", "command", "files", "time_zone", "job_title"]
+              csv << ["date", "bot_channel", "bot_channel_id", "dest_channel", "dest_channel_id", "type_message", "user_name", "user_id", "text", "command", "files", "time_zone", "job_title", "team_id"]
             end
           end
           if data.empty?
@@ -36,17 +36,19 @@ class SlackSmartBot
             user_name = data.user.name
             user_id = data.user.id
           end
-          user_info = @users.select { |u| u.id == user_id or (u.key?(:enterprise_user) and u.enterprise_user.id == user_id) }[-1]
+          user_info = find_user(data.user.id)
           if user_info.nil? or user_info.is_app_user or user_info.is_bot
             time_zone = ''
             job_title = ''
+            team_id = ''
           else
             time_zone = user_info.tz_label
             job_title = user_info.profile.title
+            team_id = user_info.team_id
           end
           command_txt = "#{method} encrypted" if command_ids_not_to_log.include?(method.to_s)
           CSV.open("#{config.stats_path}.#{Time.now.strftime("%Y-%m")}.log", "a+") do |csv|
-            csv << [Time.now, config.channel, @channel_id, @channels_name[data.dest], data.dest, data.typem, user_name, user_id, command_txt, method, data.files, time_zone, job_title]
+            csv << [Time.now, config.channel, @channel_id, @channels_name[data.dest], data.dest, data.typem, user_name, user_id, command_txt, method, data.files, time_zone, job_title, team_id]
           end
         rescue Exception => exception
           @logger.fatal "There was a problem on the stats"

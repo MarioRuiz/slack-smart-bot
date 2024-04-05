@@ -9,6 +9,7 @@ class SlackSmartBot
   def see_shortcuts(dest, user, typem)
     save_stats(__method__)
     from = user.name
+    team_id_user = user.team_id + '_' + from
     if has_access?(__method__, user)
       unless typem == :on_extended
         msg = ""
@@ -28,8 +29,8 @@ class SlackSmartBot
           respond msg, dest
         end
         msg2 = ''
-        if @shortcuts.keys.include?(from) and @shortcuts[from].keys.size > 0
-          new_hash = @shortcuts[from].deep_copy
+        if @shortcuts.keys.include?(team_id_user) and @shortcuts[team_id_user].keys.size > 0
+          new_hash = @shortcuts[team_id_user].deep_copy
           @shortcuts[:all].keys.each { |k| new_hash.delete(k) }
           if new_hash.keys.size > 0
             msg2 = "*Available shortcuts for #{from}:*\n"
@@ -38,8 +39,8 @@ class SlackSmartBot
             }
           end
         end
-        if @shortcuts_global.keys.include?(from) and @shortcuts_global[from].keys.size > 0
-          new_hash = @shortcuts_global[from].deep_copy
+        if @shortcuts_global.keys.include?(team_id_user) and @shortcuts_global[team_id_user].keys.size > 0
+          new_hash = @shortcuts_global[team_id_user].deep_copy
           @shortcuts_global[:all].keys.each { |k| new_hash.delete(k) }
           if new_hash.keys.size > 0
             msg2 = "*Available shortcuts for #{from}:*\n" if msg2 == ''

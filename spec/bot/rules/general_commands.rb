@@ -1,9 +1,9 @@
 # add here the general commands you will be using in any channel where The SmartBot is part of. Not necessary to use ! or ^, it will answer directly.
 def general_commands(user, command, dest, files = [])
-    
-  begin
-    case command
 
+  begin
+    team_id_user = "#{user.team_id}_#{user.name}"
+    case command
       # help: ----------------------------------------------
       # help: `cls`
       # help: `clear`
@@ -12,25 +12,25 @@ def general_commands(user, command, dest, files = [])
       # help:     It will send a big empty message.
       # help:        NUMBER (optional): number of lines. Default 100. Max 200.
       # help: command_id: :cls
-      # help: 
+      # help:
     when /\A(\d*)\s*(clear|cls|clear\s+screen)\s*\z/i
       save_stats :cls
       $1.to_s == '' ? lines = 100 : lines = $1.to_i
       lines = 200 if lines > 200
       respond (">#{"\n"*lines}<")
 
-    
+
         # help: ----------------------------------------------
         # help: `blink TEXT`
         # help: `INTEGER blink TEXT`
         # help:     It will blink the text supplied. One or more lines of text. Emoticons or text format are allowed.
         # help:        INTEGER (optional): number of times. Default 50. Max 200.
-        # help:  Examples: 
+        # help:  Examples:
         # help:    blink Hello World!
         # help:    blink :moneybag: Pay attention! *Sales* are published!
         # help:    100 blink :new: *Party is about to start* :i_love_you_hand_sign:
         # help: command_id: :blink
-        # help: 
+        # help:
       when /\A\s*(\d+)?\s*blink\s+(.+)\s*\z/im
         save_stats :blink
         num_times = $1.to_s == '' ? 50 : $1.to_i
@@ -38,12 +38,12 @@ def general_commands(user, command, dest, files = [])
         @blinking ||= []
         if num_times > 200 or num_times < 1
           respond "The number of times must be between 1 and 200"
-        elsif @blinking.include?(user.name)
+        elsif @blinking.include?(team_id_user)
           respond "I'm already blinking something for you. Please wait until I finish"
         elsif @blinking.size >= 3 # rate limit in theory update can be done only once per second
           respond "I'm already blinking something for too many people. Please wait until I finish at least one of them."
         else
-          @blinking << user.name
+          @blinking << team_id_user
           msg = respond(text, return_message: true)
           num_times.times do
             sleep 2
@@ -51,7 +51,7 @@ def general_commands(user, command, dest, files = [])
             sleep 0.5
             update(dest, msg.ts, text)
           end
-          @blinking.delete(user.name)
+          @blinking.delete(team_id_user)
         end
 
       # this is a hidden command that it is not listed when calling bot help
@@ -59,7 +59,7 @@ def general_commands(user, command, dest, files = [])
       save_stats :thanks
       reactions = [:heart, :heart_eyes, :blush, :relaxed, :simple_smile, :smiley, :two_hearts, :heartbeat, :green_heart ]
       reactions.sample(rand(3)+1).each {|rt| react rt }
-      responses = ['Thank YOU', "You're welcome", "You're very welcome", 'No problem', 'No worries', "Don't mention it", 'My pleasure', 
+      responses = ['Thank YOU', "You're welcome", "You're very welcome", 'No problem', 'No worries', "Don't mention it", 'My pleasure',
         'Anytime', 'It was the least I could do', 'Glad to help', 'Sure', 'Pleasure', 'The pleasure is mine', 'It was nothing', 'Much obliged', "I'm happy to help",
         'Það var ekkert', 'De nada', 'No hay de qué', 'De rien',  'Bitte', 'Prego', 'मेरा सौभाग्य है', '不客氣', 'Παρακαλώ']
       respond "#{responses.sample}#{'!'*rand(4)}"

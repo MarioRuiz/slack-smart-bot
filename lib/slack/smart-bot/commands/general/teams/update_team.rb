@@ -15,8 +15,8 @@ class SlackSmartBot
                 get_channels_name_and_id() unless @channels_id.key?(ch)
                 tm = get_channel_members(@channels_id[ch])
                 tm.each do |m|
-                  user_info = @users.select { |u| u.id == m or (u.key?(:enterprise_user) and u.enterprise_user.id == m) }[-1]
-                  team_members << user_info.name unless user_info.is_app_user or user_info.is_bot
+                  user_info = find_user(m)
+                  team_members << "#{user_info.team_id}_#{user_info.name}" unless user_info.is_app_user or user_info.is_bot
                 end
               end
             end
@@ -27,7 +27,7 @@ class SlackSmartBot
           end
           if !@teams.key?(team_name.to_sym)
             respond "It seems like the team *#{team_name}* doesn't exist.\nRelated commands `add team TEAM_NAME PROPERTIES`, `see team TEAM_NAME`, `see teams`"
-          elsif !(all_team_members + [@teams[team_name.to_sym].creator] + config.masters).flatten.include?(user.name)
+          elsif !(all_team_members + [@teams[team_name.to_sym].creator] + config.team_id_masters).flatten.include?("#{user.team_id}_#{user.name}")
             respond "You have to be a member of the team, the creator or a Master admin to be able to update this team."
           else
             wrong = false
@@ -49,14 +49,14 @@ class SlackSmartBot
                   last_type = opt
                 elsif opt.match(/<?@(\w+)>?/i) #accepts also @username for the case the user has been deactivated
                   member_id = $1
-                  member_info = @users.select { |u| u.id == member_id or u.name == member_id or (u.key?(:enterprise_user) and u.enterprise_user.id == member_id) }[-1]
+                  member_info = find_user(member_id)
                   if last_type.nil?
                     @teams[team_name.to_sym].members.each do |type, members|
-                      @teams[team_name.to_sym].members[type].delete(member_info.name)
+                      @teams[team_name.to_sym].members[type].delete("#{member_info.team_id}_#{member_info.name}")
                     end
                   else
                     @teams[team_name.to_sym].members[last_type] ||= []
-                    @teams[team_name.to_sym].members[last_type].delete(member_info.name)
+                    @teams[team_name.to_sym].members[last_type].delete("#{member_info.team_id}_#{member_info.name}")
                   end
                 elsif opt.match(/<#(\w+)\|[^>]*>/i)
                   channel_id = $1
@@ -94,9 +94,9 @@ class SlackSmartBot
                 elsif opt.match(/<@(\w+)>/i)
                   member_id = $1
                   last_type = "no_type" if last_type.nil?
-                  member_info = @users.select { |u| u.id == member_id or (u.key?(:enterprise_user) and u.enterprise_user.id == member_id) }[-1]
+                  member_info = find_user(member_id)
                   @teams[team_name.to_sym].members[last_type] ||= []
-                  @teams[team_name.to_sym].members[last_type] << member_info.name
+                  @teams[team_name.to_sym].members[last_type] << "#{member_info.team_id}_#{member_info.name}"
                   @teams[team_name.to_sym].members[last_type].uniq!
                 elsif opt.match(/<#(\w+)\|[^>]*>/i)
                   channel_id = $1
@@ -123,7 +123,7 @@ class SlackSmartBot
             unless wrong
               message ||= "The *#{team_name}* team has been updated."
               @teams[team_name.to_sym].status = :updated
-              @teams[team_name.to_sym].user = user.name
+              @teams[team_name.to_sym].user = "#{user.team_id}_#{user.name}"
               @teams[team_name.to_sym].date = Time.now.strftime("%Y-%m-%dT%H:%M:%S.000Z")[0..18]
               update_teams()
             end

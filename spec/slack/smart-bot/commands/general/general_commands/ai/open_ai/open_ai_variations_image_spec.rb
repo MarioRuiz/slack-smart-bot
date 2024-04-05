@@ -1,11 +1,12 @@
-RSpec.describe SlackSmartBot, "open_ai_generate_image" do
-  describe "open_ai generate image" do
+RSpec.describe SlackSmartBot, "open_ai_variations_image" do
+  describe "open_ai variations image" do
     describe "on direct message" do
       channel = DIRECT.user1.ubot
       user = :user1
       #todo: add tests when uploading pictures
       before(:all) do
         skip("no api key") unless ENV["OPENAI_ACCESS_TOKEN"].to_s != ""
+        skip("not wanted to be tested ENV['TEST_ONLY_CHATGPT'].to_s == 'true'") if ENV['TEST_ONLY_CHATGPT'].to_s == 'true'
         #delete all .png files on tmp folder
         Dir.glob("./spec/bot/tmp/*.png").each do |file|
           File.delete(file)
@@ -24,11 +25,11 @@ RSpec.describe SlackSmartBot, "open_ai_generate_image" do
         sleep 10
         buff = buffer(to: channel, from: :ubot).join
         session_id = buff.scan(/Session: _<#{prompt}...>_ \(id:(\d+)\)/).join
-        expect(buff).to match(/tmp\/smartbotuser1_\d+\.png/)
+        expect(buff).to match(/tmp\/TJGMKRXQ9_smartbotuser1_\d+\.png/)
         clean_buffer()
         send_message "?iv", from: user, to: channel
         sleep 10
-        expect(buffer(to: channel, from: :ubot).join).to match(/tmp\/smartbotuser1_#{session_id}\.png/)
+        expect(buffer(to: channel, from: :ubot).join).to match(/tmp\/TJGMKRXQ9_smartbotuser1_#{session_id}\.png/)
         expect(buffer(to: channel, from: :ubot).join).to match(/Variation/)
         expect(buffer(to: channel, from: :ubot).join).to match(/#{prompt}/)
       end
@@ -39,11 +40,11 @@ RSpec.describe SlackSmartBot, "open_ai_generate_image" do
         sleep 10
         buff = buffer(to: channel, from: :ubot).join
         session_id = buff.scan(/Session: _<#{prompt}...>_ \(id:(\d+)\)/).join
-        expect(buff).to match(/tmp\/smartbotuser1_\d+\.png/)
+        expect(buff).to match(/tmp\/TJGMKRXQ9_smartbotuser1_\d+\.png/)
         clean_buffer()
         send_message "?iv2", from: user, to: channel
         sleep 20
-        expect(buffer(to: channel, from: :ubot).join).to match(/tmp\/smartbotuser1_#{session_id}\.png/)
+        expect(buffer(to: channel, from: :ubot).join).to match(/tmp\/TJGMKRXQ9_smartbotuser1_#{session_id}\.png/)
         expect(buffer(to: channel, from: :ubot).join).to match(/Variation 1 of 2/)
         expect(buffer(to: channel, from: :ubot).join).to match(/Variation 2 of 2/)
         expect(buffer(to: channel, from: :ubot).join).to match(/#{prompt}/)

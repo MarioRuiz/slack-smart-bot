@@ -9,18 +9,18 @@ class SlackSmartBot
         channel = Thread.current[:dest]
       end
       if File.exist?("#{config.path}/announcements/#{channel}.csv") and !@announcements.key?(channel)
-        t = CSV.table("#{config.path}/announcements/#{channel}.csv", headers: ['message_id', 'user_deleted', 'user_created', 'date', 'time', 'type', 'message'])
+        t = CSV.table("#{config.path}/announcements/#{channel}.csv", headers: ['message_id', 'user_team_id_deleted', 'user_deleted', 'user_team_id_created', 'user_created', 'date', 'time', 'type', 'message'])
         @announcements[channel] = t
         num = t[:message_id].max + 1
       elsif !@announcements.key?(channel)
         File.open("#{config.path}/announcements/#{channel}.csv","w")
-        t = CSV.table("#{config.path}/announcements/#{channel}.csv", headers: ['message_id', 'user_deleted', 'user_created', 'date', 'time', 'type', 'message'])
+        t = CSV.table("#{config.path}/announcements/#{channel}.csv", headers: ['message_id', 'user_team_id_deleted', 'user_deleted', 'user_team_id_created', 'user_created', 'date', 'time', 'type', 'message'])
         num = 1
         @announcements[channel] = t
       else
         num = @announcements[channel][:message_id].max + 1
       end
-      values = [num, '', user.name, Time.now.strftime("%Y/%m/%d"), Time.now.strftime("%H:%M"), type, message]
+      values = [num, '', '', user.team_id, user.name, Time.now.strftime("%Y/%m/%d"), Time.now.strftime("%H:%M"), type, message]
       @announcements[channel] << values
       CSV.open("#{config.path}/announcements/#{channel}.csv", "a+") do |csv|
         csv << values

@@ -56,7 +56,7 @@ end
 # help:       `!!THE_COMMAND`
 # help:
 def rules(user, command, processed, dest, files = [], rules_file = "")
-  from = user.name
+  from = "#{user.team_id}_#{user.name}"
   display_name = user.profile.display_name
 
   if @testing
@@ -69,7 +69,7 @@ def rules(user, command, processed, dest, files = [], rules_file = "")
   end
 
   load "#{config.path}/rules/general_rules.rb"
-  
+
   if general_rules(user, command, processed, dest, files, rules_file)
     return true
   else
@@ -101,11 +101,11 @@ def rules(user, command, processed, dest, files = [], rules_file = "")
         save_stats :which_rules
         respond "bot1cm"
         react :thumbsup
-        
+
       when /^test silent (.+)$/i
         tempo = $1
         if Time.now.to_s > tempo
-          respond "Now yes" 
+          respond "Now yes"
         end
       when /^respond on thread/i
         respond 'on_thread', :on_thread
@@ -201,7 +201,7 @@ def rules(user, command, processed, dest, files = [], rules_file = "")
           dont_understand()
         end
         return false
-      end      
+      end
       return true
     rescue => exception
       if defined?(@logger)

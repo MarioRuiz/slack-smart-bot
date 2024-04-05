@@ -1,6 +1,7 @@
 class SlackSmartBot
   def process(user, command, dest, dchannel, rules_file, typem, files, ts)
     from = user.name
+    team_id_user = user.team_id + "_" + user.name
     if config.simulate
       display_name = user.profile.display_name
     else
@@ -9,7 +10,7 @@ class SlackSmartBot
       end
       display_name = user.profile.display_name
     end
-    
+
     processed = true
 
     on_demand = false
@@ -28,7 +29,7 @@ class SlackSmartBot
         on_demand = true
     end
     if (on_demand or typem == :on_dm or
-      (@listening.key?(from) and (@listening[from].key?(dest) or @listening[from].key?(Thread.current[:thread_ts])) )) and 
+      (@listening.key?(team_id_user) and (@listening[team_id_user].key?(dest) or @listening[team_id_user].key?(Thread.current[:thread_ts])) )) and
       config.on_maintenance and !command.match?(/\A(set|turn)\s+maintenance\s+off\s*\z/)
       unless Thread.current.key?(:routine) and Thread.current[:routine]
         respond eval("\"" + config.on_maintenance_message + "\"")
@@ -37,82 +38,88 @@ class SlackSmartBot
     end
     if !config.on_maintenance or (config.on_maintenance and command.match?(/\A(set|turn)\s+maintenance\s+off\s*\z/))
       #todo: check :on_pg in this case
-      if typem == :on_master or typem == :on_bot or typem == :on_pg or typem == :on_dm or 
+      if typem == :on_master or typem == :on_bot or typem == :on_pg or typem == :on_dm or
         (command.match?(/\A\s*bot\s+stats\s*(.*)\s*$/i) and dest==@channels_id[config.stats_channel])
-    
+
         case command
 
         when /\A\s*what's\s+new\s*$/i
           whats_new(user, dest, dchannel, from, display_name)
-        when /\A\s*(#{@salutations.join("|")})\s+(rules|help)\s*(.+)?$/i, /\A(#{@salutations.join("|")}),? what can I do/i
-          $2.to_s.match?(/rules/i) ? specific = true : specific = false
-          help_command = $3
-          bot_help(user, from, dest, dchannel, specific, help_command, rules_file)
+        when /\A(<)?\s*(#{@salutations.join("|")})\s+(rules|help)\s*(.+)?$/i,
+          /\A(<)?\s*(#{@salutations.join("|")})()(),? what can I do/i
+          $1.to_s=='' ? send_to_file = false : send_to_file = true
+          $3.to_s.match?(/rules/i) ? specific = true : specific = false
+          help_command = $4
+          react :runner
+          bot_help(user, from, dest, dchannel, specific, help_command, rules_file, send_to_file: send_to_file)
+          unreact :runner
         when /\A\s*(suggest|random)\s+(command|rule)\s*\z/i, /\A\s*(command|rule)\s+suggestion\s*\z/i
           $2.to_s.match?(/rule/i) || $1.to_s.match?(/rule/i) ? specific = true : specific = false
-          suggest_command(from, dest, dchannel, specific, rules_file)
-        when /\A\s*use\s+(rules\s+)?(from\s+)?<#C\w+\|(.+)>\s*$/i, 
-          /\A\s*use\s+(rules\s+)?(from\s+)?<#(\w+)\|>\s*$/i, 
+          suggest_command(user, dest, dchannel, specific, rules_file)
+        when /\A\s*use\s+(rules\s+)?(from\s+)?<#C\w+\|(.+)>\s*$/i,
+          /\A\s*use\s+(rules\s+)?(from\s+)?<#(\w+)\|>\s*$/i,
           /\Ause\s+(rules\s+)?(from\s+)?([^\s]+\s*$)/i
           channel = $3
           use_rules(dest, channel, user, dchannel)
-        when /\A\s*stop\s+using\s+rules\s+(on\s+)<#\w+\|(.+)>/i, 
-          /\A\s*stop\s+using\s+rules\s+(on\s+)<#(\w+)\|>/i, 
+        when /\A\s*stop\s+using\s+rules\s+(on\s+)<#\w+\|(.+)>/i,
+          /\A\s*stop\s+using\s+rules\s+(on\s+)<#(\w+)\|>/i,
           /\A\s*stop\s+using\s+rules\s+(on\s+)(.+)\s*$/i
           channel = $2
           stop_using_rules_on(dest, user, from, channel, typem)
-        when /\A\s*stop\s+using\s+rules\s*$()()/i, 
-          /\A\s*stop\s+using\s+(rules\s+from\s+)?<#\w+\|(.+)>/i, 
-          /\A\s*stop\s+using\s+(rules\s+from\s+)?<#(\w+)\|>/i, 
+        when /\A\s*stop\s+using\s+rules\s*$()()/i,
+          /\A\s*stop\s+using\s+(rules\s+from\s+)?<#\w+\|(.+)>/i,
+          /\A\s*stop\s+using\s+(rules\s+from\s+)?<#(\w+)\|>/i,
           /\A\s*stop\s+using\s+(rules\s+from\s+)?(.+)\s*$/i
           channel = $2
           channel = @channel_id if channel.to_s == ''
           stop_using_rules(dest, channel, user, dchannel)
-        when /\A\s*extend\s+rules\s+(to\s+)<#C\w+\|(.+)>/i, /\A\s*extend\s+rules\s+(to\s+)<#(\w+)\|>/i, 
+        when /\A\s*extend\s+rules\s+(to\s+)<#C\w+\|(.+)>/i, /\A\s*extend\s+rules\s+(to\s+)<#(\w+)\|>/i,
             /\A\s*extend\s+rules\s+(to\s+)(.+)/i,
-            /\A\s*use\s+rules\s+(on\s+)<#C\w+\|(.+)>/i, /\A\s*use\s+rules\s+(on\s+)<#(\w+)\|>/i, 
+            /\A\s*use\s+rules\s+(on\s+)<#C\w+\|(.+)>/i, /\A\s*use\s+rules\s+(on\s+)<#(\w+)\|>/i,
             /\A\s*use\s+rules\s+(on\s+)(.+)/i
           channel = $2
           extend_rules(dest, user, from, channel, typem)
         when /\A\s*exit\s+bot(\s+silent)?\s*$/i, /\A\s*quit\s+bot(\s+silent)?\s*$/i, /\A\s*close\s+bot(\s+silent)?\s*$/i
           silent = $1.to_s != ''
-          exit_bot(command, from, dest, display_name, silent: silent)
+          exit_bot(command, user, dest, display_name, silent: silent)
         when /\A\s*start\s+(this\s+)?bot$/i
           start_bot(dest, from)
         when /\A\s*pause\s+(this\s+)?bot$/i
           pause_bot(dest, from)
         when /\A\s*bot\s+status/i
           bot_status(dest, user)
-        when /\Anotify\s+<#(C\w+)\|.+>\s+(.+)\s*\z/im, 
-          /\Anotify\s+<#(\w+)\|>\s+(.+)\s*\z/im, 
+        when /\Anotify\s+<#(C\w+)\|.+>\s+(.+)\s*\z/im,
+          /\Anotify\s+<#(\w+)\|>\s+(.+)\s*\z/im,
           /\Anotify\s+(all)?\s*(.+)\s*\z/im
           where = $1
           message = $2
-          notify_message(dest, from, where, message)
+          notify_message(dest, user, where, message)
         when /\Apublish\s+announcements\s*\z/i
           publish_announcements(user)
-        when /\A\s*create\s+(cloud\s+|silent\s+)?bot\s+on\s+<#C\w+\|(.+)>\s*/i, 
-          /\A\s*create\s+(cloud\s+|silent\s+)?bot\s+on\s+<#(\w+)\|>\s*/i, 
-          /\Acreate\s+(cloud\s+|silent\s+)?bot\s+on\s+#(.+)\s*/i, 
+        when /\A\s*create\s+(cloud\s+|silent\s+)?bot\s+on\s+<#C\w+\|(.+)>\s*/i,
+          /\A\s*create\s+(cloud\s+|silent\s+)?bot\s+on\s+<#(\w+)\|>\s*/i,
+          /\Acreate\s+(cloud\s+|silent\s+)?bot\s+on\s+#(.+)\s*/i,
           /\Acreate\s+(cloud\s+|silent\s+)?bot\s+on\s+(.+)\s*/i
           type = $1.to_s.downcase
           channel = $2
+          react :runner
           create_bot(dest, user, type, channel)
-        when /\A\s*kill\s+bot\s+on\s+<#C\w+\|(.+)>\s*$/i, 
-          /\A\s*kill\s+bot\s+on\s+<#(\w+)\|>\s*$/i, 
+          unreact :runner
+        when /\A\s*kill\s+bot\s+on\s+<#C\w+\|(.+)>\s*$/i,
+          /\A\s*kill\s+bot\s+on\s+<#(\w+)\|>\s*$/i,
           /\Akill\s+bot\s+on\s+#(.+)\s*$/i, /\Akill\s+bot\s+on\s+(.+)\s*$/i
           channel = $1
           kill_bot_on_channel(dest, from, channel)
         when /\A\s*(where\s+is|which\s+channels|where\s+is\s+a\s+member)\s+(#{@salutations.join("|")})\??\s*$/i
           where_smartbot(user)
         when /\A\s*(add|create)\s+(silent\s+)?(bgroutine|routine)\s+([\w\.]+)\s+(every)\s+(\d+)\s*(days|hours|minutes|seconds|mins|min|secs|sec|d|h|m|s)\s*(\s#(\w+)\s*)(\s.+)?\s*\z/im,
-          /\A\s*(add|create)\s+(silent\s+)?(bgroutine|routine)\s+([\w\.]+)\s+(every)\s+(\d+)\s*(days|hours|minutes|seconds|mins|min|secs|sec|d|h|m|s)\s*(\s<#(C\w+)\|.*>\s*)?(\s.+)?\s*\z/im,
+          /\A\s*(add|create)\s+(silent\s+)?(bgroutine|routine)\s+([\w\.]+)\s+(every)\s+(\d+)\s*(days|hours|minutes|seconds|mins|min|secs|sec|d|h|m|s)\s*(\s<#([CG]\w+)\|[^>]*>\s*)?(\s.+)?\s*\z/im,
           /\A\s*(add|create)\s+(silent\s+)?(bgroutine|routine)\s+([\w\.]+)\s+on\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday|weekend|weekday)s?\s+at\s+(\d+:\d+:?\d+?)\s*()(\s#(\w+)\s*)(\s.+)?\s*\z/im,
-          /\A\s*(add|create)\s+(silent\s+)?(bgroutine|routine)\s+([\w\.]+)\s+on\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday|weekend|weekday)s?\s+at\s+(\d+:\d+:?\d+?)\s*()(\s<#(C\w+)\|.*>\s*)?(\s.+)?\s*\z/im,
+          /\A\s*(add|create)\s+(silent\s+)?(bgroutine|routine)\s+([\w\.]+)\s+on\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday|weekend|weekday)s?\s+at\s+(\d+:\d+:?\d+?)\s*()(\s<#([CG]\w+)\|[^>]*>\s*)?(\s.+)?\s*\z/im,
           /\A\s*(add|create)\s+(silent\s+)?(bgroutine|routine)\s+([\w\.]+)\s+on\s+the\s+(\d+)[^\s]*\s+at\s+(\d+:\d+:?\d+?)\s*()(\s#(\w+)\s*)(\s.+)?\s*\z/im,
-          /\A\s*(add|create)\s+(silent\s+)?(bgroutine|routine)\s+([\w\.]+)\s+on\s+the\s+(\d+)[^\s]*\s+at\s+(\d+:\d+:?\d+?)\s*()(\s<#(C\w+)\|.*>\s*)?(\s.+)?\s*\z/im,
+          /\A\s*(add|create)\s+(silent\s+)?(bgroutine|routine)\s+([\w\.]+)\s+on\s+the\s+(\d+)[^\s]*\s+at\s+(\d+:\d+:?\d+?)\s*()(\s<#([CG]\w+)\|[^>]*>\s*)?(\s.+)?\s*\z/im,
           /\A\s*(add|create)\s+(silent\s+)?(bgroutine|routine)\s+([\w\.]+)\s+(at)\s+(\d+:\d+:?\d+?)\s*()(\s#(\w+)\s*)(\s.+)?\s*\z/im,
-          /\A\s*(add|create)\s+(silent\s+)?(bgroutine|routine)\s+([\w\.]+)\s+(at)\s+(\d+:\d+:?\d+?)\s*()(\s<#(C\w+)\|.*>\s*)?(\s.+)?\s*\z/im
+          /\A\s*(add|create)\s+(silent\s+)?(bgroutine|routine)\s+([\w\.]+)\s+(at)\s+(\d+:\d+:?\d+?)\s*()(\s<#([GC]\w+)\|[^>]*>\s*)?(\s.+)?\s*\z/im
           silent = $2.to_s!=''
           routine_type = $3.downcase
           name = $4.downcase
@@ -156,7 +163,7 @@ class SlackSmartBot
           regexp = $3.to_s
           see_routines(dest, from, user, all, header, regexp)
         when /\A\s*get\s+bot\s+logs?\s*$/i
-          get_bot_logs(dest, from, typem)
+          get_bot_logs(dest, user, typem)
         when /\A\s*send\s+message\s+(on|to|in)\s+<(https?:[^:]+)>\s*:\s*(.+)\s*$/im,
           /\A\s*send\s+message\s+(on|to|in)\s+(https?:[^:]+)\s*:\s*(.+)\s*$/im,
           /\A\s*send\s+message\s+(on|to|in)\s*([^:]+)\s*:\s*(.+)\s*$/im
@@ -166,7 +173,7 @@ class SlackSmartBot
           to_channel = ''
           to = []
           stats_from = ''
-          stats_to = ''          
+          stats_to = ''
           stats_channel_filter = ''
           stats_command_filter = ''
 
@@ -198,16 +205,16 @@ class SlackSmartBot
               stats_command_filter = opt
             end
           end
-                    
+
           thread_ts.gsub!('.','')
-          send_message(dest, from, typem, to, thread_ts, stats_from, stats_to, stats_channel_filter, stats_command_filter, message)
+          send_message(dest, user, typem, to, thread_ts, stats_from, stats_to, stats_channel_filter, stats_command_filter, message)
         when /\A\s*delete\s+message\s+(http.+)\s*$/i
           url = $1
-          delete_message(from, typem, url)
+          delete_message(user, typem, url)
         when /\A\s*update\s+message\s+(http[^\s]+)\s+(.+)\s*\z/mi
           url = $1
           text = Thread.current[:command_orig].scan(/\A\s*update\s+message\s+<?http[^\s]+\s+(.+)\s*\z/mi).join
-          update_message(from, typem, url, text)
+          update_message(user, typem, url, text)
         when /\A\s*react\s+(on|to|in)\s*([^\s]+)\s+([p\d\.]+)\s+(.+)\s*$/i,
           /\A\s*react\s+(on|to|in)\s*([^\s]+)\s+()(.+)\s*$/i
           to = $2
@@ -227,7 +234,7 @@ class SlackSmartBot
             respond "The channel specified doesn't exist or is in a incorrect format"
           else
             to = to_channel
-            react_to(dest, from, typem, to, thread_ts, emojis)
+            react_to(dest, user, typem, to, thread_ts, emojis)
           end
 
         when /\A\s*(leader\s+board|leaderboard|ranking|podium)()()\s*$/i,
@@ -348,7 +355,7 @@ class SlackSmartBot
           end
           if this_month
             st_from = "#{Date.today.strftime("%Y-%m-01")}"
-            st_to = "#{Date.today.strftime("%Y-%m-%d")}"          
+            st_to = "#{Date.today.strftime("%Y-%m-%d")}"
           elsif last_month
             date = Date.today<<1
             st_from = "#{date.strftime("%Y-%m-01")}"
@@ -394,12 +401,12 @@ class SlackSmartBot
         when /\A(set|turn)\s+maintenance\s+(on|off)\s*()\z/im, /\A(set|turn)\s+maintenance\s+(on)\s*(.+)\s*\z/im
           status = $2.downcase
           message = $3.to_s
-          set_maintenance(from, status, message)
+          set_maintenance(user, status, message)
         when /\A(set|turn)\s+(general|generic)\s+message\s+(off)\s*()\z/im, /\A(set|turn)\s+(general|generic)\s+message\s+(on\s+)?\s*(.+)\s*\z/im
           status = $3.to_s.downcase
           status = 'on' if status == ''
           message = $4.to_s
-          set_general_message(from, status, message)
+          set_general_message(user, status, message)
         else
           processed = false
         end
@@ -410,25 +417,25 @@ class SlackSmartBot
       # only when :on and (listening or on demand or direct message)
       if @status == :on and
         (!answer.empty? or
-        (@repl_sessions.key?(from) and dest==@repl_sessions[from][:dest] and 
-          ((@repl_sessions[from][:on_thread] and Thread.current[:thread_ts] == @repl_sessions[from][:thread_ts]) or
-          (!@repl_sessions[from][:on_thread] and !Thread.current[:on_thread]))) or 
-          (@listening.key?(from) and typem != :on_extended and 
-          ((@listening[from].key?(dest) and !Thread.current[:on_thread]) or 
-            (@listening[from].key?(Thread.current[:thread_ts]) and Thread.current[:on_thread] ) )) or
+        (@repl_sessions.key?(team_id_user) and dest==@repl_sessions[team_id_user][:dest] and
+          ((@repl_sessions[team_id_user][:on_thread] and Thread.current[:thread_ts] == @repl_sessions[team_id_user][:thread_ts]) or
+          (!@repl_sessions[team_id_user][:on_thread] and !Thread.current[:on_thread]))) or
+          (@listening.key?(team_id_user) and typem != :on_extended and
+          ((@listening[team_id_user].key?(dest) and !Thread.current[:on_thread]) or
+            (@listening[team_id_user].key?(Thread.current[:thread_ts]) and Thread.current[:on_thread] ) )) or
           typem == :on_dm or typem == :on_pg or on_demand)
         processed2 = true
-    
+
         case command
 
-        when /\A\s*(add\s+)?(global\s+|generic\s+)?shortcut\s+(for\sall)?\s*([^:]+)\s*:\s*(.+)/i, 
+        when /\A\s*(add\s+)?(global\s+|generic\s+)?shortcut\s+(for\sall)?\s*([^:]+)\s*:\s*(.+)/i,
           /\A(add\s+)(global\s+|generic\s+)?sc\s+(for\sall)?\s*([^:]+)\s*:\s*(.+)/i
           for_all = $3
           shortcut_name = $4.to_s.downcase
           command_to_run = $5
           global = $2.to_s != ''
           add_shortcut(dest, user, typem, for_all, shortcut_name, command, command_to_run, global)
-        when /\A\s*(delete|remove)\s+(global\s+|generic\s+)?shortcut\s+(.+)/i, 
+        when /\A\s*(delete|remove)\s+(global\s+|generic\s+)?shortcut\s+(.+)/i,
           /\A(delete|remove)\s+(global\s+|generic\s+)?sc\s+(.+)/i
           shortcut = $3.to_s.downcase
           global = $2.to_s != ''
@@ -456,7 +463,7 @@ class SlackSmartBot
           code.gsub!(/```\s*$/,'')
           @logger.info code
           ruby_code(dest, user, code, rules_file)
-        when /\A\s*(private\s+|clean\s+|clean\s+private\s+|private\s+clean\s+)?(repl|irb|live)\s*()()()\z/i, 
+        when /\A\s*(private\s+|clean\s+|clean\s+private\s+|private\s+clean\s+)?(repl|irb|live)\s*()()()\z/i,
           /\A\s*(private\s+|clean\s+|clean\s+private\s+|private\s+clean\s+)?(repl|irb|live)\s+([\w\-]+)()()\s*\z/i,
           /\A\s*(private\s+|clean\s+|clean\s+private\s+|private\s+clean\s+)?(repl|irb|live)\s+([\w\-]+)\s*:\s+"([^"]+)"()\s*\z/i,
           /\A\s*(private\s+|clean\s+|clean\s+private\s+|private\s+clean\s+)?(repl|irb|live)\s+([\w\-]+)\s*:\s+"([^"]+)"\s+(.+)\s*\z/i,
@@ -465,11 +472,11 @@ class SlackSmartBot
           opts_type = $1.to_s.downcase.split(' ')
           opts_type.include?('private') ? type = :private : type = :public
           type = "#{type}_clean".to_sym if opts_type.include?('clean')
-          
+
           session_name = $3
           description = $4
           opts = " #{$5}"
-          env_vars = opts.scan(/\s+[\w\-]+="[^"]+"/i) + opts.scan(/\s+[\w\-]+='[^']+'/i)  
+          env_vars = opts.scan(/\s+[\w\-]+="[^"]+"/i) + opts.scan(/\s+[\w\-]+='[^']+'/i)
           opts.scan(/\s+[\w\-]+=[^'"\s]+/i).flatten.each do |ev|
             env_vars << ev.gsub('=',"='") + "'"
           end
@@ -481,7 +488,7 @@ class SlackSmartBot
           repl(dest, user, session_name, env_vars.flatten, rules_file, command, description, type)
         when /\A\s*get\s+(repl|irb|live)\s+([\w\-]+)\s*/i
           session_name = $2
-          get_repl(dest, user, session_name)      
+          get_repl(dest, user, session_name)
         when /\A\s*run\s+(repl|irb|live)\s+([\w\-]+)()\s*\z/im,
           /^\s*run\s+(repl|irb|live)\s+([\w\-]+)\s+(.+)\s*$/im
           session_name = $2
@@ -500,7 +507,7 @@ class SlackSmartBot
               env_vars[idx] = "ENV['#{ev}"
           end
           prerun = Thread.current[:command_orig].gsub('```', '`').scan(/\s+`(.+)`/m)
-          run_repl(dest, user, session_name, env_vars.flatten, prerun.flatten, rules_file)      
+          run_repl(dest, user, session_name, env_vars.flatten, prerun.flatten, rules_file)
         when /\A\s*(delete|remove)\s+(repl|irb|live)\s+([\w\-]+)\s*$/i
           repl_name = $3
           delete_repl(dest, user, repl_name)

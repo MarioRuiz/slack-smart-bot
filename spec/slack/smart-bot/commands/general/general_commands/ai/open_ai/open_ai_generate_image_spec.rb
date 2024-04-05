@@ -6,6 +6,7 @@ RSpec.describe SlackSmartBot, "open_ai_generate_image" do
 
       before(:all) do
         skip("no api key") unless ENV["OPENAI_ACCESS_TOKEN"].to_s != ""
+        skip("not wanted to be tested ENV['TEST_ONLY_CHATGPT'].to_s == 'true'") if ENV['TEST_ONLY_CHATGPT'].to_s == 'true'
         #delete all .png files on tmp folder
         Dir.glob("./spec/bot/tmp/*.png").each do |file|
           File.delete(file)
@@ -22,11 +23,11 @@ RSpec.describe SlackSmartBot, "open_ai_generate_image" do
         sleep 10
         buff = buffer(to: channel, from: :ubot).join
         session_id = buff.scan(/Session: _<#{prompt}...>_ \(id:(\d+)\)/).join
-        expect(buffer(to: channel, from: :ubot).join).to match(/tmp\/smartbotuser1_#{session_id}\.png/)
+        expect(buffer(to: channel, from: :ubot).join).to match(/tmp\/TJGMKRXQ9_smartbotuser1_#{session_id}\.png/)
         expect(bufferc(to: channel, from: :ubot).join).to match(/Session: _<#{prompt}...>_ \(id:#{session_id}/)
         send_message "?i eating a banana", from: user, to: channel
         sleep 10
-        expect(buffer(to: channel, from: :ubot).join).to match(/tmp\/smartbotuser1_#{session_id}\.png/)
+        expect(buffer(to: channel, from: :ubot).join).to match(/tmp\/TJGMKRXQ9_smartbotuser1_#{session_id}\.png/)
         expect(buffer(to: channel, from: :ubot).join).to match(/eating a banana/)
         expect(bufferc(to: channel, from: :ubot).join).to match(/Session: _<#{prompt}...>_ \(id:#{session_id}/)
         prompt = "blonde woman jumping"
@@ -36,8 +37,8 @@ RSpec.describe SlackSmartBot, "open_ai_generate_image" do
         new_session_id = buff.scan(/Session: _<#{prompt}...>_ \(id:(\d+)\)/).join
         expect(session_id).not_to eq(new_session_id)
         expect(buffer(to: channel, from: :ubot).join).to match(/Session: _<#{prompt}...>_ \(id:#{new_session_id}/)
-        expect(buffer(to: channel, from: :ubot).join).not_to match(/tmp\/smartbotuser1_#{session_id}\.png/)
-        expect(buffer(to: channel, from: :ubot).join).to match(/tmp\/smartbotuser1_#{new_session_id}\.png/)
+        expect(buffer(to: channel, from: :ubot).join).not_to match(/tmp\/TJGMKRXQ9_smartbotuser1_#{session_id}\.png/)
+        expect(buffer(to: channel, from: :ubot).join).to match(/tmp\/TJGMKRXQ9_smartbotuser1_#{new_session_id}\.png/)
       end
 
       it 'generates a new image when using repeat' do
@@ -45,11 +46,11 @@ RSpec.describe SlackSmartBot, "open_ai_generate_image" do
         sleep 10
         buff = buffer(to: channel, from: :ubot).join
         session_id = buff.scan(/Session: _<cat black and white...>_ \(id:(\d+)\)/).join
-        expect(bufferc(to: channel, from: :ubot).join).to match(/tmp\/smartbotuser1_#{session_id}\.png/)
+        expect(bufferc(to: channel, from: :ubot).join).to match(/tmp\/TJGMKRXQ9_smartbotuser1_#{session_id}\.png/)
         send_message "?ir", from: user, to: channel
         sleep 10
         buff = buffer(to: channel, from: :ubot).join
-        expect(buff).to match(/tmp\/smartbotuser1_#{session_id}\.png/)
+        expect(buff).to match(/tmp\/TJGMKRXQ9_smartbotuser1_#{session_id}\.png/)
         expect(buff).to match(/Session: _<cat black and white...>_ \(id:#{session_id}/)
         expect(buff).to match(/Repeat/)
       end

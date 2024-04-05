@@ -14,7 +14,7 @@ class SlackSmartBot
       save_stats(__method__)
       if !@run_repls.key?(repl_id)
         respond "The run repl with id #{repl_id} doesn't exist"
-      elsif @run_repls[repl_id].user != user.name and !config.masters.include?(user.name)
+      elsif (@run_repls[repl_id].user != user.name or @run_repls[repl_id].team_id != user.team_id) and !config.team_id_masters.include?("#{user.team_id}_#{user.name}")
         respond "Only #{@run_repls[repl_id].user} or a master admin can kill this repl."
       else
         pids = `pgrep -P #{@run_repls[repl_id].pid}`.split("\n").map(&:to_i) #todo: it needs to be adapted for Windows

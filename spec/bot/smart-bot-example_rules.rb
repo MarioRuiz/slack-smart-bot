@@ -54,7 +54,7 @@ end
 # help:       `!!THE_COMMAND`
 # help:
 def rules(user, command, processed, dest, files = [], rules_file = "")
-  from = user.name
+  from = "#{user.team_id}_#{user.name}"
   display_name = user.profile.display_name
 
   if @testing
@@ -65,7 +65,7 @@ def rules(user, command, processed, dest, files = [], rules_file = "")
       command = context
     end
   end
-  
+
   load "#{config.path}/rules/general_rules.rb"
   if general_rules(user, command, processed, dest, files, rules_file)
     return true
@@ -73,7 +73,7 @@ def rules(user, command, processed, dest, files = [], rules_file = "")
     begin
       case command
       when /^which rules$/i
-        respond "master_channel", dest    
+        respond "master_channel", dest
 
         # help: ----------------------------------------------
         # help: `go to sleep`
@@ -81,21 +81,25 @@ def rules(user, command, processed, dest, files = [], rules_file = "")
         # help: command_id: :go_to_sleep
         # help:
       when /^go\sto\ssleep/i
-        unless @questions.keys.include?(from)
-          ask("do you want me to take a siesta?", command, from, dest)
+        save_stats :go_to_sleep
+        if answer.empty?
+          ask "do you want me to take a siesta?"
         else
-          case @questions[from]
+          case answer
           when /yes/i, /yep/i, /sure/i
-            @questions.delete(from)
-            respond "I'll be sleeping for 5 secs... just for you", dest
-            respond "zZzzzzzZZZZZZzzzzzzz!", dest
+            answer_delete
+            respond "I'll be sleeping for 5 secs... just for you"
+            respond "zZzzzzzZZZZZZzzzzzzz!"
+            react :sleeping
             sleep 5
+            unreact :sleeping
+            react :sunny
           when /no/i, /nope/i, /cancel/i
-            @questions.delete(from)
-            respond "Thanks, I'm happy to be awake", dest
+            answer_delete
+            respond "Thanks, I'm happy to be awake"
           else
-            respond "I don't understand", dest
-            ask("are you sure you want me to sleep? (yes or no)", "go to sleep", from, dest)
+            respond "I don't understand"
+            ask "are you sure you want me to sleep? (yes or no)"
           end
         end
 

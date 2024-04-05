@@ -122,19 +122,19 @@ RSpec.describe SlackSmartBot, "personal settings" do
         it 'displays all personal settings' do
             send_message "set personal settings uno.dos.tres 33", from: user, to: channel
             expect(buffer(to: channel, from: :ubot).join).to match(/Personal settings set for \*uno.dos.tres\*/i)
-            send_message "set personal settings uno.dos.tres.1 33", from: user, to: channel
-            expect(buffer(to: channel, from: :ubot).join).to match(/Personal settings set for \*uno.dos.tres.1\*/i)
-            send_message "set personal settings uno.dos.tres.2 33", from: user, to: channel
-            expect(buffer(to: channel, from: :ubot).join).to match(/Personal settings set for \*uno.dos.tres.2\*/i)
+            send_message "set personal settings uno.dos.cuatro.1 33", from: user, to: channel
+            expect(buffer(to: channel, from: :ubot).join).to match(/Personal settings set for \*uno.dos.cuatro.1\*/i)
+            send_message "set personal settings uno.dos.cuatro.2 33", from: user, to: channel
+            expect(buffer(to: channel, from: :ubot).join).to match(/Personal settings set for \*uno.dos.cuatro.2\*/i)
             send_message "get personal settings", from: user, to: channel
             expect(buffer(to: channel, from: :ubot).join).to match(/Personal settings for\s+\*marioruizs\*/i)
             expect(buffer(to: channel, from: :ubot).join).to match(/`uno.dos.tres`:\s+33/i)
-            expect(buffer(to: channel, from: :ubot).join).to match(/`uno.dos.tres.1`:\s+33/i)
-            expect(buffer(to: channel, from: :ubot).join).to match(/`uno.dos.tres.2`:\s+33/i)
+            expect(buffer(to: channel, from: :ubot).join).to match(/`uno.dos.cuatro.1`:\s+33/i)
+            expect(buffer(to: channel, from: :ubot).join).to match(/`uno.dos.cuatro.2`:\s+33/i)
         end
 
     end
-        
+
 
   end
 

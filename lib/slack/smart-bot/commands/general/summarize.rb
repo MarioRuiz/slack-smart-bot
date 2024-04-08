@@ -145,21 +145,21 @@ class SlackSmartBot
             else
               max_num_tokens = 8000
             end
-            num_tokens = Tiktoken.encoding_for_model(chatgpt.smartbot_model).encode(prompt_orig + messages.values.flatten.join).length
+            num_tokens = OpenAI.rough_token_count(prompt_orig + messages.values.flatten.join)
             respond ":information_source: ChatGPT model: *#{chatgpt.smartbot_model}*. Max tokens: *#{max_num_tokens}*. Characters: #{messages.values.flatten.join.size}. Messages: #{messages.values.flatten.size}. Threads: #{act_threads.size}. Users: #{act_users.size}. Chatgpt tokens: *#{num_tokens}*"
 
             prompts = []
             i = 0
             messages.each do |year_month, msgs|
               msgs.each do |msg|
-                num_tokens = Tiktoken.encoding_for_model(chatgpt.smartbot_model).encode(prompts[i].to_s + msg).length
+                num_tokens = OpenAI.rough_token_count(prompts[i].to_s + msg)
                 i += 1 if num_tokens > max_num_tokens
                 prompts[i] ||= prompt_orig
                 prompts[i] += "#{msg}\n"
               end
             end
             prompts.each_with_index do |prompt, i|
-              num_tokens = Tiktoken.encoding_for_model(chatgpt.smartbot_model).encode(prompt).length #if model != chatgpt.smartbot_model
+              num_tokens = OpenAI.rough_token_count(prompt)
               respond ":information_source: The total number of chatgpt tokens is more than the max allowed for this chatgpt model. *Part #{i + 1} of #{prompts.size}*.\n" if prompts.size > 1
               success, res = SlackSmartBot::AI::OpenAI.send_gpt_chat(chatgpt.client, chatgpt.smartbot_model, prompt, chatgpt)
               result_messages = []

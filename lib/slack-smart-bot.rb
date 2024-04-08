@@ -13,7 +13,6 @@ require "nice_hash"
 require "cgi"
 require "yaml"
 require "nokogiri"
-require 'tiktoken_ruby'
 
 require_relative "slack/smart-bot/config"
 require_relative "slack/smart-bot/comm"

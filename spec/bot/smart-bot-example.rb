@@ -53,7 +53,6 @@ if ENV["SIMULATE"] == "true"
   require_relative "client.rb"
   settings.client = csettings.client
   puts "SIMULATING..."
-  puts "settings: #{settings.inspect} "
   sb = SlackSmartBot.new(settings)
   while sb.config.simulate
     sb.listen_simulate()

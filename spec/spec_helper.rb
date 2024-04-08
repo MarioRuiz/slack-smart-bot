@@ -85,12 +85,7 @@ RSpec.configure do |config|
 
         @settings[:ai][:open_ai][:testing] = true
       else
-        @settings[:ai][:open_ai][:chat_gpt] = {
-          host: ENV["OPENAI_LLM_HOST"],
-          access_token: ENV["OPENAI_LLM_API_KEY"],
-          model: "gpt-35-turbo",
-          smartbot_model: "gpt-4-32k",
-        }
+        @settings[:ai][:open_ai][:chat_gpt] = {}
         @settings[:ai][:open_ai][:testing] = true
       end
 

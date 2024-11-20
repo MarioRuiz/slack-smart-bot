@@ -37,7 +37,7 @@ class SlackSmartBot
             respond "Game over!", dest
             @listening[:threads].each do |thread_ts, channel_thread|
               unreact :running, thread_ts, channel: channel_thread
-              respond "ChatGPT session closed since SmartBot is going to be closed", channel_thread, thread_ts: thread_ts
+              respond "ChatGPT session closed since SmartBot is going to be closed.\nCheck <##{@channels_id[config.status_channel]}>", channel_thread, thread_ts: thread_ts
             end
             if config.simulate
               sleep 2
@@ -45,7 +45,7 @@ class SlackSmartBot
               config.simulate = false
               Thread.exit
             else
-              respond 'Ok, It will take around 40s to close all the bots, all routines and the master bot.'
+              respond "Ok, It will take around 40s to close all the bots, all routines and the master bot."
               sleep 35
               respond "Ciao #{display_name}!", dest
               unreact :runner

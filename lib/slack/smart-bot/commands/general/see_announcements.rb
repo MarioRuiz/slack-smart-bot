@@ -100,7 +100,7 @@ class SlackSmartBot
               end
             end
           else
-            if typem == :on_dm and channel_id[0]=='D'
+            if typem == :on_dm and !channel_id.nil? and channel_id[0]=='D'
               respond("There are no announcements#{general_message}", dest) unless type == 'all'
             else
               respond("There are no announcements for <##{channel_id}>#{general_message}", dest) unless publish or type == 'all' or (typem==:on_dm and channel_id[0]!='D' and !see_announcements_on_demand)

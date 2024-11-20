@@ -1,11 +1,11 @@
 class SlackSmartBot
-  def bot_rules(dest, help_command, typem, rules_file, user, send_to_file: false)
-    save_stats(__method__)
+  def bot_rules(dest, help_command, typem, rules_file, user, send_to_file: false, savestats: true, return_output: false)
+    save_stats(__method__) if savestats
     if has_access?(__method__, user)
       if typem == :on_extended or typem == :on_call #for the other cases above.
         output = []
-        if help_command.to_s != ''
-          help_command = '' if help_command.to_s.match?(/^\s*expanded\s*$/i) or help_command.to_s.match?(/^\s*extended\s*$/i)
+        if help_command.to_s != ""
+          help_command = "" if help_command.to_s.match?(/^\s*expanded\s*$/i) or help_command.to_s.match?(/^\s*extended\s*$/i)
           expanded = true
         else
           expanded = false
@@ -25,7 +25,7 @@ class SlackSmartBot
               commands << h
             elsif !h.match?(/\A\s*\*/) and !h.match?(/\A\s*=+/) #to avoid general messages for bot help *General rules...*
               all_found = true
-              help_command.to_s.split(' ') do |hc|
+              help_command.to_s.split(" ") do |hc|
                 unless hc.match?(/^\s*\z/)
                   if !h.match?(/#{hc}/i)
                     all_found = false
@@ -35,9 +35,9 @@ class SlackSmartBot
               commands_search << h if all_found
             end
           end
-          if commands.size < 10 and help_command.to_s!='' and commands_search.size > 0
+          if commands.size < 10 and help_command.to_s != "" and commands_search.size > 0
             commands_search.shuffle!
-            (10-commands.size).times do |n|
+            (10 - commands.size).times do |n|
               unless commands_search[n].nil?
                 output << commands_search[n]
                 help_found = true
@@ -47,7 +47,6 @@ class SlackSmartBot
           unless help_found
             output << "*#{config.channel}*: I didn't find any command with `#{help_command}`"
           end
-
         else
           message = "-\n\n\n===================================\n*Rules from channel #{config.channel}*\n"
           if typem == :on_extended
@@ -59,7 +58,7 @@ class SlackSmartBot
 
         unless rules_file.empty?
           begin
-            eval(File.new(config.path+rules_file).read) if File.exist?(config.path+rules_file)
+            eval(File.new(config.path + rules_file).read) if File.exist?(config.path + rules_file)
           end
         end
         if defined?(git_project) and git_project.to_s != "" and help_command.to_s == ""
@@ -73,28 +72,33 @@ class SlackSmartBot
           message_not_expanded += "Also to get specific *expanded* help for a specific command or rule call *`bot rules COMMAND`*\n"
           output << message_not_expanded
         end
-        if output.join("\n").lines.count > 50 and dest[0]!='D'
+        if output.join("\n").lines.count > 50 and dest[0] != "D"
           dest = :on_thread
-          output.unshift('Since there are many lines returned the results are returned on a thread by default.')
+          output.unshift("Since there are many lines returned the results are returned on a thread by default.")
         end
         if send_to_file
           content = output.join("\n\n")
           content.gsub!(/\*<([^>]*)\|([^>]*)>\*/, '## [\2](\1)')
           content.gsub!(/^\s*(\*.+\*)\s*$/, '# \1')
-          content.gsub!(/command_id:\s+:/, '### :')
-          content = content.gsub("\n", "  \n").gsub(/\|[\w\s]*>/i,">").gsub(/^\s*\-\-\-\-\-\-/, "\n------")
+          content.gsub!(/command_id:\s+:/, "### :")
+          content = content.gsub("\n", "  \n").gsub(/\|[\w\s]*>/i, ">").gsub(/^\s*\-\-\-\-\-\-/, "\n------")
           dest == :on_thread ? dest_file = dchannel : dest_file = dest
-          send_file(dest_file, "SmartBot Rules", "", 'smartbot_rules.md', "text/markdown", "markdown", content: content)
+          send_file(dest_file, "SmartBot Rules", "", "smartbot_rules.md", "text/markdown", "markdown", content: content)
+        elsif return_output
+          output.each do |h|
+            h.gsub!(/^\s*command_id:\s+:\w+\s*$/, "")
+            h.gsub!(/^\s*>.+$/, "") if help_command.to_s != ""
+          end
+          return output
         else
           output.each do |h|
-            msg = h.gsub(/^\s*command_id:\s+:\w+\s*$/,'')
-            msg.gsub!(/^\s*>.+$/,'') if help_command.to_s != ''
+            msg = h.gsub(/^\s*command_id:\s+:\w+\s*$/, "")
+            msg.gsub!(/^\s*>.+$/, "") if help_command.to_s != ""
             unless msg.match?(/\A\s*\z/)
               respond msg, dest, unfurl_links: false, unfurl_media: false
             end
           end
         end
-
       end
     end
   end

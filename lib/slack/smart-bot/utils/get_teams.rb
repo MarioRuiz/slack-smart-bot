@@ -24,5 +24,13 @@ class SlackSmartBot
         @datetime_teams_file[file] = File.mtime(file)
       end
     end
+    #remove from @teams and @datetime_teams_file the keys that are not in the files
+    #this is to avoid having old data in memory
+    @teams.keys.each do |key|
+      unless files.include?(File.join(config.path, "teams", "t_#{key}.yaml"))
+        @teams.delete(key)
+        @datetime_teams_file.delete(File.join(config.path, "teams", "t_#{key}.yaml"))
+      end
+    end
   end
 end

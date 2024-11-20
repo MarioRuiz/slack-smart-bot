@@ -7,12 +7,12 @@ class SlackSmartBot
     Thread.current[:user] = user
     Thread.current[:team_id_user] = team_id_user
     if text.match(/\A\s*(stop|quit|exit|kill)\s+(iterator|iteration|loop)\s+(\d+)\s*\z/i)
-      save_stats :quit_loop, forced: true, data: {dest: dest, typem: typem, user: user, files: false, command: text, routine: routine}
+      save_stats :quit_loop, forced: true, data: { dest: dest, typem: typem, user: user, files: false, command: text, routine: routine }
       num_iteration = $3.to_i
       if config.team_id_admins.include?(team_id_user) or @loops.key?(team_id_user)
         if config.team_id_admins.include?(team_id_user)
-          name_loop = ''
-          @loops.each do |k,v|
+          name_loop = ""
+          @loops.each do |k, v|
             if v.include?(num_iteration)
               name_loop = k
               break
@@ -37,20 +37,20 @@ class SlackSmartBot
           text.gsub!(encdata, "********")
         end
         text = "********" if !found
-        text+= " (encrypted #{Thread.current[:command_id]})"
+        text += " (encrypted #{Thread.current[:command_id]})"
       end
       @logger.info "command: #{user.team_id}/#{nick}> #{text}"
       return :next #jal
     end
     if text.match(/\A\s*!*^?\s*(for\s*)?(\d+)\s+times\s+every\s+(\d+)\s*(m|minute|minutes|s|sc|second|seconds)\s+(.+)\s*\z/i)
-      save_stats :create_loop, forced: true, data: {dest: dest, typem: typem, user: user, files: false, command: text, routine: routine}
+      save_stats :create_loop, forced: true, data: { dest: dest, typem: typem, user: user, files: false, command: text, routine: routine }
       # min every 10s, max every 60m, max times 24
       command_every = text.dup
       text = $5
       num_times = $2.to_i
       type_every = $4.downcase
       every_seconds = $3.to_i
-      command_every.gsub!(/^\s*!*^?\s*/, '')
+      command_every.gsub!(/^\s*!*^?\s*/, "")
       every_seconds = (every_seconds * 60) if type_every[0] == "m"
       if num_times > 24 or every_seconds < 10 or every_seconds > 3600
         respond "You can't do that. Maximum times is 24, minimum every is 10 seconds, maximum every is 60 minutes.", dest, thread_ts: thread_ts
@@ -61,10 +61,10 @@ class SlackSmartBot
       @num_loops += 1
       loop_id = @num_loops
       @loops[team_id_user] << loop_id
-      respond "Loop #{loop_id} started. To stop the loop use: `#{['stop','quit','exit', 'kill'].sample} #{['iteration','iterator','loop'].sample} #{loop_id}`", dest, thread_ts: thread_ts
+      respond "Loop #{loop_id} started. To stop the loop use: `#{["stop", "quit", "exit", "kill"].sample} #{["iteration", "iterator", "loop"].sample} #{loop_id}`", dest, thread_ts: thread_ts
       #todo: command_orig should be reasigned maybe to remove for N times every X seconds. Check.
     else
-      command_every = ''
+      command_every = ""
       num_times = 1
       every_seconds = 0
     end
@@ -119,6 +119,10 @@ class SlackSmartBot
         when /^Bot has been (closed|killed) by/i
           if config.channel == @channels_name[dchannel]
             @logger.info "#{nick}: #{text}"
+            @listening[:threads].each do |thread_ts, channel_thread|
+              unreact :running, thread_ts, channel: channel_thread
+              respond "ChatGPT session closed since SmartBot is going to be closed.\nCheck <##{@channels_id[config.status_channel]}>", channel_thread, thread_ts: thread_ts
+            end
             if config.simulate
               @status = :off
               config.simulate = false
@@ -151,7 +155,7 @@ class SlackSmartBot
           from_name = $1
           to_name = $2
           if config.on_master_bot and @bots_created.key?(@channels_id[from_name]) and
-            @bots_created[@channels_id[from_name]][:cloud]
+             @bots_created[@channels_id[from_name]][:cloud]
             @bots_created[@channels_id[from_name]][:extended].delete(to_name)
             update_bots_file()
           end
@@ -252,15 +256,15 @@ class SlackSmartBot
         t = Thread.new do
           begin
             sleep every_seconds * i if every_seconds > 0
-            Thread.exit if command_every!='' and @loops.key?(team_id_user) and !@loops[team_id_user].include?(loop_id)
-            @logger.info "i: #{i}, num_times: #{num_times}, every_seconds: #{every_seconds}, command: #{command_thread}" if command_every!=''
+            Thread.exit if command_every != "" and @loops.key?(team_id_user) and !@loops[team_id_user].include?(loop_id)
+            @logger.info "i: #{i}, num_times: #{num_times}, every_seconds: #{every_seconds}, command: #{command_thread}" if command_every != ""
             processed = false
             processed_rules = false
 
             if command_thread.match?(/\A.+\s+\?\?\s+.+\z/im) and !command_thread.match?(/\A\s*(add|create)\s+(silent\s+)?(bgroutine|routine)\s+([\w\.]+)/im)
               pos = command_thread.index("??")
-              Thread.current[:prompt] = command_thread[pos+2..-1].strip
-              command_thread = command_thread[0..pos-1].strip
+              Thread.current[:prompt] = command_thread[pos + 2..-1].strip
+              command_thread = command_thread[0..pos - 1].strip
               Thread.current[:stdout] = ""
             else
               Thread.current[:prompt] = ""
@@ -318,17 +322,16 @@ class SlackSmartBot
             end
 
             if !config.on_maintenance and @listening.key?(team_id_user) and @listening[team_id_user].key?(Thread.current[:thread_ts]) and !Thread.current[:thread_ts].empty? and
-              ((@active_chat_gpt_sessions.key?(team_id_user) and @active_chat_gpt_sessions[team_id_user].key?(Thread.current[:thread_ts])) or
-              (@chat_gpt_collaborating.key?(team_id_user) and @chat_gpt_collaborating[team_id_user].key?(Thread.current[:thread_ts])))
+               ((@active_chat_gpt_sessions.key?(team_id_user) and @active_chat_gpt_sessions[team_id_user].key?(Thread.current[:thread_ts])) or
+                (@chat_gpt_collaborating.key?(team_id_user) and @chat_gpt_collaborating[team_id_user].key?(Thread.current[:thread_ts])))
               @listening[team_id_user][Thread.current[:thread_ts]] = Time.now
               command_thread = "? #{command_thread}" #chatgpt
             end
 
-
             unless config.on_maintenance or @status != :on
               if typem == :on_pub or typem == :on_pg or typem == :on_extended
                 if command_thread.match(/\A(<)?\s*(#{@salutations.join("|")})\s+(rules|help)\s*(.+)?$/i) or command_thread.match(/\A(<)?\s*(#{@salutations.join("|")}),? what can I do/i)
-                  $1.to_s=='' ? send_to_file = false : send_to_file = true
+                  $1.to_s == "" ? send_to_file = false : send_to_file = true
                   $3.to_s.match?(/rules/i) ? specific = true : specific = false
                   help_command = $4
                   react :runner
@@ -343,6 +346,7 @@ class SlackSmartBot
               end
               processed = (processed || general_bot_commands(user, command_thread, dest, files))
               processed = (processed || general_commands(user, command_thread, dest, files)) if defined?(general_commands)
+
               if processed
                 text_to_log = command_thread.dup
 
@@ -353,7 +357,7 @@ class SlackSmartBot
                     text_to_log.gsub!(encdata, "********")
                   end
                   text_to_log = "********" if !found
-                  text_to_log+= " (encrypted #{Thread.current[:command_id]})"
+                  text_to_log += " (encrypted #{Thread.current[:command_id]})"
                 end
                 @logger.info "command: #{user.team_id}/#{nick}> #{text_to_log}" unless user.id == config.nick_id_granular
               end
@@ -369,19 +373,19 @@ class SlackSmartBot
                    ((@listening[team_id_user].key?(dest) and !Thread.current[:on_thread]) or
                     (@listening[team_id_user].key?(thread_ts) and Thread.current[:on_thread]))) or
                   dest[0] == "D" or on_demand)
-                  unless processed
-                    text_to_log = command_thread.dup
-                    found = false
-                    if Thread.current.key?(:encrypted) and Thread.current[:encrypted].size > 0
-                      Thread.current[:encrypted].each do |encdata|
-                        found = true if !found and text_to_log.include?(encdata)
-                        text_to_log.gsub!(encdata, "********")
-                      end
-                      text_to_log = "********" if !found
-                      text_to_log+= " (encrypted #{Thread.current[:command_id]})"
+                unless processed
+                  text_to_log = command_thread.dup
+                  found = false
+                  if Thread.current.key?(:encrypted) and Thread.current[:encrypted].size > 0
+                    Thread.current[:encrypted].each do |encdata|
+                      found = true if !found and text_to_log.include?(encdata)
+                      text_to_log.gsub!(encdata, "********")
                     end
-                    @logger.info "command: #{user.team_id}/#{nick}> #{text_to_log}" unless user.id == config.nick_id_granular
+                    text_to_log = "********" if !found
+                    text_to_log += " (encrypted #{Thread.current[:command_id]})"
                   end
+                  @logger.info "command: #{user.team_id}/#{nick}> #{text_to_log}" unless user.id == config.nick_id_granular
+                end
                 #todo: verify this
 
                 if dest[0] == "C" or dest[0] == "G" or (dest[0] == "D" and typem == :on_call)
@@ -493,10 +497,10 @@ class SlackSmartBot
               end
             end
 
-            if Thread.current[:prompt].to_s != ''
+            if Thread.current[:prompt].to_s != ""
               prompt = "#{Thread.current[:command]}\n\n#{Thread.current[:prompt]}\n\n#{Thread.current[:stdout]}\n\n"
-              Thread.current[:prompt] = ''
-              Thread.current[:stdout] = ''
+              Thread.current[:prompt] = ""
+              Thread.current[:stdout] = ""
               if processed
                 if @active_chat_gpt_sessions.key?(team_id_user) and @active_chat_gpt_sessions[team_id_user].key?(Thread.current[:thread_ts])
                   open_ai_chat(prompt, false, :temporary)
@@ -508,9 +512,8 @@ class SlackSmartBot
             if processed and config.general_message != "" and !routine
               respond eval("\"" + config.general_message + "\"")
             end
-            respond "_*Loop #{loop_id}* (#{i+1}/#{num_times}) <@#{user.name}>: #{command_every}_" if command_every!='' and processed
-            @loops[team_id_user].delete(loop_id) if command_every!='' and !processed and @loops.key?(team_id_user) and @loops[team_id_user].include?(loop_id)
-
+            respond "_*Loop #{loop_id}* (#{i + 1}/#{num_times}) <@#{user.name}>: #{command_every}_" if command_every != "" and processed
+            @loops[team_id_user].delete(loop_id) if command_every != "" and !processed and @loops.key?(team_id_user) and @loops[team_id_user].include?(loop_id)
           rescue Exception => stack
             @logger.fatal stack
           end

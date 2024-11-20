@@ -22,9 +22,19 @@ class SlackSmartBot
                 end
               elsif type == :stop
                 if channel_id == ""
-                  @open_ai[team_id_user][:chat_gpt][:sessions][session_name].public = false
+                  if @open_ai[team_id_user][:chat_gpt][:sessions][session_name].public
+                    @open_ai[team_id_user][:chat_gpt][:sessions][session_name].public = false
+                  else
+                    respond "*ChatGPT*: Session *#{session_name}* is not public."
+                    return
+                  end
                 else
-                  @open_ai[team_id_user][:chat_gpt][:sessions][session_name].shared.delete(channel_id)
+                  if @open_ai[team_id_user][:chat_gpt][:sessions][session_name].shared.include?(channel_id)
+                    @open_ai[team_id_user][:chat_gpt][:sessions][session_name].shared.delete(channel_id)
+                  else
+                    respond "*ChatGPT*: Session *#{session_name}* is not shared on <##{channel_id}>."
+                    return
+                  end
                 end
               end
               update_openai_sessions()

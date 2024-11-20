@@ -45,48 +45,48 @@ class SlackSmartBot
       when /^\A*(get\s+)?smartbot\s+readme\s*\z/i, /^\A*readme\s+smartbot\s*\z/i
         get_smartbot_readme(dest)
 
-      # help: ----------------------------------------------
-      # help: `for NUMBER times every NUMBER minutes COMMAND`
-      # help: `for NUMBER times every NUMBER seconds COMMAND`
-      # help: `NUMBER times every NUMBER minutes COMMAND`
-      # help: `NUMBER times every NUMBER seconds COMMAND`
-      # help:    It will run the command every NUMBER minutes or seconds for NUMBER times.
-      # help:    max 24 times. min every 10 seconds. max every 60 minutes.
-      # help:    Call `quit loop LOOP_ID` to stop the loop.
-      # help:       aliases for minutes: m, minute, minutes
-      # help:       aliases for seconds: s, sc, second, seconds
-      # help:  Examples:
-      # help:       _for 5 times every 1 minute ^ruby puts Time.now_
-      # help:       _10 times every 30s !ruby puts Time.now_
-      # help:       _24 times every 60m !get sales today_
-      # help:    <https://github.com/MarioRuiz/slack-smart-bot#loops|more info>
-      # help: command_id: :create_loop
-      # help:
+        # help: ----------------------------------------------
+        # help: `for NUMBER times every NUMBER minutes COMMAND`
+        # help: `for NUMBER times every NUMBER seconds COMMAND`
+        # help: `NUMBER times every NUMBER minutes COMMAND`
+        # help: `NUMBER times every NUMBER seconds COMMAND`
+        # help:    It will run the command every NUMBER minutes or seconds for NUMBER times.
+        # help:    max 24 times. min every 10 seconds. max every 60 minutes.
+        # help:    Call `quit loop LOOP_ID` to stop the loop.
+        # help:       aliases for minutes: m, minute, minutes
+        # help:       aliases for seconds: s, sc, second, seconds
+        # help:  Examples:
+        # help:       _for 5 times every 1 minute ^ruby puts Time.now_
+        # help:       _10 times every 30s !ruby puts Time.now_
+        # help:       _24 times every 60m !get sales today_
+        # help:    <https://github.com/MarioRuiz/slack-smart-bot#loops|more info>
+        # help: command_id: :create_loop
+        # help:
 
-      # help: ----------------------------------------------
-      # help: `quit loop LOOP_ID`
-      # help:    It will stop the loop with the id LOOP_ID.
-      # help:    Only the user who created the loop or an admin can stop it.
-      # help:       aliases for loop: iterator, iteration
-      # help:       aliases for quit: stop, exit, kill
-      # help:  Examples:
-      # help:       _quit loop 1_
-      # help:       _stop iterator 12_
-      # help:    <https://github.com/MarioRuiz/slack-smart-bot#loops|more info>
-      # help: command_id: :quit_loop
-      # help:
+        # help: ----------------------------------------------
+        # help: `quit loop LOOP_ID`
+        # help:    It will stop the loop with the id LOOP_ID.
+        # help:    Only the user who created the loop or an admin can stop it.
+        # help:       aliases for loop: iterator, iteration
+        # help:       aliases for quit: stop, exit, kill
+        # help:  Examples:
+        # help:       _quit loop 1_
+        # help:       _stop iterator 12_
+        # help:    <https://github.com/MarioRuiz/slack-smart-bot#loops|more info>
+        # help: command_id: :quit_loop
+        # help:
 
-      # help: ----------------------------------------------
-      # help: `Hi Bot`
-      # help: `Hi Smart`
-      # help: `Hello Bot` `Hola Bot` `Hallo Bot` `What's up Bot` `Hey Bot` `Hæ Bot`
-      # help: `Hello THE_NAME_OF_THE_BOT`
-      # help:    Bot starts listening to you if you are on a Bot channel
-      # help:    After that if you want to avoid a single message to be treated by the smart bot, start the message by -
-      # help:    Also apart of Hello you can use _Hallo, Hi, Hola, What's up, Hey, Hæ_
-      # help:    <https://github.com/MarioRuiz/slack-smart-bot#how-to-access-the-smart-bot|more info>
-      # help: command_id: :hi_bot
-      # help:
+        # help: ----------------------------------------------
+        # help: `Hi Bot`
+        # help: `Hi Smart`
+        # help: `Hello Bot` `Hola Bot` `Hallo Bot` `What's up Bot` `Hey Bot` `Hæ Bot`
+        # help: `Hello THE_NAME_OF_THE_BOT`
+        # help:    Bot starts listening to you if you are on a Bot channel
+        # help:    After that if you want to avoid a single message to be treated by the smart bot, start the message by -
+        # help:    Also apart of Hello you can use _Hallo, Hi, Hola, What's up, Hey, Hæ_
+        # help:    <https://github.com/MarioRuiz/slack-smart-bot#how-to-access-the-smart-bot|more info>
+        # help: command_id: :hi_bot
+        # help:
       when /\A\s*(Hello|Hallo|Hi|Hola|What's\sup|Hey|Hæ)\s+(#{@salutations.join("|")})\s*$/i
         hi_bot(user, dest, user.name, display_name)
 
@@ -122,7 +122,7 @@ class SlackSmartBot
         # help: command_id: :poster
         # help:
       when /\A()poster\s+(\d+m\s+)?(:[^:]+:)\s+(:[^:]+:)(.+)\s*\z/i, /\A()poster\s+(\d+m\s+)?(:.+:)\s+()(.+)\s*\z/i, /\A()poster\s+(\d+m\s+)?()()(.+)\s*\z/i,
-        /\A(p)poster\s+()(:[^:]+:)\s+(:[^:]+:)(.+)\s*\z/i, /\A(p)poster\s+()(:.+:)\s+()(.+)\s*\z/i, /\A(p)poster\s+()()()(.+)\s*\z/i
+           /\A(p)poster\s+()(:[^:]+:)\s+(:[^:]+:)(.+)\s*\z/i, /\A(p)poster\s+()(:.+:)\s+()(.+)\s*\z/i, /\A(p)poster\s+()()()(.+)\s*\z/i
         permanent = $1.to_s != ""
         minutes = $2.to_s
         emoticon_text = $3
@@ -957,6 +957,15 @@ class SlackSmartBot
         # help:             If ?? is used, it will start from zero the temporary session. If not all the previous prompts from the session will be used to generate the response.
         # help:             You can share a message and use it as input for the supplied PROMPT.
         # help:             If you include in the prompt !URL then it will download and use the content of the URL as input for the prompt.
+        # help:             If the URL is a Google Drive link, it will download the content of the file.
+        # help:             If the URL is a PDF, DOCX or text file (txt, json, yaml...) SmartBot will extract the content of the file and use it as input for the prompt.
+        # help:             Add static content to your session by using `add static content URL1 URL99`. The content will be downloaded and added to your session only once.
+        # help:             Add live content to your session by using `add live content URL1 URL99`. The content will be downloaded and added to your session every time you send a new prompt.
+        # help:             Add messages from a channel to your session by using `add history #CHANNEL_NAME`.
+        # help:             You can add authorizations on a specific ChatGPT session: `add authorization HOST HEADER VALUE`, for example: `add authorization api.example.com Authorization Bearer 123456`.
+        # help:             You can attach any image to the message and it will be used as input for the prompt.
+        # help:             If you want to delete the last ChatGPT response and send again last prompt, you can use `resend prompt`.
+        # help:             You can set the context of your ChatGPT session: `set context CONTEXT`. Example: `set context You are a funny comedian who tells dad jokes. The output should be in JSON format.`
         # help:             MODEL_NAME can be a substring of the model name, SmartBot will search the model name that contains the substring supplied.
         # help:             When "DESCRIPTION" is used it will be used as a description for the session.
         # help:                If a previous DESCRIPTION for the session exists it will be replaced.
@@ -975,6 +984,14 @@ class SlackSmartBot
         # help: command_id: :open_ai_chat
         # help: command_id: :open_ai_chat_add_collaborator
         # help: command_id: :open_ai_chat_use_model
+        # help: command_id: :open_ai_chat_add_live_content
+        # help: command_id: :open_ai_chat_add_static_content
+        # help: command_id: :open_ai_chat_add_authorization
+        # help: command_id: :open_ai_chat_resend_prompt
+        # help: command_id: :open_ai_chat_set_context
+        # help: command_id: :open_ai_chat_delete_live_content
+        # help: command_id: :open_ai_chat_delete_static_content
+        # help: command_id: :open_ai_chat_delete_authorization
         # help:
 
         # help: ----------------------------------------------
@@ -995,6 +1012,14 @@ class SlackSmartBot
         # help:     _chatgpt delete SpanishTeacher_
         # help:     _??d SpanishTeacher_
         # help: command_id: :open_ai_chat_delete_session
+        # help:
+
+        # help: ----------------------------------------------
+        # help: `chatGPT clean SESSION_NAME`
+        # help:     OpenAI: SmartBot will delete all the prompts from the ChatGPT session indicated.
+        # help: Examples:
+        # help:     _chatgpt clean SpanishTeacher_
+        # help: command_id: :open_ai_chat_clean_session
         # help:
 
         # help: ----------------------------------------------
@@ -1040,15 +1065,23 @@ class SlackSmartBot
         # help: `chatGPT copy temporary session NEW_SESSION_NAME`
         # help: `chatGPT use USER_NAME SESSION_NAME`
         # help: `chatGPT use USER_NAME SESSION_NAME NEW_SESSION_NAME`
+        # help: `?? use SESSION_NAME`
+        # help: `?? use SESSION_NAME NEW_PROMPT`
+        # help: `?? use USER_NAME SESSION_NAME`
+        # help: `?? use USER_NAME SESSION_NAME NEW_PROMPT`
         # help:     OpenAI: SmartBot will copy the ChatGPT session indicated.
         # help:             If NEW_SESSION_NAME is supplied it will be used as the name for the new session.
         # help:             If USER_NAME is supplied it will copy the session from that user on shared sessions.
         # help:             In case no NEW_SESSION_NAME is supplied it will use the same name as the original session plus a number.
+        # help:             If ?? is used it will start a new temporary session with the prompts from the session indicated.
         # help: Examples:
         # help:     _chatgpt copy SpanishTeacher_
         # help:     _chatgpt copy SpanishTeacher spanish_lessons_
         # help:     _chatgpt use peterw SpanishTeacher_
         # help:     _chatgpt use susanssd dataAnalysis DataSales_
+        # help:     _?? use peterw SpanishTeacher_
+        # help:     _?? use stats_sales can you project the sales for next month?_
+        # help:     _?? use susanssd dataAnalysis How much is the total?_
         # help: command_id: :open_ai_chat_copy_session
         # help: command_id: :open_ai_chat_copy_session_from_user
         # help:
@@ -1115,22 +1148,85 @@ class SlackSmartBot
         end
         open_ai_chat_copy_session(user_team_id, user_name, session_name, new_session_name)
 
+        #?? use model
+      when /\A\s*(\?\?)()\s+use\s+model\s+([\w\-0-9\.]+)()()\s*\z/im,
+           /\A\s*\?\s+(use)\s+model\s+()([\w\-0-9\.]+)()()\s*\z/im
+        model = $3.to_s
+        if $1.to_s == "??"
+          open_ai_chat("", true, :temporary, model: model)
+        else
+          open_ai_chat_use_model(model)
+        end
+
+        #chatgpt use session for temporary session
+      when /\A\s*\?\?\s*use\s+(session\s+)?([\w\-0-9]+)()()\s*\z/im, #use SESSION_NAME
+           /\A\s*\?\?\s*use\s+(session\s+)?([\w\-0-9]+)\s+([\w\-0-9]+)()\s*\z/im, #use USER_NAME SESSION_NAME
+           /\A\s*\?\?\s*use\s+(session\s+)?([\w\-0-9]+)\s+([\w\-0-9]+)\s+(.+)\s*\z/im, #use USER_NAME SESSION_NAME NEW_PROMPT
+           /\A\s*\?\?\s*use\s+(session\s+)?([\w\-0-9]+)\s+(.+)()\s*\z/im #use SESSION_NAME NEW_PROMPT
+        user_name = $2.to_s
+        session_name = $3.to_s
+        new_prompt = $4.to_s
+        session_found = false
+        more_than_one = false
+
+        if !@open_ai.keys.any? { |team_id_user| team_id_user.match?(/\A[A-Z0-9]{7,11}_#{user_name}$/) }
+          session_name += " " + new_prompt
+          new_prompt = ""
+        end
+        short_command = false
+        if new_prompt == "" #use SESSION_NAME or use SESSION_NAME PROMPT
+          short_command = true
+          get_openai_sessions()
+          new_prompt = session_name
+          session_name = user_name
+          @open_ai.keys.each do |team_id_user|
+            if @open_ai[team_id_user][:chat_gpt].key?(:sessions) and
+               @open_ai[team_id_user][:chat_gpt][:sessions].key?(session_name)
+              if @open_ai[team_id_user][:chat_gpt][:sessions][session_name][:shared].size > 0
+                members_shared = []
+                @open_ai[team_id_user][:chat_gpt][:sessions][session_name][:shared].each do |shared|
+                  members_shared += get_channel_members(shared)
+                end
+                members_shared.uniq!
+              else
+                members_shared = []
+              end
+
+              if team_id_user == user.team_id_user or
+                 @open_ai[team_id_user][:chat_gpt][:sessions][session_name][:public] or
+                 @open_ai[team_id_user][:chat_gpt][:sessions][session_name][:shared].include?(dest) or
+                 members_shared.include?(user.id)
+                user_name = @open_ai[team_id_user][:chat_gpt][:sessions][session_name][:user_creator]
+                more_than_one = true if session_found
+                session_found = true
+              end
+              break if more_than_one
+            end
+          end
+        end
+        if more_than_one
+          respond "There is more than one session with that name. Please specify the user name."
+          save_stats(:open_ai_chat_copy_session_from_user)
+        elsif !session_found and short_command
+          respond ":exclamation: Session not found.\nCall `chatGPT sessions` to see the list of your sessions\n`chatGPT public sessions` to see the public sessions.\n`chatGPT shared sessions` to see the shared sessions."
+        else
+          success = open_ai_chat_copy_session("", user_name, session_name, "", temporary_session: true)
+          open_ai_chat(new_prompt, false, :temporary) if new_prompt != "" and success
+        end
+
         # chatgpt chat
       when /\A\s*\?\s+(add\s+collaborator)\s+<@(\w+)>()()()\s*\z/im,
-           /\A\s*\?\s+(use)\s+model\s+()([\w\-0-9\.]+)()()\s*\z/im,
-           /\A\s*(\?\?)()\s+use\s+model\s+([\w\-0-9\.]+)()()\s*\z/im,
            /\A\s*\?\?(s|c)\s+([\w\-0-9]+)()()()\s*\z/im,
-           /\A\s*chatgpt\s+(start|continue|load)\s+([\w\-0-9]+)()()()\s*\z/im,
+           /\A\s*chatgpt\s+(start|continue|load|clean)\s+([\w\-0-9]+)()()()\s*\z/im,
            /\A\s*(chatgpt)\s+([\w\-0-9]+)()()()\s*\z/im, #chatgpt session_name
            /\A\s*(chatgpt)\s+([\w\-0-9]+)()\s+>([\w\-0-9]+)()\s*\z/im, #chatgpt session_name >tag_name
            /\A\s*(chatgpt)\s+([\w\-0-9]+)\s+([\w\-0-9\.]+)()()\s*\z/im, #chatgpt session_name model_name
            /\A\s*(chatgpt)\s+([\w\-0-9]+)\s+([\w\-0-9\.]+)\s+>([\w\-0-9\.]+)()\s*\z/im, #chatgpt session_name model_name >tag_name
            /\A\s*(chatgpt)\s+([\w\-0-9]+)()\s+>([\w\-0-9]+)\s+(".+")\s*\z/im, #chatgpt session_name >tag_name "description"
            /\A\s*(chatgpt)\s+([\w\-0-9]+)()()\s+(".+")\s*\z/im, #chatgpt session_name "description"
-           /\A\s*(chatgpt)\s+([\w\-0-9]+)()\s+>([\w\-0-9]+)\s+(".+")\s*\z/im, #chatgpt session_name >tag_name "description"
            /\A\s*(chatgpt)\s+([\w\-0-9]+)\s+([\w\-0-9\.]+)()\s+(".+")\s*\z/im, #chatgpt session_name model_name "description"
            /\A\s*(chatgpt)\s+([\w\-0-9]+)\s+([\w\-0-9\.]+)\s+>([\w\-0-9]+)\s+(".+")\s*\z/im, #chatgpt session_name model_name >tag_name "description"
-           /\A\s*(\?\?)\s*()()()()\z/im, /\A\s*(\?\?)\s*(.+)()\s*()()\z/im, /\A\s*()\?\s*(.+)()\s*()()\z/im
+           /\A\s*(\?\?)\s*()()()()\z/im, /\A\s*(\?\?)\s*(.+)()\s*()()\z/im, /\A\s*()(\?\s*.+)()\s*()()\z/im
         type = $1.to_s.downcase
         text = $2.to_s
         model = $3.to_s
@@ -1142,21 +1238,26 @@ class SlackSmartBot
           type = :start
         elsif type == "c" or type == "continue" or type == "load"
           type = :continue
+        elsif type == "clean"
+          type = :clean
+          delete_history = true
         elsif type.match?(/add\s+collaborator/)
           type = :add_collaborator
-        elsif type == "use"
-          type = :use_model
         else
-          type = :temporary
-          if text == "??"
-            delete_history = true
-            text = ""
+          if text.match?(/\A\?[^\?]/im) and !text.match?(/\A\?\s+\?\?/im)
+            type = :continue_session
+            #remove first ? from the prompt
+            text = text[1..-1]
+          else
+            type = :temporary
+            if text == "??" or text.match?(/\A\?\s+\?\?/)
+              delete_history = true
+              text = ""
+            end
           end
         end
         if type == :add_collaborator
           open_ai_chat_add_collaborator(text)
-        elsif type == :use_model
-          open_ai_chat_use_model(model)
         else
           open_ai_chat(text, delete_history, type, model: model, tag: tag, description: description, files: files)
         end
@@ -1231,7 +1332,7 @@ class SlackSmartBot
         channel = dest if channel == ""
         summarize(user, dest, channel, from, thread_ts)
 
-      # help: >*<|OTHER GENERAL COMMANDS>*
+        # help: >*<|OTHER GENERAL COMMANDS>*
 
       else
         return false

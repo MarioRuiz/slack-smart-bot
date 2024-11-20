@@ -1,4 +1,4 @@
-*Version 1.15.1* Released 2024-Apr-08
+*Version 1.15.25* Released 2024-Nov-15
 
 *For General users*
 - OpenAI adds specific hosts and access tokens for services. (<https://github.com/MarioRuiz/slack-smart-bot/issues/107|#107>).
@@ -21,6 +21,21 @@
 - Call `get smartbot readme` to get the README for SmartBot. (<https://github.com/MarioRuiz/slack-smart-bot/issues/128|#128>)
 - You can call `<bot help` or `<bot rules`. SmartBot will send a Markdown file with extended help commands. Open the file in a new window. You can install this extension in Google Chrome to view it: https://chromewebstore.google.com/detail/medapdbncneneejhbgcjceippjlfkmkg (<https://github.com/MarioRuiz/slack-smart-bot/issues/129|#129>)
 - It is possible to specify authorizations tokens for any website you want to reach the content using ChatGPT command. When adding to your prompt !URL SmartBot will verify if the domain specified have set an authorization header and add it. To add personal authorization tokens you can do it calling on a DM the commands: `add personal settings authorizations.example.host example.com`, `add personal settings authorizations.example.authorization Xdddj33a_SDFBBBS33Ab` (<https://github.com/MarioRuiz/slack-smart-bot/issues/130|#130>)
+- ChatGPT accepts Google Drive links. In case PDF, Docx, or text files (json, yaml, text...) will extract the content and will be added to the prompt. Use: `?? PROMPT !URL1 !URL2 !URL99`
+- ChatGPT accepts attached images.
+- ChatGPT output is nicer since SmartBot will automatically translate general Markdown to Slack Markdown.
+- Now when on a ChatGPT session if you want to delete the last ChatGPT response and send again last prompt, you can use `resend prompt`.
+- You can set the context of your ChatGPT session: `set context CONTEXT`. Example: `set context You are a funny comedian who tells dad jokes. The output should be in JSON format.`
+- You can remove all prompts from a given session by using `chatgpt clean SESSION_NAME`
+- Add static content to your session by using `add static content URL1 URL99`.
+- Add live content to your session by using `add live content URL1 URL99`. The content will be downloaded and added to your session every time you send a new prompt. See also: `delete live content URL1 URL99`
+- You can add authorizations on a specific ChatGPT session: `add authorization HOST HEADER VALUE`, for example: `add authorization api.example.com Authorization Bearer 123456`. 
+  Remember to use a DM with SmartBot to keep these values secret.
+  If you share this session as public or for a specific channel, users will be able to send prompts for that session using your authorizations but they won't be able to see the auth values or copy those auth to a new chatgpt session.
+- It is possible to use a session that is public, private or shared with a channel as a temporary session: `?? use SESSION_NAME PROMPT`. For example: `?? use lunch What's for Thursday?`
+- You can add collaborators on temporary ChatGPT sessions
+- Add messages from a channel to your session by using `add history #CHANNEL_NAME`.
+- When you send a wrong command, SmartBot ChatGPT will tell you which commands could be the ones you wanted to call.
 
 *For Admin users*
 - ChatGPT now supports Azure. (<https://github.com/MarioRuiz/slack-smart-bot/issues/109|#109>)
@@ -30,6 +45,17 @@
 - It is possible now to use LLM proxy for ChatGPT and also specify a concrete end point to get the models.
 - Added LDAP settings in config. (<https://github.com/MarioRuiz/slack-smart-bot/issues/131|#131>)
 - Added authorizations settings in config. (<https://github.com/MarioRuiz/slack-smart-bot/issues/130|#130>)
+- Doc folders can be added by admins for specific chatgpt sessions. SmartBot will filter those docs depending on the prompt and attach them along with the prompt.  
+  Put all docs as text files on `./openai/TEAM_ID/USER_NAME/SESSION_NAME/docs_folder`.  
+  For the documents to be filtered add them to `filter` subfolder under `docs_folder`.  
+  For the documents to be added always to the prompts, add them to `include` subfolder under `docs_folder`.  
+  Inside those subfolders you can organize the documents the way you want.  
+- You can add a file named restricted_models.yaml on ./openai folder supplying the models and users that will have access to specific models.
+  Example of content:
+    o1-mini: [rmario, peter]
+    o1-preview: [rmario]
+
+
 
 ------------------------------
 

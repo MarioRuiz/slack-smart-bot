@@ -41,7 +41,7 @@ class SlackSmartBot
           if @vacations.key?(user.team_id_user) and @vacations[user.team_id_user].key?(:periods)
             @vacations[user.team_id_user].periods.each do |p|
               #get the last from date
-              if p.from > from[0..9].gsub("-", "/")
+              if p.from > from[0..9].gsub("-", "/") and p.from < Time.now.to_s[0..9].gsub("-", "/")
                 from = p.from
                 from_time_off = true
               end
@@ -127,12 +127,16 @@ class SlackSmartBot
             chatgpt = ai_conn[user.team_id_user].chat_gpt
             models = ai_models_conn[user.team_id_user].models
 
-            prompt_orig = "Could you please provide a summary of the given conversation, including all key points and supporting details? The summary should be comprehensive and accurately reflect the main message and arguments presented in the original text, while also being concise and easy to understand. To ensure accuracy, please read the text carefully and pay attention to any nuances or complexities in the language. Please also add the most important conversations in the summary. Additionally, the summary should avoid any personal biases or interpretations and remain objective and factual throughout.\n"
+            prompt_orig = "Could you please provide a summary of the given conversation, including all key points and supporting details?\n"
+            prompt_orig += "The summary should be comprehensive and accurately reflect the main message and arguments presented in the original text, while also being concise and easy to understand.\n"
+            prompt_orig += "To ensure accuracy, please read the text carefully and pay attention to any nuances or complexities in the language.\n"
+            prompt_orig += "Please also add the most important conversations in the summary.\n"
+            prompt_orig += "Additionally, the summary should avoid any personal biases or interpretations and remain objective and factual throughout.\n"
             prompt_orig += "If you name an user remember to name it as <@user_id> so it is not replaced by the user name.\n"
-            prompt_orig += "Add the link to the message so it is easy to find it. The links added need to follow this <LINK|message>\n"
-            prompt_orig += "For example <https://#{client.team.domain}.slack.com/archives/C111JG4V4DZ/1610231016.950299|message>\n"
+            prompt_orig += "Add the link to the message so it is easy to find it.\n"
             prompt_orig += "Add also the date of the message for relevant conversations.\n"
             prompt_orig += "This is the conversation:\n"
+
             #sort by year/month from older to newer
             messages = messages.sort_by { |k, v| k }.to_h
 
@@ -145,26 +149,36 @@ class SlackSmartBot
             else
               max_num_tokens = 8000
             end
-            num_tokens = OpenAI.rough_token_count(prompt_orig + messages.values.flatten.join)
+            #num_tokens = OpenAI.rough_token_count(prompt_orig + messages.values.flatten.join) #jal
+            #enc = Tiktoken.encoding_for_model(chatgpt.smartbot_model)
+            enc = Tiktoken.encoding_for_model("gpt-4") #jal todo: fixed value since version 0.0.8 and 0.0.9 failed to install on SmartBot VM. Revert when fixed.
+            num_tokens = enc.encode(prompt_orig + messages.values.flatten.join).length
+
             respond ":information_source: ChatGPT model: *#{chatgpt.smartbot_model}*. Max tokens: *#{max_num_tokens}*. Characters: #{messages.values.flatten.join.size}. Messages: #{messages.values.flatten.size}. Threads: #{act_threads.size}. Users: #{act_users.size}. Chatgpt tokens: *#{num_tokens}*"
 
             prompts = []
             i = 0
             messages.each do |year_month, msgs|
               msgs.each do |msg|
-                num_tokens = OpenAI.rough_token_count(prompts[i].to_s + msg)
+                #num_tokens = OpenAI.rough_token_count(prompts[i].to_s + msg) #jal
+                #enc = Tiktoken.encoding_for_model(chatgpt.smartbot_model)
+                enc = Tiktoken.encoding_for_model("gpt-4") #jal todo: fixed value since version 0.0.8 and 0.0.9 failed to install on SmartBot VM. Revert when fixed.
+                num_tokens = enc.encode(prompts[i].to_s + msg).length
                 i += 1 if num_tokens > max_num_tokens
                 prompts[i] ||= prompt_orig
                 prompts[i] += "#{msg}\n"
               end
             end
             prompts.each_with_index do |prompt, i|
-              num_tokens = OpenAI.rough_token_count(prompt)
+              #num_tokens = OpenAI.rough_token_count(prompt)
+              #enc = Tiktoken.encoding_for_model(chatgpt.smartbot_model)
+              enc = Tiktoken.encoding_for_model("gpt-4") #jal todo: fixed value since version 0.0.8 and 0.0.9 failed to install on SmartBot VM. Revert when fixed.
+              num_tokens = enc.encode(prompt).length
               respond ":information_source: The total number of chatgpt tokens is more than the max allowed for this chatgpt model. *Part #{i + 1} of #{prompts.size}*.\n" if prompts.size > 1
               success, res = SlackSmartBot::AI::OpenAI.send_gpt_chat(chatgpt.client, chatgpt.smartbot_model, prompt, chatgpt)
               result_messages = []
               if success
-                result_messages << "*ChatGPT:*\n#{res}"
+                result_messages << "*ChatGPT:*\n#{transform_to_slack_markdown(res.to_s.strip)}"
               else
                 result_messages << "*ChatGPT:*\nI'm sorry, I couldn't summarize the conversation. This is the issue: #{res}"
               end

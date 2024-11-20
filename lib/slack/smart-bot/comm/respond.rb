@@ -1,5 +1,5 @@
 class SlackSmartBot
-  def respond(msg = "", dest = nil, unfurl_links: true, unfurl_media: true, thread_ts: "", web_client: true, blocks: [], dont_share: false, return_message: false, max_chars_per_message: 4000)
+  def respond(msg = "", dest = nil, unfurl_links: true, unfurl_media: true, thread_ts: "", web_client: true, blocks: [], dont_share: false, return_message: false, max_chars_per_message: 4000, split: true)
     result = true
     resp = nil
 
@@ -10,7 +10,7 @@ class SlackSmartBot
       if (msg.to_s != "" or !msg.to_s.match?(/^A\s*\z/) or !blocks.empty?) and Thread.current[:routine_type].to_s != "bgroutine"
         if !web_client.is_a?(TrueClass) and !web_client.is_a?(FalseClass)
           (!unfurl_links or !unfurl_media) ? web_client = true : web_client = false
-        end      
+        end
         begin
           msg = msg.to_s
           web_client = true if !blocks.empty?
@@ -38,7 +38,7 @@ class SlackSmartBot
 
           dest = @channels_id[dest] if @channels_id.key?(dest) #it is a name of channel
 
-          on_thread ? txt_on_thread=":on_thread:" : txt_on_thread=''
+          on_thread ? txt_on_thread = ":on_thread:" : txt_on_thread = ""
 
           if blocks.empty?
             if !config.simulate #https://api.slack.com/docs/rate-limits
@@ -62,36 +62,40 @@ class SlackSmartBot
                   num_chars_code = 0
                   print_previous = false
                   if in_a_code_block
-                    all_lines[i+1..-1].each do |l|
-                      num_chars_code += l.size
+                    all_lines[i + 1..-1].each do |l|
+                      num_chars_code += l.size + 1 # +1 for the \n
                       break if l.match?(/^\s*```/)
                     end
-                    if num_chars_code + (m + txt).size > max_chars_per_message
+                    if (num_chars_code + (m + txt).size > max_chars_per_message) and txt != ""
                       print_previous = true
-                    end  
+                    end
                   end
-                end            
+                end
                 if ((m + txt).size > max_chars_per_message and !in_a_code_block) or print_previous
                   unless txt == ""
-                    txt[0] = '.' if txt.match?(/\A\s\s\s/) #first line of message in slack don't show spaces at the begining so we force it by changing first char
+                    txt[0] = "." if txt.match?(/\A\s\s\s/) #first line of message in slack don't show spaces at the begining so we force it by changing first char
                     if m.match?(/^\s*```\s*$/) and !in_a_code_block
                       txt += (m + "\n")
                       m = ""
                     end
-                    t = txt.chars.each_slice(max_chars_per_message).map(&:join)
-                    msgs << t
+                    if split
+                      t = txt.chars.each_slice(max_chars_per_message).map(&:join) #jalsplit
+                      msgs << t
+                    else
+                      msgs << txt #not necessary to split the message in smaller parts since we are sending it as a file now
+                    end
                     txt = ""
                     print_previous = false if print_previous
                   end
                 end
                 txt += (m + "\n")
-                txt[0] = '.' if txt.match?(/\A\s\s\s/) #first line of message in slack don't show spaces at the begining so we force it by changing first char
+                txt[0] = "." if txt.match?(/\A\s\s\s/) #first line of message in slack don't show spaces at the begining so we force it by changing first char
                 txt[0] = ".   " if txt.match?(/\A\t/)
               end
             end
             msgs << txt
             msgs.flatten!
-            msgs.delete_if{|e| e.match?(/\A\s*\z/)}
+            msgs.delete_if { |e| e.match?(/\A\s*\z/) }
             if dest.nil?
               if config[:simulate]
                 open("#{config.path}/buffer_complete.log", "a") { |f|
@@ -100,19 +104,27 @@ class SlackSmartBot
               else
                 if on_thread
                   msgs.each do |msg|
-                    if web_client
-                      resp = client.web_client.chat_postMessage(channel: @channel_id, text: msg, as_user: true, unfurl_links: unfurl_links, unfurl_media: unfurl_media, thread_ts: thread_ts)
+                    if msg.size > max_chars_per_message
+                      resp = send_file(@channel_id, "", "", "", "", "text", content: msg)
                     else
-                      resp = client.message(channel: @channel_id, text: msg, as_user: true, thread_ts: thread_ts, unfurl_links: unfurl_links, unfurl_media: unfurl_media)
+                      if web_client
+                        resp = client.web_client.chat_postMessage(channel: @channel_id, text: msg, as_user: true, unfurl_links: unfurl_links, unfurl_media: unfurl_media, thread_ts: thread_ts)
+                      else
+                        resp = client.message(channel: @channel_id, text: msg, as_user: true, thread_ts: thread_ts, unfurl_links: unfurl_links, unfurl_media: unfurl_media)
+                      end
                     end
                     sleep wait
                   end
                 else
                   msgs.each do |msg|
-                    if web_client
-                      resp = client.web_client.chat_postMessage(channel: @channel_id, text: msg, as_user: true, unfurl_links: unfurl_links, unfurl_media: unfurl_media)
+                    if msg.size > max_chars_per_message
+                      resp = send_file(@channel_id, "", "", "", "", "text", content: msg)
                     else
-                      resp = client.message(channel: @channel_id, text: msg, as_user: true, unfurl_links: unfurl_links, unfurl_media: unfurl_media)
+                      if web_client
+                        resp = client.web_client.chat_postMessage(channel: @channel_id, text: msg, as_user: true, unfurl_links: unfurl_links, unfurl_media: unfurl_media)
+                      else
+                        resp = client.message(channel: @channel_id, text: msg, as_user: true, unfurl_links: unfurl_links, unfurl_media: unfurl_media)
+                      end
                     end
                     sleep wait
                   end
@@ -132,19 +144,27 @@ class SlackSmartBot
               else
                 if on_thread
                   msgs.each do |msg|
-                    if web_client
-                      resp = client.web_client.chat_postMessage(channel: dest, text: msg, as_user: true, unfurl_links: unfurl_links, unfurl_media: unfurl_media, thread_ts: thread_ts)
+                    if msg.size > max_chars_per_message
+                      resp = send_file(dest, "", "", "", "", "text", content: msg)
                     else
-                      resp = client.message(channel: dest, text: msg, as_user: true, thread_ts: thread_ts, unfurl_links: unfurl_links, unfurl_media: unfurl_media)
+                      if web_client
+                        resp = client.web_client.chat_postMessage(channel: dest, text: msg, as_user: true, unfurl_links: unfurl_links, unfurl_media: unfurl_media, thread_ts: thread_ts)
+                      else
+                        resp = client.message(channel: dest, text: msg, as_user: true, thread_ts: thread_ts, unfurl_links: unfurl_links, unfurl_media: unfurl_media)
+                      end
                     end
                     sleep wait
                   end
                 else
                   msgs.each do |msg|
-                    if web_client
-                      resp = client.web_client.chat_postMessage(channel: dest, text: msg, as_user: true, unfurl_links: unfurl_links, unfurl_media: unfurl_media)
+                    if msg.size > max_chars_per_message
+                      resp = send_file(dest, "", "", "", "", "text", content: msg)
                     else
-                      resp = client.message(channel: dest, text: msg, as_user: true, unfurl_links: unfurl_links, unfurl_media: unfurl_media)
+                      if web_client
+                        resp = client.web_client.chat_postMessage(channel: dest, text: msg, as_user: true, unfurl_links: unfurl_links, unfurl_media: unfurl_media)
+                      else
+                        resp = client.message(channel: dest, text: msg, as_user: true, unfurl_links: unfurl_links, unfurl_media: unfurl_media)
+                      end
                     end
                     sleep wait
                   end
@@ -158,14 +178,22 @@ class SlackSmartBot
               end
             elsif dest[0] == "D" or dest[0] == "U" or dest[0] == "W" # Direct message
               msgs.each do |msg|
-                resp = send_msg_user(dest, msg, on_thread, unfurl_links: unfurl_links, unfurl_media: unfurl_media, thread_ts: thread_ts)
+                if msg.size > max_chars_per_message
+                  resp = send_file(dest, "", "", "", "", "text", content: msg)
+                else
+                  resp = send_msg_user(dest, msg, on_thread, unfurl_links: unfurl_links, unfurl_media: unfurl_media, thread_ts: thread_ts)
+                end
                 sleep wait
               end
             elsif dest[0] == "@"
               begin
                 user_info = @users.select { |u| u.id == dest[1..-1] or u.name == dest[1..-1] or (u.key?(:enterprise_user) and u.enterprise_user.id == dest[1..-1]) }[-1]
                 msgs.each do |msg|
-                  resp = send_msg_user(user_info.id, msg, on_thread, unfurl_links: unfurl_links, unfurl_media: unfurl_media, thread_ts: thread_ts)
+                  if msg.size > max_chars_per_message
+                    resp = send_file(user_info.id, "", "", "", "", "text", content: msg)
+                  else
+                    resp = send_msg_user(user_info.id, msg, on_thread, unfurl_links: unfurl_links, unfurl_media: unfurl_media, thread_ts: thread_ts)
+                  end
                   sleep wait
                 end
               rescue Exception => stack
@@ -190,7 +218,7 @@ class SlackSmartBot
               else
                 if on_thread
                   blocks.each_slice(40).to_a.each do |blockstmp|
-                  resp = client.web_client.chat_postMessage(channel: @channel_id, blocks: blockstmp, as_user: true, thread_ts: thread_ts)
+                    resp = client.web_client.chat_postMessage(channel: @channel_id, blocks: blockstmp, as_user: true, thread_ts: thread_ts)
                     sleep wait
                   end
                 else

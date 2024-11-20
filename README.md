@@ -44,6 +44,8 @@ slack-smart-bot has the ability to create bots on demand, set up shortcuts, exec
   * [OpenAI](#openai)
     + [OpenAI Set up](#openai-setup) (A)
     + [Chat GPT](#chatgpt)
+      + [Docs Folder for ChatGPT Sessions](#docs-folder-for-chatgpt-sessions) (A)
+      + [Restrict who has access to a specific model](#restrict-who-has-access-to-a-specific-model) (A)
     + [Image Generation](#image-generation)
     + [Image Variations](#image-variations)
     + [Image Editing](#image-editing)
@@ -859,7 +861,20 @@ To get all prompts from a specific session name use `chatGPT get SESSION_NAME`.
 To list all sessions you created use `chatGPT sessions`.  
 When starting a new session, if you ask SmartBot to answer on a Thread by using !! or ^, then it won't be necessary to send ? before the prompt. In this case, every single message you send will be considered a prompt to be treated. After 30 minutes of inactivity, SmartBot will stop listening to the thread. You will need to continue the session after that. If you want to avoid a message to be treated then start it with a hyphen '-'.  
 To add a collaborator when on a thread, you can use directly `add collaborator @USER`  
-If you include in the prompt `!URL` then it will download and use the content of the URL as input for the prompt.  
+If you include in the prompt `!URL` then it will download and use the content of the URL as input for the prompt. If the URL is a Google Drive link, it will download the content of the file. PDF, DOCX and text files (txt, json, yaml...) are supported.  
+If you want to add static content to your session to be used: `add static content URL1 URL99`.  
+Add live content to your session by using `add live content URL1 URL99`. The content will be downloaded and added to your session every time you send a new prompt.  
+It is possible to specify authorizations tokens for any website you want to reach the content using ChatGPT command. When adding to your prompt `!URL` SmartBot will verify if the domain specified have set an authorization header and add it. To add personal authorization tokens you can do it calling on a DM the commands: `add personal settings authorizations.example.host example.com`, `add personal settings authorizations.example.authorization Xdddj33a_SDFBBBS33Ab`  
+Also you can add authorizations on a specific ChatGPT session: `add authorization HOST HEADER VALUE`, for example: `add authorization api.example.com Authorization Bearer 123456`. If you share this session as public or for a specific channel, users will be able to send prompts for that session using your authorizations but they won't be able to see the auth values or copy those auth to a new chatgpt session.  
+You can add messages from a channel to your session by using `add history #CHANNEL_NAME`.  
+
+If you want to delete the last ChatGPT response and send again last prompt, you can use `resend prompt`.  
+You can set the context of your ChatGPT session: `set context CONTEXT`. Example: `set context You are a funny comedian who tells dad jokes. The output should be in JSON format.`  
+
+Also if you are using a model that allows you to add images to your prompt (fex gpt-4o), you can attach any images.    
+
+<img src="img/chat_gpt_attach_image.png" width="500">  
+  
 When on a thread you can change the model to be used by sending `use model MODEL_NAME`. For a temporary session if you want to create the session with a specific model use `?? use model MODEL_NAME`. The model supplied can be a substring of the model name, SmartBot will try to find the model that matches the substring.    
 
 <img src="img/chat_gpt_session.png" width="650">  
@@ -873,9 +888,27 @@ To remove any shared session from the list, call `chatGPT stop sharing SESSION_N
 Play this video:  
 [![SmartBot ChatGPT Share Sessions](https://img.youtube.com/vi/Mnve3tnEd-8/0.jpg)](https://www.youtube.com/watch?v=Mnve3tnEd-8)  
 
+It is possible to use a session that is public, private or shared with a channel as a temporary session: `?? use SESSION_NAME PROMPT`. For example: `?? use lunch What's for Thursday?`. This will create a temporary session using the session named as `lunch` and send the prompt `What's for Thursday?`  
+
 You can also use ChatGPT when creating REPLs. During the REPL session you can ask *ChatGPT* about the code or any other question. Just start the message with `?` and the Smart Bot will ask ChatGPT and will post the answer. Example: `? How to create a new customer?`. If you send just the question mark without a prompt then ChatGPT will suggest next code line. Example: `?`  
 To send the results of a *SmartBot command* as input for a *ChatGPT* session, use `COMMAND ?? PROMPT`. Example: `bot help ?? how can I use the time off commands`. If you are on a thread you can send more SmartBot commands to the same session by using `COMMAND ?? PROMPT`.   
 
+##### Docs Folder for ChatGPT Sessions
+> For admins  
+
+Doc folders can be added by admins for specific chatgpt sessions. SmartBot will filter those docs depending on the prompt and attach them along with the prompt.  
+Put all docs as text files on `./openai/TEAM_ID/USER_NAME/SESSION_NAME/docs_folder`.  
+For the documents to be filtered add them to `filter` subfolder under `docs_folder`.  
+For the documents to be added always to the prompts, add them to `include` subfolder under `docs_folder`.  
+Inside those subfolders you can organize the documents the way you want.  
+
+##### Restrict who has access to a specific model
+> For admins  
+
+You can add a file named restricted_models.yaml on ./openai folder supplying the models and users that will have access to specific models.  
+  Example of content:  
+    o1-mini: [rmario, peter]  
+    o1-preview: [rmario]  
 
 #### Image Generation
 > for all users  

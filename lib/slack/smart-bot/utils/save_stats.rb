@@ -1,9 +1,17 @@
 class SlackSmartBot
   def save_stats(method, data: {}, forced: false)
-    if has_access?(method, Thread.current[:user]) or forced
+    if Thread.current[:user].nil? and !data[:user].to_s.empty?
+      user_stats = data[:user]
+    else
+      user_stats = Thread.current[:user]
+    end
+    if has_access?(method, user_stats) or forced
       if config.stats
         begin
-          command_ids_not_to_log = ['add_vacation', 'remove_vacation', 'add_memo_team', 'set_personal_settings']
+          command_ids_not_to_log = [
+            "add_vacation", "remove_vacation", "add_memo_team", "set_personal_settings", "open_ai_chat",
+            "open_ai_chat_add_authorization", "open_ai_chat_copy_session_from_user",
+          ]
           Thread.current[:command_id] = method.to_s
           require "csv"
           if !File.exist?("#{config.stats_path}.#{Time.now.strftime("%Y-%m")}.log")
@@ -38,9 +46,9 @@ class SlackSmartBot
           end
           user_info = find_user(data.user.id)
           if user_info.nil? or user_info.is_app_user or user_info.is_bot
-            time_zone = ''
-            job_title = ''
-            team_id = ''
+            time_zone = ""
+            job_title = ""
+            team_id = ""
           else
             time_zone = user_info.tz_label
             job_title = user_info.profile.title

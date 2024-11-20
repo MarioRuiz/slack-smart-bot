@@ -1,5 +1,4 @@
 class SlackSmartBot
-
   def poster(permanent, emoticon_text, emoticon_bg, string, minutes)
     chars = { a: ["0000", "1111", "1001", "1111", "1001", "1001", "0000"],
               b: ["0000", "1111", "1001", "1110", "1001", "1111", "0000"],

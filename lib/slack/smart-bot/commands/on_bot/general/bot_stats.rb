@@ -83,7 +83,7 @@ class SlackSmartBot
       get_channels_name_and_id() unless @channels_id.keys.include?(channel_members)
 
       tm = get_channel_members(channel_members)
-      if tm.nil?
+      if tm.nil? or tm.size == 0
         message << ":exclamation: Add the Smart Bot to *<##{channel_members}>* channel first."
         wrong = true
       else
@@ -93,7 +93,6 @@ class SlackSmartBot
         end
       end
     end
-
     if header.size > 0
       headers = ["date", "bot_channel", "bot_channel_id", "dest_channel", "dest_channel_id", "type_message", "user_name", "user_id", "text", "command", "files", "time_zone", "job_title", "team_id"]
       header.each do |h|
@@ -195,8 +194,9 @@ class SlackSmartBot
             Dir["#{config.stats_path}.*.log"].sort.each do |file|
               if file >= "#{config.stats_path}.#{from_file}.log" and file <= "#{config.stats_path}.#{to_file}.log"
                 CSV.foreach(file, headers: true, header_converters: :symbol, converters: :numeric) do |row|
-                  if (include_channel_members and members_list.include?(row[:user_name])) or
-                    (exclude_channel_members and !members_list.include?(row[:user_name])) or
+                  clean_user_name = row[:user_name].gsub('routine/','')
+                  if (include_channel_members and members_list.include?(clean_user_name)) or
+                    (exclude_channel_members and !members_list.include?(clean_user_name)) or
                     (!include_channel_members and !exclude_channel_members)
                     row[:date] = row[:date].to_s
                     row[:team_id] = config.team_id if row[:team_id].to_s == ''
@@ -385,9 +385,10 @@ class SlackSmartBot
 
               #print users by team
               if users_by_team.size > 0
+                total_users = rows.user_id.uniq.size
                 message << "*Users by Space*"
                 users_by_team.each do |team_name, users|
-                  message << "\t#{team_name}: #{users.size} (#{(users.size.to_f * 100 / users_id_name.size).round(2)}%)"
+                  message << "\t#{team_name}: #{users.size} (#{(users.size.to_f * 100 / total_users).round(2)}%)"
                 end
               end
 
@@ -404,8 +405,8 @@ class SlackSmartBot
                 if user == ""
                   users = rows.user_id.uniq.sort
                   if rows[0].key?(:time_zone) #then save_stats is saving the time zone already
-                    rows.time_zone.each do |time_zone|
-                      unless time_zone == ""
+                    rows.time_zone.each_with_index do |time_zone, idx|
+                      unless time_zone == "" or rows.user_name[idx].match?(/^routine\//)
                         tzone_users[time_zone] ||= 0
                         tzone_users[time_zone] += 1
                       end
@@ -413,13 +414,13 @@ class SlackSmartBot
                   else
                     rows.user_id.each_with_index do |usr, i|
                       if rows[i].values.size >= 12 #then save_stats is saving the time zone already but not all the data
-                        unless rows[i].values[11] == ""
+                        unless rows[i].values[11] == "" or rows[i].values[11].match?(/^routine\//)
                           tzone_users[rows[i].values[11]] ||= 0
                           tzone_users[rows[i].values[11]] += 1
                         end
                       else
                         user_info = find_user(usr)
-                        unless user_info.nil? or user_info.is_app_user or user_info.is_bot
+                        unless user_info.nil? or user_info.is_app_user or user_info.is_bot or user_info.tz_label.to_s == "" or rows.user_name[i].match?(/^routine\//)
                           tzone_users[user_info.tz_label] ||= 0
                           tzone_users[user_info.tz_label] += 1
                         end
@@ -428,7 +429,7 @@ class SlackSmartBot
                   end
                   if rows[0].key?(:job_title) #then save_stats is saving the job title already
                     rows.job_title.each_with_index do |job_title, idx|
-                      unless job_title.to_s == ""
+                      unless job_title.to_s == "" or rows.user_name[idx].match?(/^routine\//)
                         unless job_title_users.key?(job_title)
                           job_title = job_title.to_s.split.map { |x| x[0].upcase + x[1..-1] }.join(" ")
                           job_title_users[job_title] ||= 0
@@ -543,10 +544,11 @@ class SlackSmartBot
                       message << "*Num Users by Job Title*"
                     end
                     i = 0
+                    users_size_without_routines = users.delete_if { |u| u.include?("routine/") }.size
                     users_by_job_title.sort_by { |k, v| -v.size }.each do |jtitle, usersj|
                       i += 1
                       if i <= 10
-                        message << "\t#{jtitle}: #{usersj.size} (#{(usersj.size.to_f * 100 / users.size).round(2)}%)"
+                        message << "\t#{jtitle}: #{usersj.size} (#{(usersj.size.to_f * 100 / users_size_without_routines).round(2)}%)"
                       end
                     end
                   end

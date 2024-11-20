@@ -17,10 +17,10 @@ class SlackSmartBot
             elsif @active_chat_gpt_sessions[team_id_user].key?(Thread.current[:dest])
               session_name = @active_chat_gpt_sessions[team_id_user][Thread.current[:dest]]
             else
-              session_name = ''
+              session_name = ""
             end
 
-            if session_name != "" and @active_chat_gpt_sessions[team_id_user].key?(Thread.current[:thread_ts])
+            if @active_chat_gpt_sessions[team_id_user].key?(Thread.current[:thread_ts])
               collaborator = find_user(cname)
               team_id_user_collaborator = collaborator.team_id + "_" + collaborator.name
               unless @open_ai[team_id_user][:chat_gpt][:sessions][session_name][:collaborators].include?(team_id_user_collaborator)
@@ -32,7 +32,7 @@ class SlackSmartBot
               @chat_gpt_collaborating[team_id_user_collaborator][Thread.current[:thread_ts]] ||= { team_creator: team_id, user_creator: user.name, session_name: session_name }
               respond "Now <@#{collaborator.name}> is a collaborator of this session only when on a thread.\nIn case you don't want to send a message as a prompt, just start the message with hyphen (-)."
             else
-              respond "You can add collaborators for the chatGPT session only when started on a thread and using a session name."
+              respond "You can add collaborators for the chatGPT session only when started on a thread."
             end
           end
         end

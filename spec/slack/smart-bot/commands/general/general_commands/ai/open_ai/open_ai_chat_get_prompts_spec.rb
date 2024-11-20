@@ -21,15 +21,15 @@ RSpec.describe SlackSmartBot, "open_ai_chat_get_prompts" do
         expect(bufferc(to: channel, from: :ubot).join).to match(/(12|twelve)/)
         send_message "chatgpt get mySession10", from: user, to: channel
         sleep seconds_to_wait
-        expect(buffer(to: channel, from: :ubot).join).to match(/Me> how much is 3 plus 7/i)
+        expect(buffer(to: channel, from: :ubot).join).to match(/User> how much is 3 plus 7/i)
         expect(buffer(to: channel, from: :ubot).join).to match(/chatGPT> .*(10|ten).*/i)
-        expect(buffer(to: channel, from: :ubot).join).to match(/Me> and plus 2/i)
+        expect(buffer(to: channel, from: :ubot).join).to match(/User> and plus 2/i)
         expect(bufferc(to: channel, from: :ubot).join).to match(/chatGPT> .*(12|twelve).*/i)
         send_message "??g mySession10", from: user, to: channel
         sleep seconds_to_wait
-        expect(buffer(to: channel, from: :ubot).join).to match(/Me> how much is 3 plus 7/i)
+        expect(buffer(to: channel, from: :ubot).join).to match(/User> how much is 3 plus 7/i)
         expect(buffer(to: channel, from: :ubot).join).to match(/chatGPT> .*(10|ten).*/i)
-        expect(buffer(to: channel, from: :ubot).join).to match(/Me> and plus 2/i)
+        expect(buffer(to: channel, from: :ubot).join).to match(/User> and plus 2/i)
         expect(bufferc(to: channel, from: :ubot).join).to match(/chatGPT> .*(12|twelve).*/i)
       end
 

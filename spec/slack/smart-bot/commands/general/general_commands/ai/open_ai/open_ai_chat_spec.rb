@@ -134,7 +134,7 @@ RSpec.describe SlackSmartBot, "open_ai_chat" do
         expect(buffer(to: channel, from: :ubot).join).to match(/Session _<mySession6>_ model:/i)
         expect(buffer(to: channel, from: :ubot).join).to match(/There\s+are\s+\*\d+\s+prompts\*\s+in\s+this\s+session/i)
         expect(buffer(to: channel, from: :ubot).join).to match(/This was the \*last prompt\* from the session:/i)
-        expect(buffer(to: channel, from: :ubot).join).to match(/\*Me>\* how much is 3 plus 4/i)
+        expect(buffer(to: channel, from: :ubot).join).to match(/\*User>\* how much is 3 plus 4/i)
         expect(bufferc(to: channel, from: :ubot).join).to match(/I just loaded \*mySession6\*/)
         send_message "?and multiply by 2", from: user, to: channel
         sleep seconds_to_wait

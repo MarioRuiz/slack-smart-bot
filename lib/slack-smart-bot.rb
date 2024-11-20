@@ -13,6 +13,8 @@ require "nice_hash"
 require "cgi"
 require "yaml"
 require "nokogiri"
+require "tiktoken_ruby"
+require "engtagger"
 
 require_relative "slack/smart-bot/config"
 require_relative "slack/smart-bot/comm"
@@ -126,13 +128,13 @@ class SlackSmartBot
       config.status_init = ARGV[3].to_sym
     end
     if config.team_id_admins.size != config.admins.size and !config.admins.empty?
-        config.admins.each do |name|
-          if name.match?(/^[A-Z0-9]{7,11}_/)
-            config.team_id_admins << name
-          else
-            config.team_id_admins << "#{config.team_id}_#{name}"
-          end
+      config.admins.each do |name|
+        if name.match?(/^[A-Z0-9]{7,11}_/)
+          config.team_id_admins << name
+        else
+          config.team_id_admins << "#{config.team_id}_#{name}"
         end
+      end
     end
     config.team_id_admins.uniq!
     config.admins.uniq!
@@ -149,7 +151,7 @@ class SlackSmartBot
     end
 
     if (!config.masters.is_a?(Array) or !config.team_id_masters.is_a?(Array)) or
-      (config.masters + config.team_id_masters).empty?
+       (config.masters + config.team_id_masters).empty?
       message = "You need to supply a masters array on the settings containing the user names of the master admins, for example: [peter]. key: :masters"
       message += " or a team_id_masters array containing the team_id and user names of the master admins, for example: [TJDFJKD34_peter]. key: :team_id_masters"
       abort message
@@ -306,7 +308,7 @@ class SlackSmartBot
     @ldap = nil
     begin
       if config.ldap.key?(:host) and config.ldap[:host].to_s != ""
-        require 'net/ldap'
+        require "net/ldap"
         if config.ldap.key?(:auth) and config.ldap[:auth].key?(:user) and config.ldap[:auth][:user].to_s != ""
           @ldap = Net::LDAP.new(host: config.ldap.host, port: config.ldap.port, auth: config.ldap.auth)
         else
@@ -401,7 +403,6 @@ class SlackSmartBot
       end
       @admin_users_id.uniq!
       @master_admin_users_id.uniq!
-
     rescue Slack::Web::Api::Errors::TooManyRequestsError
       @logger.fatal "TooManyRequestsError"
       save_status :off, :TooManyRequestsError, "TooManyRequestsError please re run the bot and be sure of executing first: killall ruby"

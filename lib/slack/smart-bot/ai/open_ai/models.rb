@@ -1,26 +1,35 @@
 class SlackSmartBot
   module AI
     module OpenAI
-      def self.models(open_ai_client, models_config, model='', return_response: false)
+      def self.models(open_ai_client, models_config, model = "", return_response: false)
         require "openai"
-        require 'amazing_print'
+        require "amazing_print"
         user = Thread.current[:user]
-        if model.empty? or model == 'chatgpt'
+        models = []
+        if model.empty? or model == "chatgpt"
           if open_ai_client.is_a?(NiceHttp) and models_config.url != ""
             resp = open_ai_client.get(models_config.url)
-            models = resp.body.json(:model_name)
-            models.select!{|i| i.include?('gpt-')} if model == 'chatgpt'
+            #save resp to a file
+            resp.body.json.data.each do |m|
+              if model.empty? or (model == "chatgpt" and
+                                  (m[:model_name].to_s.include?("gpt-") or (m.key?(:model_info) and m[:model_info][:mode].to_s == "chat")))
+                models << m[:model_name]
+              end
+            end
           elsif open_ai_client.is_a?(NiceHttp) #azure
+            #todo: consider filtering by model mode
             resp = open_ai_client.get("/openai/deployments?api-version=#{models_config.api_version}")
             models = resp.body.json(:id)
-            models.select!{|i| i.include?('gpt-')} if model == 'chatgpt'
+            models.flatten!
+            models.select! { |i| i.include?("gpt-") } if model == "chatgpt"
           else
+            #todo: consider filtering by model mode
             response = open_ai_client.models.list
             models = []
             response.data.each do |model|
               models << model["id"]
             end
-            models.select!{|i| i.include?('gpt-')} if model == 'chatgpt'
+            models.select! { |i| i.include?("gpt-") } if model == "chatgpt"
           end
           if return_response
             return models.uniq.sort
@@ -39,11 +48,11 @@ class SlackSmartBot
               end
             end
             if result.empty?
-              response = {message: "Model not found"}
+              response = { message: "Model not found" }
               response_obj = response
             else
-              response = {message: ''}
-              result[:model_info].each do |k,v|
+              response = { message: "" }
+              result[:model_info].each do |k, v|
                 response.message += "#{k}: #{v}\n"
               end
               response_obj = result[:model_info]

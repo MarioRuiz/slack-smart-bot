@@ -23,17 +23,22 @@ class SlackSmartBot
       file.flock(File::LOCK_UN)
     }
     @datetime_open_ai_file[file_name] = File.mtime(file_name)
-    if session_name != ''
+    if session_name.to_s != ''
       if !@open_ai[team_id_user][:chat_gpt][:sessions].key?(session_name) #delete file if session is not longer available
         if File.exist?(File.join(config.path, "openai/#{team_id}", "#{user_name}/session_#{session_name}.txt"))
           File.delete(File.join(config.path, "openai/#{team_id}", "#{user_name}/session_#{session_name}.txt"))
         end
       else
         file_name = File.join(config.path, "openai/#{team_id}", "#{user_name}/session_#{session_name}.txt")
-        content = @ai_gpt[team_id_user][session_name].join("\n").force_encoding("UTF-8")
+        content_txt = ""
+        content = []
+        @ai_gpt[team_id_user][session_name].each do |line|
+          content << line.to_json
+        end
+        content_txt = content.join("\n").force_encoding("UTF-8")
         File.open(file_name, 'w') {|file|
-            file.flock(File::LOCK_EX)
-          file.write(Utils::Encryption.encrypt(content, config))
+          file.flock(File::LOCK_EX)
+          file.write(Utils::Encryption.encrypt(content_txt, config))
           file.flock(File::LOCK_UN)
         }
       end

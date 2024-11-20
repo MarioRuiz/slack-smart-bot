@@ -1,17 +1,16 @@
 class SlackSmartBot
-
   def get_user_info(user, is_bot: false)
     begin
-      if user.to_s.length>0
-        if user[0]=='@' #name
+      if user.to_s.length > 0
+        if user[0] == "@" #name
           user = user[1..-1]
           is_name = true
         else
           is_name = false
         end
         if user.match?(/^[A-Z0-9]{7,11}_/) #team_id_user_name
-          team_id = user.split('_')[0]
-          user = user.split('_')[1..-1].join('_')
+          team_id = user.split("_")[0]
+          user = user.split("_")[1..-1].join("_")
         else
           team_id = config.team_id
         end
@@ -19,20 +18,20 @@ class SlackSmartBot
           if client.web_client.users_info.key?(user.to_sym) #id
             client.web_client.users_info[user.to_sym]
           else #name
-            client.web_client.users_info.select{|k, v| v[:user][:name] == user and v[:user][:team_id] == team_id}.values[-1]
+            client.web_client.users_info.select { |k, v| v[:user][:name] == user and v[:user][:team_id] == team_id }.values[-1]
           end
         else
           if is_bot
             @logger.info "Getting bot info for <#{user}>"
             begin
               result = client.web_client.bots_info(bot: user)
-            rescue Exception => stack
-              @logger.warn stack
+            rescue Exception => e
+              @logger.warn "Failed to get bot info for <#{user}>: #{e.message}"
               return nil
             end
             if !result.nil? and result.key?(:bot) and result[:bot].key?(:user_id)
-                user = result[:bot][:user_id]
-                is_name = false
+              user = result[:bot][:user_id]
+              is_name = false
             else
               return nil
             end

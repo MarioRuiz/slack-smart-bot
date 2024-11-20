@@ -31,7 +31,7 @@ class SlackSmartBot
               end
 
               @open_ai[team_id_user][:chat_gpt][:sessions].delete(session_name)
-
+              @ai_gpt[team_id_user].delete(session_name) if @ai_gpt.key?(team_id_user)
               update_openai_sessions(session_name)
               respond "*ChatGPT*: Session *#{session_name}* deleted."
             else
